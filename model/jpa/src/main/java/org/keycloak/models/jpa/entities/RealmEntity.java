@@ -201,6 +201,9 @@ public class RealmEntity {
     Collection<IdentityProviderMapperEntity> identityProviderMappers = new ArrayList<IdentityProviderMapperEntity>();
 
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
+    protected List<FederationEntity> identityProvidersFederations = new ArrayList<FederationEntity>();
+    
+	@OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
     Collection<AuthenticatorConfigEntity> authenticators = new ArrayList<>();
 
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
@@ -212,6 +215,7 @@ public class RealmEntity {
     @OneToMany(fetch = FetchType.LAZY, cascade ={CascadeType.ALL}, orphanRemoval = true, mappedBy = "realm")
     Set<ComponentEntity> components = new HashSet<>();
 
+    
     @Column(name="BROWSER_FLOW")
     protected String browserFlow;
 
@@ -617,6 +621,23 @@ public class RealmEntity {
         getIdentityProviders().add(entity);
     }
 
+    
+    public List<FederationEntity> getIdentityProvidersFederations() {
+		return identityProvidersFederations;
+	}
+
+	public void setIdentityProvidersFederations(List<FederationEntity> identityProvidersFederations) {
+		this.identityProvidersFederations = identityProvidersFederations;
+	}
+
+    
+    
+    public void addIdentityProvidersFederation(FederationEntity entity) {
+        entity.setRealm(this);
+        getIdentityProvidersFederations().add(entity);
+    }
+    
+    
     public boolean isInternationalizationEnabled() {
         return internationalizationEnabled;
     }

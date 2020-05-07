@@ -80,3 +80,4 @@ org.keycloak.crypto.CekManagementSpi
 org.keycloak.crypto.ContentEncryptionSpi
 org.keycloak.validation.ClientValidationSPI
 org.keycloak.headers.SecurityHeadersSpi
+org.keycloak.broker.federation.IdpFederationSpi

@@ -41,10 +41,14 @@ import java.util.List;
  * &lt;/complexType>
  * </pre>
  */
-public class ExtensionsType {
+public class ExtensionsType extends TypeWithOtherAttributes {
 
     protected List<Object> any = new ArrayList<>();
 
+    protected List<ScopeType> scopes = new ArrayList<>();
+    
+    protected UIInfoType uiInfo;
+    
     /**
      * Function is obsoleted with getAny
      * @return
@@ -88,4 +92,25 @@ public class ExtensionsType {
     public List<Object> getAny() {
         return Collections.unmodifiableList(this.any);
     }
+    
+    
+    ///////
+    
+    public void addScope(ScopeType scope) {
+    	this.scopes.add(scope);
+    }
+    
+    public List<ScopeType> getScopes(){
+    	return this.scopes;
+    }
+    
+    public void setUiInfo(UIInfoType uiInfo) {
+    	this.uiInfo = uiInfo;
+    }
+    
+    public UIInfoType getUIInfo() {
+        return this.uiInfo;
+    }
+    
+    
 }

@@ -18,7 +18,9 @@ package org.keycloak.models;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>A model type representing the configuration for identity providers. It provides some common properties and also a {@link org.keycloak.models.IdentityProviderModel#config}
@@ -74,6 +76,8 @@ public class IdentityProviderModel implements Serializable {
      */
     private Map<String, String> config = new HashMap<>();
 
+    private Set<String> federations = new HashSet<>();
+    
     public IdentityProviderModel() {
     }
 
@@ -92,6 +96,7 @@ public class IdentityProviderModel implements Serializable {
             this.addReadTokenRoleOnCreate = model.addReadTokenRoleOnCreate;
             this.firstBrokerLoginFlowId = model.getFirstBrokerLoginFlowId();
             this.postBrokerLoginFlowId = model.getPostBrokerLoginFlowId();
+            this.federations = new HashSet<>(model.getFederations());
         }
     }
 
@@ -218,4 +223,12 @@ public class IdentityProviderModel implements Serializable {
     public void setSyncMode(IdentityProviderSyncMode syncMode) {
         getConfig().put(SYNC_MODE, syncMode.toString());
     }
+
+    public Set<String> getFederations() {
+		return federations;
+    }
+
+    public void setFederations(Set<String> federations) {
+		this.federations = federations;
+   }
 }

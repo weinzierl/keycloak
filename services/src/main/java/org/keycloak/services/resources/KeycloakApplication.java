@@ -19,10 +19,13 @@ package org.keycloak.services.resources;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.jboss.logging.Logger;
 import org.keycloak.Config;
+import org.keycloak.broker.federation.IdpFederationProvider;
+import org.keycloak.broker.federation.IdpFederationProviderFactory;
 import org.keycloak.common.util.Resteasy;
 import org.keycloak.config.ConfigProviderFactory;
 import org.keycloak.exportimport.ExportImportManager;
 import org.keycloak.migration.MigrationModelManager;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.KeycloakSessionTask;
@@ -53,6 +56,7 @@ import org.keycloak.services.scheduled.ClearExpiredEvents;
 import org.keycloak.services.scheduled.ClearExpiredUserSessions;
 import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
 import org.keycloak.services.scheduled.ScheduledTaskRunner;
+import org.keycloak.services.scheduled.UpdateFederationIdentityProviders;
 import org.keycloak.services.util.ObjectMapperResolver;
 import org.keycloak.timer.TimerProvider;
 import org.keycloak.transaction.JtaTransactionManagerLookup;
@@ -275,6 +279,27 @@ public class KeycloakApplication extends Application {
             timer.schedule(new ClusterAwareScheduledTaskRunner(sessionFactory, new ClearExpiredEvents(), interval), interval, "ClearExpiredEvents");
             timer.schedule(new ClusterAwareScheduledTaskRunner(sessionFactory, new ClearExpiredClientInitialAccessTokens(), interval), interval, "ClearExpiredClientInitialAccessTokens");
             timer.schedule(new ScheduledTaskRunner(sessionFactory, new ClearExpiredUserSessions()), interval, ClearExpiredUserSessions.TASK_NAME);
+            try {
+            	session.getTransactionManager().begin();
+            	for (RealmModel realm : session.realms().getRealms()) {
+                 	for ( IdentityProvidersFederationModel fedModel : realm.getIdentityProviderFederations()) {
+                 		IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, fedModel.getProviderId()).create(session, fedModel);
+                    	idpFederationProvider.enableUpdateTask();
+                 	}            	
+                }
+                session.getTransactionManager().commit();
+
+            } catch (Throwable t) {
+                ServicesLogger.LOGGER.error("Failed to update identity providers from federation",t);
+
+                session.getTransactionManager().rollback();
+            } finally {
+                try {
+                    session.close();
+                } catch (Throwable t) {
+                    ServicesLogger.LOGGER.failedToCloseProviderSession(t);
+                }
+            }
             new UserStorageSyncManager().bootstrapPeriodic(sessionFactory, timer);
         } finally {
             session.close();

@@ -363,7 +363,16 @@ public interface RealmModel extends RoleContainerModel {
     IdentityProviderMapperModel getIdentityProviderMapperById(String id);
     IdentityProviderMapperModel getIdentityProviderMapperByName(String brokerAlias, String name);
 
-
+    List<IdentityProvidersFederationModel> getIdentityProviderFederations();
+    IdentityProvidersFederationModel getIdentityProvidersFederationById(String id);
+    IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias);
+    void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
+    void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
+    void removeIdentityProvidersFederation(String internalId);
+    
+    boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel);
+    boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias);
+    
     /**
      * Adds component model.  Will call onCreate() method of ComponentFactory
      *
@@ -514,5 +523,6 @@ public interface RealmModel extends RoleContainerModel {
     void addDefaultClientScope(ClientScopeModel clientScope, boolean defaultScope);
     void removeDefaultClientScope(ClientScopeModel clientScope);
     List<ClientScopeModel> getDefaultClientScopes(boolean defaultScope);
+
 
 }

@@ -73,6 +73,7 @@ import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.LDAPConstants;
 import org.keycloak.models.ModelException;
@@ -109,6 +110,7 @@ import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
 import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.OAuthClientRepresentation;
@@ -1947,6 +1949,21 @@ public class RepresentationToModel {
         identityProviderModel.validate(realm);
 
         return identityProviderModel;
+    }
+    
+    public static IdentityProvidersFederationModel toModel(IdentityProvidersFederationRepresentation representation ) {
+    	IdentityProvidersFederationModel model = new IdentityProvidersFederationModel();
+    	model.setInternalId(representation.getInternalId());
+    	model.setAlias(representation.getAlias());
+    	model.setDisplayName(representation.getDisplayName());
+    	model.setLastUpdated(representation.getLastUpdated());
+    	model.setProviderId(representation.getProviderId());
+    	model.setRefreshEveryMinutes(representation.getRefreshEveryMinutes());
+    	model.setSkipIdps(representation.getSkipIdps());
+    	model.setUrl(representation.getUrl());
+    	model.setTotalIdps(representation.getTotalIdps());
+    	model.setRealmId(representation.getRealmId());
+    	return model;
     }
 
     public static ProtocolMapperModel toModel(ProtocolMapperRepresentation rep) {

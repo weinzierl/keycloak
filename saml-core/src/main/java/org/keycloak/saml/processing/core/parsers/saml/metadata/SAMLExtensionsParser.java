@@ -17,8 +17,17 @@
 package org.keycloak.saml.processing.core.parsers.saml.metadata;
 
 import org.keycloak.dom.saml.v2.metadata.ExtensionsType;
+import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
+import org.keycloak.dom.saml.v2.metadata.LocalizedURIType;
+import org.keycloak.dom.saml.v2.metadata.ScopeType;
+import org.keycloak.dom.saml.v2.metadata.UIInfoType;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.common.util.StaxParserUtil;
+
+import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetadataQNames.ATTR_REGEXP;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.events.StartElement;
@@ -47,6 +56,20 @@ public class SAMLExtensionsParser extends AbstractStaxSamlMetadataParser<Extensi
 
     @Override
     protected void processSubElement(XMLEventReader xmlEventReader, ExtensionsType target, SAMLMetadataQNames element, StartElement elementDetail) throws ParsingException {
-        target.addExtension(StaxParserUtil.getDOMElement(xmlEventReader));
+        
+    	switch (element) {
+    		case SCOPE:
+    			ScopeType scope = new ScopeType(StaxParserUtil.getAttributeValue(elementDetail, ATTR_REGEXP));
+    			StaxParserUtil.advance(xmlEventReader);
+    			scope.setValue(StaxParserUtil.getElementText(xmlEventReader));
+    			target.addScope(scope);
+    			break;
+    		case UIINFO:
+    			target.setUiInfo(SAMLUIInfoParser.getInstance().parse(xmlEventReader));
+    			break;
+    		default:
+    			target.addExtension(StaxParserUtil.getDOMElement(xmlEventReader));
+    	}
+
     }
 }

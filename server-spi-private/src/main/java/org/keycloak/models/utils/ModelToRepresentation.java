@@ -726,7 +726,24 @@ public class ModelToRepresentation {
         }
 
         return providerRep;
+    }    
+    
+    public static IdentityProvidersFederationRepresentation toRepresentation(IdentityProvidersFederationModel model) {
+    	IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
+    	representation.setInternalId(model.getInternalId());
+    	representation.setAlias(model.getAlias());
+    	representation.setDisplayName(model.getDisplayName());
+    	representation.setLastUpdated(model.getLastUpdated());
+    	representation.setProviderId(model.getProviderId());
+    	representation.setRefreshEveryMinutes(model.getRefreshEveryMinutes());
+    	representation.setSkipIdps(model.getSkipIdps());
+    	representation.setUrl(model.getUrl());
+    	representation.setTotalIdps(model.getTotalIdps());
+    	representation.setRealmId(model.getRealmId());
+    	representation.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
+        return representation;
     }
+    
 
     public static ProtocolMapperRepresentation toRepresentation(ProtocolMapperModel model) {
         ProtocolMapperRepresentation rep = new ProtocolMapperRepresentation();

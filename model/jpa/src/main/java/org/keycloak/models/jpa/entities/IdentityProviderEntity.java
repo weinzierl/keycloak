@@ -19,6 +19,7 @@ package org.keycloak.models.jpa.entities;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -26,12 +27,17 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Pedro Igor
@@ -39,7 +45,8 @@ import java.util.Map;
 @Entity
 @Table(name="IDENTITY_PROVIDER")
 @NamedQueries({
-        @NamedQuery(name="findIdentityProviderByAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias")
+        @NamedQuery(name="findIdentityProvidersByAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias"),
+        @NamedQuery(name="findIdentityProviderByRealmAndAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias and identityProvider.realm.id = :realmId" )
 })
 public class IdentityProviderEntity {
 
@@ -51,7 +58,7 @@ public class IdentityProviderEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REALM_ID")
     protected RealmEntity realm;
-
+    
     @Column(name="PROVIDER_ID")
     private String providerId;
 
@@ -90,6 +97,16 @@ public class IdentityProviderEntity {
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="IDENTITY_PROVIDER_CONFIG", joinColumns={ @JoinColumn(name="IDENTITY_PROVIDER_ID") })
     private Map<String, String> config;
+    
+    @ManyToMany(cascade = {
+            CascadeType.PERSIST,
+            CascadeType.MERGE
+        })
+    @JoinTable(
+    	name = "federation_idps", 
+		joinColumns = @JoinColumn(name = "identityprovider_id"), 
+		inverseJoinColumns = @JoinColumn(name = "federation_id"))
+    Set<FederationEntity> federations = new HashSet<FederationEntity>();
 
     public String getInternalId() {
         return this.internalId;
@@ -99,7 +116,7 @@ public class IdentityProviderEntity {
         this.internalId = internalId;
     }
 
-    public String getProviderId() {
+	public String getProviderId() {
         return this.providerId;
     }
 
@@ -203,7 +220,24 @@ public class IdentityProviderEntity {
         this.displayName = displayName;
     }
 
-    @Override
+	public Set<FederationEntity> getFederations() {
+		return federations;
+	}
+
+	public void setFederations(Set<FederationEntity> federations) {
+		this.federations = federations;
+	}
+
+	public void addToFederation(FederationEntity federation) {
+		this.federations.add(federation);
+	}
+	
+	public void removeFromFederation(FederationEntity federation) {
+		this.federations.remove(federation);
+	}
+	
+	
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null) return false;

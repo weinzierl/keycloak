@@ -28,6 +28,7 @@ import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.OTPPolicy;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
@@ -112,6 +113,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected MultivaluedHashMap<String, ComponentModel> componentsByParentAndType = new MultivaluedHashMap<>();
     protected Map<String, ComponentModel> components = new HashMap<>();
     protected List<IdentityProviderModel> identityProviders;
+    protected List<IdentityProvidersFederationModel> identityProvidersFederations;
 
     protected Map<String, String> browserSecurityHeaders;
     protected Map<String, String> smtpConfig;
@@ -228,7 +230,10 @@ public class CachedRealm extends AbstractExtendableRevisioned {
             this.identityProviders.add(new IdentityProviderModel(identityProviderModel));
         }
         this.identityProviders = Collections.unmodifiableList(this.identityProviders);
-
+        
+        this.identityProvidersFederations  = model.getIdentityProviderFederations();
+        
+       
         this.identityProviderMapperSet = model.getIdentityProviderMappers();
         for (IdentityProviderMapperModel mapper : identityProviderMapperSet) {
             identityProviderMappers.add(mapper.getIdentityProviderAlias(), mapper);
@@ -575,7 +580,11 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         return identityProviders;
     }
 
-    public boolean isInternationalizationEnabled() {
+    public List<IdentityProvidersFederationModel> getIdentityProvidersFederations() {
+		return identityProvidersFederations;
+	}
+
+	public boolean isInternationalizationEnabled() {
         return internationalizationEnabled;
     }
 

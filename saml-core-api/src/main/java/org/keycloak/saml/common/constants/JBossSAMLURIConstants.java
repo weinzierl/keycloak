@@ -65,6 +65,9 @@ public enum JBossSAMLURIConstants {
     HOLDER_OF_KEY("urn:oasis:names:tc:SAML:2.0:cm:holder-of-key"),
 
     METADATA_NSURI("urn:oasis:names:tc:SAML:2.0:metadata"),
+    
+    METADATA_UI_NSURI("urn:oasis:names:tc:SAML:metadata:ui"),
+    SHIBBOLETH_METADATA_NSURI("urn:mace:shibboleth:metadata:1.0"),
 
     NAMEID_FORMAT_TRANSIENT("urn:oasis:names:tc:SAML:2.0:nameid-format:transient"),
     NAMEID_FORMAT_PERSISTENT("urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"),

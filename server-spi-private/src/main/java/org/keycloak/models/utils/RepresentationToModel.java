@@ -1962,6 +1962,7 @@ public class RepresentationToModel {
     	model.setSkipIdps(representation.getSkipIdps());
     	model.setUrl(representation.getUrl());
     	model.setRealmId(representation.getRealmId());
+    	model.setValidUntilTimestamp(representation.getValidUntilTimestamp());
     	return model;
     }
 

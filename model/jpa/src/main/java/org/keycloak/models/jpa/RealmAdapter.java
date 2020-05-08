@@ -1275,6 +1275,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     	federationModel.setLastMetadataRefreshTimestamp(entity.getLastMetadataRefreshTimestamp());
     	federationModel.setProviderId(entity.getProviderId());
     	federationModel.setUpdateFrequencyInMins(entity.getUpdateFrequencyInMins());
+    	federationModel.setValidUntilTimestamp(entity.getValidUntilTimestamp());
     	Set<String> skipIdps = new HashSet<>();
     	skipIdps.addAll(entity.getSkipEntities());
     	federationModel.setSkipIdps(skipIdps);
@@ -1445,6 +1446,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
 		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
+		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
 		
 		realm.addIdentityProvidersFederation(federationEntity);
 		
@@ -1475,12 +1477,13 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		}
 		
 		//should not change alias, providerid, and creation date, since those attributes are immutable
-		//lastUpdated field should be updated only related to idps refresh 
+		//lastMetadataRefreshTimestamp field should be updated only related to idps refresh 
 		//and not if user change some federation fields
 		federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
 		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
 		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
+		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
 		
 	}
 	

@@ -126,6 +126,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			Object parsedObject = SAMLParser.getInstance().parse(inputStream);
 			EntitiesDescriptorType entitiesDescriptorType = (EntitiesDescriptorType) parsedObject;
 			validUntil = entitiesDescriptorType.getValidUntil().toGregorianCalendar().getTime();
+			model.setValidUntilTimestamp(validUntil.getTime());
 	        entities = (List<EntityDescriptorType>) (Object) entitiesDescriptorType.getEntityDescriptor();
 		} catch (ParsingException | IOException e) {
 			e.printStackTrace();

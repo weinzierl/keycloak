@@ -740,6 +740,7 @@ public class ModelToRepresentation {
     	representation.setUrl(model.getUrl());
     	representation.setRealmId(model.getRealmId());
     	representation.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
+    	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());
         return representation;
     }
     

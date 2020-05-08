@@ -17,17 +17,12 @@
             <column name="PROVIDER_ID" type="VARCHAR(36)">
                 <constraints nullable="false"/>
             </column>
-            <column name="UPDATE_EVERY_MINUTES" type="INT">
+            <column name="UPDATE_FREQUENCY_IN_MINS" type="INT">
                 <constraints nullable="false"/>
             </column>
-            <column name="TOTAL_IDPS" type="INT">
+            <column name="VALID_UNTIL_TIMESTAMP" type="BIGINT">
             </column>
-            <column name="ADDED_IDPS" type="INT">
-            </column>
-            <column name="CREATED" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="LAST_UPDATED" type="BIGINT">
+            <column name="LAST_METADATA_REFRESH_TIMESTAMP" type="BIGINT">
             </column>
             <column name="REALM_ID" type="VARCHAR(36)">
                 <constraints nullable="false"/>

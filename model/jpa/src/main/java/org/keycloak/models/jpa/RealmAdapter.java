@@ -1272,14 +1272,13 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     	federationModel.setInternalId(entity.getInternalId());
     	federationModel.setAlias(entity.getAlias());
     	federationModel.setDisplayName(entity.getDisplayName());
-    	federationModel.setLastUpdated(entity.getLastUpdated());
+    	federationModel.setLastMetadataRefreshTimestamp(entity.getLastMetadataRefreshTimestamp());
     	federationModel.setProviderId(entity.getProviderId());
-    	federationModel.setRefreshEveryMinutes(entity.getUpdateEveryMinutes());
+    	federationModel.setUpdateFrequencyInMins(entity.getUpdateFrequencyInMins());
     	Set<String> skipIdps = new HashSet<>();
     	skipIdps.addAll(entity.getSkipEntities());
     	federationModel.setSkipIdps(skipIdps);
     	federationModel.setUrl(entity.getUrl());
-    	federationModel.setTotalIdps(entity.getTotalIdps());
     	federationModel.setRealmId(entity.getRealm().getId());
     	Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
     	federationModel.setIdentityprovidersAlias(identityprovidersAlias);
@@ -1439,14 +1438,13 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		FederationEntity federationEntity = new FederationEntity();
 
 		federationEntity.setInternalId(identityProvidersFederationModel.getInternalId());
-		federationEntity.setCreated(new Date().getTime());
 		federationEntity.setAlias(identityProvidersFederationModel.getAlias());
 		federationEntity.setProviderId(identityProvidersFederationModel.getProviderId());
 		
-		federationEntity.setLastUpdated(new Date().getTime());
+		federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
 		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
 		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
-		federationEntity.setUpdateEveryMinutes(identityProvidersFederationModel.getRefreshEveryMinutes());
+		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
 		
 		realm.addIdentityProvidersFederation(federationEntity);
 		
@@ -1479,11 +1477,10 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		//should not change alias, providerid, and creation date, since those attributes are immutable
 		//lastUpdated field should be updated only related to idps refresh 
 		//and not if user change some federation fields
-		federationEntity.setLastUpdated(new Date().getTime());
+		federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
 		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
 		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
-		federationEntity.setUpdateEveryMinutes(identityProvidersFederationModel.getRefreshEveryMinutes());
-		federationEntity.setTotalIdps(identityProvidersFederationModel.getTotalIdps());
+		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
 		
 	}
 	

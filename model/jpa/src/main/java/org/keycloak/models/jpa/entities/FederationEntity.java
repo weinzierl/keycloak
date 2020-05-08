@@ -42,20 +42,14 @@ public class FederationEntity {
 	@Column(name = "PROVIDER_ID")
 	private String providerId;
 
-	@Column(name = "UPDATE_EVERY_MINUTES")
-	private Integer updateEveryMinutes;
+	@Column(name = "UPDATE_FREQUENCY_IN_MINS")
+	private Integer updateFrequencyInMins;
 
-	@Column(name = "TOTAL_IDPS")
-	private Integer totalIdps;
+	@Column(name = "VALID_UNTIL_TIMESTAMP")
+	private Long validUntilTimestamp;
 
-	@Column(name = "ADDED_IDPS")
-	private Integer addedIdps;
-
-	@Column(name = "CREATED")
-	private Long created;
-
-	@Column(name = "LAST_UPDATED")
-	private Long lastUpdated;
+	@Column(name = "LAST_METADATA_REFRESH_TIMESTAMP")
+	private Long lastMetadataRefreshTimestamp;
 	
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REALM_ID")
@@ -109,44 +103,20 @@ public class FederationEntity {
 		this.realm = realm;
 	}
 
-	public Integer getUpdateEveryMinutes() {
-		return updateEveryMinutes;
+	public Integer getUpdateFrequencyInMins() {
+		return updateFrequencyInMins;
 	}
 
-	public void setUpdateEveryMinutes(Integer updateEveryMinutes) {
-		this.updateEveryMinutes = updateEveryMinutes;
+	public void setUpdateFrequencyInMins(Integer updateFrequencyInMins) {
+		this.updateFrequencyInMins = updateFrequencyInMins;
 	}
 
-	public Integer getTotalIdps() {
-		return totalIdps;
+	public Long getLastMetadataRefreshTimestamp() {
+		return lastMetadataRefreshTimestamp;
 	}
 
-	public void setTotalIdps(Integer totalIdps) {
-		this.totalIdps = totalIdps;
-	}
-
-	public Integer getAddedIdps() {
-		return addedIdps;
-	}
-
-	public void setAddedIdps(Integer addedIdps) {
-		this.addedIdps = addedIdps;
-	}
-
-	public Long getCreated() {
-		return created;
-	}
-
-	public void setCreated(Long created) {
-		this.created = created;
-	}
-
-	public Long getLastUpdated() {
-		return lastUpdated;
-	}
-
-	public void setLastUpdated(Long lastUpdated) {
-		this.lastUpdated = lastUpdated;
+	public void setLastMetadataRefreshTimestamp(Long lastMetadataRefreshTimestamp ) {
+		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp ;
 	}
 
 	public Set<String> getSkipEntities() {
@@ -171,6 +141,14 @@ public class FederationEntity {
 
 	public void setProviderId(String providerId) {
 		this.providerId = providerId;
+	}
+
+	public Long getValidUntilTimestamp() {
+		return validUntilTimestamp;
+	}
+
+	public void setValidUntilTimestamp(Long validUntilTimestamp) {
+		this.validUntilTimestamp = validUntilTimestamp;
 	}
 
 	@Override

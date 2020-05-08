@@ -16,17 +16,17 @@ public class IdentityProvidersFederationRepresentation {
     
     private String realmId;
     
-    private Integer refreshEveryMinutes;
+    private Integer updateFrequencyInMins;
     
     private String displayName;
     
-    private Long lastUpdated;
+    private Long validUntilTimestamp;
+    
+    private Long lastMetadataRefreshTimestamp;
 
     private Set<String> skipIdps;
     
     private Set<String> identityprovidersAlias;
-    
-    private Integer totalIdps;
     
     public IdentityProvidersFederationRepresentation() {
     	this.skipIdps = new HashSet<String>();
@@ -73,12 +73,12 @@ public class IdentityProvidersFederationRepresentation {
 		this.realmId = realmId;
 	}
 
-	public Integer getRefreshEveryMinutes() {
-		return refreshEveryMinutes;
+	public Integer getUpdateFrequencyInMins() {
+		return updateFrequencyInMins;
 	}
 
-	public void setRefreshEveryMinutes(Integer refreshEveryMinutes) {
-		this.refreshEveryMinutes = refreshEveryMinutes;
+	public void setUpdateFrequencyInMins(Integer updateFrequencyInMins) {
+		this.updateFrequencyInMins = updateFrequencyInMins;
 	}
 
 	public String getDisplayName() {
@@ -89,12 +89,12 @@ public class IdentityProvidersFederationRepresentation {
 		this.displayName = displayName;
 	}
 
-	public Long getLastUpdated() {
-		return lastUpdated;
+	public Long getLastMetadataRefreshTimestamp() {
+		return lastMetadataRefreshTimestamp;
 	}
 
-	public void setLastUpdated(Long lastUpdated) {
-		this.lastUpdated = lastUpdated;
+	public void setLastMetadataRefreshTimestamp(Long lastMetadataRefreshTimestamp) {
+		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp;
 	}
 
 	public Set<String> getSkipIdps() {
@@ -112,13 +112,13 @@ public class IdentityProvidersFederationRepresentation {
 	public void setIdentityprovidersAlias(Set<String> identityprovidersAlias) {
 		this.identityprovidersAlias = identityprovidersAlias;
 	}
-
-	public Integer getTotalIdps() {
-		return totalIdps;
+	
+	public Long getValidUntilTimestamp() {
+		return validUntilTimestamp;
 	}
 
-	public void setTotalIdps(Integer totalIdps) {
-		this.totalIdps = totalIdps;
+	public void setValidUntilTimestamp(Long validUntilTimestamp) {
+		this.validUntilTimestamp = validUntilTimestamp;
 	}
 
     

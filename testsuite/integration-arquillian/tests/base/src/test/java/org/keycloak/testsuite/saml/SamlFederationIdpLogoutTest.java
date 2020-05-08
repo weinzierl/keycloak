@@ -266,7 +266,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
 		representation.setAlias(alias);
 		representation.setProviderId("saml");
-		representation.setRefreshEveryMinutes(60);
+		representation.setUpdateFrequencyInMins(60);
 		representation.setUrl(url);
 
 		Response response = realm.identityProvidersFederation().create(representation);

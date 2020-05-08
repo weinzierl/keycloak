@@ -733,12 +733,11 @@ public class ModelToRepresentation {
     	representation.setInternalId(model.getInternalId());
     	representation.setAlias(model.getAlias());
     	representation.setDisplayName(model.getDisplayName());
-    	representation.setLastUpdated(model.getLastUpdated());
+    	representation.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
     	representation.setProviderId(model.getProviderId());
-    	representation.setRefreshEveryMinutes(model.getRefreshEveryMinutes());
+    	representation.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
     	representation.setSkipIdps(model.getSkipIdps());
     	representation.setUrl(model.getUrl());
-    	representation.setTotalIdps(model.getTotalIdps());
     	representation.setRealmId(model.getRealmId());
     	representation.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
         return representation;

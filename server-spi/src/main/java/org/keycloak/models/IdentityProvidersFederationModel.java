@@ -41,17 +41,17 @@ public class IdentityProvidersFederationModel implements Serializable {
     
     private String url;
     
-    private Integer refreshEveryMinutes;
+    private Integer updateFrequencyInMins;
     
     private String displayName;
     
-    private Long lastUpdated;
+    private Long validUntilTimestamp;
+    
+    private Long lastMetadataRefreshTimestamp;
 
     private Set<String> skipIdps;
     
     private Set<String> identityprovidersAlias;
-    
-    private Integer totalIdps;
     
 
     public IdentityProvidersFederationModel() {
@@ -67,28 +67,25 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.setRealmId(model.getRealmId());
 		this.setProviderId(model.getProviderId());
 		this.setUrl(model.getUrl());
-		this.setRefreshEveryMinutes(model.getRefreshEveryMinutes());
+		this.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
 		this.setDisplayName(model.getDisplayName());
 		this.setSkipIdps(model.getSkipIdps() != null ? model.getSkipIdps() : new HashSet<String>());
-		this.setLastUpdated(model.getLastUpdated());
-		this.setTotalIdps(model.getTotalIdps());
+		this.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
 		this.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
 	}
 
 	public IdentityProvidersFederationModel(String internalId, String alias, String providerId, String url,
-			String realmId, Integer refreshEveryMinutes, String displayName, Long lastUpdated,Set<String> skipIdps,
-			Set<String> erroneousIdps, Integer totalIdps,Set<String> identityprovidersAlias) {
+			String realmId, Integer refreshEveryMinutes, String displayName, Long lastMetadataRefreshTimestamp,Set<String> skipIdps,Set<String> identityprovidersAlias) {
 		super();
 		this.internalId = internalId;
 		this.alias = alias;
 		this.providerId = providerId;
 		this.realmId = realmId;
 		this.url = url;
-		this.refreshEveryMinutes = refreshEveryMinutes;
+		this.updateFrequencyInMins = refreshEveryMinutes;
 		this.displayName = displayName;
 		this.skipIdps = (skipIdps != null) ? skipIdps : new HashSet<String>();
-		this.lastUpdated = lastUpdated;
-		this.totalIdps = totalIdps;
+		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp;
 		this.identityprovidersAlias = identityprovidersAlias;
 	}
 
@@ -143,20 +140,20 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.url = url;
 	}
 
-	public Integer getRefreshEveryMinutes() {
-		return refreshEveryMinutes;
+	public Integer getUpdateFrequencyInMins() {
+		return updateFrequencyInMins;
 	}
 
-	public void setRefreshEveryMinutes(Integer refreshEveryMinutes) {
-		this.refreshEveryMinutes = refreshEveryMinutes;
+	public void setUpdateFrequencyInMins(Integer updateFrequencyInMins) {
+		this.updateFrequencyInMins = updateFrequencyInMins;
 	}
 
-	public Long getLastUpdated() {
-		return lastUpdated;
+	public Long getLastMetadataRefreshTimestamp() {
+		return lastMetadataRefreshTimestamp;
 	}
 
-	public void setLastUpdated(Long lastUpdated) {
-		this.lastUpdated = lastUpdated;
+	public void setLastMetadataRefreshTimestamp(Long lastMetadataRefreshTimestamp) {
+		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp;
 	}
 
 	public Set<String> getSkipIdps() {
@@ -175,12 +172,13 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.identityprovidersAlias = identityprovidersAlias;
 	}
 
-	public Integer getTotalIdps() {
-		return totalIdps;
+	public Long getValidUntilTimestamp() {
+		return validUntilTimestamp;
 	}
 
-	public void setTotalIdps(Integer totalIdps) {
-		this.totalIdps = totalIdps;
+	public void setValidUntilTimestamp(Long validUntilTimestamp) {
+		this.validUntilTimestamp = validUntilTimestamp;
 	}
+	
     
 }

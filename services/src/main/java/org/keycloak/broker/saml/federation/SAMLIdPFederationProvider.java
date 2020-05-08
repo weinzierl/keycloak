@@ -94,7 +94,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			realm.addIdentityProvidersFederation(model);
 		} else {
 			realm.updateIdentityProvidersFederation(model);
-			if (!model.getRefreshEveryMinutes().equals(oldModel.getRefreshEveryMinutes()))
+			if (!model.getUpdateFrequencyInMins().equals(oldModel.getUpdateFrequencyInMins()))
 				enableUpdateTask();
 		}
 		return model.getInternalId();
@@ -102,14 +102,14 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 	
 	@Override
 	public void enableUpdateTask() {
-		if(model.getLastUpdated()==null) model.setLastUpdated(0L);
+		if(model.getLastMetadataRefreshTimestamp()==null) model.setLastMetadataRefreshTimestamp(0L);
 		// remove previous task and add new with new RefreshEveryHours
 		TimerProvider timer = session.getProvider(TimerProvider.class);
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
 		UpdateFederationIdentityProviders updateFederationIdentityProviders = new UpdateFederationIdentityProviders(model.getInternalId(),model.getRealmId());
 		ScheduledTaskRunner taskRunner = new ScheduledTaskRunner(session.getKeycloakSessionFactory(),updateFederationIdentityProviders);
-		long delay = (model.getRefreshEveryMinutes() * 60 * 1000) - Instant.now().toEpochMilli() + model.getLastUpdated();
-		timer.schedule(taskRunner, delay > 60 * 1000 ? delay : 60 * 1000, model.getRefreshEveryMinutes() * 60 * 1000, "UpdateFederation" + model.getInternalId());
+		long delay = (model.getUpdateFrequencyInMins() * 60 * 1000) - Instant.now().toEpochMilli() + model.getLastMetadataRefreshTimestamp();
+		timer.schedule(taskRunner, delay > 60 * 1000 ? delay : 60 * 1000, model.getUpdateFrequencyInMins() * 60 * 1000, "UpdateFederation" + model.getInternalId());
 	}
 	
 	@Override
@@ -134,8 +134,6 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		if(validUntil == null || entities.isEmpty())
 			return; //add a log entry for the failure reason and/or write it in the database, so you can alert later on the admins through the UI
 		
-		model.setTotalIdps(0);
-		
 		final String preferredLang = "en";
 
 		for(EntityDescriptorType entity: entities) {
@@ -143,8 +141,6 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			//conditional add (if it's in the skiplist)
 			if(model.getSkipIdps().contains(entity.getEntityID()))
 				continue;
-			
-			model.setTotalIdps(model.getTotalIdps()+1);
 			
 			String alias = getHash(entity.getEntityID());
 			

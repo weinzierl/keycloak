@@ -1956,12 +1956,11 @@ public class RepresentationToModel {
     	model.setInternalId(representation.getInternalId());
     	model.setAlias(representation.getAlias());
     	model.setDisplayName(representation.getDisplayName());
-    	model.setLastUpdated(representation.getLastUpdated());
+    	model.setLastMetadataRefreshTimestamp(representation.getLastMetadataRefreshTimestamp());
     	model.setProviderId(representation.getProviderId());
-    	model.setRefreshEveryMinutes(representation.getRefreshEveryMinutes());
+    	model.setUpdateFrequencyInMins(representation.getUpdateFrequencyInMins());
     	model.setSkipIdps(representation.getSkipIdps());
     	model.setUrl(representation.getUrl());
-    	model.setTotalIdps(representation.getTotalIdps());
     	model.setRealmId(representation.getRealmId());
     	return model;
     }

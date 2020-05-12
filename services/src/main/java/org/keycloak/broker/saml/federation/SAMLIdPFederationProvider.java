@@ -66,8 +66,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 	
 	
 	
-	public SAMLIdPFederationProvider(KeycloakSession session, SAMLIdPFederationModel model) {
-		super(session, model);
+	public SAMLIdPFederationProvider(KeycloakSession session, SAMLIdPFederationModel model,String realmId) {
+		super(session, model,realmId);
 	}
 
 	@Override
@@ -87,7 +87,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 	
 	@Override
 	public String updateFederation() {
-		RealmModel realm = session.realms().getRealm(model.getRealmId());
+		RealmModel realm = session.realms().getRealm(realmId);
 		IdentityProvidersFederationModel oldModel = realm.getIdentityProvidersFederationById(model.getInternalId());
 		if (oldModel == null) {
 			model.setInternalId(KeycloakModelUtils.generateId());
@@ -106,7 +106,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		// remove previous task and add new with new RefreshEveryHours
 		TimerProvider timer = session.getProvider(TimerProvider.class);
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
-		UpdateFederationIdentityProviders updateFederationIdentityProviders = new UpdateFederationIdentityProviders(model.getInternalId(),model.getRealmId());
+		UpdateFederationIdentityProviders updateFederationIdentityProviders = new UpdateFederationIdentityProviders(model.getInternalId(),realmId);
 		ScheduledTaskRunner taskRunner = new ScheduledTaskRunner(session.getKeycloakSessionFactory(),updateFederationIdentityProviders);
 		long delay = (model.getUpdateFrequencyInMins() * 60 * 1000) - Instant.now().toEpochMilli() + model.getLastMetadataRefreshTimestamp();
 		timer.schedule(taskRunner, delay > 60 * 1000 ? delay : 60 * 1000, model.getUpdateFrequencyInMins() * 60 * 1000, "UpdateFederation" + model.getInternalId());
@@ -117,7 +117,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		
 		logger.info("Started updating IdPs of federation (id): " + model.getInternalId());
 		
-		RealmModel realm = session.realms().getRealm(model.getRealmId());
+		RealmModel realm = session.realms().getRealm(realmId);
 		
 		List<EntityDescriptorType> entities = new ArrayList<EntityDescriptorType>();
 		Date validUntil = null;
@@ -311,7 +311,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		TimerProvider timer = session.getProvider(TimerProvider.class);
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
 		
-		RealmModel realm = session.realms().getRealm(model.getRealmId());
+		RealmModel realm = session.realms().getRealm(realmId);
 		List<Boolean> results = model.getIdentityprovidersAlias().stream().map(idpAlias -> realm.removeFederationIdp(model, idpAlias)).collect(Collectors.toList());
 		
 		realm.removeIdentityProvidersFederation(model.getInternalId());

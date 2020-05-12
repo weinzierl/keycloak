@@ -53,7 +53,7 @@ public class UpdateFederationIdentityProviders implements ScheduledTask {
 		logger.info(" Updating identity providers of federation with id " + federationId + " and alias " + realmId);
 		IdentityProvidersFederationModel federationModel = session.realms().getRealm(realmId).getIdentityProvidersFederationById(federationId);
 		IdpFederationProviderFactory idpFederationProviderFactory = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, federationModel.getProviderId());
-		IdpFederationProvider idpFederationProvider = idpFederationProviderFactory.create(session,federationModel);
+		IdpFederationProvider idpFederationProvider = idpFederationProviderFactory.create(session,federationModel,realmId);
 		idpFederationProvider.updateIdentityProviders();
 	}
 	

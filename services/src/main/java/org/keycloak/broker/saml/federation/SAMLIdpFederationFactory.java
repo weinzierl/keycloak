@@ -27,8 +27,8 @@ public class SAMLIdpFederationFactory extends AbstractIdPFederationProviderFacto
 
 	
 	@Override
-	public SAMLIdPFederationProvider create(KeycloakSession session, IdentityProvidersFederationModel model) {
-		return new SAMLIdPFederationProvider(session, new SAMLIdPFederationModel(model));
+	public SAMLIdPFederationProvider create(KeycloakSession session, IdentityProvidersFederationModel model,String realmId) {
+		return new SAMLIdPFederationProvider(session, new SAMLIdPFederationModel(model),realmId);
 	}
 	
 

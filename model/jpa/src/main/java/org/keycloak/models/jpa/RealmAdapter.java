@@ -1280,7 +1280,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     	skipIdps.addAll(entity.getSkipEntities());
     	federationModel.setSkipIdps(skipIdps);
     	federationModel.setUrl(entity.getUrl());
-    	federationModel.setRealmId(entity.getRealm().getId());
     	Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
     	federationModel.setIdentityprovidersAlias(identityprovidersAlias);
     	return federationModel;

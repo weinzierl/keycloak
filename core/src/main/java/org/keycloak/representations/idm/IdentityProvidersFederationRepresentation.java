@@ -14,8 +14,6 @@ public class IdentityProvidersFederationRepresentation {
     
     private String url;
     
-    private String realmId;
-    
     private Integer updateFrequencyInMins;
     
     private String displayName;
@@ -64,15 +62,7 @@ public class IdentityProvidersFederationRepresentation {
 	public void setUrl(String url) {
 		this.url = url;
 	}
-
-	public String getRealmId() {
-		return realmId;
-	}
-
-	public void setRealmId(String realmId) {
-		this.realmId = realmId;
-	}
-
+	
 	public Integer getUpdateFrequencyInMins() {
 		return updateFrequencyInMins;
 	}

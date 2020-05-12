@@ -39,6 +39,7 @@ import org.keycloak.representations.idm.authorization.*;
 import org.keycloak.storage.StorageId;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -449,7 +450,7 @@ public class ModelToRepresentation {
         for (IdentityProviderMapperModel mapper : realm.getIdentityProviderMappers()) {
             rep.addIdentityProviderMapper(toRepresentation(mapper));
         }
-
+       
         rep.setInternationalizationEnabled(realm.isInternationalizationEnabled());
         if (realm.getSupportedLocales() != null) {
             rep.setSupportedLocales(new HashSet<>());
@@ -706,6 +707,7 @@ public class ModelToRepresentation {
         Map<String, String> config = new HashMap<>(identityProviderModel.getConfig());
         providerRep.setConfig(config);
         providerRep.setAddReadTokenRoleOnCreate(identityProviderModel.isAddReadTokenRoleOnCreate());
+        providerRep.setFederations(identityProviderModel.getFederations());
 
         String firstBrokerLoginFlowId = identityProviderModel.getFirstBrokerLoginFlowId();
         if (firstBrokerLoginFlowId != null) {
@@ -738,7 +740,6 @@ public class ModelToRepresentation {
     	representation.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
     	representation.setSkipIdps(model.getSkipIdps());
     	representation.setUrl(model.getUrl());
-    	representation.setRealmId(model.getRealmId());
     	representation.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
     	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());
         return representation;

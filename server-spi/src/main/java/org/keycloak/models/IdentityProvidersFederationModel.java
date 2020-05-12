@@ -36,8 +36,6 @@ public class IdentityProvidersFederationModel implements Serializable {
     private String alias;
  
     private String providerId;
-
-    private String realmId;
     
     private String url;
     
@@ -64,7 +62,6 @@ public class IdentityProvidersFederationModel implements Serializable {
 		super();
 		this.setInternalId(model.getInternalId());
 		this.setAlias(model.getAlias());
-		this.setRealmId(model.getRealmId());
 		this.setProviderId(model.getProviderId());
 		this.setUrl(model.getUrl());
 		this.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
@@ -75,12 +72,11 @@ public class IdentityProvidersFederationModel implements Serializable {
 	}
 
 	public IdentityProvidersFederationModel(String internalId, String alias, String providerId, String url,
-			String realmId, Integer refreshEveryMinutes, String displayName, Long lastMetadataRefreshTimestamp,Set<String> skipIdps,Set<String> identityprovidersAlias) {
+			Integer refreshEveryMinutes, String displayName, Long lastMetadataRefreshTimestamp,Set<String> skipIdps,Set<String> identityprovidersAlias) {
 		super();
 		this.internalId = internalId;
 		this.alias = alias;
 		this.providerId = providerId;
-		this.realmId = realmId;
 		this.url = url;
 		this.updateFrequencyInMins = refreshEveryMinutes;
 		this.displayName = displayName;
@@ -123,14 +119,6 @@ public class IdentityProvidersFederationModel implements Serializable {
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
-
-	public String getRealmId() {
-		return realmId;
-	}
-
-	public void setRealmId(String realmId) {
-		this.realmId = realmId;
-	}
 
 	public String getUrl() {
 		return url;

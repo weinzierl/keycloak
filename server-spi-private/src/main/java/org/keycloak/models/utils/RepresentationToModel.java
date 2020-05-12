@@ -52,6 +52,8 @@ import org.keycloak.authorization.store.StoreFactory;
 import org.keycloak.broker.provider.IdentityProvider;
 import org.keycloak.broker.provider.IdentityProviderFactory;
 import org.keycloak.broker.social.SocialIdentityProvider;
+import org.keycloak.broker.federation.IdpFederationProvider;
+import org.keycloak.broker.federation.IdpFederationProviderFactory;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.common.util.UriUtils;
@@ -1923,6 +1925,7 @@ public class RepresentationToModel {
         identityProviderModel.setStoreToken(representation.isStoreToken());
         identityProviderModel.setAddReadTokenRoleOnCreate(representation.isAddReadTokenRoleOnCreate());
         identityProviderModel.setConfig(removeEmptyString(representation.getConfig()));
+identityProviderModel.setFederations(representation.getFederations());
 
         String flowAlias = representation.getFirstBrokerLoginFlowAlias();
         if (flowAlias == null) {
@@ -1961,7 +1964,6 @@ public class RepresentationToModel {
     	model.setUpdateFrequencyInMins(representation.getUpdateFrequencyInMins());
     	model.setSkipIdps(representation.getSkipIdps());
     	model.setUrl(representation.getUrl());
-    	model.setRealmId(representation.getRealmId());
     	model.setValidUntilTimestamp(representation.getValidUntilTimestamp());
     	return model;
     }

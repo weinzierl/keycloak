@@ -31,7 +31,7 @@ public interface IdpFederationProviderFactory extends ProviderFactory<IdpFederat
     String getName();
 
     
-    IdpFederationProvider create(KeycloakSession session, IdentityProvidersFederationModel model);
+    IdpFederationProvider create(KeycloakSession session, IdentityProvidersFederationModel model, String realmId);
 
 
 	static IdpFederationProviderFactory getIdpFederationProviderFactoryById(KeycloakSession session, String providerId) {

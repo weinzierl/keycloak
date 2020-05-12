@@ -88,7 +88,7 @@ public class IdentityProvidersFederationResource {
         InputStream inputStream = session.getProvider(HttpClientProvider.class).get(from);
         
 		try {
-			IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, providerId).create(session, new IdentityProvidersFederationModel());
+			IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, providerId).create(session, new IdentityProvidersFederationModel(),this.realm.getId());
 			return idpFederationProvider.parseIdps(session, inputStream);
 		} finally {
 			try {
@@ -114,9 +114,8 @@ public class IdentityProvidersFederationResource {
         this.auth.realm().requireManageIdentityProviders();
 
         try {
-        	representation.setRealmId(this.realm.getId());
         	IdentityProvidersFederationModel model = RepresentationToModel.toModel(representation);
-        	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session,model);
+        	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session,model,this.realm.getId());
         	String id = idpFederationProvider.updateFederation();
         	
 			adminEvent.operation(OperationType.CREATE)
@@ -160,7 +159,7 @@ public class IdentityProvidersFederationResource {
         IdentityProvidersFederationModel model = realm.getIdentityProvidersFederationById(internalId);
         if (model == null)
         	throw new NotFoundException();
-    	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session,model);
+    	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session,model,this.realm.getId());
         
     	idpFederationProvider.removeFederation();
         

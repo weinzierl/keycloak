@@ -17,7 +17,9 @@
 package org.keycloak.representations.idm;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Pedro Igor
@@ -57,6 +59,7 @@ public class IdentityProviderRepresentation {
     protected String firstBrokerLoginFlowAlias;
     protected String postBrokerLoginFlowAlias;
     protected Map<String, String> config = new HashMap<>();
+    protected Set<String> federations = new HashSet<>();
 
     public String getInternalId() {
         return this.internalId;
@@ -193,5 +196,13 @@ public class IdentityProviderRepresentation {
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
+
+	public Set<String> getFederations() {
+		return federations;
+	}
+
+	public void setFederations(Set<String> federations) {
+		this.federations = federations;
+	}
 
 }

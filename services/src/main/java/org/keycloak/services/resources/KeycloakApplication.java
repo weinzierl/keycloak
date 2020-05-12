@@ -283,7 +283,7 @@ public class KeycloakApplication extends Application {
             	session.getTransactionManager().begin();
             	for (RealmModel realm : session.realms().getRealms()) {
                  	for ( IdentityProvidersFederationModel fedModel : realm.getIdentityProviderFederations()) {
-                 		IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, fedModel.getProviderId()).create(session, fedModel);
+                 		IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, fedModel.getProviderId()).create(session, fedModel,realm.getId());
                     	idpFederationProvider.enableUpdateTask();
                  	}            	
                 }

@@ -62,6 +62,11 @@ public interface RealmModel extends RoleContainerModel {
         KeycloakSession getKeycloakSession();
     }
 
+    
+    interface IdentityProviderCreationEvent extends ProviderEvent {
+    	IdentityProviderModel getCreatedIdentityProvider();
+    }
+    
     interface IdentityProviderUpdatedEvent extends ProviderEvent {
         RealmModel getRealm();
         IdentityProviderModel getUpdatedIdentityProvider();
@@ -344,7 +349,10 @@ public interface RealmModel extends RoleContainerModel {
     RequiredActionProviderModel getRequiredActionProviderById(String id);
     RequiredActionProviderModel getRequiredActionProviderByAlias(String alias);
 
+	List<String> getUsedIdentityProviderIdTypes();
     List<IdentityProviderModel> getIdentityProviders();
+    List<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults);
+	IdentityProviderModel getIdentityProviderById(String internalId);
     IdentityProviderModel getIdentityProviderByAlias(String alias);
     void addIdentityProvider(IdentityProviderModel identityProvider);
     void removeIdentityProviderByAlias(String alias);

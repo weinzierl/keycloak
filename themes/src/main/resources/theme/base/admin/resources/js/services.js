@@ -569,6 +569,11 @@ module.service('ClientListSearchState', function() {
     };
 });
 
+module.service('IdentityProviderListSearchState', function() {
+	
+});
+
+
 // Service tracks the last flow selected in Authentication-->Flows tab
 module.service('LastFlowSelected', function() {
     this.alias = null;
@@ -1643,6 +1648,25 @@ module.filter('removeSelectedPolicies', function() {
         return result;
     }
 });
+
+
+module.factory('IdentityProviderUsedProviderIds', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/identity-provider/types-used', {
+    	realm: '@realm'
+    });
+});
+
+
+module.factory('IdentityProviderList', function($resource) {
+      return $resource(authUrl + '/admin/realms/:realm/identity-provider/instances', {
+		  realm: '@realm',
+		  brief: '@brief',
+		  keyword: '@keyword',
+		  first: '@first',
+		  max: '@max'
+	  });
+});
+
 
 module.factory('IdentityProvider', function($resource) {
     return $resource(authUrl + '/admin/realms/:realm/identity-provider/instances/:alias', {

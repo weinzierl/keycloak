@@ -22,6 +22,7 @@ import org.keycloak.credential.UserCredentialStoreManager;
 import org.keycloak.jose.jws.DefaultTokenManager;
 import org.keycloak.keys.DefaultKeyManager;
 import org.keycloak.models.ClientProvider;
+import org.keycloak.models.IdentityProviderProvider;
 import org.keycloak.models.TokenManager;
 import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
@@ -170,6 +171,12 @@ public class DefaultKeycloakSession implements KeycloakSession {
     }
 
 
+    @Override
+    public IdentityProviderProvider identityProviderLocalStorage() {
+    	return realmLocalStorage();
+    }
+    
+    
     @Override
     public UserProvider userStorageManager() {
         if (userStorageManager == null) userStorageManager = new UserStorageManager(this);

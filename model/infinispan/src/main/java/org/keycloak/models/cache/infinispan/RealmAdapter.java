@@ -24,11 +24,13 @@ import org.keycloak.models.*;
 import org.keycloak.models.cache.CachedRealmModel;
 import org.keycloak.models.cache.UserCache;
 import org.keycloak.models.cache.infinispan.entities.CachedRealm;
+import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.client.ClientStorageProvider;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -784,43 +786,55 @@ public class RealmAdapter implements CachedRealmModel {
         updated.setSmtpConfig(smtpConfig);
     }
 
-
+    @Override
+	public List<String> getUsedIdentityProviderIdTypes(){
+    	return cacheSession.getUsedIdentityProviderIdTypes(this);
+	}
+    
     @Override
     public List<IdentityProviderModel> getIdentityProviders() {
-        if (isUpdated()) return updated.getIdentityProviders();
-        return cached.getIdentityProviders();
+    	return cacheSession.getIdentityProviders(this);
     }
-
+    
+	@Override
+	public List<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults) {
+        return cacheSession.searchIdentityProviders(this, keyword, firstResult, maxResults);
+	}
+    
+    
     @Override
     public IdentityProviderModel getIdentityProviderByAlias(String alias) {
-        if (isUpdated()) return updated.getIdentityProviderByAlias(alias);
-        for (IdentityProviderModel identityProviderModel : getIdentityProviders()) {
-            if (identityProviderModel.getAlias().equals(alias)) {
-                return identityProviderModel;
-            }
-        }
-
-        return null;
+    	return cacheSession.getIdentityProviderByAlias(this, alias);
     }
-
+    
+    @Override
+    public IdentityProviderModel getIdentityProviderById(String internalId) {
+    	return cacheSession.getIdentityProviderById(internalId);
+    }
+    
     @Override
     public void addIdentityProvider(IdentityProviderModel identityProvider) {
-        getDelegateForUpdate();
-        updated.addIdentityProvider(identityProvider);
+//        getDelegateForUpdate();
+//        updated.addIdentityProvider(identityProvider);
+        cacheSession.addIdentityProvider(this, identityProvider);
     }
 
     @Override
     public void updateIdentityProvider(IdentityProviderModel identityProvider) {
-        getDelegateForUpdate();
-        updated.updateIdentityProvider(identityProvider);
+//        getDelegateForUpdate();
+//        updated.updateIdentityProvider(identityProvider);
+    	cacheSession.updateIdentityProvider(this, identityProvider);
     }
 
     @Override
     public void removeIdentityProviderByAlias(String alias) {
-        getDelegateForUpdate();
-        updated.removeIdentityProviderByAlias(alias);
+//        getDelegateForUpdate();
+//        updated.removeIdentityProviderByAlias(alias);
+    	cacheSession.removeIdentityProviderByAlias(this, alias);
     }
 
+	
+	
     @Override
     public String getLoginTheme() {
         if (isUpdated()) return updated.getLoginTheme();

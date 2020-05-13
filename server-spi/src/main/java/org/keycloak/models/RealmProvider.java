@@ -27,7 +27,7 @@ import java.util.Set;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public interface RealmProvider extends Provider, ClientProvider {
+public interface RealmProvider extends Provider, ClientProvider, IdentityProviderProvider {
 
     // Note: The reason there are so many query methods here is for layering a cache on top of an persistent KeycloakSession
     MigrationModel getMigrationModel();

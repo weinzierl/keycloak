@@ -60,6 +60,8 @@ import org.keycloak.representations.idm.ClientScopeRepresentation;
 import org.keycloak.representations.idm.ComponentExportRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
+import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
+import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.RolesRepresentation;
@@ -85,7 +87,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 public class ExportUtils {
 
     public static RealmRepresentation exportRealm(KeycloakSession session, RealmModel realm, boolean includeUsers, boolean internal) {
-        ExportOptions opts = new ExportOptions(false, true, true);
+        ExportOptions opts = new ExportOptions(false, true, true, true);
         if (includeUsers) {
             opts.setUsersIncluded(true);
         }
@@ -100,6 +102,20 @@ public class ExportUtils {
         // Project/product version
         rep.setKeycloakVersion(Version.VERSION);
 
+        //IdentityProviders
+        if (options.isIdentityProvidersIncluded()) {
+        	List<IdentityProviderRepresentation> identityProviders = realm.getIdentityProviders().stream()
+        			.map(idp -> ModelToRepresentation.toRepresentation(realm, idp)).collect(Collectors.toList());
+        	rep.setIdentityProviders(identityProviders);
+        }
+        
+        //IdentityProviderMappers
+        if (options.isIdentityProvidersIncluded()) {
+        	List<IdentityProviderMapperRepresentation> identityProviderMappers = realm.getIdentityProviderMappers().stream()
+        			.map(idpMapper -> ModelToRepresentation.toRepresentation(idpMapper)).collect(Collectors.toList());
+        	rep.setIdentityProviderMappers(identityProviderMappers);
+        }
+        
         // Client Scopes
         List<ClientScopeModel> clientScopeModels = realm.getClientScopes();
         List<ClientScopeRepresentation> clientScopesReps = new ArrayList<>();
@@ -161,7 +177,7 @@ public class ExportUtils {
             }
             rep.setRoles(rolesRep);
         }
-
+        
         // Scopes
         Map<String, List<ScopeMappingRepresentation>> clientScopeReps = new HashMap<>();
 

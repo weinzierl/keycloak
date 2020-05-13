@@ -781,6 +781,115 @@ module.controller('IdentityProviderTabCtrl', function(Dialog, $scope, Current, N
     };
 });
 
+module.controller('RealmIdentityProviderListCtrl', function($scope, $filter, realm,	serverInfo, $route,
+		$location, Notifications, Dialog, 
+		IdentityProviderListSearchState,
+		IdentityProviderUsedProviderIds,
+		IdentityProviderList,
+		IdentityProvider
+		) {
+	
+	
+    $scope.realm = angular.copy(realm);
+
+    $scope.serverInfo = serverInfo;
+
+    $scope.allProviders = angular.copy(serverInfo.identityProviders);
+    
+    $scope.showWelcome = false;
+    
+    $scope.search = function(){
+    	$scope.query.realm = realm.realm;
+    	$scope.configuredProviders = IdentityProviderList.query($scope.query, function() {
+    		$scope.showWelcome = ($scope.configuredProviders.length == 0 && $scope.query.keyword == "") ? true : false;
+    		IdentityProviderUsedProviderIds.query({realm : $scope.query.realm}, function(response){
+    			removeUsedSocial(response);
+    		});
+    		
+    	});
+    }
+    
+    
+    if($scope.query == null){
+    	$scope.query = {
+	        realm : realm.realm,
+	        brief : true,
+	        keyword : "",
+	        first : 0,
+	        max : 20
+	    };
+    }
+    
+    
+    $scope.search();
+    
+    
+    $scope.hasPreviousPage = function () {
+    	return $scope.query.first != 0;
+    }
+    
+    $scope.hasNextPage = function () {
+    	return $scope.configuredProviders.length == $scope.query.max;
+    }
+    
+    $scope.nextPage = function(){
+    	$scope.query.first += $scope.query.max;
+    	$scope.search();
+    }
+    
+    $scope.previousPage = function(){
+    	$scope.query.first -= $scope.query.max;
+    	$scope.search();
+    }
+    
+    $scope.firstPage = function(){
+    	$scope.query.first = 0;
+    	$scope.search();
+    }
+    
+    
+    
+    
+    
+    $scope.addProvider = function(provider) {
+        $location.url("/create/identity-provider/" + realm.realm + "/" + provider.id);
+    };
+    
+    
+    $scope.removeIdentityProvider = function(identityProvider) {
+        Dialog.confirmDelete(identityProvider.alias, 'provider', function() {
+            IdentityProvider.remove({
+                realm : realm.realm,
+                alias : identityProvider.alias
+            }, function() {
+                $route.reload();
+                Notifications.success("The identity provider has been deleted.");
+            });
+        });
+    };
+    
+    
+    
+    // KEYCLOAK-5932: remove social providers that have already been defined
+    function removeUsedSocial(usedIdentityProviderIds) {
+    	if ($scope.configuredProviders == null)
+    		return;
+        var i = $scope.allProviders.length;
+        while (i--) {
+            if ($scope.allProviders[i].groupName !== 'Social') continue;
+            for (var j = 0; j < usedIdentityProviderIds.length; j++) {
+            	if(usedIdentityProviderIds[j] === $scope.allProviders[i].id) {
+					$scope.allProviders.splice(i, 1);
+					break;
+				}
+            }
+        }
+    };
+
+    
+    
+});
+
 module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload, $http, $route, realm, instance, providerFactory, IdentityProvider, serverInfo, authFlows, $location, Notifications, Dialog) {
     $scope.realm = angular.copy(realm);
 
@@ -902,9 +1011,6 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
 
     $scope.allProviders = angular.copy(serverInfo.identityProviders);
     
-    $scope.configuredProviders = angular.copy(realm.identityProviders);
-
-    removeUsedSocial();
     
     $scope.authFlows = [];
     for (var i=0 ; i<authFlows.length ; i++) {
@@ -1089,22 +1195,6 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
         });
     };
     
-    // KEYCLOAK-5932: remove social providers that have already been defined
-    function removeUsedSocial() {
-        var i = $scope.allProviders.length;
-        while (i--) {
-            if ($scope.allProviders[i].groupName !== 'Social') continue;
-            if ($scope.configuredProviders != null) {
-                for (var j = 0; j < $scope.configuredProviders.length; j++) {
-                    if ($scope.configuredProviders[j].providerId === $scope.allProviders[i].id) {
-                        $scope.allProviders.splice(i, 1);
-                        break;
-                    }
-                }
-            }
-        }
-    };
-
 });
 
 module.controller('RealmIdentityProviderExportCtrl', function(realm, identityProvider, $scope, $http, IdentityProviderExport) {
@@ -2982,9 +3072,10 @@ module.controller('RealmExportCtrl', function($scope, realm, $http,
     $scope.realm = realm;
     $scope.exportGroupsAndRoles = false;
     $scope.exportClients = false;
-
+    $scope.exportIdentityProviders = false;
+    
     $scope.export = function() {
-        if ($scope.exportGroupsAndRoles || $scope.exportClients) {
+        if ($scope.exportGroupsAndRoles || $scope.exportClients || $scope.exportIdentityProviders) {
             Dialog.confirm('Export', 'This operation may make server unresponsive for a while.\n\nAre you sure you want to proceed?', download);
         } else {
             download();
@@ -3000,6 +3091,10 @@ module.controller('RealmExportCtrl', function($scope, realm, $http,
         if ($scope.exportClients) {
             params['exportClients'] = true;
         }
+        if($scope.exportIdentityProviders) {
+        	params['exportIdentityProviders'] = true;
+        }
+        
         if (Object.keys(params).length > 0) {
             exportUrl += '?' + $httpParamSerializer(params);
         }

@@ -159,6 +159,13 @@ public interface KeycloakSession {
      */
     UserProvider userLocalStorage();
 
+    /**
+     * Keycloak specific local storage for identity providers.  No cache in front, this api talks directly to database configured for Keycloak
+     *
+     * @return
+     */
+    IdentityProviderProvider identityProviderLocalStorage();
+    
     RealmProvider realmLocalStorage();
 
     /**

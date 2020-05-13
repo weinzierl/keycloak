@@ -14,6 +14,7 @@ import org.keycloak.authorization.model.ResourceServer;
 import org.keycloak.broker.oidc.mappers.AbstractJsonUserAttributeMapper;
 import org.keycloak.common.Profile;
 import org.keycloak.models.ClientModel;
+import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderMapperSyncMode;
 import org.keycloak.models.KeycloakSession;

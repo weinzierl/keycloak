@@ -860,6 +860,11 @@ public class RealmAdapter implements CachedRealmModel {
         updated.setSmtpConfig(smtpConfig);
     }
 
+    @Override
+    public IdentityProviderModel getIdentityProviderById(String internalId) {
+        if (isUpdated()) return updated.getIdentityProviderById(internalId);
+        return cached.getIdentityProviders().stream().filter(idp -> Objects.equals(idp.getInternalId(), internalId)).findFirst().orElse(null);
+    }
 
     @Override
     public Stream<IdentityProviderModel> getIdentityProvidersStream() {
@@ -894,6 +899,45 @@ public class RealmAdapter implements CachedRealmModel {
         updated.removeIdentityProviderByAlias(alias);
     }
 
+
+    @Override
+    public List<IdentityProvidersFederationModel> getIdentityProviderFederations() {
+        if (isUpdated()) return updated.getIdentityProviderFederations();
+        return cached.getIdentityProvidersFederations();
+    }
+    
+    @Override
+    public IdentityProvidersFederationModel getIdentityProvidersFederationById(String id) {
+    	if (isUpdated()) return updated.getIdentityProvidersFederationById(id);
+    	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getInternalId().equals(id)).findAny().orElse(null);
+    }
+    
+    @Override
+    public IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias) {
+    	if (isUpdated()) return updated.getIdentityProvidersFederationByAlias(alias);
+    	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getAlias().equals(alias)).findAny().orElse(null);
+    }
+    
+    
+    @Override
+	public void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+    	 getDelegateForUpdate();
+         updated.addIdentityProvidersFederation(identityProvidersFederationModel);
+	}
+	
+	@Override
+	public void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+		getDelegateForUpdate();
+        updated.updateIdentityProvidersFederation(identityProvidersFederationModel);
+	}
+    
+	@Override
+	public void removeIdentityProvidersFederation(String internalId) {
+		getDelegateForUpdate();
+		updated.removeIdentityProvidersFederation(internalId);
+	}
+	
+	
     @Override
     public String getLoginTheme() {
         if (isUpdated()) return updated.getLoginTheme();
@@ -1192,6 +1236,19 @@ public class RealmAdapter implements CachedRealmModel {
         }
         return null;
     }
+
+    @Override
+    public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel) {
+        getDelegateForUpdate();
+        return updated.addFederationIdp(idpfModel, idpModel);
+    }
+
+    @Override
+    public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias) {
+        getDelegateForUpdate();
+        return updated.removeFederationIdp(identityProvidersFederationModel,  idpAlias);
+    }
+
 
     @Override
     public AuthenticationFlowModel getBrowserFlow() {

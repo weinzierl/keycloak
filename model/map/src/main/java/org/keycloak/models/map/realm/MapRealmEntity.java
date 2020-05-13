@@ -19,13 +19,17 @@ package org.keycloak.models.map.realm;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.keycloak.common.util.Time;
+import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.ModelDuplicateException;
+import org.keycloak.models.ModelException;
 import org.keycloak.models.OTPPolicy;
 import org.keycloak.models.map.common.AbstractEntity;
 import org.keycloak.models.map.realm.entity.MapAuthenticationExecutionEntity;
@@ -35,6 +39,7 @@ import org.keycloak.models.map.realm.entity.MapClientInitialAccessEntity;
 import org.keycloak.models.map.realm.entity.MapComponentEntity;
 import org.keycloak.models.map.realm.entity.MapIdentityProviderEntity;
 import org.keycloak.models.map.realm.entity.MapIdentityProviderMapperEntity;
+import org.keycloak.models.map.realm.entity.MapIdpFederationEntity;
 import org.keycloak.models.map.realm.entity.MapOTPPolicyEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredActionProviderEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredCredentialEntity;
@@ -120,6 +125,7 @@ public class MapRealmEntity<K> implements AbstractEntity<K> {
     private final Map<String, MapAuthenticatorConfigEntity> authenticatorConfigs = new HashMap<>();
     private final Map<String, MapIdentityProviderEntity> identityProviders = new HashMap<>();
     private final Map<String, MapIdentityProviderMapperEntity> identityProviderMappers = new HashMap<>();
+    private final Map<String, MapIdpFederationEntity> identityProviderFederations = new HashMap<>();
     private final Map<String, MapRequiredActionProviderEntity> requiredActionProviders = new HashMap<>();
 
     /**
@@ -936,6 +942,71 @@ public class MapRealmEntity<K> implements AbstractEntity<K> {
 
     public MapRequiredActionProviderEntity getRequiredActionProvider(String id) {
         return requiredActionProviders.get(id);
+    }
+
+
+    public MapIdpFederationEntity getIdentityProvidersFederationById(String id){
+        return identityProviderFederations.get(id);
+    }
+
+    public Stream<MapIdpFederationEntity> getIdentityProvidersFederations(){
+        return identityProviderFederations.values().stream();
+    }
+
+    public void addIdentityProvidersFederation(MapIdpFederationEntity idpFederation) {
+        if (identityProviderFederations.containsKey(idpFederation.getInternalId())) {
+            throw new ModelDuplicateException("An IdentityProviderFederation with given id already exists");
+        }
+        this.updated = true;
+        identityProviderFederations.put(idpFederation.getInternalId(), idpFederation);
+    }
+
+    public boolean removeIdentityProvidersFederation(String id) {
+        boolean removed = this.identityProviderFederations.remove(id) != null;
+        updated |= removed;
+        return removed;
+    }
+
+    public void updateIdentityProvidersFederation(MapIdpFederationEntity idpFederation) {
+        this.updated |= identityProviderFederations.replace(idpFederation.getInternalId(), idpFederation) != null;
+    }
+
+    public void addFederationIdp(MapIdpFederationEntity idpFederation, MapIdentityProviderEntity idp){
+        if (!identityProviderFederations.containsKey(idpFederation.getInternalId()))
+            throw new ModelException("An IdentityProviderFederation with given id does not exist. Cannot insert identity provider for that federation");
+        MapIdentityProviderEntity currentIdp = getIdentityProviders().filter(i -> i.getAlias().equals(idp.getAlias())).findFirst().orElse(null);
+        if(currentIdp == null) {
+            if(currentIdp.getFederations()==null)
+                idp.setFederations(new HashSet<>());
+            idp.getFederations().add(idpFederation.getInternalId());
+            this.addIdentityProvider(idp);
+        }
+        else{
+            if(currentIdp.getFederations()==null)
+                currentIdp.setFederations(new HashSet<>());
+            currentIdp.getFederations().add(idpFederation.getInternalId());
+            this.updateIdentityProvider(currentIdp);
+        }
+    }
+
+    public void removeFederationIdp(MapIdpFederationEntity idpFederation, String idpAlias){
+        if (!identityProviderFederations.containsKey(idpFederation.getInternalId()))
+            throw new ModelException("An IdentityProviderFederation with given id does not exist. Cannot remove identity provider of that federation");
+        if (idpAlias==null || idpAlias.isEmpty())
+            throw new ModelException("Impossible to remove an identity provider, provided a null or empty alias");
+        MapIdentityProviderEntity currentIdp = getIdentityProviders().filter(i -> i.getAlias().equals(idpAlias)).findFirst().orElse(null);
+        if(currentIdp==null)
+            throw new ModelException("There's no identity provider by that alias in this federation.");
+        if(currentIdp.getFederations()==null || currentIdp.getFederations().isEmpty()){
+            //do nothing
+        }
+        else if(currentIdp.getFederations().size()==1){ //remove the idp, since it belongs only in this federation
+            this.removeIdentityProvider(currentIdp.getId());
+        }
+        else{
+            currentIdp.getFederations().remove(idpFederation.getInternalId());
+            this.updateIdentityProvider(currentIdp);
+        }
     }
 
     public Stream<MapIdentityProviderEntity> getIdentityProviders() {

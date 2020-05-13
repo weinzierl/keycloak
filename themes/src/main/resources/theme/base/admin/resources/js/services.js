@@ -612,6 +612,11 @@ module.service('ClientListSearchState', function() {
     };
 });
 
+module.service('IdentityProviderListSearchState', function() {
+	
+});
+
+
 // Service tracks the last flow selected in Authentication-->Flows tab
 module.service('LastFlowSelected', function() {
     this.alias = null;
@@ -1766,6 +1771,36 @@ module.factory('IdentityProviderMapper', function($resource) {
         }
     });
 });
+
+
+
+
+module.factory('IdentityProvidersFederation', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id', {
+        realm : '@realm',
+        id : '@id'
+    }, {
+        update: {
+            method : 'PUT'
+        }
+    });
+});
+
+
+
+module.factory('IdentityProvidersFederationExport', function($resource) {
+    var url = authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:alias/export';
+    return {
+        url : function(parameters)
+        {
+            return url.replace(':realm', parameters.realm).replace(':alias', parameters.alias);
+        }
+    }
+});
+
+
+
+
 
 module.factory('AuthenticationFlowExecutions', function($resource) {
     return $resource(authUrl + '/admin/realms/:realm/authentication/flows/:alias/executions', {

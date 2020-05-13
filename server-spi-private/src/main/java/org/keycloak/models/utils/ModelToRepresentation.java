@@ -430,6 +430,15 @@ public class ModelToRepresentation {
             rep.setRequiredCredentials(reqCredentials);
         }
 
+        rep.setIdentityProvidersFederations(realm.getIdentityProviderFederations().stream().map(obj -> toRepresentation(obj)).collect(Collectors.toList()));
+
+        List<IdentityProviderRepresentation> identityProviders = realm.getIdentityProvidersStream()
+                .map(provider -> toRepresentation(realm, provider)).collect(Collectors.toList());
+        rep.setIdentityProviders(identityProviders);
+
+        List<IdentityProviderMapperRepresentation> identityProviderMappers = realm.getIdentityProviderMappersStream()
+                .map(ModelToRepresentation::toRepresentation).collect(Collectors.toList());
+        rep.setIdentityProviderMappers(identityProviderMappers);
 
         rep.setInternationalizationEnabled(realm.isInternationalizationEnabled());
         rep.setSupportedLocales(realm.getSupportedLocalesStream().collect(Collectors.toSet()));
@@ -657,6 +666,7 @@ public class ModelToRepresentation {
         Map<String, String> config = new HashMap<>(identityProviderModel.getConfig());
         providerRep.setConfig(config);
         providerRep.setAddReadTokenRoleOnCreate(identityProviderModel.isAddReadTokenRoleOnCreate());
+        providerRep.setFederations(identityProviderModel.getFederations());
 
         String firstBrokerLoginFlowId = identityProviderModel.getFirstBrokerLoginFlowId();
         if (firstBrokerLoginFlowId != null) {
@@ -678,6 +688,23 @@ public class ModelToRepresentation {
 
         return providerRep;
     }
+
+    public static IdentityProvidersFederationRepresentation toRepresentation(IdentityProvidersFederationModel model) {
+    	IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
+    	representation.setInternalId(model.getInternalId());
+    	representation.setAlias(model.getAlias());
+    	representation.setDisplayName(model.getDisplayName());
+    	representation.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
+    	representation.setProviderId(model.getProviderId());
+    	representation.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
+    	representation.setSkipIdps(model.getSkipIdps());
+    	representation.setUrl(model.getUrl());
+    	representation.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
+    	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());
+    	representation.setConfig(model.getConfig());
+        return representation;
+    }
+
 
     public static ProtocolMapperRepresentation toRepresentation(ProtocolMapperModel model) {
         ProtocolMapperRepresentation rep = new ProtocolMapperRepresentation();

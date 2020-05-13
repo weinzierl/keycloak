@@ -126,6 +126,7 @@ public class PermissionsTest extends AbstractKeycloakTest {
                 .role(Constants.REALM_MANAGEMENT_CLIENT_ID, AdminRoles.QUERY_GROUPS)
                 .role(Constants.REALM_MANAGEMENT_CLIENT_ID, AdminRoles.VIEW_REALM)
                 .role(Constants.REALM_MANAGEMENT_CLIENT_ID, AdminRoles.VIEW_CLIENTS)
+                .role(Constants.REALM_MANAGEMENT_CLIENT_ID, AdminRoles.VIEW_IDENTITY_PROVIDERS)
                 .addPassword("password"));
 
         builder.user(UserBuilder.create().username("none").addPassword("password"));
@@ -1655,7 +1656,7 @@ public class PermissionsTest extends AbstractKeycloakTest {
     public void identityProviders() {
         invoke(new Invocation() {
             public void invoke(RealmResource realm) {
-                realm.identityProviders().findAll();
+                realm.identityProviders().findAll(false,"",-1,-1);
             }
         }, Resource.IDENTITY_PROVIDER, false);
         invoke(new InvocationWithResponse() {

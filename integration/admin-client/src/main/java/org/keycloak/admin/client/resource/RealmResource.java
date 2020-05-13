@@ -177,6 +177,9 @@ public interface RealmResource {
 
     @Path("identity-provider")
     IdentityProvidersResource identityProviders();
+    
+    @Path("identity-provider-federation")
+    IdentityProvidersFederationResource identityProvidersFederation();
 
     @DELETE
     void remove();

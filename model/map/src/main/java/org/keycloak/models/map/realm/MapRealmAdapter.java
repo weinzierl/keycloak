@@ -17,6 +17,7 @@
 package org.keycloak.models.map.realm;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import static java.util.Objects.nonNull;
@@ -38,6 +39,7 @@ import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.OAuth2DeviceConfig;
 import org.keycloak.models.OTPPolicy;
@@ -54,6 +56,7 @@ import org.keycloak.models.map.realm.entity.MapClientInitialAccessEntity;
 import org.keycloak.models.map.realm.entity.MapComponentEntity;
 import org.keycloak.models.map.realm.entity.MapIdentityProviderEntity;
 import org.keycloak.models.map.realm.entity.MapIdentityProviderMapperEntity;
+import org.keycloak.models.map.realm.entity.MapIdpFederationEntity;
 import org.keycloak.models.map.realm.entity.MapOTPPolicyEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredActionProviderEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredCredentialEntity;
@@ -798,6 +801,15 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
     }
 
     @Override
+    public IdentityProviderModel getIdentityProviderById(String internalId) {
+        return entity.getIdentityProviders()
+                .filter(identityProvider -> Objects.equals(identityProvider.getId(), internalId))
+                .findFirst()
+                .map(MapIdentityProviderEntity::toModel)
+                .orElse(null);
+    }
+
+    @Override
     public IdentityProviderModel getIdentityProviderByAlias(String alias) {
         return entity.getIdentityProviders()
                 .filter(identityProvider -> Objects.equals(identityProvider.getAlias(), alias))
@@ -906,6 +918,66 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
                 .findFirst()
                 .map(MapIdentityProviderMapperEntity::toModel)
                 .orElse(null);
+    }
+
+
+
+    @Override
+    public List<IdentityProvidersFederationModel> getIdentityProviderFederations(){
+        return entity.getIdentityProvidersFederations().map(MapIdpFederationEntity::toModel).collect(Collectors.toList());
+    }
+
+    @Override
+    public IdentityProvidersFederationModel getIdentityProvidersFederationById(String id){
+        if (id == null) return null;
+        return MapIdpFederationEntity.toModel(entity.getIdentityProvidersFederationById(id));
+    }
+
+    @Override
+    public IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias){
+        return entity.getIdentityProvidersFederations()
+                .filter(idpFed -> idpFed.getAlias().equals(alias))
+                .findFirst()
+                .map(MapIdpFederationEntity::toModel)
+                .orElse(null);
+    }
+
+    @Override
+    public void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel){
+        entity.addIdentityProvidersFederation(MapIdpFederationEntity.fromModel(identityProvidersFederationModel));
+    }
+
+    @Override
+    public void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel){
+        entity.updateIdentityProvidersFederation(MapIdpFederationEntity.fromModel(identityProvidersFederationModel));
+    }
+
+    @Override
+    public void removeIdentityProvidersFederation(String internalId){
+        entity.removeIdentityProvidersFederation(internalId);
+    }
+
+
+    @Override
+    public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel){
+        try {
+            entity.addFederationIdp(MapIdpFederationEntity.fromModel(idpfModel), MapIdentityProviderEntity.fromModel(idpModel));
+            return true;
+        }
+        catch(RuntimeException ex){
+            return false;
+        }
+    }
+
+    @Override
+    public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias){
+        try {
+            entity.removeFederationIdp(MapIdpFederationEntity.fromModel(identityProvidersFederationModel), idpAlias);
+            return true;
+        }
+        catch(RuntimeException ex){
+            return false;
+        }
     }
 
     @Override

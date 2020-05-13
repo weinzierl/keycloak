@@ -30,6 +30,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.OAuth2DeviceConfig;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.OTPPolicy;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
@@ -39,6 +40,7 @@ import org.keycloak.models.WebAuthnPolicy;
 import org.keycloak.models.cache.infinispan.DefaultLazyLoader;
 import org.keycloak.models.cache.infinispan.LazyLoader;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -122,6 +124,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected MultivaluedHashMap<String, ComponentModel> componentsByParentAndType = new MultivaluedHashMap<>();
     protected Map<String, ComponentModel> components;
     protected List<IdentityProviderModel> identityProviders;
+    protected List<IdentityProvidersFederationModel> identityProvidersFederations;
 
     protected Map<String, String> browserSecurityHeaders;
     protected Map<String, String> smtpConfig;
@@ -237,6 +240,8 @@ public class CachedRealm extends AbstractExtendableRevisioned {
 
         requiredCredentials = model.getRequiredCredentialsStream().collect(Collectors.toList());
         userActionTokenLifespans = Collections.unmodifiableMap(new HashMap<>(model.getUserActionTokenLifespans()));
+
+        this.identityProvidersFederations  = model.getIdentityProviderFederations();
 
         this.identityProviders = model.getIdentityProvidersStream().map(IdentityProviderModel::new)
                 .collect(Collectors.toList());
@@ -590,6 +595,10 @@ public class CachedRealm extends AbstractExtendableRevisioned {
 
     public boolean isAdminEventsDetailsEnabled() {
         return adminEventsDetailsEnabled;
+    }
+
+    public List<IdentityProvidersFederationModel> getIdentityProvidersFederations() {
+        return identityProvidersFederations;
     }
 
     public List<IdentityProviderModel> getIdentityProviders() {

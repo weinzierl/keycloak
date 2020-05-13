@@ -69,5 +69,6 @@
     <include file="META-INF/jpa-changelog-11.0.0.xml"/>
     <include file="META-INF/jpa-changelog-12.0.0.xml"/>
     <include file="META-INF/jpa-changelog-13.0.0.xml"/>
+    <include file="META-INF/jpa-changelog-saml-fed.xml"/>
 
 </databaseChangeLog>

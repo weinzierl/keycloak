@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.keycloak.broker.saml.SAMLIdentityProviderConfig.*;
+import static org.keycloak.broker.saml.SAMLConfigNames.*;
 import static org.keycloak.protocol.saml.SamlProtocol.SAML_ASSERTION_CONSUMER_URL_POST_ATTRIBUTE;
 import static org.keycloak.protocol.saml.SamlProtocol.SAML_IDP_INITIATED_SSO_URL_NAME;
 import static org.keycloak.testsuite.broker.BrokerTestConstants.*;

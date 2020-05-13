@@ -172,6 +172,7 @@ public class RealmRepresentation {
     protected Boolean adminEventsEnabled;
     protected Boolean adminEventsDetailsEnabled;
     
+    private List<IdentityProvidersFederationRepresentation> identityProvidersFederations;
     private List<IdentityProviderRepresentation> identityProviders;
     private List<IdentityProviderMapperRepresentation> identityProviderMappers;
     private List<ProtocolMapperRepresentation> protocolMappers;
@@ -872,12 +873,20 @@ public class RealmRepresentation {
         this.identityProviders = identityProviders;
     }
 
+    public List<IdentityProvidersFederationRepresentation> getIdentityProvidersFederations() {
+		return identityProvidersFederations;
+	}
+
     public void addIdentityProvider(IdentityProviderRepresentation identityProviderRepresentation) {
         if (identityProviders == null) identityProviders = new LinkedList<>();
         identityProviders.add(identityProviderRepresentation);
     }
+    
+	public void setIdentityProvidersFederations(List<IdentityProvidersFederationRepresentation> identityProvidersFederations) {
+		this.identityProvidersFederations = identityProvidersFederations;
+	}
 
-    public List<ProtocolMapperRepresentation> getProtocolMappers() {
+	public List<ProtocolMapperRepresentation> getProtocolMappers() {
         return protocolMappers;
     }
 
@@ -928,10 +937,11 @@ public class RealmRepresentation {
     public void setIdentityProviderMappers(List<IdentityProviderMapperRepresentation> identityProviderMappers) {
         this.identityProviderMappers = identityProviderMappers;
     }
-
-    public void addIdentityProviderMapper(IdentityProviderMapperRepresentation rep) {
-        if (identityProviderMappers == null) identityProviderMappers = new LinkedList<>();
-        identityProviderMappers.add(rep);
+    
+    public void addIdentityProviderMapper(IdentityProviderMapperRepresentation identityProviderMapper) {
+        if ( this.identityProviderMappers == null)
+            this.identityProviderMappers = new ArrayList<>();
+        this.identityProviderMappers.add(identityProviderMapper);
     }
 
     public List<AuthenticationFlowRepresentation> getAuthenticationFlows() {

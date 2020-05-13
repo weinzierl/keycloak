@@ -1,0 +1,107 @@
+<div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2" data-ng-init="initSamlProvider()">
+    <ol class="breadcrumb">
+        <li><a href="#/realms/{{realm.realm}}/identity-providers-federations">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
+        <li data-ng-show="!newIdpFederation">{{identityProvidersFederation.alias}}</li>
+        <li data-ng-show="newIdpFederation">{{:: 'add-idp-federation' | translate}}</li>
+    </ol>
+
+
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
+        <li data-ng-show="!newIdpFederation"><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}/export">{{:: 'identity-providers-federation-export' | translate}}</a></li>
+    </ul>
+
+
+    <form class="form-horizontal" name="realmForm" novalidate kc-read-only="!access.manageIdentityProviders">
+    
+    	
+        <fieldset>
+            <legend uncollapsed><span class="text">{{:: 'import-external-idp-federation-config' | translate}}</span> <kc-tooltip>{{:: 'import-external-idp-federation-config.tooltip' | translate}}</kc-tooltip></legend>
+            
+            
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="fromUrl"> <span class="required">*</span> {{:: 'import-from-url' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="fromUrl" type="text" ng-model="identityProvidersFederation.url">
+                </div>
+                <kc-tooltip>{{:: 'saml-federation.import-from-url.tooltip' | translate}}</kc-tooltip>
+            </div>
+            
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="importFrom"></label>
+                <div class="col-md-6">
+                    <button id="importFrom" type="button" data-ng-click="importFrom()" data-ng-show="changedUrl" class="btn btn-primary">{{:: 'import' | translate}}</button>
+                </div>
+            </div>
+            
+            <div data-ng-show="allIdps != null || identityProvidersFederation.internalId != null">
+	            <div class="form-group clearfix">
+	                <label class="col-md-2 control-label" for="alias"><span class="required">*</span> {{:: 'alias' | translate}}</label>
+	                <div class="col-md-6">
+	                    <input class="form-control" id="alias" type="text" ng-model="identityProvidersFederation.alias" required>
+	                </div>
+	                <kc-tooltip>{{:: 'saml-federation.alias.tooltip' | translate}}</kc-tooltip>
+	            </div>
+	            
+	            <div class="form-group clearfix">
+	                <label class="col-md-2 control-label" for="updateFrequencyInMins"><span class="required">*</span> {{:: 'saml-federation.update-frequency-in-mins' | translate}}</label>
+	                <div class="col-md-6">
+	                    <input class="form-control" id="updateFrequencyInMins" type="number" ng-model="identityProvidersFederation.updateFrequencyInMins" required>
+	                </div>
+	                <kc-tooltip>{{:: 'saml-federation.update-frequency-in-mins.tooltip' | translate}}</kc-tooltip>
+	            </div>
+	            
+	            <div class="form-group clearfix">
+	                <label class="col-md-2 control-label" for="nameIDPolicyFormat">{{:: 'nameid-policy-format' | translate}}</label>
+	                <div class="col-md-6">
+	                    <select id="nameIDPolicyFormat" ng-model="identityProvidersFederation.config.nameIDPolicyFormat"
+	                            ng-options="nameFormat.format as nameFormat.name for nameFormat in nameIdFormats">
+	                     </select>
+	                </div>
+	                <kc-tooltip>{{:: 'nameid-policy-format.tooltip' | translate}}</kc-tooltip>
+	            </div>
+            
+	            <div class="form-group">
+	                <label class="col-md-2 control-label" for="postBindingAuthnRequest">{{:: 'http-post-binding-for-authn-request' | translate}}</label>
+	                <div class="col-md-6">
+	                    <input ng-model="identityProvidersFederation.config.postBindingAuthnRequest" id="postBindingAuthnRequest" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+	                </div>
+	                <kc-tooltip>{{:: 'http-post-binding-for-authn-request.tooltip' | translate}}</kc-tooltip>
+	            </div>
+	            
+	            <div class="form-group">
+	                <label class="col-md-2 control-label" for="wantAuthnRequestsSigned">{{:: 'want-authn-requests-signed' | translate}}</label>
+	                <div class="col-md-6">
+	                    <input ng-model="identityProvidersFederation.config.wantAuthnRequestsSigned" id="wantAuthnRequestsSigned" name="wantAuthnRequestsSigned" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+	                </div>
+	                <kc-tooltip>{{:: 'want-authn-requests-signed.tooltip' | translate}}</kc-tooltip>
+	            </div>
+	            <div class="form-group">
+	                <label class="col-md-2 control-label" for="wantAssertionsSigned">{{:: 'want-assertions-signed' | translate}}</label>
+	                <div class="col-md-6">
+	                    <input ng-model="identityProvidersFederation.config.wantAssertionsSigned" id="wantAssertionsSigned" name="wantAssertionsSigned" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+	                </div>
+	                <kc-tooltip>{{:: 'want-assertions-signed.tooltip' | translate}}</kc-tooltip>
+	            </div>
+	            <div class="form-group">
+	                <label class="col-md-2 control-label" for="wantAssertionsEncrypted">{{:: 'want-assertions-encrypted' | translate}}</label>
+	                <div class="col-md-6">
+	                    <input ng-model="identityProvidersFederation.config.wantAssertionsEncrypted" id="wantAssertionsEncrypted" name="wantAssertionsEncrypted" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+	                </div>
+	                <kc-tooltip>{{:: 'want-assertions-encrypted.tooltip' | translate}}</kc-tooltip>
+	            </div>
+	            
+            </div>
+            
+        </fieldset>
+        
+        <div class="form-group">
+            <div class="col-md-10 col-md-offset-2">
+                <button kc-save data-ng-disabled="changed==false">{{:: 'save' | translate}}</button>
+                <button kc-cancel data-ng-click="cancel()">{{:: 'cancel' | translate}}</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<kc-menu></kc-menu>

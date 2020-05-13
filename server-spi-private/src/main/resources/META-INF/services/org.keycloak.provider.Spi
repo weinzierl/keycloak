@@ -98,3 +98,4 @@ org.keycloak.headers.SecurityHeadersSpi
 org.keycloak.services.clientpolicy.condition.ClientPolicyConditionSpi
 org.keycloak.services.clientpolicy.executor.ClientPolicyExecutorSpi
 org.keycloak.userprofile.UserProfileSpi
+org.keycloak.broker.federation.IdpFederationSpi

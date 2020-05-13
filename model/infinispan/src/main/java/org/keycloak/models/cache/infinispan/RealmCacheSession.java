@@ -96,6 +96,7 @@ import java.util.stream.Stream;
 public class RealmCacheSession implements CacheRealmProvider {
     protected static final Logger logger = Logger.getLogger(RealmCacheSession.class);
     public static final String REALM_CLIENTS_QUERY_SUFFIX = ".realm.clients";
+    public static final String REALM_IDENTITY_PROVIDERS_QUERY_SUFFIX = ".realm.identity-providers";
     public static final String ROLES_QUERY_SUFFIX = ".roles";
     protected RealmCacheManager cache;
     protected KeycloakSession session;
@@ -103,6 +104,7 @@ public class RealmCacheSession implements CacheRealmProvider {
     protected ClientProvider clientDelegate;
     protected GroupProvider groupDelegate;
     protected RoleProvider roleDelegate;
+    protected IdentityProviderProvider identityProviderDelegate;
     protected boolean transactionActive;
     protected boolean setRollbackOnly;
 
@@ -170,7 +172,8 @@ public class RealmCacheSession implements CacheRealmProvider {
         groupDelegate = session.groupStorageManager();
         return groupDelegate;
     }
-
+    
+    
     @Override
     public void registerRealmInvalidation(String id, String name) {
         cache.realmUpdated(id, name, invalidations);
@@ -596,6 +599,7 @@ public class RealmCacheSession implements CacheRealmProvider {
         if (realmDelegate != null) realmDelegate.close();
         if (clientDelegate != null) clientDelegate.close();
         if (roleDelegate != null) roleDelegate.close();
+        if (identityProviderDelegate != null) identityProviderDelegate.close();
     }
 
     @Override
@@ -1292,5 +1296,12 @@ public class RealmCacheSession implements CacheRealmProvider {
             return localizationTexts.get(key);
         }
         return null;
-    }
+    }  
+    
+	
+
+	
+
+	
 }
+

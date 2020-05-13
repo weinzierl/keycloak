@@ -33,6 +33,11 @@ public interface InfinispanConnectionProvider extends Provider {
     String USER_CACHE_NAME = "users";
     String USER_REVISIONS_CACHE_NAME = "userRevisions";
     int USER_REVISIONS_CACHE_DEFAULT_MAX = 100000;
+    
+    String IDP_CACHE_NAME = "idps";
+//    String IDP_REVISIONS_CACHE_NAME = "idpRevisions";
+//    int IDP_REVISIONS_CACHE_DEFAULT_MAX = 100000;
+    
 
     String USER_SESSION_CACHE_NAME = "sessions";
     String CLIENT_SESSION_CACHE_NAME = "clientSessions";

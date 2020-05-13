@@ -39,6 +39,11 @@
             </encoding>
             <memory storage="HEAP" max-count="10000"/>
         </local-cache>
+        <local-cache name="idps">
+            <memory>
+                <object size="10000"/>
+            </memory>
+        </local-cache>
         <local-cache name="sessions"/>
         <local-cache name="authenticationSessions"/>
         <local-cache name="offlineSessions"/>

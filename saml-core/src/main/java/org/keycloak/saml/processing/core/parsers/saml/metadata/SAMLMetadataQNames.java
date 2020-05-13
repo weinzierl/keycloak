@@ -54,7 +54,17 @@ public enum SAMLMetadataQNames implements HasQName {
     SP_SSO_DESCRIPTOR("SPSSODescriptor"),
     SURNAME("SurName"),
     TELEPHONE_NUMBER("TelephoneNumber"),
-
+    
+    SCOPE(JBossSAMLURIConstants.SHIBBOLETH_METADATA_NSURI, "Scope"),
+    UIINFO(JBossSAMLURIConstants.METADATA_UI_NSURI, "UIInfo"),
+    DISPLAY_NAME(JBossSAMLURIConstants.METADATA_UI_NSURI, "DisplayName"),
+    DESCRIPTION(JBossSAMLURIConstants.METADATA_UI_NSURI, "Description"),
+    KEYWORDS(JBossSAMLURIConstants.METADATA_UI_NSURI, "Keywords"),
+    LOGO(JBossSAMLURIConstants.METADATA_UI_NSURI, "Logo"),
+    INFORMATION_URL(JBossSAMLURIConstants.METADATA_UI_NSURI, "InformationURL"),
+    PRIVACY_STATEMENT_URL(JBossSAMLURIConstants.METADATA_UI_NSURI, "PrivacyStatementURL"),
+    
+    
     // Attribute names
     ATTR_ENTITY_ID(null, "entityID"),
     ATTR_ID(null, "ID"),
@@ -77,6 +87,8 @@ public enum SAMLMetadataQNames implements HasQName {
     ATTR_IS_REQUIRED(null, "isRequired"),
     ATTR_NAME(null, "Name"),
     ATTR_NAME_FORMAT(null, "NameFormat"),
+    ATTR_REGEXP(null, "regexp"),
+    
     // Elements from other namespaces that can be direct subelements of this namespace's elements
     SIGNATURE(XmlDSigQNames.SIGNATURE),
     KEY_INFO(XmlDSigQNames.KEY_INFO),

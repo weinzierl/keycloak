@@ -673,7 +673,7 @@ public class AccountFormService extends AbstractSecuredLocalService {
             return account.setError(Status.OK, Messages.INVALID_FEDERATED_IDENTITY_ACTION).createResponse(AccountPages.FEDERATED_IDENTITY);
         }
 
-        if (!realm.getIdentityProvidersStream().anyMatch(model -> Objects.equals(model.getAlias(), providerId))) {
+        if (!session.identityProviderStorage().getIdentityProviders(realm).stream().anyMatch(model -> Objects.equals(model.getAlias(), providerId))) {
             setReferrerOnPage();
             return account.setError(Status.OK, Messages.IDENTITY_PROVIDER_NOT_FOUND).createResponse(AccountPages.FEDERATED_IDENTITY);
         }

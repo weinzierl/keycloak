@@ -14,6 +14,7 @@ import org.keycloak.authorization.model.ResourceServer;
 import org.keycloak.broker.oidc.mappers.AbstractJsonUserAttributeMapper;
 import org.keycloak.common.Profile;
 import org.keycloak.models.ClientModel;
+import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderMapperSyncMode;
 import org.keycloak.models.KeycloakSession;
@@ -229,10 +230,11 @@ public class SocialLoginTest extends AbstractKeycloakTest {
         Policy clientPolicy = management.authz().getStoreFactory().getPolicyStore().create(clientPolicyRep, server);
         management.users().adminImpersonatingPermission().addAssociatedPolicy(clientPolicy);
         management.users().adminImpersonatingPermission().setDecisionStrategy(DecisionStrategy.AFFIRMATIVE);
-        realm.getIdentityProvidersStream().forEach(idp -> {
+        for (IdentityProviderModel idp : session.identityProviderStorage().getIdentityProviders(realm)) {
             management.idps().setPermissionsEnabled(idp, true);
             management.idps().exchangeToPermission(idp).addAssociatedPolicy(clientPolicy);
-        });
+        }
+
     }
 
     @Test

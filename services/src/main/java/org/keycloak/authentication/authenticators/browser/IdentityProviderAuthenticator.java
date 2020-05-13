@@ -68,7 +68,7 @@ public class IdentityProviderAuthenticator implements Authenticator {
     }
 
     private void redirect(AuthenticationFlowContext context, String providerId) {
-        Optional<IdentityProviderModel> idp = context.getRealm().getIdentityProvidersStream()
+        Optional<IdentityProviderModel> idp = context.getSession().identityProviderStorage().getIdentityProviders(context.getRealm()).stream()
                 .filter(IdentityProviderModel::isEnabled)
                 .filter(identityProvider -> Objects.equals(providerId, identityProvider.getAlias()))
                 .findFirst();
@@ -79,6 +79,7 @@ public class IdentityProviderAuthenticator implements Authenticator {
             URI location = Urls.identityProviderAuthnRequest(context.getUriInfo().getBaseUri(), providerId, context.getRealm().getName(), accessCode, clientId, tabId);
             if (context.getAuthenticationSession().getClientNote(OAuth2Constants.DISPLAY) != null) {
                 location = UriBuilder.fromUri(location).queryParam(OAuth2Constants.DISPLAY, context.getAuthenticationSession().getClientNote(OAuth2Constants.DISPLAY)).build();
+
             }
             Response response = Response.seeOther(location)
                     .build();

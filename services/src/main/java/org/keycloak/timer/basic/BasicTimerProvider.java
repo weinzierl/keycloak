@@ -42,10 +42,24 @@ public class BasicTimerProvider implements TimerProvider {
         this.timer = timer;
         this.factory = factory;
     }
+    
+    @Override
+    public void schedule(final Runnable runnable,final long delay,final long intervalMillis, String taskName) {
+
+        logger.debugf("Starting task '%s' with dalay '%d' and interval '%d'", taskName, delay, intervalMillis);
+        timer.schedule(createTimerTask (runnable, intervalMillis, taskName),delay, intervalMillis);
+    }
+
 
     @Override
-    public void schedule(final Runnable runnable, final long intervalMillis, String taskName) {
-        TimerTask task = new TimerTask() {
+    public void schedule(final Runnable runnable, final long intervalMillis, String taskName) {      
+
+        logger.debugf("Starting task '%s' with interval '%d'", taskName, intervalMillis);
+        timer.schedule(createTimerTask (runnable, intervalMillis, taskName), intervalMillis, intervalMillis);
+    }
+    
+    private TimerTask createTimerTask (final Runnable runnable, final long intervalMillis, String taskName) {
+    	TimerTask task = new TimerTask() {
             @Override
             public void run() {
                 runnable.run();
@@ -58,9 +72,7 @@ public class BasicTimerProvider implements TimerProvider {
             logger.debugf("Existing timer task '%s' found. Cancelling it", taskName);
             existingTask.timerTask.cancel();
         }
-
-        logger.debugf("Starting task '%s' with interval '%d'", taskName, intervalMillis);
-        timer.schedule(task, intervalMillis, intervalMillis);
+        return task;
     }
 
     @Override

@@ -427,48 +427,14 @@ public interface RealmModel extends RoleContainerModel {
     RequiredActionProviderModel getRequiredActionProviderById(String id);
     RequiredActionProviderModel getRequiredActionProviderByAlias(String alias);
 
-    /**
-     * @deprecated Use {@link #getIdentityProvidersStream() getIdentityProvidersStream} instead.
-     */
-    @Deprecated
-    default List<IdentityProviderModel> getIdentityProviders() {
-        return getIdentityProvidersStream().collect(Collectors.toList());
-    }
-
-    Stream<IdentityProviderModel> getIdentityProvidersStream();
-
-    IdentityProviderModel getIdentityProviderByAlias(String alias);
-    void addIdentityProvider(IdentityProviderModel identityProvider);
-    void removeIdentityProviderByAlias(String alias);
-    void updateIdentityProvider(IdentityProviderModel identityProvider);
-
-    /**
-     * @deprecated Use {@link #getIdentityProviderMappersStream() getIdentityProviderMappersStream} instead.
-     */
-    @Deprecated
-    default Set<IdentityProviderMapperModel> getIdentityProviderMappers() {
-        return getIdentityProviderMappersStream().collect(Collectors.toSet());
-    }
-
-    Stream<IdentityProviderMapperModel> getIdentityProviderMappersStream();
-
-    /**
-     * @deprecated Use {@link #getIdentityProviderMappersByAliasStream(String) getIdentityProviderMappersByAliasStream} instead.
-     */
-    @Deprecated
-    default Set<IdentityProviderMapperModel> getIdentityProviderMappersByAlias(String brokerAlias) {
-        return getIdentityProviderMappersByAliasStream(brokerAlias).collect(Collectors.toSet());
-    }
-
-    Stream<IdentityProviderMapperModel> getIdentityProviderMappersByAliasStream(String brokerAlias);
-
-    IdentityProviderMapperModel addIdentityProviderMapper(IdentityProviderMapperModel model);
-    void removeIdentityProviderMapper(IdentityProviderMapperModel mapping);
-    void updateIdentityProviderMapper(IdentityProviderMapperModel mapping);
-    IdentityProviderMapperModel getIdentityProviderMapperById(String id);
-    IdentityProviderMapperModel getIdentityProviderMapperByName(String brokerAlias, String name);
-
-
+    List<IdentityProvidersFederationModel> getIdentityProviderFederations();
+    IdentityProvidersFederationModel getIdentityProvidersFederationById(String id);
+    IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias);
+    void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
+    void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
+    void removeIdentityProvidersFederation(String internalId);
+    
+    
     /**
      * Adds component model.  Will call onCreate() method of ComponentFactory
      *

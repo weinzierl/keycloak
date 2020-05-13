@@ -372,7 +372,7 @@ public class UserResource {
     }
 
     private Stream<FederatedIdentityRepresentation> getFederatedIdentities(UserModel user) {
-        Set<String> idps = realm.getIdentityProvidersStream().map(IdentityProviderModel::getAlias).collect(Collectors.toSet());
+        Set<String> idps = session.identityProviderStorage().getIdentityProviders(realm).stream().map(IdentityProviderModel::getAlias).collect(Collectors.toSet());
         return session.users().getFederatedIdentitiesStream(user, realm)
                 .filter(identity -> idps.contains(identity.getIdentityProvider()))
                 .map(ModelToRepresentation::toRepresentation);

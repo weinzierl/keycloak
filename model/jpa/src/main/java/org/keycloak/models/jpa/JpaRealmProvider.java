@@ -27,6 +27,8 @@ import org.keycloak.models.ClientProvider;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.GroupProvider;
+import org.keycloak.models.IdentityProviderMapperModel;
+import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelDuplicateException;
 import org.keycloak.models.RealmModel;
@@ -38,13 +40,18 @@ import org.keycloak.models.jpa.entities.ClientEntity;
 import org.keycloak.models.jpa.entities.ClientInitialAccessEntity;
 import org.keycloak.models.jpa.entities.ClientScopeEntity;
 import org.keycloak.models.jpa.entities.GroupEntity;
+import org.keycloak.models.jpa.entities.IdentityProviderEntity;
+import org.keycloak.models.jpa.entities.IdentityProviderMapperEntity;
 import org.keycloak.models.jpa.entities.RealmEntity;
 import org.keycloak.models.jpa.entities.RealmLocalizationTextsEntity;
 import org.keycloak.models.jpa.entities.RoleEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
 
+import com.google.common.collect.ImmutableSet;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
@@ -170,7 +177,9 @@ public class JpaRealmProvider implements RealmProvider, ClientProvider, GroupPro
         session.roles().removeRoles(adapter);
 
         adapter.getTopLevelGroupsStream().forEach(adapter::removeGroup);
-
+for(IdentityProviderModel identityProviderModel : session.identityProviderStorage().getIdentityProviders(adapter))
+        	session.identityProviderStorage().removeIdentityProviderByAlias(adapter, identityProviderModel.getAlias());
+                
         num = em.createNamedQuery("removeClientInitialAccessByRealm")
                 .setParameter("realm", realm).executeUpdate();
 
@@ -953,5 +962,7 @@ public class JpaRealmProvider implements RealmProvider, ClientProvider, GroupPro
         model.setTimestamp(entity.getTimestamp());
         return model;
     }
-
+    
+    
+    
 }

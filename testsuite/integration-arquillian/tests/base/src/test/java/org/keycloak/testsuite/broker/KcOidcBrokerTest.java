@@ -419,7 +419,7 @@ public final class KcOidcBrokerTest extends AbstractAdvancedBrokerTest {
 
         RealmResource realmResource = Optional.ofNullable(realmsResouce().realm(bc.providerRealmName())).orElse(null);
         assertThat(realmResource, Matchers.notNullValue());
-        final int COUNT_PROVIDERS = Optional.of(realmResource.identityProviders().findAll().size()).orElse(0);
+        final int COUNT_PROVIDERS = Optional.of(realmResource.identityProviders().findAll(false,"",-1,-1).size()).orElse(0);
 
         try {
             IdentityProviderRepresentation idp = new IdentityProviderRepresentation();
@@ -431,7 +431,7 @@ public final class KcOidcBrokerTest extends AbstractAdvancedBrokerTest {
             Response response = realmResource.identityProviders().create(idp);
             assertThat(response, Matchers.notNullValue());
             assertThat(response.getStatus(), Matchers.is(Response.Status.CREATED.getStatusCode()));
-            assertThat(realmResource.identityProviders().findAll().size(), Matchers.is(COUNT_PROVIDERS + 1));
+            assertThat(realmResource.identityProviders().findAll(false,"",-1,-1).size(), Matchers.is(COUNT_PROVIDERS + 1));
             assertThat(ApiUtil.getCreatedId(response), Matchers.notNullValue());
 
             IdentityProviderRepresentation provider = Optional.ofNullable(realmResource.identityProviders().get(IDP_NAME).toRepresentation()).orElse(null);
@@ -455,7 +455,7 @@ public final class KcOidcBrokerTest extends AbstractAdvancedBrokerTest {
             IdentityProviderResource resource = Optional.ofNullable(realmResource.identityProviders().get(IDP_NAME)).orElse(null);
             assertThat(resource, Matchers.notNullValue());
             resource.remove();
-            assertThat(Optional.of(realmResource.identityProviders().findAll().size()).orElse(0), Matchers.is(COUNT_PROVIDERS));
+            assertThat(Optional.of(realmResource.identityProviders().findAll(false,"",-1,-1).size()).orElse(0), Matchers.is(COUNT_PROVIDERS));
         }
     }
 

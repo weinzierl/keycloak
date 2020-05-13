@@ -28,6 +28,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import java.util.Map;
 
@@ -37,6 +39,11 @@ import java.util.Map;
  */
 @Entity
 @Table(name="IDENTITY_PROVIDER_MAPPER")
+@NamedQueries({
+	@NamedQuery(name="findIdentityProviderMappersByRealm", query="select identityProviderMapper from IdentityProviderMapperEntity identityProviderMapper where identityProviderMapper.realm.id = :realmId"),
+    @NamedQuery(name="findIdentityProviderMappersByRealmAndAlias", query="select identityProviderMapper from IdentityProviderMapperEntity identityProviderMapper where identityProviderMapper.identityProviderAlias = :alias and identityProviderMapper.realm.id = :realmId"),
+    @NamedQuery(name="findIdentityProviderMappersByRealmAndAliasAndName", query="select identityProviderMapper from IdentityProviderMapperEntity identityProviderMapper where identityProviderMapper.realm.id = :realmId and identityProviderMapper.identityProviderAlias = :alias and identityProviderMapper.name = :name")
+})
 public class IdentityProviderMapperEntity {
 
     @Id

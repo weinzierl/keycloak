@@ -3,7 +3,7 @@ package org.keycloak.testsuite.broker;
 import org.keycloak.admin.client.resource.ClientsResource;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.common.util.StringPropertyReplacer;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -122,7 +122,7 @@ public class KcSamlIdPInitiatedSsoTest extends AbstractKeycloakTest {
     public void resetPrincipalType() {
         IdentityProviderResource idp = adminClient.realm(REALM_CONS_NAME).identityProviders().get("saml-leaf");
         IdentityProviderRepresentation rep = idp.toRepresentation();
-        rep.getConfig().put(SAMLIdentityProviderConfig.PRINCIPAL_TYPE, SamlPrincipalType.SUBJECT.name());
+        rep.getConfig().put(SAMLConfigNames.PRINCIPAL_TYPE, SamlPrincipalType.SUBJECT.name());
         idp.update(rep);
     }
 
@@ -346,8 +346,8 @@ public class KcSamlIdPInitiatedSsoTest extends AbstractKeycloakTest {
     public void testProviderIdpInitiatedLoginWithPrincipalAttribute() throws Exception {
         IdentityProviderResource idp = adminClient.realm(REALM_CONS_NAME).identityProviders().get("saml-leaf");
         IdentityProviderRepresentation rep = idp.toRepresentation();
-        rep.getConfig().put(SAMLIdentityProviderConfig.PRINCIPAL_TYPE, SamlPrincipalType.ATTRIBUTE.name());
-        rep.getConfig().put(SAMLIdentityProviderConfig.PRINCIPAL_ATTRIBUTE, X500SAMLProfileConstants.UID.get());
+        rep.getConfig().put(SAMLConfigNames.PRINCIPAL_TYPE, SamlPrincipalType.ATTRIBUTE.name());
+        rep.getConfig().put(SAMLConfigNames.PRINCIPAL_ATTRIBUTE, X500SAMLProfileConstants.UID.get());
         idp.update(rep);
 
         SAMLDocumentHolder samlResponse = new SamlClientBuilder()

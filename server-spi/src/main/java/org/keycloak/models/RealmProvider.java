@@ -30,7 +30,7 @@ import java.util.stream.Stream;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public interface RealmProvider extends Provider /* TODO: Remove in future version */, ClientProvider, GroupProvider, RoleProvider /* up to here */ {
+public interface RealmProvider extends Provider, ClientProvider, GroupProvider, RoleProvider {
 
     // Note: The reason there are so many query methods here is for layering a cache on top of an persistent KeycloakSession
     MigrationModel getMigrationModel();

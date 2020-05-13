@@ -25,6 +25,8 @@ import org.keycloak.authentication.AuthenticationProcessor;
 import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticator;
 import org.keycloak.authentication.authenticators.broker.util.PostBrokerLoginConstants;
 import org.keycloak.authentication.authenticators.broker.util.SerializedBrokeredIdentityContext;
+import org.keycloak.broker.federation.IdpFederationProvider;
+import org.keycloak.broker.federation.IdpFederationProviderFactory;
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
@@ -34,6 +36,7 @@ import org.keycloak.broker.provider.IdentityProviderMapper;
 import org.keycloak.broker.provider.IdentityProviderMapperSyncModeDelegate;
 import org.keycloak.broker.provider.util.IdentityBrokerState;
 import org.keycloak.broker.saml.SAMLEndpoint;
+import org.keycloak.broker.saml.federation.SAMLIdPFederationProvider;
 import org.keycloak.broker.social.SocialIdentityProvider;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.util.Base64Url;
@@ -51,8 +54,10 @@ import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientSessionContext;
 import org.keycloak.models.Constants;
 import org.keycloak.models.FederatedIdentityModel;
+import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProviderSyncMode;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
@@ -72,6 +77,10 @@ import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
 import org.keycloak.provider.ProviderFactory;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.saml.SAMLRequestParser;
+import org.keycloak.saml.common.constants.GeneralConstants;
+import org.keycloak.saml.processing.core.saml.v2.common.SAMLDocumentHolder;
+import org.keycloak.saml.processing.web.util.PostBindingUtil;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.ErrorPageException;
 import org.keycloak.services.ErrorResponse;
@@ -93,6 +102,8 @@ import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.sessions.RootAuthenticationSessionModel;
 import org.keycloak.util.JsonSerialization;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.OPTIONS;
@@ -103,6 +114,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
@@ -135,6 +147,9 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
     private static final Logger logger = Logger.getLogger(IdentityBrokerService.class);
 
+    public static final String ENDPOINT_PATH = "/endpoint";
+    
+    
     private final RealmModel realmModel;
 
     @Context
@@ -293,7 +308,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         }
 
 
-        IdentityProviderModel identityProviderModel = realmModel.getIdentityProviderByAlias(providerId);
+        IdentityProviderModel identityProviderModel = session.identityProviderStorage().getIdentityProviderByAlias(realmModel, providerId);
         if (identityProviderModel == null) {
             event.error(Errors.UNKNOWN_IDENTITY_PROVIDER);
             UriBuilder builder = UriBuilder.fromUri(redirectUri)
@@ -381,7 +396,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
             }
 
             ClientSessionCode<AuthenticationSessionModel> clientSessionCode = parsedCode.clientSessionCode;
-            IdentityProviderModel identityProviderModel = realmModel.getIdentityProviderByAlias(providerId);
+            IdentityProviderModel identityProviderModel = session.identityProviderStorage().getIdentityProviderByAlias(realmModel, providerId);
             if (identityProviderModel == null) {
                 throw new IdentityBrokerException("Identity Provider [" + providerId + "] not found.");
             }
@@ -396,6 +411,10 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
             IdentityProvider identityProvider = providerFactory.create(session, identityProviderModel);
 
+            boolean isMemberOfAggregation = (identityProviderModel.getFederations() != null && identityProviderModel.getFederations().size() > 0) ? true : false;
+            if(isMemberOfAggregation)
+            	providerId = null;
+            
             Response response = identityProvider.performLogin(createAuthenticationRequest(providerId, clientSessionCode));
 
             if (response != null) {
@@ -427,6 +446,49 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         ResteasyProviderFactory.getInstance().injectProperties(callback);
         return callback;
     }
+    
+    
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Path(ENDPOINT_PATH)
+    public void getIdpFederationEndpointPOST(@FormParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse) {
+    	byte[] samlBytes = PostBindingUtil.base64Decode(samlResponse);
+        SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseDocument(samlBytes);
+        StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
+        String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
+        String alias = SAMLIdPFederationProvider.getHash(issuer);
+        String path = request.getUri().getPath();
+        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
+        request.forward(path);
+    }
+    
+    
+    @GET
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Path(ENDPOINT_PATH)
+    public void getIdpFederationEndpointGET(@QueryParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse) {
+    	SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseRedirectBinding(samlResponse);
+        StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
+        String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
+        String alias = SAMLIdPFederationProvider.getHash(issuer);
+        String path = request.getUri().getPath();
+        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
+        request.forward(path);
+    }
+    
+    @GET
+    @NoCache
+    @Path("/federation/{provider_id}" + ENDPOINT_PATH + "/descriptor")
+    public Response getIdpFederationService(@PathParam("provider_id") String providerId) {
+    	IdentityProvidersFederationModel idpFederationModel = realmModel.getIdentityProvidersFederationByAlias(providerId);
+    	if(idpFederationModel == null)
+    		idpFederationModel = realmModel.getIdentityProvidersFederationById(providerId);
+    	if (idpFederationModel == null)
+            throw new IdentityBrokerException("Could not find any federation for the identifier: " + providerId);
+    	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, idpFederationModel.getProviderId()).create(session, idpFederationModel, realmModel.getId());
+    	return idpFederationProvider.export(session.getContext().getUri(), realmModel);
+    }
+    
 
     @Path("{provider_id}/token")
     @OPTIONS
@@ -542,12 +604,14 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         session.getContext().setClient(authenticationSession.getClient());
 
         context.getIdp().preprocessFederatedIdentity(session, realmModel, context);
-        KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
-        realmModel.getIdentityProviderMappersByAliasStream(context.getIdpConfig().getAlias()).forEach(mapper -> {
-            IdentityProviderMapper target = (IdentityProviderMapper) sessionFactory
-                    .getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
-            target.preprocessFederatedIdentity(session, realmModel, mapper, context);
-        });
+        Set<IdentityProviderMapperModel> mappers = session.identityProviderStorage().getIdentityProviderMappersByAlias(realmModel, context.getIdpConfig().getAlias());
+        if (mappers != null) {
+            KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
+            for (IdentityProviderMapperModel mapper : mappers) {
+                IdentityProviderMapper target = (IdentityProviderMapper)sessionFactory.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
+                target.preprocessFederatedIdentity(session, realmModel, mapper, context);
+            }
+        }
 
         FederatedIdentityModel federatedIdentityModel = new FederatedIdentityModel(providerId, context.getId(),
                 context.getUsername(), context.getToken());
@@ -719,12 +783,14 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
                 logger.debugf("Registered new user '%s' after first login with identity provider '%s'. Identity provider username is '%s' . ", federatedUser.getUsername(), providerId, context.getUsername());
 
                 context.getIdp().importNewUser(session, realmModel, federatedUser, context);
-                KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
-                realmModel.getIdentityProviderMappersByAliasStream(providerId).forEach(mapper -> {
-                    IdentityProviderMapper target = (IdentityProviderMapper) sessionFactory
-                            .getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
-                    target.importNewUser(session, realmModel, federatedUser, mapper, context);
-                });
+                Set<IdentityProviderMapperModel> mappers = session.identityProviderStorage().getIdentityProviderMappersByAlias(realmModel, providerId);
+                if (mappers != null) {
+                    KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
+                    for (IdentityProviderMapperModel mapper : mappers) {
+                        IdentityProviderMapper target = (IdentityProviderMapper)sessionFactory.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
+                        target.importNewUser(session, realmModel, federatedUser, mapper, context);
+                    }
+                }
 
                 if (context.getIdpConfig().isTrustEmail() && !Validation.isBlank(federatedUser.getEmail()) && !Boolean.parseBoolean(authSession.getAuthNote(AbstractIdpAuthenticator.UPDATE_PROFILE_EMAIL_CHANGED))) {
                     logger.debugf("Email verified automatically after registration of user '%s' through Identity provider '%s' ", federatedUser.getUsername(), context.getIdpConfig().getAlias());
@@ -1020,7 +1086,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         updateToken(context, federatedUser, federatedIdentityModel);
         context.getIdp().updateBrokeredUser(session, realmModel, federatedUser, context);
         KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
-        realmModel.getIdentityProviderMappersByAliasStream(context.getIdpConfig().getAlias()).forEach(mapper -> {
+        session.identityProviderStorage().getIdentityProviderMappersByAlias(realmModel, context.getIdpConfig().getAlias()).stream().forEach(mapper -> {
             IdentityProviderMapper target = (IdentityProviderMapper) sessionFactory
                     .getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
             IdentityProviderMapperSyncModeDelegate.delegateUpdateBrokeredUser(session, realmModel, federatedUser, mapper, context, target);
@@ -1187,12 +1253,17 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
             encodedState = IdentityBrokerState.decoded(relayState, authSession.getClient().getClientId(), authSession.getTabId());
         }
 
-        return new AuthenticationRequest(this.session, this.realmModel, authSession, this.request, this.session.getContext().getUri(), encodedState, getRedirectUri(providerId));
+        return new AuthenticationRequest(this.session, this.realmModel, authSession, this.request, this.session.getContext().getUri(), encodedState, providerId==null ? getRedirectUri() : getRedirectUri(providerId));
     }
 
     private String getRedirectUri(String providerId) {
         return Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), providerId, this.realmModel.getName()).toString();
     }
+    
+    private String getRedirectUri() {
+        return Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), this.realmModel.getName()).toString();
+    }
+
 
     private Response redirectToErrorPage(AuthenticationSessionModel authSession, Response.Status status, String message, Object ... parameters) {
         return redirectToErrorPage(authSession, status, message, null, parameters);
@@ -1274,7 +1345,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
     }
 
     public static IdentityProvider getIdentityProvider(KeycloakSession session, RealmModel realm, String alias) {
-        IdentityProviderModel identityProviderModel = realm.getIdentityProviderByAlias(alias);
+        IdentityProviderModel identityProviderModel = session.identityProviderStorage().getIdentityProviderByAlias(realm, alias);
 
         if (identityProviderModel != null) {
             IdentityProviderFactory providerFactory = getIdentityProviderFactory(session, identityProviderModel);
@@ -1304,7 +1375,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
     }
 
     private IdentityProviderModel getIdentityProviderConfig(String providerId) {
-        IdentityProviderModel model = this.realmModel.getIdentityProviderByAlias(providerId);
+        IdentityProviderModel model = session.identityProviderStorage().getIdentityProviderByAlias(realmModel, providerId);
         if (model == null) {
             throw new IdentityBrokerException("Configuration for identity provider [" + providerId + "] not found.");
         }

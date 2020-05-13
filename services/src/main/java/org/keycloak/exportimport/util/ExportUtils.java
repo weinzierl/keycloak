@@ -57,6 +57,8 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ComponentExportRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
+import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
+import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.RolesRepresentation;
@@ -82,7 +84,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 public class ExportUtils {
 
     public static RealmRepresentation exportRealm(KeycloakSession session, RealmModel realm, boolean includeUsers, boolean internal) {
-        ExportOptions opts = new ExportOptions(includeUsers, true, true, false);
+        ExportOptions opts = new ExportOptions(includeUsers, true, true, false, true);
         return exportRealm(session, realm, opts, internal);
     }
 
@@ -94,6 +96,20 @@ public class ExportUtils {
         // Project/product version
         rep.setKeycloakVersion(Version.VERSION_KEYCLOAK);
 
+        //IdentityProviders 
+        if (options.isIdentityProvidersIncluded()) {
+        	List<IdentityProviderRepresentation> identityProviders = session.identityProviderStorage().getIdentityProviders(realm).stream()
+        			.map(idp -> ModelToRepresentation.toRepresentation(realm, idp)).collect(Collectors.toList());
+        	rep.setIdentityProviders(identityProviders);
+        	List<IdentityProviderMapperRepresentation> identityProviderMappers = session.identityProviderStorage().getIdentityProviderMappers(realm).stream()
+        			.map(idpMapper -> ModelToRepresentation.toRepresentation(idpMapper)).collect(Collectors.toList());
+        	rep.setIdentityProviderMappers(identityProviderMappers);
+        	 }
+        //remove saml federation if not idp included
+        if (!options.isIdentityProvidersIncluded()) {
+            rep.setIdentityProvidersFederations(null);
+        }
+        
         // Client Scopes
         rep.setClientScopes(realm.getClientScopesStream().map(ModelToRepresentation::toRepresentation).collect(Collectors.toList()));
         rep.setDefaultDefaultClientScopes(realm.getDefaultClientScopesStream(true)
@@ -139,7 +155,7 @@ public class ExportUtils {
             }
             rep.setRoles(rolesRep);
         }
-
+        
         // Scopes
         Map<String, List<ScopeMappingRepresentation>> clientScopeReps = new HashMap<>();
 

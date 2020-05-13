@@ -17,7 +17,7 @@
 package org.keycloak.testsuite.saml;
 
 import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.broker.saml.SAMLIdentityProviderFactory;
 import org.keycloak.dom.saml.v2.SAML2Object;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -351,12 +351,12 @@ public class LogoutTest extends AbstractSamlTest {
           .providerId(SAMLIdentityProviderFactory.PROVIDER_ID)
           .alias(SAML_BROKER_ALIAS)
           .displayName("SAML")
-          .setAttribute(SAMLIdentityProviderConfig.SINGLE_SIGN_ON_SERVICE_URL, BROKER_SIGN_ON_SERVICE_URL)
-          .setAttribute(SAMLIdentityProviderConfig.SINGLE_LOGOUT_SERVICE_URL, BROKER_LOGOUT_SERVICE_URL)
-          .setAttribute(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT, "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress")
-          .setAttribute(SAMLIdentityProviderConfig.POST_BINDING_RESPONSE, "false")
-          .setAttribute(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, "false")
-          .setAttribute(SAMLIdentityProviderConfig.BACKCHANNEL_SUPPORTED, "false")
+          .setAttribute(SAMLConfigNames.SINGLE_SIGN_ON_SERVICE_URL, BROKER_SIGN_ON_SERVICE_URL)
+          .setAttribute(SAMLConfigNames.SINGLE_LOGOUT_SERVICE_URL, BROKER_LOGOUT_SERVICE_URL)
+          .setAttribute(SAMLConfigNames.NAME_ID_POLICY_FORMAT, "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress")
+          .setAttribute(SAMLConfigNames.POST_BINDING_RESPONSE, "false")
+          .setAttribute(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, "false")
+          .setAttribute(SAMLConfigNames.BACKCHANNEL_SUPPORTED, "false")
           .build();
         return identityProvider;
     }

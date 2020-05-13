@@ -34,6 +34,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -193,13 +194,16 @@ public class RealmEntity {
     protected String masterAdminClient;
 
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
-    protected List<IdentityProviderEntity> identityProviders;
+    protected List<IdentityProviderEntity> identityProviders = new ArrayList<IdentityProviderEntity>();
 
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
-    Collection<IdentityProviderMapperEntity> identityProviderMappers;
+    Collection<IdentityProviderMapperEntity> identityProviderMappers = new ArrayList<IdentityProviderMapperEntity>();
 
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
-    Collection<AuthenticatorConfigEntity> authenticators;
+    protected List<FederationEntity> identityProvidersFederations = new ArrayList<FederationEntity>();
+    
+	@OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
+    Collection<AuthenticatorConfigEntity> authenticators ;
 
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
     Collection<RequiredActionProviderEntity> requiredActionProviders;
@@ -210,6 +214,7 @@ public class RealmEntity {
     @OneToMany(fetch = FetchType.LAZY, cascade ={CascadeType.ALL}, orphanRemoval = true, mappedBy = "realm")
     Set<ComponentEntity> components;
 
+    
     @Column(name="BROWSER_FLOW")
     protected String browserFlow;
 
@@ -625,9 +630,6 @@ public class RealmEntity {
     }
 
     public List<IdentityProviderEntity> getIdentityProviders() {
-        if (identityProviders == null) {
-            identityProviders = new LinkedList<>();
-        }
         return this.identityProviders;
     }
 
@@ -640,6 +642,23 @@ public class RealmEntity {
         getIdentityProviders().add(entity);
     }
 
+    
+    public List<FederationEntity> getIdentityProvidersFederations() {
+		return this.identityProvidersFederations;
+	}
+
+	public void setIdentityProvidersFederations(List<FederationEntity> identityProvidersFederations) {
+		this.identityProvidersFederations = identityProvidersFederations;
+	}
+
+    
+    
+    public void addIdentityProvidersFederation(FederationEntity entity) {
+        entity.setRealm(this);
+        getIdentityProvidersFederations().add(entity);
+    }
+    
+    
     public boolean isInternationalizationEnabled() {
         return internationalizationEnabled;
     }
@@ -668,9 +687,6 @@ public class RealmEntity {
     }
 
     public Collection<IdentityProviderMapperEntity> getIdentityProviderMappers() {
-        if (identityProviderMappers == null) {
-            identityProviderMappers = new LinkedList<>();
-        }
         return identityProviderMappers;
     }
 

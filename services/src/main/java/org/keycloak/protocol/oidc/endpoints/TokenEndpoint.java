@@ -902,7 +902,7 @@ public class TokenEndpoint {
 
     public Response exchangeToIdentityProvider(UserModel targetUser, UserSessionModel targetUserSession, String requestedIssuer) {
         event.detail(Details.REQUESTED_ISSUER, requestedIssuer);
-        IdentityProviderModel providerModel = realm.getIdentityProviderByAlias(requestedIssuer);
+        IdentityProviderModel providerModel = session.identityProviderStorage().getIdentityProviderByAlias(realm, requestedIssuer);
         if (providerModel == null) {
             event.detail(Details.REASON, "unknown requested_issuer");
             event.error(Errors.UNKNOWN_IDENTITY_PROVIDER);
@@ -1071,7 +1071,7 @@ public class TokenEndpoint {
         AtomicReference<ExchangeExternalToken> externalIdp = new AtomicReference<>(null);
         AtomicReference<IdentityProviderModel> externalIdpModel = new AtomicReference<>(null);
 
-        realm.getIdentityProvidersStream().filter(idpModel -> {
+        session.identityProviderStorage().getIdentityProviders(realm).stream().filter(idpModel -> {
             IdentityProviderFactory factory = IdentityBrokerService.getIdentityProviderFactory(session, idpModel);
             IdentityProvider idp = factory.create(session, idpModel);
             if (idp instanceof ExchangeExternalToken) {
@@ -1124,12 +1124,13 @@ public class TokenEndpoint {
         //session.getContext().setClient(authenticationSession.getClient());
 
         context.getIdp().preprocessFederatedIdentity(session, realm, context);
-        Set<IdentityProviderMapperModel> mappers = realm.getIdentityProviderMappersByAliasStream(context.getIdpConfig().getAlias())
-                .collect(Collectors.toSet());
-        KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
-        for (IdentityProviderMapperModel mapper : mappers) {
-            IdentityProviderMapper target = (IdentityProviderMapper)sessionFactory.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
-            target.preprocessFederatedIdentity(session, realm, mapper, context);
+        Set<IdentityProviderMapperModel> mappers = session.identityProviderStorage().getIdentityProviderMappersByAlias(realm, context.getIdpConfig().getAlias());
+        if (mappers != null) {
+            KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
+            for (IdentityProviderMapperModel mapper : mappers) {
+                IdentityProviderMapper target = (IdentityProviderMapper)sessionFactory.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
+                target.preprocessFederatedIdentity(session, realm, mapper, context);
+            }
         }
 
         FederatedIdentityModel federatedIdentityModel = new FederatedIdentityModel(providerId, context.getId(),
@@ -1180,10 +1181,12 @@ public class TokenEndpoint {
             session.users().addFederatedIdentity(realm, user, federatedIdentityModel);
 
             context.getIdp().importNewUser(session, realm, user, context);
-
-            for (IdentityProviderMapperModel mapper : mappers) {
-                IdentityProviderMapper target = (IdentityProviderMapper)sessionFactory.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
-                target.importNewUser(session, realm, user, mapper, context);
+            if (mappers != null) {
+                KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
+                for (IdentityProviderMapperModel mapper : mappers) {
+                    IdentityProviderMapper target = (IdentityProviderMapper)sessionFactory.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
+                    target.importNewUser(session, realm, user, mapper, context);
+                }
             }
 
             if (context.getIdpConfig().isTrustEmail() && !Validation.isBlank(user.getEmail())) {
@@ -1203,10 +1206,12 @@ public class TokenEndpoint {
             }
 
             context.getIdp().updateBrokeredUser(session, realm, user, context);
-
-            for (IdentityProviderMapperModel mapper : mappers) {
-                IdentityProviderMapper target = (IdentityProviderMapper)sessionFactory.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
-                IdentityProviderMapperSyncModeDelegate.delegateUpdateBrokeredUser(session, realm, user, mapper, context, target);
+            if (mappers != null) {
+                KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
+                for (IdentityProviderMapperModel mapper : mappers) {
+                    IdentityProviderMapper target = (IdentityProviderMapper)sessionFactory.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
+                    target.updateBrokeredUser(session, realm, user, mapper, context);
+                }
             }
         }
         return user;

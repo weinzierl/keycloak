@@ -24,6 +24,7 @@ import org.keycloak.models.*;
 import org.keycloak.models.cache.CachedRealmModel;
 import org.keycloak.models.cache.UserCache;
 import org.keycloak.models.cache.infinispan.entities.CachedRealm;
+import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.client.ClientStorageProvider;
 
@@ -830,41 +831,45 @@ public class RealmAdapter implements CachedRealmModel {
         getDelegateForUpdate();
         updated.setSmtpConfig(smtpConfig);
     }
-
-
+    
     @Override
-    public Stream<IdentityProviderModel> getIdentityProvidersStream() {
-        if (isUpdated()) return updated.getIdentityProvidersStream();
-        return cached.getIdentityProviders().stream();
+    public List<IdentityProvidersFederationModel> getIdentityProviderFederations() {
+        if (isUpdated()) return updated.getIdentityProviderFederations();
+        return cached.getIdentityProvidersFederations();
     }
-
+    
     @Override
-    public IdentityProviderModel getIdentityProviderByAlias(String alias) {
-        if (isUpdated()) return updated.getIdentityProviderByAlias(alias);
-        return getIdentityProvidersStream()
-                .filter(model -> Objects.equals(model.getAlias(), alias))
-                .findFirst()
-                .orElse(null);
+    public IdentityProvidersFederationModel getIdentityProvidersFederationById(String id) {
+    	if (isUpdated()) return updated.getIdentityProvidersFederationById(id);
+    	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getInternalId().equals(id)).findAny().orElse(null);
     }
-
+    
     @Override
-    public void addIdentityProvider(IdentityProviderModel identityProvider) {
-        getDelegateForUpdate();
-        updated.addIdentityProvider(identityProvider);
+    public IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias) {
+    	if (isUpdated()) return updated.getIdentityProvidersFederationByAlias(alias);
+    	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getAlias().equals(alias)).findAny().orElse(null);
     }
-
+    
+    
     @Override
-    public void updateIdentityProvider(IdentityProviderModel identityProvider) {
-        getDelegateForUpdate();
-        updated.updateIdentityProvider(identityProvider);
-    }
-
-    @Override
-    public void removeIdentityProviderByAlias(String alias) {
-        getDelegateForUpdate();
-        updated.removeIdentityProviderByAlias(alias);
-    }
-
+	public void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+    	 getDelegateForUpdate();
+         updated.addIdentityProvidersFederation(identityProvidersFederationModel);
+	}
+	
+	@Override
+	public void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+		getDelegateForUpdate();
+        updated.updateIdentityProvidersFederation(identityProvidersFederationModel);
+	}
+    
+	@Override
+	public void removeIdentityProvidersFederation(String internalId) {
+		getDelegateForUpdate();
+		updated.removeIdentityProvidersFederation(internalId);
+	}
+	
+	
     @Override
     public String getLoginTheme() {
         if (isUpdated()) return updated.getLoginTheme();
@@ -1046,8 +1051,7 @@ public class RealmAdapter implements CachedRealmModel {
 
     @Override
     public boolean isIdentityFederationEnabled() {
-        if (isUpdated()) return updated.isIdentityFederationEnabled();
-        return cached.isIdentityFederationEnabled();
+    	return session.identityProviderStorage().countIdentityProviders(this) > 0;
     }
 
 
@@ -1099,60 +1103,7 @@ public class RealmAdapter implements CachedRealmModel {
     public void setDefaultLocale(String locale) {
         updated.setDefaultLocale(locale);
     }
-
-    @Override
-    public Stream<IdentityProviderMapperModel> getIdentityProviderMappersStream() {
-        if (isUpdated()) return updated.getIdentityProviderMappersStream();
-        return cached.getIdentityProviderMapperSet().stream();
-    }
-
-    @Override
-    public Stream<IdentityProviderMapperModel> getIdentityProviderMappersByAliasStream(String brokerAlias) {
-        if (isUpdated()) return updated.getIdentityProviderMappersByAliasStream(brokerAlias);
-        Set<IdentityProviderMapperModel> mappings = new HashSet<>(cached.getIdentityProviderMappers().getList(brokerAlias));
-        return mappings.stream();
-    }
-
-    @Override
-    public IdentityProviderMapperModel addIdentityProviderMapper(IdentityProviderMapperModel model) {
-        getDelegateForUpdate();
-        return updated.addIdentityProviderMapper(model);
-    }
-
-    @Override
-    public void removeIdentityProviderMapper(IdentityProviderMapperModel mapping) {
-        getDelegateForUpdate();
-        updated.removeIdentityProviderMapper(mapping);
-    }
-
-    @Override
-    public void updateIdentityProviderMapper(IdentityProviderMapperModel mapping) {
-        getDelegateForUpdate();
-        updated.updateIdentityProviderMapper(mapping);
-    }
-
-    @Override
-    public IdentityProviderMapperModel getIdentityProviderMapperById(String id) {
-        if (isUpdated()) return updated.getIdentityProviderMapperById(id);
-        for (List<IdentityProviderMapperModel> models : cached.getIdentityProviderMappers().values()) {
-            for (IdentityProviderMapperModel model : models) {
-                if (model.getId().equals(id)) return model;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public IdentityProviderMapperModel getIdentityProviderMapperByName(String alias, String name) {
-        if (isUpdated()) return updated.getIdentityProviderMapperByName(alias, name);
-        List<IdentityProviderMapperModel> models = cached.getIdentityProviderMappers().getList(alias);
-        if (models == null) return null;
-        for (IdentityProviderMapperModel model : models) {
-            if (model.getName().equals(name)) return model;
-        }
-        return null;
-    }
-
+    
     @Override
     public AuthenticationFlowModel getBrowserFlow() {
         if (isUpdated()) return updated.getBrowserFlow();

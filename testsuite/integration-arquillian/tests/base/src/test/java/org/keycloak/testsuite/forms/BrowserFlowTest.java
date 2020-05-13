@@ -652,7 +652,7 @@ public class BrowserFlowTest extends AbstractTestRealmKeycloakTest {
             // Test cleanup - Return back to the initial state
         } finally {
             // Drop the testing social providers previously created within the test
-            for (IdentityProviderRepresentation providerRepresentation : adminClient.realm(testRealm).identityProviders().findAll()) {
+            for (IdentityProviderRepresentation providerRepresentation : adminClient.realm(testRealm).identityProviders().findAll(false,"",-1,-1)) {
                 adminClient.realm(testRealm).identityProviders().get(providerRepresentation.getInternalId()).remove();
             }
 

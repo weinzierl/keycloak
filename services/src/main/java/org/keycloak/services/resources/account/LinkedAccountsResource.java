@@ -118,7 +118,7 @@ public class LinkedAccountsResource {
 
     public SortedSet<LinkedAccountRepresentation> getLinkedAccounts(KeycloakSession session, RealmModel realm, UserModel user) {
         Set<String> socialIds = findSocialIds();
-        return realm.getIdentityProvidersStream().filter(IdentityProviderModel::isEnabled)
+        return session.identityProviderStorage().getIdentityProviders(realm).stream().filter(IdentityProviderModel::isEnabled)
                 .map(provider -> toLinkedAccountRepresentation(provider, socialIds, session.users().getFederatedIdentitiesStream(user, realm)))
                 .collect(Collectors.toCollection(TreeSet::new));
     }
@@ -255,6 +255,6 @@ public class LinkedAccountsResource {
     }
     
     private boolean isValidProvider(String providerId) {
-        return realm.getIdentityProvidersStream().anyMatch(model -> Objects.equals(model.getAlias(), providerId));
+        return session.identityProviderStorage().getIdentityProviders(realm).stream().anyMatch(model -> Objects.equals(model.getAlias(), providerId));
     }
 }

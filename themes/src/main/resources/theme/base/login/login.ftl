@@ -1,5 +1,55 @@
 <#import "template.ftl" as layout>
+
+	<#noautoesc>
+    <script>
+        var identityProvidersSummary = JSON.parse("${identityProvidersSummary?js_string}");
+    </script>
+	</#noautoesc>
+	<script>
+	
+		var aClass = '${properties.kcFormSocialAccountListButtonClass!}'.split(" ");
+		
+		function buildFiltered(value) {
+			
+			if(!Array.isArray(identityProvidersSummary)) return;
+			
+			var listElem = document.getElementById('kc-providers-list');
+			if(listElem==null)
+				return;
+			listElem.textContent = "";
+			for(var i=0; i<identityProvidersSummary.length; i++ ){
+				var idp = identityProvidersSummary[i];
+				
+				if(idp.displayName.toLowerCase().lastIndexOf(value.toLowerCase())>=0){
+					var span = document.createElement('span');
+					span.textContent = idp.displayName;
+					span.classList.add("kc-social-provider-name")
+					var a = document.createElement('a');
+					a.href = idp.loginUrl;
+					a.id = "social-" + idp.alias;
+					for (var j = 0; j < aClass.length; j++) {
+					   a.classList.add(aClass[j]);
+					}
+					
+					//var li = document.createElement('li');
+					
+					a.appendChild(span);
+					//li.appendChild(a);
+					//listElem.appendChild(li);
+					listElem.appendChild(a);
+				}
+			}
+		};
+		
+		window.onload = function() {
+		  buildFiltered("");
+		};
+		
+    </script>
+
+
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('username','password') displayInfo=realm.password && realm.registrationAllowed && !registrationDisabled??; section>
+
     <#if section = "header">
         ${msg("loginAccountTitle")}
     <#elseif section = "form">
@@ -67,9 +117,12 @@
             <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
                 <hr/>
                 <h4>${msg("identity-provider-login-label")}</h4>
-
-                <ul class="${properties.kcFormSocialAccountListClass!} <#if social.providers?size gt 3>${properties.kcFormSocialAccountListGridClass!}</#if>">
-                    <#list social.providers as p>
+                <#if social.providers?size gt 8>
+            		<input id="kc-providers-filter" type="text" placeholder="Filter..." oninput="buildFiltered(this.value)">
+            		<ul id="kc-providers-list" class="${properties.kcFormSocialAccountListClass!} login-pf-list-scrollable"></ul>
+            	<#else>
+                	 <ul class="${properties.kcFormSocialAccountListClass!} ">
+                     <#list social.providers as p>
                         <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.providers?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
                                 type="button" href="${p.loginUrl}">
                             <#if p.iconClasses?has_content>
@@ -79,8 +132,9 @@
                                 <span class="${properties.kcFormSocialAccountNameClass!}">${p.displayName!}</span>
                             </#if>
                         </a>
-                    </#list>
-                </ul>
+                     </#list>
+                     </ul>
+                </#if>
             </div>
         </#if>
 

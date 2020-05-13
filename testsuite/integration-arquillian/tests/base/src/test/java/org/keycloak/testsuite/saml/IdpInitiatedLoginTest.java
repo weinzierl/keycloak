@@ -46,7 +46,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.testsuite.updaters.ClientAttributeUpdater;
 import org.keycloak.testsuite.updaters.IdentityProviderCreator;
 import org.keycloak.testsuite.util.IdentityProviderBuilder;
@@ -210,8 +210,8 @@ public class IdpInitiatedLoginTest extends AbstractSamlTest {
                 IdentityProviderBuilder.create()
                     .alias("saml-idp")
                     .providerId("saml")
-                    .setAttribute(SAMLIdentityProviderConfig.SINGLE_SIGN_ON_SERVICE_URL, "https://saml-idp-sso-service/")
-                    .setAttribute(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, "true")
+                    .setAttribute(SAMLConfigNames.SINGLE_SIGN_ON_SERVICE_URL, "https://saml-idp-sso-service/")
+                    .setAttribute(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, "true")
                     .build())) {
             new SamlClientBuilder()
                 .idpInitiatedLogin(getAuthServerSamlEndpoint(REALM_NAME), "sales-post").build()

@@ -17,7 +17,7 @@
 package org.keycloak.testsuite.adapter.servlet;
 
 import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.broker.saml.SAMLIdentityProviderFactory;
 import org.keycloak.protocol.saml.SamlConfigAttributes;
 import org.keycloak.protocol.saml.SamlProtocol;
@@ -244,12 +244,12 @@ public class SamlSignatureTest extends AbstractAdapterTest {
           .identityProvider(IdentityProviderBuilder.create()
             .alias(REALM_NAME)
             .providerId(SAMLIdentityProviderFactory.PROVIDER_ID)
-            .setAttribute(SAMLIdentityProviderConfig.SINGLE_SIGN_ON_SERVICE_URL, getAuthServerRoot() + "realms/" + REALM_NAME + "/protocol/saml")
-            .setAttribute(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, "true")
-            .setAttribute(SAMLIdentityProviderConfig.POST_BINDING_RESPONSE, "true")
-            .setAttribute(SAMLIdentityProviderConfig.SIGNING_CERTIFICATE_KEY, REALM_SIGNING_CERTIFICATE)
-            .setAttribute(SAMLIdentityProviderConfig.WANT_ASSERTIONS_SIGNED, "true")
-            .setAttribute(SAMLIdentityProviderConfig.VALIDATE_SIGNATURE, "true")
+            .setAttribute(SAMLConfigNames.SINGLE_SIGN_ON_SERVICE_URL, getAuthServerRoot() + "realms/" + REALM_NAME + "/protocol/saml")
+            .setAttribute(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, "true")
+            .setAttribute(SAMLConfigNames.POST_BINDING_RESPONSE, "true")
+            .setAttribute(SAMLConfigNames.SIGNING_CERTIFICATE_KEY, REALM_SIGNING_CERTIFICATE)
+            .setAttribute(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, "true")
+            .setAttribute(SAMLConfigNames.VALIDATE_SIGNATURE, "true")
           )
           .roles(RolesBuilder.create().realmRole(REQUIRED_ROLE))
           .build()

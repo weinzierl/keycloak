@@ -28,6 +28,7 @@ import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.OTPPolicy;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
@@ -35,6 +36,7 @@ import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.RequiredCredentialModel;
 import org.keycloak.models.WebAuthnPolicy;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,7 +65,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected boolean loginWithEmailAllowed;
     protected boolean duplicateEmailsAllowed;
     protected boolean resetPasswordAllowed;
-    protected boolean identityFederationEnabled;
     protected boolean editUsernameAllowed;
     //--- brute force settings
     protected boolean bruteForceProtected;
@@ -113,8 +114,8 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected List<RequiredCredentialModel> requiredCredentials;
     protected MultivaluedHashMap<String, ComponentModel> componentsByParent = new MultivaluedHashMap<>();
     protected MultivaluedHashMap<String, ComponentModel> componentsByParentAndType = new MultivaluedHashMap<>();
-    protected Map<String, ComponentModel> components;
-    protected List<IdentityProviderModel> identityProviders;
+    protected Map<String, ComponentModel> components ;
+    protected List<IdentityProvidersFederationModel> identityProvidersFederations;
 
     protected Map<String, String> browserSecurityHeaders;
     protected Map<String, String> smtpConfig;
@@ -145,19 +146,13 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected List<String> defaultRoles;
     private boolean allowUserManagedAccess;
 
-    public Set<IdentityProviderMapperModel> getIdentityProviderMapperSet() {
-        return identityProviderMapperSet;
-    }
-
-    protected List<String> defaultGroups;
+    protected List<String> defaultGroups ;
     protected List<String> clientScopes = new LinkedList<>();
     protected List<String> defaultDefaultClientScopes = new LinkedList<>();
     protected List<String> optionalDefaultClientScopes = new LinkedList<>();
     protected boolean internationalizationEnabled;
     protected Set<String> supportedLocales;
     protected String defaultLocale;
-    protected MultivaluedHashMap<String, IdentityProviderMapperModel> identityProviderMappers = new MultivaluedHashMap<>();
-    protected Set<IdentityProviderMapperModel> identityProviderMapperSet;
 
     protected Map<String, String> attributes;
 
@@ -180,7 +175,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         loginWithEmailAllowed = model.isLoginWithEmailAllowed();
         duplicateEmailsAllowed = model.isDuplicateEmailsAllowed();
         resetPasswordAllowed = model.isResetPasswordAllowed();
-        identityFederationEnabled = model.isIdentityFederationEnabled();
         editUsernameAllowed = model.isEditUsernameAllowed();
         //--- brute force settings
         bruteForceProtected = model.isBruteForceProtected();
@@ -227,18 +221,9 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         emailTheme = model.getEmailTheme();
 
         requiredCredentials = model.getRequiredCredentialsStream().collect(Collectors.toList());
-        userActionTokenLifespans = Collections.unmodifiableMap(new HashMap<>(model.getUserActionTokenLifespans()));
-
-        this.identityProviders = model.getIdentityProvidersStream().map(IdentityProviderModel::new)
-                .collect(Collectors.toList());
-        this.identityProviders = Collections.unmodifiableList(this.identityProviders);
-
-        this.identityProviderMapperSet = model.getIdentityProviderMappersStream().collect(Collectors.toSet());
-        for (IdentityProviderMapperModel mapper : identityProviderMapperSet) {
-            identityProviderMappers.add(mapper.getIdentityProviderAlias(), mapper);
-        }
-
-
+        userActionTokenLifespans = Collections.unmodifiableMap(new HashMap<>(model.getUserActionTokenLifespans()));        
+       
+        this.identityProvidersFederations  = model.getIdentityProviderFederations();
 
         smtpConfig = model.getSmtpConfig();
         browserSecurityHeaders = model.getBrowserSecurityHeaders();
@@ -313,7 +298,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         optionalDefaultClientScopes = model.getDefaultClientScopesStream(false).map(ClientScopeModel::getId)
                 .collect(Collectors.toList());
     }
-
+   
     public String getMasterAdminClient() {
         return masterAdminClient;
     }
@@ -515,10 +500,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         return passwordPolicy;
     }
 
-    public boolean isIdentityFederationEnabled() {
-        return identityFederationEnabled;
-    }
-
     public Map<String, String> getSmtpConfig() {
         return smtpConfig;
     }
@@ -574,12 +555,12 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     public boolean isAdminEventsDetailsEnabled() {
         return adminEventsDetailsEnabled;
     }
+    
+    public List<IdentityProvidersFederationModel> getIdentityProvidersFederations() {
+		return identityProvidersFederations;
+	}
 
-    public List<IdentityProviderModel> getIdentityProviders() {
-        return identityProviders;
-    }
-
-    public boolean isInternationalizationEnabled() {
+	public boolean isInternationalizationEnabled() {
         return internationalizationEnabled;
     }
 
@@ -590,11 +571,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     public String getDefaultLocale() {
         return defaultLocale;
     }
-
-    public MultivaluedHashMap<String, IdentityProviderMapperModel> getIdentityProviderMappers() {
-        return identityProviderMappers;
-    }
-
+  
     public Map<String, AuthenticationFlowModel> getAuthenticationFlows() {
         return authenticationFlows;
     }

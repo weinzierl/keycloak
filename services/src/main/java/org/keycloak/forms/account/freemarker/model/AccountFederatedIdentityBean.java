@@ -49,7 +49,7 @@ public class AccountFederatedIdentityBean {
         this.session = session;
 
         AtomicInteger availableIdentities = new AtomicInteger(0);
-        this.identities = realm.getIdentityProvidersStream()
+        this.identities = session.identityProviderStorage().getIdentityProviders(realm).stream()
                 .filter(IdentityProviderModel::isEnabled)
                 .map(provider -> {
                     String providerId = provider.getAlias();

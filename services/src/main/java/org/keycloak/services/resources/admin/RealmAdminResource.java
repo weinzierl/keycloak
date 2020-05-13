@@ -362,7 +362,7 @@ public class RealmAdminResource {
     /**
      * Get the top-level representation of the realm
      *
-     * It will not include nested information like User and Client representations.
+     * It will not include nested information like User, Client and IdentityProvider representations.
      *
      * @return
      */
@@ -377,12 +377,6 @@ public class RealmAdminResource {
 
             RealmRepresentation rep = new RealmRepresentation();
             rep.setRealm(realm.getName());
-
-            if (auth.realm().canViewIdentityProviders()) {
-                RealmRepresentation r = ModelToRepresentation.toRepresentation(realm, false);
-                rep.setIdentityProviders(r.getIdentityProviders());
-                rep.setIdentityProviderMappers(r.getIdentityProviderMappers());
-            }
 
             return rep;
         }
@@ -1020,6 +1014,12 @@ public class RealmAdminResource {
         return new IdentityProvidersResource(realm, session, this.auth, adminEvent);
     }
 
+    @Path("identity-provider-federation")
+    public IdentityProvidersFederationResource getIdentityProviderFederationResource() {
+        return new IdentityProvidersFederationResource(realm, session, this.auth, adminEvent);
+    }
+    
+    
     /**
      * Get group hierarchy.  Only name and ids are returned.
      *
@@ -1108,17 +1108,20 @@ public class RealmAdminResource {
      *
      * @param exportGroupsAndRoles
      * @param exportClients
+     * @param exportIdentityProviders
      * @return
      */
     @Path("partial-export")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public RealmRepresentation partialExport(@QueryParam("exportGroupsAndRoles") Boolean exportGroupsAndRoles,
-                                                     @QueryParam("exportClients") Boolean exportClients) {
+                                                     @QueryParam("exportClients") Boolean exportClients,
+                                                     @QueryParam("exportIdentityProviders") Boolean exportIdentityProviders) {
         auth.realm().requireViewRealm();
 
         boolean groupsAndRolesExported = exportGroupsAndRoles != null && exportGroupsAndRoles;
         boolean clientsExported = exportClients != null && exportClients;
+        boolean identityProvidersExported = exportIdentityProviders != null && exportIdentityProviders;
 
         if (groupsAndRolesExported) {
             auth.groups().requireList();
@@ -1126,11 +1129,15 @@ public class RealmAdminResource {
         if (clientsExported) {
             auth.clients().requireView();
         }
+        
+        if (identityProvidersExported) {
+        	auth.realm().requireViewIdentityProviders();
+        }
 
-        // service accounts are exported if the clients are exported
+// service accounts are exported if the clients are exported
         // this means that if clients is true but groups/roles is false the service account is exported without roles
         // the other option is just include service accounts if clientsExported && groupsAndRolesExported
-        ExportOptions options = new ExportOptions(false, clientsExported, groupsAndRolesExported, clientsExported);
+        ExportOptions options = new ExportOptions(false, clientsExported, groupsAndRolesExported,clientsExported , identityProvidersExported);
         RealmRepresentation rep = ExportUtils.exportRealm(session, realm, options, false);
         return stripForExport(session, rep);
     }

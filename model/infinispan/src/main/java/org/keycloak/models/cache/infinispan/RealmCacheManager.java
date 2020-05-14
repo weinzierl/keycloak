@@ -93,22 +93,6 @@ public class RealmCacheManager extends CacheManager {
 
         addInvalidations(InClientPredicate.create().client(clientUUID), invalidations);
     }
-
-    
-    public void identityProviderAdded(String realmId, String id, String alias, Set<String> invalidations) {
-        invalidations.add(RealmCacheSession.getRealmIdentityProvidersQueryCacheKey(realmId));
-    }
-
-    public void identityProviderUpdated(String realmId, String id, String alias, Set<String> invalidations) {
-        invalidations.add(RealmCacheSession.getIdentityProviderByAliasCacheKey(alias, realmId));
-    }
-
-    public void identityProviderRemoval(String realmId, String id, String alias, Set<String> invalidations) {
-        invalidations.add(RealmCacheSession.getRealmIdentityProvidersQueryCacheKey(realmId));
-        invalidations.add(RealmCacheSession.getIdentityProviderByAliasCacheKey(alias, realmId));
-        addInvalidations(InClientPredicate.create().client(alias), invalidations);
-    }
-    
     
 
     @Override

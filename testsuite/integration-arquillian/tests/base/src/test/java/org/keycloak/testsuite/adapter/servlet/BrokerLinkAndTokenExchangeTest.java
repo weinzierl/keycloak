@@ -256,7 +256,7 @@ public class BrokerLinkAndTokenExchangeTest extends AbstractServletsAdapterTest 
     public static void setupRealm(KeycloakSession session) {
         RealmModel realm = session.realms().getRealmByName(CHILD_IDP);
         ClientModel client = realm.getClientByClientId(ClientApp.DEPLOYMENT_NAME);
-        IdentityProviderModel idp = realm.getIdentityProviderByAlias(PARENT_IDP);
+        IdentityProviderModel idp = session.identityProviderStorage().getIdentityProviderByAlias(realm, PARENT_IDP);
         Assert.assertNotNull(idp);
 
         ClientModel directExchanger = realm.addClient("direct-exchanger");
@@ -294,16 +294,16 @@ public class BrokerLinkAndTokenExchangeTest extends AbstractServletsAdapterTest 
     }
     public static void turnOffTokenStore(KeycloakSession session) {
         RealmModel realm = session.realms().getRealmByName(CHILD_IDP);
-        IdentityProviderModel idp = realm.getIdentityProviderByAlias(PARENT_IDP);
+        IdentityProviderModel idp = session.identityProviderStorage().getIdentityProviderByAlias(realm, PARENT_IDP);
         idp.setStoreToken(false);
-        realm.updateIdentityProvider(idp);
+        session.identityProviderStorage().updateIdentityProvider(realm, idp);
 
     }
     public static void turnOnTokenStore(KeycloakSession session) {
         RealmModel realm = session.realms().getRealmByName(CHILD_IDP);
-        IdentityProviderModel idp = realm.getIdentityProviderByAlias(PARENT_IDP);
+        IdentityProviderModel idp = session.identityProviderStorage().getIdentityProviderByAlias(realm, PARENT_IDP);
         idp.setStoreToken(true);
-        realm.updateIdentityProvider(idp);
+        session.identityProviderStorage().updateIdentityProvider(realm, idp);
     }
 
     public void createBroker() {

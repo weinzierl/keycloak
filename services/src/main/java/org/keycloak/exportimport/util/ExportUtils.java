@@ -104,14 +104,14 @@ public class ExportUtils {
 
         //IdentityProviders
         if (options.isIdentityProvidersIncluded()) {
-        	List<IdentityProviderRepresentation> identityProviders = realm.getIdentityProviders().stream()
+        	List<IdentityProviderRepresentation> identityProviders = session.identityProviderStorage().getIdentityProviders(realm).stream()
         			.map(idp -> ModelToRepresentation.toRepresentation(realm, idp)).collect(Collectors.toList());
         	rep.setIdentityProviders(identityProviders);
         }
         
         //IdentityProviderMappers
         if (options.isIdentityProvidersIncluded()) {
-        	List<IdentityProviderMapperRepresentation> identityProviderMappers = realm.getIdentityProviderMappers().stream()
+        	List<IdentityProviderMapperRepresentation> identityProviderMappers = session.identityProviderStorage().getIdentityProviderMappers(realm).stream()
         			.map(idpMapper -> ModelToRepresentation.toRepresentation(idpMapper)).collect(Collectors.toList());
         	rep.setIdentityProviderMappers(identityProviderMappers);
         }

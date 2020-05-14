@@ -46,7 +46,7 @@ public class AccountFederatedIdentityBean {
     public AccountFederatedIdentityBean(KeycloakSession session, RealmModel realm, UserModel user, URI baseUri, String stateChecker) {
         this.session = session;
 
-        List<IdentityProviderModel> identityProviders = realm.getIdentityProviders();
+        List<IdentityProviderModel> identityProviders = session.identityProviderStorage().getIdentityProviders(realm);
         Set<FederatedIdentityModel> identities = session.users().getFederatedIdentities(user, realm);
 
         int availableIdentities = 0;

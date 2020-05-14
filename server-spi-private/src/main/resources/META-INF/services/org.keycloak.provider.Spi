@@ -19,6 +19,7 @@ org.keycloak.provider.ExceptionConverterSpi
 org.keycloak.storage.UserStorageProviderSpi
 org.keycloak.storage.federated.UserFederatedStorageProviderSpi
 org.keycloak.models.RealmSpi
+org.keycloak.models.IdpProviderSpi
 org.keycloak.models.ActionTokenStoreSpi
 org.keycloak.models.CodeToTokenStoreSpi
 org.keycloak.models.SingleUseTokenStoreSpi
@@ -53,6 +54,7 @@ org.keycloak.truststore.TruststoreSpi
 org.keycloak.connections.httpclient.HttpClientSpi
 org.keycloak.models.cache.CacheRealmProviderSpi
 org.keycloak.models.cache.CacheUserProviderSpi
+org.keycloak.models.cache.CacheIdpProviderSpi
 org.keycloak.authentication.AuthenticatorSpi
 org.keycloak.authentication.ClientAuthenticatorSpi
 org.keycloak.authentication.RequiredActionSpi

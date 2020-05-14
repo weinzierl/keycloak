@@ -128,7 +128,7 @@ public class IdentityProviderResource {
         }
 
         String alias = this.identityProviderModel.getAlias();
-        this.realm.removeIdentityProviderByAlias(alias);
+        this.session.identityProviderStorage().removeIdentityProviderByAlias(realm, alias);
 
         adminEvent.operation(OperationType.DELETE).resourcePath(session.getContext().getUri()).success();
 
@@ -165,10 +165,10 @@ public class IdentityProviderResource {
     private void updateIdpFromRep(IdentityProviderRepresentation providerRep, RealmModel realm, KeycloakSession session) {
         String internalId = providerRep.getInternalId();
         String newProviderId = providerRep.getAlias();
-        String oldProviderId = getProviderIdByInternalId(realm, internalId);
+        String oldProviderId = getProviderIdByInternalId(realm, internalId, session);
 
         if (oldProviderId == null) {
-            lookUpProviderIdByAlias(realm, providerRep);
+            lookUpProviderIdByAlias(realm, providerRep, session);
         }
 
         IdentityProviderModel updated = RepresentationToModel.toModel(realm, providerRep);
@@ -177,7 +177,7 @@ public class IdentityProviderResource {
             updated.getConfig().put("clientSecret", identityProviderModel.getConfig() != null ? identityProviderModel.getConfig().get("clientSecret") : null);
         }
 
-        realm.updateIdentityProvider(updated);
+        session.identityProviderStorage().updateIdentityProvider(realm, updated);
 
         if (oldProviderId != null && !oldProviderId.equals(newProviderId)) {
 
@@ -189,16 +189,16 @@ public class IdentityProviderResource {
     }
 
     // return ID of IdentityProvider from realm based on internalId of this provider
-    private static String getProviderIdByInternalId(RealmModel realm, String providerInternalId) {
-        IdentityProviderModel identityProviderModel = realm.getIdentityProviderById(providerInternalId);
+    private static String getProviderIdByInternalId(RealmModel realm, String providerInternalId, KeycloakSession session) {
+        IdentityProviderModel identityProviderModel = session.identityProviderStorage().getIdentityProviderById(providerInternalId);
         if(identityProviderModel != null)
         	return identityProviderModel.getAlias();
         return null;
     }
 
     // sets internalId to IdentityProvider based on alias
-    private static void lookUpProviderIdByAlias(RealmModel realm, IdentityProviderRepresentation providerRep) {
-    	IdentityProviderModel providerModel = realm.getIdentityProviderByAlias(providerRep.getAlias());
+    private static void lookUpProviderIdByAlias(RealmModel realm, IdentityProviderRepresentation providerRep, KeycloakSession session) {
+    	IdentityProviderModel providerModel = session.identityProviderStorage().getIdentityProviderByAlias(realm, providerRep.getAlias());
     	if(providerModel != null) {
     		providerRep.setInternalId(providerModel.getInternalId());
     		return;
@@ -312,7 +312,7 @@ public class IdentityProviderResource {
         }
 
         List<IdentityProviderMapperRepresentation> mappers = new LinkedList<>();
-        for (IdentityProviderMapperModel model : realm.getIdentityProviderMappersByAlias(identityProviderModel.getAlias())) {
+        for (IdentityProviderMapperModel model : session.identityProviderStorage().getIdentityProviderMappersByAlias(realm, identityProviderModel.getAlias())) {
             mappers.add(ModelToRepresentation.toRepresentation(model));
         }
         return mappers;
@@ -336,7 +336,7 @@ public class IdentityProviderResource {
 
         IdentityProviderMapperModel model = RepresentationToModel.toModel(mapper);
         try {
-            model = realm.addIdentityProviderMapper(model);
+            model = session.identityProviderStorage().addIdentityProviderMapper(realm, model);
         } catch (Exception e) {
             return ErrorResponse.error("Failed to add mapper '" + model.getName() + "' to identity provider [" + identityProviderModel.getProviderId() + "].", Response.Status.BAD_REQUEST);
         }
@@ -365,7 +365,7 @@ public class IdentityProviderResource {
             throw new javax.ws.rs.NotFoundException();
         }
 
-        IdentityProviderMapperModel model = realm.getIdentityProviderMapperById(id);
+        IdentityProviderMapperModel model = session.identityProviderStorage().getIdentityProviderMapperById(realm, id);
         if (model == null) throw new NotFoundException("Model not found");
         return ModelToRepresentation.toRepresentation(model);
     }
@@ -387,10 +387,10 @@ public class IdentityProviderResource {
             throw new javax.ws.rs.NotFoundException();
         }
 
-        IdentityProviderMapperModel model = realm.getIdentityProviderMapperById(id);
+        IdentityProviderMapperModel model = session.identityProviderStorage().getIdentityProviderMapperById(realm, id);
         if (model == null) throw new NotFoundException("Model not found");
         model = RepresentationToModel.toModel(rep);
-        realm.updateIdentityProviderMapper(model);
+        session.identityProviderStorage().updateIdentityProviderMapper(realm, model);
         adminEvent.operation(OperationType.UPDATE).resource(ResourceType.IDENTITY_PROVIDER_MAPPER).resourcePath(session.getContext().getUri()).representation(rep).success();
 
     }
@@ -410,9 +410,9 @@ public class IdentityProviderResource {
             throw new javax.ws.rs.NotFoundException();
         }
 
-        IdentityProviderMapperModel model = realm.getIdentityProviderMapperById(id);
+        IdentityProviderMapperModel model = session.identityProviderStorage().getIdentityProviderMapperById(realm, id);
         if (model == null) throw new NotFoundException("Model not found");
-        realm.removeIdentityProviderMapper(model);
+        session.identityProviderStorage().removeIdentityProviderMapper(realm, model);
         adminEvent.operation(OperationType.DELETE).resource(ResourceType.IDENTITY_PROVIDER_MAPPER).resourcePath(session.getContext().getUri()).success();
 
     }

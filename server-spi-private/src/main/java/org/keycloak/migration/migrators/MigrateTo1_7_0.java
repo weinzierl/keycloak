@@ -65,11 +65,11 @@ public class MigrateTo1_7_0 implements Migration {
         DefaultAuthenticationFlows.migrateFlows(realm);
         AuthenticationFlowModel firstBrokerLoginFlow = realm.getFlowByAlias(DefaultAuthenticationFlows.FIRST_BROKER_LOGIN_FLOW);
 
-        List<IdentityProviderModel> identityProviders = realm.getIdentityProviders();
+        List<IdentityProviderModel> identityProviders = session.identityProviderStorage().getIdentityProviders(realm);
         for (IdentityProviderModel identityProvider : identityProviders) {
             if (identityProvider.getFirstBrokerLoginFlowId() == null) {
                 identityProvider.setFirstBrokerLoginFlowId(firstBrokerLoginFlow.getId());
-                realm.updateIdentityProvider(identityProvider);
+                session.identityProviderStorage().updateIdentityProvider(realm, identityProvider);
             }
         }
     }

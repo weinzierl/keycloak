@@ -1279,49 +1279,10 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         em.flush();
     }
     
-    @Override
-	public List<String> getUsedIdentityProviderIdTypes(){
-    	return session.realms().getUsedIdentityProviderIdTypes(this);
-	}
-    
-    @Override
-    public List<IdentityProviderModel> getIdentityProviders() {
-    	return session.realms().getIdentityProviders(this);
-    }
-    
-    @Override
-    public List<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults) {
-    	return session.realms().searchIdentityProviders(this, keyword, firstResult, maxResults);
-    }
-        
-    @Override
-    public IdentityProviderModel getIdentityProviderById(String internalId) {
-    	return session.realms().getIdentityProviderById(internalId);
-    }
-    
-    @Override
-    public IdentityProviderModel getIdentityProviderByAlias(String alias) {
-    	return session.realms().getIdentityProviderByAlias(this, alias);
-    }
-
-    @Override
-    public void addIdentityProvider(IdentityProviderModel identityProvider) {
-    	session.realms().addIdentityProvider(this, identityProvider);
-    }
-
-    @Override
-    public void removeIdentityProviderByAlias(String alias) {
-    	session.realms().removeIdentityProviderByAlias(this, alias);
-    }
-
-    @Override
-    public void updateIdentityProvider(IdentityProviderModel identityProvider) {
-    	session.realms().updateIdentityProvider(this, identityProvider);
-    }
 
     @Override
     public boolean isIdentityFederationEnabled() {
-        return session.realms().countIdentityProviders(this) > 0;
+        return session.identityProviderStorage().countIdentityProviders(this) > 0;
     }
 
     @Override
@@ -1359,42 +1320,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     public void setDefaultLocale(String locale) {
         realm.setDefaultLocale(locale);
         em.flush();
-    }
-
-    @Override
-    public Set<IdentityProviderMapperModel> getIdentityProviderMappers() {
-    	return Collections.unmodifiableSet(session.realms().getIdentityProviderMappers(this));
-    }
-
-    @Override
-    public Set<IdentityProviderMapperModel> getIdentityProviderMappersByAlias(String brokerAlias) {
-    	return session.realms().getIdentityProviderMappersByAlias(this, brokerAlias);
-    }
-
-    @Override
-    public IdentityProviderMapperModel addIdentityProviderMapper(IdentityProviderMapperModel model) {
-    	return session.realms().addIdentityProviderMapper(this, model);
-    }
-
-
-    @Override
-    public void removeIdentityProviderMapper(IdentityProviderMapperModel mapping) {
-    	session.realms().removeIdentityProviderMapper(this, mapping);
-    }
-
-    @Override
-    public void updateIdentityProviderMapper(IdentityProviderMapperModel mapping) {
-    	session.realms().updateIdentityProviderMapper(this, mapping);
-    }
-
-    @Override
-    public IdentityProviderMapperModel getIdentityProviderMapperById(String id) {
-    	return session.realms().getIdentityProviderMapperById(this, id);
-    }
-
-    @Override
-    public IdentityProviderMapperModel getIdentityProviderMapperByName(String alias, String name) {
-    	return session.realms().getIdentityProviderMapperByName(this, alias, name);
     }
 
     
@@ -1519,7 +1444,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
     @Override
     public void removeAuthenticationFlow(AuthenticationFlowModel model) {
-        if (KeycloakModelUtils.isFlowUsed(this, model)) {
+        if (KeycloakModelUtils.isFlowUsed(this, model, session)) {
             throw new ModelException("Cannot remove authentication flow, it is currently in use");
         }
         AuthenticationFlowEntity entity = em.find(AuthenticationFlowEntity.class, model.getId(), LockModeType.PESSIMISTIC_WRITE);

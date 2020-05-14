@@ -27,7 +27,7 @@ import java.util.Set;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public interface RealmProvider extends Provider, ClientProvider, IdentityProviderProvider {
+public interface RealmProvider extends Provider, ClientProvider {
 
     // Note: The reason there are so many query methods here is for layering a cache on top of an persistent KeycloakSession
     MigrationModel getMigrationModel();
@@ -85,8 +85,7 @@ public interface RealmProvider extends Provider, ClientProvider, IdentityProvide
 
     ClientScopeModel getClientScopeById(String id, RealmModel realm);
     GroupModel getGroupById(String id, RealmModel realm);
-
-
+    
 
     List<RealmModel> getRealms();
     List<RealmModel> getRealmsWithProviderType(Class<?> type);

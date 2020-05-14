@@ -6,6 +6,7 @@ import org.keycloak.models.AuthenticationExecutionModel.Requirement;
 import org.keycloak.models.AuthenticationFlowModel;
 import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProviderProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.DefaultAuthenticationFlows;
@@ -173,11 +174,11 @@ public class FlowUtil {
         return this;
     }
 
-    public FlowUtil usesInIdentityProvider(String idpAlias) {
+    public FlowUtil usesInIdentityProvider(IdentityProviderProvider idpProvider, String idpAlias) {
         // Setup new FirstBrokerLogin flow to identity provider
-        IdentityProviderModel idp = realm.getIdentityProviderByAlias(idpAlias);
+        IdentityProviderModel idp = idpProvider.getIdentityProviderByAlias(realm, idpAlias);
         idp.setFirstBrokerLoginFlowId(currentFlow.getId());
-        realm.updateIdentityProvider(idp);
+        idpProvider.updateIdentityProvider(realm, idp);
         return this;
     }
 

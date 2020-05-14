@@ -349,22 +349,6 @@ public interface RealmModel extends RoleContainerModel {
     RequiredActionProviderModel getRequiredActionProviderById(String id);
     RequiredActionProviderModel getRequiredActionProviderByAlias(String alias);
 
-	List<String> getUsedIdentityProviderIdTypes();
-    List<IdentityProviderModel> getIdentityProviders();
-    List<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults);
-	IdentityProviderModel getIdentityProviderById(String internalId);
-    IdentityProviderModel getIdentityProviderByAlias(String alias);
-    void addIdentityProvider(IdentityProviderModel identityProvider);
-    void removeIdentityProviderByAlias(String alias);
-    void updateIdentityProvider(IdentityProviderModel identityProvider);
-    Set<IdentityProviderMapperModel> getIdentityProviderMappers();
-    Set<IdentityProviderMapperModel> getIdentityProviderMappersByAlias(String brokerAlias);
-    IdentityProviderMapperModel addIdentityProviderMapper(IdentityProviderMapperModel model);
-    void removeIdentityProviderMapper(IdentityProviderMapperModel mapping);
-    void updateIdentityProviderMapper(IdentityProviderMapperModel mapping);
-    IdentityProviderMapperModel getIdentityProviderMapperById(String id);
-    IdentityProviderMapperModel getIdentityProviderMapperByName(String brokerAlias, String name);
-
 
     /**
      * Adds component model.  Will call onCreate() method of ComponentFactory

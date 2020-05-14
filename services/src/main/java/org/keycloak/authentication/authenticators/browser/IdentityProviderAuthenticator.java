@@ -67,7 +67,7 @@ public class IdentityProviderAuthenticator implements Authenticator {
     }
 
     private void redirect(AuthenticationFlowContext context, String providerId) {
-        List<IdentityProviderModel> identityProviders = context.getRealm().getIdentityProviders();
+        List<IdentityProviderModel> identityProviders = context.getSession().identityProviderStorage().getIdentityProviders(context.getRealm());
         for (IdentityProviderModel identityProvider : identityProviders) {
             if (identityProvider.isEnabled() && providerId.equals(identityProvider.getAlias())) {
                 String accessCode = new ClientSessionCode<>(context.getSession(), context.getRealm(), context.getAuthenticationSession()).getOrGenerateCode();

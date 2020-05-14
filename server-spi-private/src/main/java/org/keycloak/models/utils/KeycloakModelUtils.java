@@ -582,7 +582,7 @@ public final class KeycloakModelUtils {
      * @param model
      * @return
      */
-    public static boolean isFlowUsed(RealmModel realm, AuthenticationFlowModel model) {
+    public static boolean isFlowUsed(RealmModel realm, AuthenticationFlowModel model, KeycloakSession session) {
         AuthenticationFlowModel realmFlow = null;
 
         if ((realmFlow = realm.getBrowserFlow()) != null && realmFlow.getId().equals(model.getId())) return true;
@@ -592,7 +592,7 @@ public final class KeycloakModelUtils {
         if ((realmFlow = realm.getResetCredentialsFlow()) != null && realmFlow.getId().equals(model.getId())) return true;
         if ((realmFlow = realm.getDockerAuthenticationFlow()) != null && realmFlow.getId().equals(model.getId())) return true;
 
-        for (IdentityProviderModel idp : realm.getIdentityProviders()) {
+        for (IdentityProviderModel idp : session.identityProviderStorage().getIdentityProviders(realm)) {
             if (model.getId().equals(idp.getFirstBrokerLoginFlowId())) return true;
             if (model.getId().equals(idp.getPostBrokerLoginFlowId())) return true;
         }

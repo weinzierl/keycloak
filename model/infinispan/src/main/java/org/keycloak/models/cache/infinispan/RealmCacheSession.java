@@ -94,13 +94,11 @@ import java.util.*;
 public class RealmCacheSession implements CacheRealmProvider {
     protected static final Logger logger = Logger.getLogger(RealmCacheSession.class);
     public static final String REALM_CLIENTS_QUERY_SUFFIX = ".realm.clients";
-    public static final String REALM_IDENTITY_PROVIDERS_QUERY_SUFFIX = ".realm.identity-providers";
     public static final String ROLES_QUERY_SUFFIX = ".roles";
     protected RealmCacheManager cache;
     protected KeycloakSession session;
     protected RealmProvider realmDelegate;
     protected ClientProvider clientDelegate;
-    protected IdentityProviderProvider identityProviderDelegate;
     protected boolean transactionActive;
     protected boolean setRollbackOnly;
 
@@ -158,18 +156,13 @@ public class RealmCacheSession implements CacheRealmProvider {
         return clientDelegate;
     }
 
-    public IdentityProviderProvider getIdentityProviderDelegate() {
-        if (!transactionActive) throw new IllegalStateException("Cannot access delegate without a transaction");
-        if (identityProviderDelegate != null) return identityProviderDelegate;
-        identityProviderDelegate = session.identityProviderLocalStorage();
-        return identityProviderDelegate;
-    }
+    
 
     @Override
     public void registerIdentityProviderInvalidation(String id, String alias, String realmId) {
-    	invalidateIdentityProvider(id);
+//    	invalidateIdentityProvider(id);
 //        invalidationEvents.add(IdentityProviderUpdatedEvent.create(id, alias, realmId));
-        cache.identityProviderUpdated(realmId, id, alias, invalidations);
+//        cache.identityProviderUpdated(realmId, id, alias, invalidations);
     }
 
     @Override
@@ -535,10 +528,6 @@ public class RealmCacheSession implements CacheRealmProvider {
         return realm + REALM_CLIENTS_QUERY_SUFFIX;
     }
 
-    static String getRealmIdentityProvidersQueryCacheKey(String realm) {
-        return realm + REALM_IDENTITY_PROVIDERS_QUERY_SUFFIX;
-    }
-    
     static String getGroupsQueryCacheKey(String realm) {
         return realm + ".groups";
     }
@@ -601,7 +590,6 @@ public class RealmCacheSession implements CacheRealmProvider {
     public void close() {
         if (realmDelegate != null) realmDelegate.close();
         if (clientDelegate != null) clientDelegate.close();
-        if (identityProviderDelegate != null) identityProviderDelegate.close();
     }
 
     @Override
@@ -1232,152 +1220,11 @@ public class RealmCacheSession implements CacheRealmProvider {
         getRealmDelegate().removeExpiredClientInitialAccess();
     }
 
-    
-    static String getIdentityProviderByAliasCacheKey(String alias, String realmId) {
-        return realmId + ".identity-provider.query.by.alias." + alias;
-    }
-    
-    
-    
     @Override
     public void decreaseRemainingCount(RealmModel realm, ClientInitialAccessModel clientInitialAccess) {
         getRealmDelegate().decreaseRemainingCount(realm, clientInitialAccess);
     }
 
     
-    
-	@Override
-	public List<String> getUsedIdentityProviderIdTypes(RealmModel realm) {
-		return getIdentityProviderDelegate().getUsedIdentityProviderIdTypes(realm);
-	}
-    
-	@Override
-	public Long countIdentityProviders(RealmModel realm) {
-		return getIdentityProviderDelegate().countIdentityProviders(realm);
-    }
-	
-	
-	@Override
-	public List<IdentityProviderModel> getIdentityProviders(RealmModel realm) {
-		return getIdentityProviderDelegate().getIdentityProviders(realm);
-	}
-
-	@Override
-	public List<IdentityProviderModel> searchIdentityProviders(RealmModel realm, String keyword, Integer firstResult, Integer maxResults) {
-		return getIdentityProviderDelegate().searchIdentityProviders(realm, keyword, firstResult, maxResults);
-	}
-
-	@Override
-	public IdentityProviderModel getIdentityProviderById(String internalId) {
-		return getIdentityProviderDelegate().getIdentityProviderById(internalId);
-	}
-
-	@Override
-	public IdentityProviderModel getIdentityProviderByAlias(RealmModel realm, String alias) {
-		return getIdentityProviderDelegate().getIdentityProviderByAlias(realm, alias);
-	}
-
-	
-	
-	
-	@Override
-	public void addIdentityProvider(RealmModel realm, IdentityProviderModel identityProvider) {
-		getIdentityProviderDelegate().addIdentityProvider(realm, identityProvider);
-        addedIdentityProvider(realm, identityProvider);
-	}
-
-	private IdentityProviderModel addedIdentityProvider(RealmModel realm, IdentityProviderModel identityProvider) {
-        logger.trace("added identity provider.....");
-
-        invalidateIdentityProvider(identityProvider.getInternalId());
-        // this is needed so that an identity provider that hasn't been committed isn't cached in a query
-        listInvalidations.add(realm.getId());
-
-//        invalidationEvents.add(IdentityProviderAddedEvent.create(identityProvider.getInternalId(), identityProvider.getAlias(), realm.getId()));
-        cache.identityProviderAdded(realm.getId(), identityProvider.getInternalId(), identityProvider.getAlias(), invalidations);
-        return identityProvider;
-    }
-	
-    private void invalidateIdentityProvider(String id) {
-        invalidations.add(id);
-        IdentityProviderProvider adapter = managedIdentityProviders.get(id);
-//        if (adapter != null && adapter instanceof IdentityProviderAdapter) ((IdentityProviderAdapter)adapter).invalidate();
-    }
-	
-
-	@Override
-	public void removeIdentityProviderByAlias(RealmModel realm, String alias) {
-		
-		IdentityProviderModel identityProvider = getIdentityProviderByAlias(realm, alias);
-		if(identityProvider == null) return;
-		
-		invalidateIdentityProvider(identityProvider.getInternalId());
-		// this is needed so that an identity provider that hasn't been committed isn't cached in a query
-		listInvalidations.add(realm.getId());
-		
-//		invalidationEvents.add(IdentityProviderRemovedEvent.create(identityProvider, realm.getId()));
-		cache.identityProviderRemoval(realm.getId(), identityProvider.getInternalId(), identityProvider.getAlias(), invalidations);
-		
-		getIdentityProviderDelegate().removeIdentityProviderByAlias(realm, alias);
-		
-	}
-	
-	
-	@Override
-	public void updateIdentityProvider(RealmModel realm, IdentityProviderModel identityProvider) {
-		
-		if(identityProvider == null) return;
-		
-		invalidateIdentityProvider(identityProvider.getInternalId());
-		
-		listInvalidations.add(realm.getId());
-		
-//		invalidationEvents.add(IdentityProviderUpdatedEvent.create(identityProvider.getInternalId(), identityProvider.getAlias(), realm.getId()));
-		cache.identityProviderUpdated(realm.getId(), identityProvider.getInternalId(), identityProvider.getAlias(), invalidations);
-		
-		getIdentityProviderDelegate().updateIdentityProvider(realm, identityProvider);
-		
-	}
-	
-	
-	@Override
-	public boolean isIdentityFederationEnabled(RealmModel realm) {
-		return getIdentityProviderDelegate().isIdentityFederationEnabled(realm);
-	}
-
-	@Override
-	public Set<IdentityProviderMapperModel> getIdentityProviderMappers(RealmModel realmModel) {
-		return getIdentityProviderDelegate().getIdentityProviderMappers(realmModel);
-	}
-
-	@Override
-	public Set<IdentityProviderMapperModel> getIdentityProviderMappersByAlias(RealmModel realmModel, String brokerAlias) {
-		return getIdentityProviderDelegate().getIdentityProviderMappersByAlias(realmModel, brokerAlias);
-	}
-
-	@Override
-	public IdentityProviderMapperModel addIdentityProviderMapper(RealmModel realmModel, IdentityProviderMapperModel model) {
-		return getIdentityProviderDelegate().addIdentityProviderMapper(realmModel, model);
-	}
-
-	@Override
-	public void removeIdentityProviderMapper(RealmModel realmModel, IdentityProviderMapperModel mapping) {
-		getIdentityProviderDelegate().removeIdentityProviderMapper(realmModel, mapping);
-	}
-
-	@Override
-	public void updateIdentityProviderMapper(RealmModel realmModel, IdentityProviderMapperModel mapping) {
-		getIdentityProviderDelegate().updateIdentityProviderMapper(realmModel, mapping);
-	}
-
-	@Override
-	public IdentityProviderMapperModel getIdentityProviderMapperById(RealmModel realmModel, String id) {
-		return getIdentityProviderDelegate().getIdentityProviderMapperById(realmModel, id);
-	}
-
-	@Override
-	public IdentityProviderMapperModel getIdentityProviderMapperByName(RealmModel realmModel, String alias, String name) {
-		return getIdentityProviderDelegate().getIdentityProviderMapperByName(realmModel, alias, name);
-	}
 
 }

@@ -825,7 +825,7 @@ public class TokenEndpoint {
 
     public Response exchangeToIdentityProvider(UserModel targetUser, UserSessionModel targetUserSession, String requestedIssuer) {
         event.detail(Details.REQUESTED_ISSUER, requestedIssuer);
-        IdentityProviderModel providerModel = realm.getIdentityProviderByAlias(requestedIssuer);
+        IdentityProviderModel providerModel = session.identityProviderStorage().getIdentityProviderByAlias(realm, requestedIssuer);
         if (providerModel == null) {
             event.detail(Details.REASON, "unknown requested_issuer");
             event.error(Errors.UNKNOWN_IDENTITY_PROVIDER);
@@ -929,7 +929,7 @@ public class TokenEndpoint {
         ExchangeExternalToken externalIdp = null;
         IdentityProviderModel externalIdpModel = null;
 
-        for (IdentityProviderModel idpModel : realm.getIdentityProviders()) {
+        for (IdentityProviderModel idpModel : session.identityProviderStorage().getIdentityProviders(realm)) {
             IdentityProviderFactory factory = IdentityBrokerService.getIdentityProviderFactory(session, idpModel);
             IdentityProvider idp = factory.create(session, idpModel);
             if (idp instanceof ExchangeExternalToken) {
@@ -981,7 +981,7 @@ public class TokenEndpoint {
         //session.getContext().setClient(authenticationSession.getClient());
 
         context.getIdp().preprocessFederatedIdentity(session, realm, context);
-        Set<IdentityProviderMapperModel> mappers = realm.getIdentityProviderMappersByAlias(context.getIdpConfig().getAlias());
+        Set<IdentityProviderMapperModel> mappers = session.identityProviderStorage().getIdentityProviderMappersByAlias(realm, context.getIdpConfig().getAlias());
         if (mappers != null) {
             KeycloakSessionFactory sessionFactory = session.getKeycloakSessionFactory();
             for (IdentityProviderMapperModel mapper : mappers) {

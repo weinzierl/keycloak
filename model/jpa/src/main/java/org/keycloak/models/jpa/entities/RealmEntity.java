@@ -623,7 +623,7 @@ public class RealmEntity {
 
     
     public List<FederationEntity> getIdentityProvidersFederations() {
-		return identityProvidersFederations;
+		return this.identityProvidersFederations;
 	}
 
 	public void setIdentityProvidersFederations(List<FederationEntity> identityProvidersFederations) {

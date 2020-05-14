@@ -450,7 +450,9 @@ public class ModelToRepresentation {
         for (IdentityProviderMapperModel mapper : realm.getIdentityProviderMappers()) {
             rep.addIdentityProviderMapper(toRepresentation(mapper));
         }
-       
+        
+        rep.setIdentityProvidersFederations(realm.getIdentityProviderFederations().stream().map(obj -> toRepresentation(obj)).collect(Collectors.toList()));
+
         rep.setInternationalizationEnabled(realm.isInternationalizationEnabled());
         if (realm.getSupportedLocales() != null) {
             rep.setSupportedLocales(new HashSet<>());

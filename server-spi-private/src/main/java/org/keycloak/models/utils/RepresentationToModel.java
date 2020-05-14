@@ -297,9 +297,10 @@ public class RepresentationToModel {
             DefaultRequiredActions.addActions(newRealm);
         }
 
+	importIdentityProvidersFederations(session,rep.getIdentityProvidersFederations(),newRealm);
         importIdentityProviders(rep, newRealm, session);
         importIdentityProviderMappers(rep, newRealm);
-
+        
         Map<String, ClientScopeModel> clientScopes = new HashMap<>();
         if (rep.getClientScopes() != null) {
             clientScopes = createClientScopes(session, rep.getClientScopes(), newRealm);
@@ -1899,6 +1900,17 @@ public class RepresentationToModel {
         }
     }
 
+    private static void importIdentityProvidersFederations(KeycloakSession session, List<IdentityProvidersFederationRepresentation> federations, RealmModel newRealm) {
+        if (federations != null) {
+            for (IdentityProvidersFederationRepresentation representation : federations) {
+            	IdentityProvidersFederationModel model = toModel( representation);
+                newRealm.addIdentityProvidersFederation(model);
+                IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session,model,newRealm.getId());
+                idpFederationProvider.enableUpdateTask();
+            }
+        }
+    }
+
     public static IdentityProviderModel toModel(RealmModel realm, IdentityProviderRepresentation representation, KeycloakSession session) {
         IdentityProviderFactory providerFactory = (IdentityProviderFactory) session.getKeycloakSessionFactory().getProviderFactory(
                 IdentityProvider.class, representation.getProviderId());
@@ -1965,6 +1977,7 @@ identityProviderModel.setFederations(representation.getFederations());
     	model.setSkipIdps(representation.getSkipIdps());
     	model.setUrl(representation.getUrl());
     	model.setValidUntilTimestamp(representation.getValidUntilTimestamp());
+    	model.setIdentityprovidersAlias(representation.getIdentityprovidersAlias());
     	return model;
     }
 

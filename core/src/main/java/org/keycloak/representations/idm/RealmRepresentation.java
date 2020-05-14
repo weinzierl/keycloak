@@ -160,6 +160,7 @@ public class RealmRepresentation {
     protected Boolean adminEventsEnabled;
     protected Boolean adminEventsDetailsEnabled;
     
+    private List<IdentityProvidersFederationRepresentation> identityProvidersFederations;
     private List<IdentityProviderRepresentation> identityProviders;
     private List<IdentityProviderMapperRepresentation> identityProviderMappers;
     private List<ProtocolMapperRepresentation> protocolMappers;
@@ -822,8 +823,17 @@ public class RealmRepresentation {
         if (identityProviders == null) identityProviders = new LinkedList<>();
         identityProviders.add(identityProviderRepresentation);
     }
+    
+    public List<IdentityProvidersFederationRepresentation> getIdentityProvidersFederations() {
+		return identityProvidersFederations;
+	}
 
-    public List<ProtocolMapperRepresentation> getProtocolMappers() {
+	public void setIdentityProvidersFederations(
+			List<IdentityProvidersFederationRepresentation> identityProvidersFederations) {
+		this.identityProvidersFederations = identityProvidersFederations;
+	}
+
+	public List<ProtocolMapperRepresentation> getProtocolMappers() {
         return protocolMappers;
     }
 

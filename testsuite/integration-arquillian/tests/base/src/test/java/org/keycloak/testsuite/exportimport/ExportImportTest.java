@@ -18,6 +18,7 @@
 package org.keycloak.testsuite.exportimport;
 
 import org.jboss.arquillian.container.spi.client.container.LifecycleException;
+import org.jboss.logging.Logger;
 import org.junit.After;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -35,6 +36,7 @@ import org.keycloak.representations.idm.RequiredActionProviderRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.testsuite.AbstractKeycloakTest;
 import org.keycloak.testsuite.Assert;
+import org.keycloak.testsuite.admin.IdentityProvidersFederationTest;
 import org.keycloak.testsuite.arquillian.annotation.AuthServerContainerExclude;
 import org.keycloak.testsuite.runonserver.RunHelpers;
 import org.keycloak.testsuite.util.UserBuilder;
@@ -65,6 +67,8 @@ import org.keycloak.testsuite.arquillian.annotation.AuthServerContainerExclude.A
  */
 @AuthServerContainerExclude(AuthServer.REMOTE)
 public class ExportImportTest extends AbstractKeycloakTest {
+	
+	private static final Logger log = Logger.getLogger(ExportImportTest.class);
 
     @Override
     public void addTestRealms(List<RealmRepresentation> testRealms) {
@@ -209,6 +213,9 @@ public class ExportImportTest extends AbstractKeycloakTest {
         testingClient.testing().exportImport().setAction(ExportImportConfig.ACTION_IMPORT);
 
         testingClient.testing().exportImport().runImport();
+        
+        //wait for trigger saml aggregate job
+        sleep(60000);
 
         RealmResource testRealmRealm = adminClient.realm("test-realm");
 
@@ -442,4 +449,13 @@ public class ExportImportTest extends AbstractKeycloakTest {
 
         testingClient.testing().exportImport().runImport();
     }
+    
+    private static void sleep(long ms) {
+		try {
+			log.infof("Sleeping for %d ms", ms);
+			Thread.sleep(ms);
+		} catch (InterruptedException ie) {
+			throw new RuntimeException(ie);
+		}
+	}
 }

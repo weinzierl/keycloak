@@ -1903,6 +1903,8 @@ public class RepresentationToModel {
     private static void importIdentityProvidersFederations(KeycloakSession session, List<IdentityProvidersFederationRepresentation> federations, RealmModel newRealm) {
         if (federations != null) {
             for (IdentityProvidersFederationRepresentation representation : federations) {
+            	//set LastMetadataRefreshTimestamp to null in order to run immediately the schedule task
+            	representation.setLastMetadataRefreshTimestamp(null);
             	IdentityProvidersFederationModel model = toModel( representation);
                 newRealm.addIdentityProvidersFederation(model);
                 IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session,model,newRealm.getId());

@@ -1,70 +1,173 @@
 package org.keycloak.models.cache.infinispan;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jboss.logging.Logger;
+import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.cluster.ClusterProvider;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProviderProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakTransaction;
 import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserProvider;
 import org.keycloak.models.cache.CacheIdpProvider;
+import org.keycloak.models.cache.infinispan.events.IdentityProviderRemovedEvent;
+import org.keycloak.models.cache.infinispan.events.IdentityProvidersRealmRemovedEvent;
+import org.keycloak.models.cache.infinispan.events.InvalidationEvent;
+
 
 public class IdpCacheSession implements CacheIdpProvider {
 
 	protected static final Logger logger = Logger.getLogger(IdpCacheSession.class);
 	
+//	public static final String IDP_MAPPERS_QUERY_SUFFIX = ".idp.mappers";
+	
     protected IdpCacheManager cache;
     protected KeycloakSession session;
-    protected IdentityProviderProvider delegate;
+    protected IdentityProviderProvider identityProviderDelegate;
     protected boolean transactionActive;
     protected boolean setRollbackOnly;
     protected final long startupRevision;
 	
-	
+    
+    protected Map<String, IdentityProviderModel> managedIdps = new HashMap<>(); //keys are realmIds
+//    protected Map<String, IdentityProviderMapperModel> managedIdpMappers = new HashMap<>();
+    
+//    protected Map<String, Set<String>> invalidations = new HashMap<String,Set<String>>();
+    
+    protected Set<String> invalidations = new HashSet<>();
+    protected Set<String> realmInvalidations = new HashSet<>();
+    
+    protected Set<InvalidationEvent> invalidationEvents = new HashSet<>(); // Events to be sent across cluster
+    
+    
     public IdpCacheSession(IdpCacheManager cache, KeycloakSession session) {
         this.cache = cache;
         this.session = session;
         this.startupRevision = cache.getCurrentCounter();
-//        session.getTransactionManager().enlistAfterCompletion(getTransaction());
+        session.getTransactionManager().enlistAfterCompletion(getTransaction());
+    }
+    
+    @Override
+    public void clear() {
+    	cache.clear();
+    	ClusterProvider cluster = session.getProvider(ClusterProvider.class);
+    	cluster.notify(InfinispanCacheIdpProviderFactory.IDP_CLEAR_CACHE_EVENTS, new ClearCacheEvent(), true, ClusterProvider.DCNotify.ALL_DCS);
+    }
+    
+	@Override
+    public IdentityProviderProvider getIdentityProviderDelegate() {
+        if (!transactionActive) throw new IllegalStateException("Cannot access delegate without a transaction");
+        if (identityProviderDelegate != null) return identityProviderDelegate;
+        identityProviderDelegate = session.identityProviderLocalStorage();
+        return identityProviderDelegate;
+    }
+    
+//	@Override
+//	public void registerIdentityProviderInvalidation(RealmModel realm, CachedIdentityProvider cachedIdp) {
+//		
+//		
+//		cache.iden
+//		
+//		
+//        cache.userUpdatedInvalidations(user.getId(), user.getUsername(), user.getEmail(), user.getRealm(), invalidations);
+//        invalidationEvents.add(UserUpdatedEvent.create(user.getId(), user.getUsername(), user.getEmail(), user.getRealm()));
+//    }
+	
+	
+	@Override
+    public void evict(RealmModel realm, IdentityProviderModel identityProvider) {
+        if (!transactionActive) throw new IllegalStateException("Cannot call evict() without a transaction");
+        getIdentityProviderDelegate(); // invalidations need delegate set
+        cache.identityProviderRemoved(identityProvider.getInternalId(), identityProvider.getAlias(), realm.getId(), invalidations);
+        invalidationEvents.add(IdentityProviderRemovedEvent.create(identityProvider.getInternalId(), identityProvider.getAlias(), realm.getId()));
+    }
+	
+
+
+    @Override
+    public void evict(RealmModel realm) {
+        addRealmInvalidation(realm.getId());
+    }
+	
+	
+    private void addRealmInvalidation(String realmId) {
+        realmInvalidations.add(realmId);
+        invalidationEvents.add(IdentityProvidersRealmRemovedEvent.create(realmId));
     }
     
     
+    protected void runInvalidations() {
+        for (String realmId : realmInvalidations) {
+            cache.invalidateRealmIdentityProviders(realmId, invalidations);
+        }
+        for (String invalidation : invalidations) {
+            cache.invalidateObject(invalidation);
+        }
+
+        cache.sendInvalidationEvents(session, invalidationEvents, InfinispanUserCacheProviderFactory.USER_INVALIDATION_EVENTS);
+    }
     
+    
+    private KeycloakTransaction getTransaction() {
+        return new KeycloakTransaction() {
+            @Override
+            public void begin() {
+                transactionActive = true;
+            }
+
+            @Override
+            public void commit() {
+                runInvalidations();
+                transactionActive = false;
+            }
+
+            @Override
+            public void rollback() {
+                setRollbackOnly = true;
+                runInvalidations();
+                transactionActive = false;
+            }
+
+            @Override
+            public void setRollbackOnly() {
+                setRollbackOnly = true;
+            }
+
+            @Override
+            public boolean getRollbackOnly() {
+                return setRollbackOnly;
+            }
+
+            @Override
+            public boolean isActive() {
+                return transactionActive;
+            }
+        };
+    }
     
     
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
+		if (identityProviderDelegate != null) identityProviderDelegate.close();
 	}
 
-	@Override
-	public void clear() {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void registerIdentityProviderInvalidation(String id, String alias, String realmId) {
-		// TODO Auto-generated method stub
-	}
 	
 	
 	static String getIdentityProviderByAliasCacheKey(String alias, String realmId) {
-        return realmId + ".identity-provider.query.by.alias." + alias;
+        return realmId + ".idpAlias." + alias;
     }
     
-	
-	
-    public IdentityProviderProvider getIdentityProviderDelegate() {
-//        if (!transactionActive) throw new IllegalStateException("Cannot access delegate without a transaction");
-//        if (identityProviderDelegate != null) return identityProviderDelegate;
-//        identityProviderDelegate = session.identityProviderLocalStorage();
-//        return identityProviderDelegate;
-    	return null;
+	static String getIdentityProviderByIdCacheKey(String id, String realmId) {
+        return realmId + ".idpId." + id;
     }
+	
+
 	
 	@Override
 	public List<String> getUsedIdentityProviderIdTypes(RealmModel realm) {
@@ -200,5 +303,5 @@ public class IdpCacheSession implements CacheIdpProvider {
 	public IdentityProviderMapperModel getIdentityProviderMapperByName(RealmModel realmModel, String alias, String name) {
 		return getIdentityProviderDelegate().getIdentityProviderMapperByName(realmModel, alias, name);
 	}
-	
+
 }

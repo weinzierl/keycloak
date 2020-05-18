@@ -15,24 +15,15 @@
  * limitations under the License.
  */
 
-package org.keycloak.models.cache;
+package org.keycloak.models.cache.infinispan.events;
 
-import org.keycloak.models.RealmProvider;
+import java.util.Set;
 
-/**
- * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
- * @version $Revision: 1 $
- */
-public interface CacheRealmProvider extends RealmProvider {
-    void clear();
-    RealmProvider getRealmDelegate();
+import org.keycloak.models.cache.infinispan.IdpCacheManager;
 
-    void registerRealmInvalidation(String id, String name);
 
-    void registerClientInvalidation(String id, String clientId, String realmId);
-    void registerClientScopeInvalidation(String id);
+public interface IdentityProviderCacheInvalidationEvent {
 
-    void registerRoleInvalidation(String id, String roleName, String roleContainerId);
+    void addInvalidations(IdpCacheManager idpCache, Set<String> invalidations);
 
-    void registerGroupInvalidation(String id);
 }

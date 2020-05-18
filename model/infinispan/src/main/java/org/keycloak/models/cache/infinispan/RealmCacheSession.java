@@ -103,7 +103,6 @@ public class RealmCacheSession implements CacheRealmProvider {
     protected boolean setRollbackOnly;
 
     protected Map<String, RealmAdapter> managedRealms = new HashMap<>();
-    protected Map<String, IdentityProviderProvider> managedIdentityProviders = new HashMap<>();
     protected Map<String, ClientModel> managedApplications = new HashMap<>();
     protected Map<String, ClientScopeAdapter> managedClientScopes = new HashMap<>();
     protected Map<String, RoleAdapter> managedRoles = new HashMap<>();
@@ -156,14 +155,8 @@ public class RealmCacheSession implements CacheRealmProvider {
         return clientDelegate;
     }
 
-    
 
-    @Override
-    public void registerIdentityProviderInvalidation(String id, String alias, String realmId) {
-//    	invalidateIdentityProvider(id);
-//        invalidationEvents.add(IdentityProviderUpdatedEvent.create(id, alias, realmId));
-//        cache.identityProviderUpdated(realmId, id, alias, invalidations);
-    }
+
 
     @Override
     public void registerRealmInvalidation(String id, String name) {

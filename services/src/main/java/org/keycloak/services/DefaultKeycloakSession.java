@@ -167,6 +167,11 @@ public class DefaultKeycloakSession implements KeycloakSession {
     }
 
     @Override
+    public IdentityProviderProvider identityProviderLocalStorage() {
+    	return getProvider(IdentityProviderProvider.class);
+    }
+    
+    @Override
     public RealmProvider realmLocalStorage() {
         return getProvider(RealmProvider.class);
     }

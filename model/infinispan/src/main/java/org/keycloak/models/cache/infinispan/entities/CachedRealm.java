@@ -26,8 +26,6 @@ import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.GroupModel;
-import org.keycloak.models.IdentityProviderMapperModel;
-import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.OTPPolicy;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;

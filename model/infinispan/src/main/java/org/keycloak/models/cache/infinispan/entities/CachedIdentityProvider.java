@@ -44,7 +44,6 @@ public class CachedIdentityProvider extends AbstractRevisioned implements InReal
     private String postBrokerLoginFlowId;
     private String displayName;
     private Map<String, String> config = new HashMap<>();
-    private Set<String> federations = new HashSet<>();
     
     
     
@@ -128,8 +127,4 @@ public class CachedIdentityProvider extends AbstractRevisioned implements InReal
 		return config;
 	}
 
-	public Set<String> getFederations() {
-		return federations;
-	}
-	
 }

@@ -198,7 +198,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			
 			representation.setConfig(parseIDPSSODescriptorType(idpDescriptor));
 			
-			IdentityProviderModel identityProviderModel = RepresentationToModel.toModel(realm, representation);
+			IdentityProviderModel identityProviderModel = RepresentationToModel.toModel(realm, representation,session);
 	        boolean successful = false;
 			try {
 				successful = realm.addFederationIdp(model, identityProviderModel);

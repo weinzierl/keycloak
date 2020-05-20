@@ -67,6 +67,9 @@ public class SAMLExtensionsParser extends AbstractStaxSamlMetadataParser<Extensi
     		case UIINFO:
     			target.setUiInfo(SAMLUIInfoParser.getInstance().parse(xmlEventReader));
     			break;
+    		case ENTITY_ATTRIBUTES:
+    			target.setEntityAttributes(SAMLEntityAttributesParser.getInstance().parse(xmlEventReader));
+    			break;
     		default:
     			target.addExtension(StaxParserUtil.getDOMElement(xmlEventReader));
     	}

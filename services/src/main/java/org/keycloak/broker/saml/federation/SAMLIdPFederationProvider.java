@@ -36,8 +36,10 @@ import javax.xml.namespace.QName;
 import org.jboss.logging.Logger;
 import org.keycloak.broker.federation.AbstractIdPFederationProvider;
 import org.keycloak.connections.httpclient.HttpClientProvider;
+import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntitiesDescriptorType;
+import org.keycloak.dom.saml.v2.metadata.EntityAttributes;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
@@ -50,6 +52,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
+import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.common.util.DocumentUtil;
@@ -196,7 +199,17 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			
 			}
 			
-			representation.setConfig(parseIDPSSODescriptorType(idpDescriptor));
+			representation.setConfig(parseIDPSSODescriptorType(idpDescriptor));			
+
+			//check for hide on login attibute
+			if ( entity.getExtensions() != null && entity.getExtensions().getEntityAttributes() != null ) {
+				for (AttributeType attribute :  entity.getExtensions().getEntityAttributes().getAttribute()) {
+					if (GeneralConstants.MACEDIR.equals(attribute.getName()) && attribute.getAttributeValue().contains(GeneralConstants.HIDE_FOR_DISCOVERY) )
+						representation.getConfig().put("hideOnLoginPage","true");
+				}
+
+			}
+			
 			
 			IdentityProviderModel identityProviderModel = RepresentationToModel.toModel(realm, representation,session);
 	        boolean successful = false;

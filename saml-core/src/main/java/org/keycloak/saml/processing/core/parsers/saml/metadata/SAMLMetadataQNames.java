@@ -63,6 +63,7 @@ public enum SAMLMetadataQNames implements HasQName {
     LOGO(JBossSAMLURIConstants.METADATA_UI_NSURI, "Logo"),
     INFORMATION_URL(JBossSAMLURIConstants.METADATA_UI_NSURI, "InformationURL"),
     PRIVACY_STATEMENT_URL(JBossSAMLURIConstants.METADATA_UI_NSURI, "PrivacyStatementURL"),
+    ENTITY_ATTRIBUTES(JBossSAMLURIConstants.ENTITY_ATTRIBUTES, "EntityAttributes"),
     
     
     // Attribute names
@@ -96,6 +97,7 @@ public enum SAMLMetadataQNames implements HasQName {
     OAEP_PARAMS(JBossSAMLURIConstants.XMLENC_NSURI, "OAEPparams"),
     ATTR_X500_ENCODING(JBossSAMLURIConstants.X500_NSURI, "Encoding"),
     ATTRIBUTE(SAMLAssertionQNames.ATTRIBUTE),
+    ASSERTION(SAMLAssertionQNames.ASSERTION),
 
     UNKNOWN_ELEMENT("");
 

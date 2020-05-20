@@ -49,6 +49,8 @@ public class ExtensionsType extends TypeWithOtherAttributes {
     
     protected UIInfoType uiInfo;
     
+    protected EntityAttributes entityAttributes;
+    
     /**
      * Function is obsoleted with getAny
      * @return
@@ -111,6 +113,15 @@ public class ExtensionsType extends TypeWithOtherAttributes {
     public UIInfoType getUIInfo() {
         return this.uiInfo;
     }
+
+	public EntityAttributes getEntityAttributes() {
+		return this.entityAttributes;
+	}
+
+	public void setEntityAttributes(EntityAttributes entityAttributes) {
+		this.entityAttributes = entityAttributes;
+	}
+    
     
     
 }

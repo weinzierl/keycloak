@@ -68,6 +68,7 @@ public enum JBossSAMLURIConstants {
     
     METADATA_UI_NSURI("urn:oasis:names:tc:SAML:metadata:ui"),
     SHIBBOLETH_METADATA_NSURI("urn:mace:shibboleth:metadata:1.0"),
+    ENTITY_ATTRIBUTES("urn:oasis:names:tc:SAML:metadata:attribute"),
 
     NAMEID_FORMAT_TRANSIENT("urn:oasis:names:tc:SAML:2.0:nameid-format:transient"),
     NAMEID_FORMAT_PERSISTENT("urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"),

@@ -20,7 +20,7 @@ import org.keycloak.models.cache.infinispan.events.IdentityProviderRemovedEvent;
 import org.keycloak.models.cache.infinispan.events.IdentityProvidersRealmRemovedEvent;
 import org.keycloak.models.cache.infinispan.events.InvalidationEvent;
 
-
+//TODO: Fill in the appropriate code to use the cache before using the getIdentityProviderDelegate(), just like as in the UserCacheSession.
 public class IdpCacheSession implements CacheIdpProvider {
 
 	protected static final Logger logger = Logger.getLogger(IdpCacheSession.class);
@@ -67,17 +67,6 @@ public class IdpCacheSession implements CacheIdpProvider {
         identityProviderDelegate = session.identityProviderLocalStorage();
         return identityProviderDelegate;
     }
-    
-//	@Override
-//	public void registerIdentityProviderInvalidation(RealmModel realm, CachedIdentityProvider cachedIdp) {
-//		
-//		
-//		cache.iden
-//		
-//		
-//        cache.userUpdatedInvalidations(user.getId(), user.getUsername(), user.getEmail(), user.getRealm(), invalidations);
-//        invalidationEvents.add(UserUpdatedEvent.create(user.getId(), user.getUsername(), user.getEmail(), user.getRealm()));
-//    }
 	
 	
 	@Override

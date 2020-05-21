@@ -101,12 +101,12 @@ public class DefaultKeycloakSession implements KeycloakSession {
     }
 
     private IdentityProviderProvider getIdpProvider() {
-//        CacheIdpProvider cache = getProvider(CacheIdpProvider.class);
-//        if (cache != null) {
-//            return cache;
-//        } else {
+        CacheIdpProvider cache = getProvider(CacheIdpProvider.class);
+        if (cache != null) {
+            return cache;
+        } else {
             return getProvider(IdentityProviderProvider.class);
-//        }
+        }
     }
     
     

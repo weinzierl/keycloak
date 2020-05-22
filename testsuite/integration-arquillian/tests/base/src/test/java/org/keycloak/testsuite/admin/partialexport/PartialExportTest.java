@@ -218,6 +218,11 @@ public class PartialExportTest extends AbstractAdminTest {
         checkScopeMappings(rep.getScopeMappings(), false);
         checkClientScopeMappings(rep.getClientScopeMappings());
         
+        // IdentityProvider clientSecret
+        for (IdentityProviderRepresentation idp: rep.getIdentityProviders()) {
+            Assert.assertEquals("IdentityProvider clientSecret masked", ComponentRepresentation.SECRET_VALUE, idp.getConfig().get("clientSecret"));
+        }
+        
         // check that secrets are masked
         checkSecretsAreMasked(rep);
         
@@ -249,11 +254,7 @@ public class PartialExportTest extends AbstractAdminTest {
             Assert.assertEquals("Client secret masked", ComponentRepresentation.SECRET_VALUE, client.getSecret());
         }
 
-        // IdentityProvider clientSecret
-        for (IdentityProviderRepresentation idp: rep.getIdentityProviders()) {
-            Assert.assertEquals("IdentityProvider clientSecret masked", ComponentRepresentation.SECRET_VALUE, idp.getConfig().get("clientSecret"));
-        }
-
+       
         // smtpServer password
         Assert.assertEquals("SMTP password masked", ComponentRepresentation.SECRET_VALUE, rep.getSmtpServer().get("password"));
 

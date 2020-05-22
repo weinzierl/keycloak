@@ -61,7 +61,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected boolean loginWithEmailAllowed;
     protected boolean duplicateEmailsAllowed;
     protected boolean resetPasswordAllowed;
-    protected boolean identityFederationEnabled;
     protected boolean editUsernameAllowed;
     //--- brute force settings
     protected boolean bruteForceProtected;
@@ -168,7 +167,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         loginWithEmailAllowed = model.isLoginWithEmailAllowed();
         duplicateEmailsAllowed = model.isDuplicateEmailsAllowed();
         resetPasswordAllowed = model.isResetPasswordAllowed();
-        identityFederationEnabled = model.isIdentityFederationEnabled();
         editUsernameAllowed = model.isEditUsernameAllowed();
         //--- brute force settings
         bruteForceProtected = model.isBruteForceProtected();
@@ -489,10 +487,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
 
     public PasswordPolicy getPasswordPolicy() {
         return passwordPolicy;
-    }
-
-    public boolean isIdentityFederationEnabled() {
-        return identityFederationEnabled;
     }
 
     public Map<String, String> getSmtpConfig() {

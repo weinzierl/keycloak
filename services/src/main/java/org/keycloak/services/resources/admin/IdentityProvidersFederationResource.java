@@ -19,8 +19,10 @@ package org.keycloak.services.resources.admin;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -31,13 +33,14 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.http.HttpStatus;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.broker.federation.IdpFederationProvider;
 import org.keycloak.broker.federation.IdpFederationProviderFactory;
+import org.keycloak.broker.provider.IdentityProviderFactory;
 import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
@@ -99,7 +102,48 @@ public class IdentityProvidersFederationResource {
         
     }
 
+    /**
+     * Export public broker configuration for identity provider
+     *
+     * @param format Format to use
+     * @return
+     */
+    @GET
+    @Path("instances/{alias}/export")
+    @NoCache
+    public Response export(
+    		@PathParam("alias") String alias
+    		) {
+        this.auth.realm().requireViewIdentityProviders();
+
+        IdentityProvidersFederationModel model = realm.getIdentityProvidersFederationByAlias(alias);
+        
+        if (model == null)
+            throw new javax.ws.rs.NotFoundException();
+
+        try {
+        	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session, model, this.realm.getId());
+        	return idpFederationProvider.export(session.getContext().getUri(), realm);
+        } catch (Exception e) {
+            return ErrorResponse.error("Could not export public broker configuration for IdP aggregation [" + model.getProviderId() + "].", Response.Status.NOT_FOUND);
+        }
+        
+    }
     
+    
+    /**
+     * Get a list with all identity provider federations of the realm
+     *
+     * @return
+     */
+    @GET
+    @Path("instances")
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<IdentityProvidersFederationRepresentation> list() {
+        this.auth.realm().requireViewIdentityProviders();
+        return realm.getIdentityProviderFederations().stream().map(model -> ModelToRepresentation.toRepresentation(model)).collect(Collectors.toList());
+    }
     
     /**
      * Create a new identity provider federation
@@ -150,7 +194,7 @@ public class IdentityProvidersFederationResource {
      * @return
      */
     @DELETE
-    @Path("delete/{id}")
+    @Path("instances/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @NoCache
     public Response delete(@PathParam("id") String internalId) {

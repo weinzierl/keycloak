@@ -14,6 +14,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -28,7 +30,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.dom.saml.v2.SAML2Object;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -141,7 +143,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 					// Virtually perform login at IdP (return artificial SAML response)
 					.login().idp(brokerIdp).build().processSamlResponse(REDIRECT)
 					.transformObject(this::createAuthnResponse).targetAttributeSamlResponse()
-					.targetUri(getSamlBrokerIdpUrl(REALM_NAME)).build().updateProfile().username("a").email("a@b.c")
+					.targetUri(getSamlBrokerUrl(REALM_NAME)).build().updateProfile().username("a").email("a@b.c")
 					.firstName("A").lastName("B").build().followOneRedirect()
 
 					// Now returning back to the app
@@ -155,7 +157,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 
 					// Should redirect now to logout from IdP
 					.processSamlResponse(REDIRECT).transformObject(this::createIdPLogoutResponse)
-					.targetAttributeSamlResponse().targetUri(getSamlBrokerIdpUrl(REALM_NAME)).build()
+					.targetAttributeSamlResponse().targetUri(getSamlBrokerUrl(REALM_NAME)).build()
 
 					.getSamlResponse(REDIRECT);
 
@@ -184,7 +186,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 					// Virtually perform login at IdP (return artificial SAML response)
 					.login().idp(brokerIdp).build().processSamlResponse(REDIRECT)
 					.transformObject(this::createAuthnResponse).targetAttributeSamlResponse()
-					.targetUri(getSamlBrokerIdpUrl(REALM_NAME)).build().updateProfile().username("a").email("a@b.c")
+					.targetUri(getSamlBrokerUrl(REALM_NAME)).build().updateProfile().username("a").email("a@b.c")
 					.firstName("A").lastName("B").build().followOneRedirect()
 
 					// Now returning back to the app
@@ -198,7 +200,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 
 					.getSamlResponse(REDIRECT);
 
-			assertThat(samlResponse.getSamlObject(), isSamlLogoutRequest("http://saml.idp/SLO/saml"));
+			assertThat(samlResponse.getSamlObject(), isSamlLogoutRequest("https://saml.idp/SLO/saml"));
 			LogoutRequestType lr = (LogoutRequestType) samlResponse.getSamlObject();
 			NameIDType logoutRequestNameID = lr.getNameID();
 			assertThat(logoutRequestNameID.getFormat(), is(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.getUri()));
@@ -215,7 +217,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		AuthnRequestType req = (AuthnRequestType) so;
 		try {
 			final ResponseType res = new SAML2LoginResponseBuilder().requestID(req.getID())
-					.destination(req.getAssertionConsumerServiceURL().toString()).issuer("http://saml.idp/saml")
+					.destination(req.getAssertionConsumerServiceURL().toString()).issuer("https://idp.rash.al/simplesaml/saml2/idp/metadata.php")
 					.assertionExpiration(1000000).subjectExpiration(1000000)
 					.requestIssuer(getAuthServerRealmBase(REALM_NAME).toString())
 					.nameIdentifier(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get(), "a@b.c")
@@ -255,7 +257,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		LogoutRequestType req = (LogoutRequestType) so;
 		try {
 			return new SAML2LogoutResponseBuilder().logoutRequestID(req.getID())
-					.destination(getSamlBrokerIdpUrl(REALM_NAME).toString()).issuer("http://saml.idp/saml")
+					.destination(getSamlBrokerUrl(REALM_NAME).toString()).issuer("https://idp.rash.al/simplesaml/saml2/idp/metadata.php")
 					.buildModel();
 		} catch (ConfigurationException ex) {
 			throw new RuntimeException(ex);
@@ -268,6 +270,13 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		representation.setProviderId("saml");
 		representation.setUpdateFrequencyInMins(60);
 		representation.setUrl(url);
+		Map<String,String> map = new HashMap<>();
+		map.put(SAMLConfigNames.NAME_ID_POLICY_FORMAT, "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");
+		map.put(SAMLConfigNames.WANT_AUTHN_REQUESTS_SIGNED, "false");
+		map.put(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, "false");
+		map.put(SAMLConfigNames.WANT_ASSERTIONS_ENCRYPTED, "false");
+		map.put(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, "false");
+		representation.setConfig(map);
 
 		Response response = realm.identityProvidersFederation().create(representation);
 		String id = ApiUtil.getCreatedId(response);
@@ -288,9 +297,9 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 
 		assertNotNull(representation);
 
-		representation.getConfig().put(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT,
+		representation.getConfig().put(SAMLConfigNames.NAME_ID_POLICY_FORMAT,
 				JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get());
-		representation.getConfig().put(SAMLIdentityProviderConfig.BACKCHANNEL_SUPPORTED, Boolean.FALSE.toString());
+		representation.getConfig().put(SAMLConfigNames.BACKCHANNEL_SUPPORTED, Boolean.FALSE.toString());
 
 		identityProviderResource.update(representation);
 		return representation;
@@ -305,8 +314,8 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		}
 	}
 
-	protected URI getSamlBrokerIdpUrl(String realmName) {
-		return URI.create(getAuthServerRealmBase(realmName).toString() + "/broker/" + brokerIdp + "/endpoint");
+	protected URI getSamlBrokerUrl(String realmName) {
+		return URI.create(getAuthServerRealmBase(realmName).toString() + "/broker/endpoint");
 	}
 
 }

@@ -288,7 +288,7 @@ public class ExportImportUtil {
         Assert.assertEquals("3025", smtpConfig.get("port"));
 
         // Test identity providers
-        List<IdentityProviderRepresentation> identityProviders = realm.getIdentityProviders();
+        List<IdentityProviderRepresentation> identityProviders = realmRsc.identityProviders().findAll(false,"",-1,-1);
         Assert.assertEquals(5, identityProviders.size());
         IdentityProviderRepresentation google = null;
         IdentityProviderRepresentation samlIdp = null;
@@ -305,7 +305,7 @@ public class ExportImportUtil {
         Assert.assertEquals("google", google.getProviderId());
         Assert.assertTrue(google.isEnabled());
         Assert.assertEquals("googleId", google.getConfig().get("clientId"));
-        Assert.assertEquals("googleSecret", google.getConfig().get("clientSecret"));
+        Assert.assertEquals(ComponentRepresentation.SECRET_VALUE, google.getConfig().get("clientSecret"));
         //check Idp from saml metadata aggregate
         Assert.assertNotNull(samlIdp);
         Assert.assertEquals(samlIdpAlias, samlIdp.getAlias());

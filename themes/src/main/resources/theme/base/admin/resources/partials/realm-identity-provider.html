@@ -1,5 +1,11 @@
 <div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2">
     <h1>{{:: 'identity-providers' | translate}}</h1>
+    
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#/realms/{{realm.realm}}/identity-provider-settings">{{:: 'realm-identity-providers' | translate}}</a></li>
+        <li><a href="#/realms/{{realm.realm}}/identity-providers-federations">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
+    </ul>
+    
     <div class="blank-slate-pf" ng-show="showWelcome">
         <div class="blank-slate-pf-icon">
             <span class="fa fa-exchange"></span>

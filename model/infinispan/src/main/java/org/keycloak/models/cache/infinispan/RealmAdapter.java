@@ -850,19 +850,6 @@ public class RealmAdapter implements CachedRealmModel {
 		updated.removeIdentityProvidersFederation(internalId);
 	}
 	
-	@Override
-    public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel) {
-		getDelegateForUpdate();
-		return updated.addFederationIdp(idpfModel, idpModel);
-	}
-	
-	@Override
-	public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias) {
-		getDelegateForUpdate();
-		return updated.removeFederationIdp(identityProvidersFederationModel,  idpAlias);
-	}
-	
-	
 	
     @Override
     public String getLoginTheme() {
@@ -1045,8 +1032,7 @@ public class RealmAdapter implements CachedRealmModel {
 
     @Override
     public boolean isIdentityFederationEnabled() {
-        if (isUpdated()) return updated.isIdentityFederationEnabled();
-        return cached.isIdentityFederationEnabled();
+    	return session.identityProviderStorage().countIdentityProviders(this) > 0;
     }
 
 

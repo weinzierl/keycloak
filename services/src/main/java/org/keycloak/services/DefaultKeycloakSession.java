@@ -34,7 +34,7 @@ import org.keycloak.models.ThemeManager;
 import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.UserSessionProvider;
-import org.keycloak.models.cache.CacheIdpProvider;
+import org.keycloak.models.cache.CacheIdpProviderI;
 import org.keycloak.models.cache.CacheRealmProvider;
 import org.keycloak.models.cache.UserCache;
 import org.keycloak.provider.Provider;
@@ -100,7 +100,7 @@ public class DefaultKeycloakSession implements KeycloakSession {
     }
 
     private IdentityProviderProvider getIdpProvider() {
-        CacheIdpProvider cache = getProvider(CacheIdpProvider.class);
+    	CacheIdpProviderI cache = getProvider(CacheIdpProviderI.class);
         if (cache != null) {
             return cache;
         } else {

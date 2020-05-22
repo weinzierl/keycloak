@@ -26,6 +26,8 @@ import org.keycloak.authentication.AuthenticationFlowException;
 import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticator;
 import org.keycloak.authentication.authenticators.broker.util.PostBrokerLoginConstants;
 import org.keycloak.authentication.authenticators.broker.util.SerializedBrokeredIdentityContext;
+import org.keycloak.broker.federation.IdpFederationProvider;
+import org.keycloak.broker.federation.IdpFederationProviderFactory;
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
@@ -35,6 +37,7 @@ import org.keycloak.broker.provider.IdentityProviderMapper;
 import org.keycloak.broker.provider.IdentityProviderMapperSyncModeDelegate;
 import org.keycloak.broker.provider.util.IdentityBrokerState;
 import org.keycloak.broker.saml.SAMLEndpoint;
+import org.keycloak.broker.saml.federation.SAMLIdPFederationProvider;
 import org.keycloak.broker.social.SocialIdentityProvider;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.util.Base64Url;
@@ -54,6 +57,7 @@ import org.keycloak.models.Constants;
 import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
@@ -73,6 +77,10 @@ import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
 import org.keycloak.provider.ProviderFactory;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.saml.SAMLRequestParser;
+import org.keycloak.saml.common.constants.GeneralConstants;
+import org.keycloak.saml.processing.core.saml.v2.common.SAMLDocumentHolder;
+import org.keycloak.saml.processing.web.util.PostBindingUtil;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.ErrorPageException;
 import org.keycloak.services.ErrorResponse;
@@ -94,6 +102,8 @@ import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.sessions.RootAuthenticationSessionModel;
 import org.keycloak.util.JsonSerialization;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
@@ -103,6 +113,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
@@ -133,6 +144,9 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
     private static final Logger logger = Logger.getLogger(IdentityBrokerService.class);
 
+    public static final String ENDPOINT_PATH = "/endpoint";
+    
+    
     private final RealmModel realmModel;
 
     @Context
@@ -389,6 +403,10 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
             IdentityProvider identityProvider = providerFactory.create(session, identityProviderModel);
 
+            boolean isMemberOfAggregation = (identityProviderModel.getFederations() != null && identityProviderModel.getFederations().size() > 0) ? true : false;
+            if(isMemberOfAggregation)
+            	providerId = null;
+            
             Response response = identityProvider.performLogin(createAuthenticationRequest(providerId, clientSessionCode));
 
             if (response != null) {
@@ -406,7 +424,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         return redirectToErrorPage(Response.Status.INTERNAL_SERVER_ERROR, Messages.COULD_NOT_PROCEED_WITH_AUTHENTICATION_REQUEST);
     }
 
-    @Path("{provider_id}/endpoint")
+    @Path("{provider_id}"+ENDPOINT_PATH)
     public Object getEndpoint(@PathParam("provider_id") String providerId) {
         IdentityProvider identityProvider = getIdentityProvider(session, realmModel, providerId);
         Object callback = identityProvider.callback(realmModel, this, event);
@@ -416,6 +434,49 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
 
     }
+    
+    
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Path(ENDPOINT_PATH)
+    public void getIdpFederationEndpointPOST(@FormParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse) {
+    	byte[] samlBytes = PostBindingUtil.base64Decode(samlResponse);
+        SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseDocument(samlBytes);
+        StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
+        String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
+        String alias = SAMLIdPFederationProvider.getHash(issuer);
+        String path = request.getUri().getPath();
+        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
+        request.forward(path);
+    }
+    
+    
+    @GET
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Path(ENDPOINT_PATH)
+    public void getIdpFederationEndpointGET(@QueryParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse) {
+    	SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseRedirectBinding(samlResponse);
+        StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
+        String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
+        String alias = SAMLIdPFederationProvider.getHash(issuer);
+        String path = request.getUri().getPath();
+        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
+        request.forward(path);
+    }
+    
+    @GET
+    @NoCache
+    @Path("/federation/{provider_id}" + ENDPOINT_PATH + "/descriptor")
+    public Response getIdpFederationService(@PathParam("provider_id") String providerId) {
+    	IdentityProvidersFederationModel idpFederationModel = realmModel.getIdentityProvidersFederationByAlias(providerId);
+    	if(idpFederationModel == null)
+    		idpFederationModel = realmModel.getIdentityProvidersFederationById(providerId);
+    	if (idpFederationModel == null)
+            throw new IdentityBrokerException("Could not find any federation for the identifier: " + providerId);
+    	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, idpFederationModel.getProviderId()).create(session, idpFederationModel, realmModel.getId());
+    	return idpFederationProvider.export(session.getContext().getUri(), realmModel);
+    }
+    
 
     @Path("{provider_id}/token")
     @OPTIONS
@@ -1143,12 +1204,17 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
             encodedState = IdentityBrokerState.decoded(relayState, authSession.getClient().getClientId(), authSession.getTabId());
         }
 
-        return new AuthenticationRequest(this.session, this.realmModel, authSession, this.request, this.session.getContext().getUri(), encodedState, getRedirectUri(providerId));
+        return new AuthenticationRequest(this.session, this.realmModel, authSession, this.request, this.session.getContext().getUri(), encodedState, providerId==null ? getRedirectUri() : getRedirectUri(providerId));
     }
 
     private String getRedirectUri(String providerId) {
         return Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), providerId, this.realmModel.getName()).toString();
     }
+    
+    private String getRedirectUri() {
+        return Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), this.realmModel.getName()).toString();
+    }
+    
 
     private Response redirectToErrorPage(AuthenticationSessionModel authSession, Response.Status status, String message, Object ... parameters) {
         return redirectToErrorPage(authSession, status, message, null, parameters);

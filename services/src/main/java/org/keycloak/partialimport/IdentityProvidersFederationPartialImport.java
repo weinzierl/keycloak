@@ -46,7 +46,7 @@ public class IdentityProvidersFederationPartialImport extends AbstractPartialImp
     @Override
     public void remove(RealmModel realm, KeycloakSession session, IdentityProvidersFederationRepresentation metadataAggregate) {
     	IdentityProvidersFederationModel model = RepresentationToModel.toModel(metadataAggregate);
-    	model.getIdentityprovidersAlias().stream().forEach(idpAlias -> realm.removeFederationIdp(model, idpAlias));
+    	model.getIdentityprovidersAlias().stream().forEach(idpAlias -> session.identityProviderStorage().removeFederationIdp(realm, model, idpAlias));
     	realm.removeIdentityProvidersFederation(model.getInternalId());
     }
 

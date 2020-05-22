@@ -33,6 +33,11 @@
                 <object size="10000"/>
             </memory>
         </local-cache>
+        <local-cache name="idps">
+            <memory>
+                <object size="10000"/>
+            </memory>
+        </local-cache>
         <distributed-cache name="sessions" owners="1"/>
         <distributed-cache name="authenticationSessions" owners="1"/>
         <distributed-cache name="offlineSessions" owners="1"/>

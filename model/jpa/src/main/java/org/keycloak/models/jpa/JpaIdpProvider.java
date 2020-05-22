@@ -1,6 +1,8 @@
 package org.keycloak.models.jpa;
 
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,14 +17,16 @@ import org.jboss.logging.Logger;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProviderProvider;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.jpa.entities.FederationEntity;
 import org.keycloak.models.jpa.entities.IdentityProviderEntity;
 import org.keycloak.models.jpa.entities.IdentityProviderMapperEntity;
 import org.keycloak.models.jpa.entities.RealmEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
 
-import com.google.common.collect.ImmutableSet;
+//import com.google.common.collect.ImmutableSet;
 
 public class JpaIdpProvider implements IdentityProviderProvider {
 	
@@ -61,7 +65,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 	public List<IdentityProviderModel> getIdentityProviders(RealmModel realm) {
 		TypedQuery<IdentityProviderEntity> query = em.createNamedQuery("findIdentityProviderByRealm", IdentityProviderEntity.class);
 		query.setParameter("realmId", realm.getId());
-		return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toList());
+		return query.getResultList().stream().map(entity -> entityToModel(entity, false)).collect(Collectors.toList());
 	}
   
   
@@ -80,12 +84,12 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 		if(keyword!=null && !keyword.isEmpty())
 			query.setParameter("keyword", "%"+keyword.toLowerCase()+"%");
 		
-		return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toList());
+		return query.getResultList().stream().map(entity -> entityToModel(entity, false)).collect(Collectors.toList());
 	}
   
   
   
-	private IdentityProviderModel entityToModel(IdentityProviderEntity entity) {
+	private IdentityProviderModel entityToModel(IdentityProviderEntity entity, boolean withFederations) {
 		IdentityProviderModel identityProviderModel = new IdentityProviderModel();
 		identityProviderModel.setProviderId(entity.getProviderId());
 		identityProviderModel.setAlias(entity.getAlias());
@@ -104,9 +108,11 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 		identityProviderModel.setPostBrokerLoginFlowId(entity.getPostBrokerLoginFlowId());
 		identityProviderModel.setStoreToken(entity.isStoreToken());
 		identityProviderModel.setAddReadTokenRoleOnCreate(entity.isAddReadTokenRoleOnCreate());
+		identityProviderModel.setFederations(entity.getFederations().stream().map(fe -> fe.getInternalId()).collect(Collectors.toCollection(HashSet::new)));
 		return identityProviderModel;
 	}
   
+	
 	private IdentityProviderEntity modelToEntity(IdentityProviderModel identityProvider) {
 		IdentityProviderEntity entity = new IdentityProviderEntity();
 
@@ -127,14 +133,31 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 		entity.setPostBrokerLoginFlowId(identityProvider.getPostBrokerLoginFlowId());
 		entity.setConfig(identityProvider.getConfig());
 		entity.setLinkOnly(identityProvider.isLinkOnly());
+//		entity.setFederations(identityProvider.getFederations().stream().map(id -> this.modelToEntity( realmModel.getIdentityProvidersFederationById(id))).collect(Collectors.toSet()));
 
 		return entity;
+	}
+	
+	private FederationEntity modelToEntity(IdentityProvidersFederationModel identityProvidersFederationModel) {
+
+		FederationEntity federationEntity = new FederationEntity();
+
+		federationEntity.setInternalId(identityProvidersFederationModel.getInternalId());
+		federationEntity.setAlias(identityProvidersFederationModel.getAlias());
+		federationEntity.setProviderId(identityProvidersFederationModel.getProviderId());
+		
+		federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
+		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
+		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
+		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
+		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
+		return federationEntity;
 	}
   
 	@Override
 	public IdentityProviderModel getIdentityProviderById(String internalId) {
 		IdentityProviderEntity identityProvider = em.find(IdentityProviderEntity.class, internalId);
-		return entityToModel(identityProvider);
+		return identityProvider != null ? entityToModel(identityProvider, false) : null;
 	}
   
 	private IdentityProviderEntity getIdentityProviderEntityByAlias(RealmModel realmModel, String alias) {
@@ -152,7 +175,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 	@Override
 	public IdentityProviderModel getIdentityProviderByAlias(RealmModel realmModel, String alias) {
 		IdentityProviderEntity identityProvider = getIdentityProviderEntityByAlias(realmModel, alias);
-		return entityToModel(identityProvider);
+		return identityProvider != null ? entityToModel(identityProvider, false) : null;
 	}
 
 	@Override
@@ -177,7 +200,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 		});
 
 	}
-
+	
 	@Override
 	public void removeIdentityProviderByAlias(RealmModel realmModel, String alias) {
 		TypedQuery<IdentityProviderEntity> query = em.createNamedQuery("findIdentityProviderByRealmAndAlias", IdentityProviderEntity.class);
@@ -189,10 +212,10 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 			.forEach(identityProviderMapper -> removeIdentityProviderMapper(realmModel, identityProviderMapper));
 		
 		
+		IdentityProviderModel model = entityToModel(identityProvider, false);
+		
 		em.remove(identityProvider);
 		em.flush();
-
-		IdentityProviderModel model = entityToModel(identityProvider);
 		
 		session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderRemovedEvent() {
 
@@ -266,7 +289,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
     public Set<IdentityProviderMapperModel> getIdentityProviderMappers(RealmModel realmModel) {
 		TypedQuery<IdentityProviderMapperEntity> query = em.createNamedQuery("findIdentityProviderMappersByRealm", IdentityProviderMapperEntity.class);
 		query.setParameter("realmId", realmModel.getId());
-        return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.collectingAndThen(Collectors.toSet(), ImmutableSet::copyOf));
+        return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override
@@ -274,7 +297,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
     	TypedQuery<IdentityProviderMapperEntity> query = em.createNamedQuery("findIdentityProviderMappersByRealmAndAlias", IdentityProviderMapperEntity.class);
     	query.setParameter("alias", brokerAlias);
     	query.setParameter("realmId", realmModel.getId());
-    	return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.collectingAndThen(Collectors.toSet(), ImmutableSet::copyOf));
+    	return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override
@@ -293,6 +316,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
         entity.setConfig(model.getConfig());
         
         em.persist(entity);
+        em.flush();
         
         return entityToModel(entity);
     }
@@ -363,7 +387,98 @@ public class JpaIdpProvider implements IdentityProviderProvider {
     }
 	
 	
+    @Override
+	public boolean addFederationIdp(RealmModel realmModel, IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel) {
+    	
+    	FederationEntity fedEntity = em.find(FederationEntity.class, idpfModel.getInternalId());
+		
+		if(fedEntity != null){
+			
+			IdentityProviderEntity idpEntity = getIdentityProviderEntityByAlias(realmModel, idpModel.getAlias());
+			
+			if(idpEntity == null)
+				idpEntity = modelToEntity(idpModel);
+			
+			RealmEntity realm = new RealmEntity();
+			realm.setId(realmModel.getId());
+			
+			idpEntity.setRealm(realm);
+			
+			fedEntity.getIdentityproviders().add(idpEntity);
+			idpEntity.addToFederation(fedEntity);
+			
+			em.persist(idpEntity);
+			em.flush();
+			
+			idpModel.setInternalId(idpEntity.getInternalId());
+			
+			return true;
+		}
+		return false;
+		
+	}
 	
-	
+	@Override
+	public boolean removeFederationIdp(RealmModel realmModel, IdentityProvidersFederationModel idpfModel, String idpAlias) {
+		
+		try {
+			IdentityProviderEntity idpEntity = getIdentityProviderEntityByAlias(realmModel, idpAlias);
+			if(idpEntity == null) return false;
+			Set<FederationEntity> idpFeds = idpEntity.getFederations();
+			FederationEntity fedEntity = idpFeds.stream().filter(e -> e.getInternalId().equals(idpfModel.getInternalId())).findAny().orElse(null);
+			IdentityProviderModel idpModel = entityToModel(idpEntity, true);
+			if(idpFeds.size() == 1) {
+				em.remove(idpEntity);
+				em.flush();
+				
+//				session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderRemovedEvent() {
+//
+//	                    @Override
+//	                    public RealmModel getRealm() {
+//	                        return RealmAdapter.this;
+//	                    }
+//
+//	                    @Override
+//	                    public IdentityProviderModel getRemovedIdentityProvider() {
+//	                        return idpModel;
+//	                    }
+//
+//	                    @Override
+//	                    public KeycloakSession getKeycloakSession() {
+//	                        return session;
+//	                    }
+//	                });
+			}
+			else if(idpFeds.size() > 1) {
+				idpEntity.removeFromFederation(fedEntity);
+				em.persist(idpEntity);
+				em.flush();
+				
+//				session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderUpdatedEvent() {
+//
+//		            @Override
+//		            public RealmModel getRealm() {
+//		                return RealmAdapter.this;
+//		            }
+//
+//		            @Override
+//		            public IdentityProviderModel getUpdatedIdentityProvider() {
+//		                return idpModel;
+//		            }
+//
+//		            @Override
+//		            public KeycloakSession getKeycloakSession() {
+//		                return session;
+//		            }
+//		        });
+			}
+			
+			return true;
+		}
+		catch(Exception ex) {
+			return false;
+		}
+		
+	}
 	
 }

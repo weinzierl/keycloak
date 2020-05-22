@@ -29,13 +29,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.namespace.QName;
 
 import org.jboss.logging.Logger;
 import org.keycloak.broker.federation.AbstractIdPFederationProvider;
+import org.keycloak.common.util.PemUtils;
 import org.keycloak.connections.httpclient.HttpClientProvider;
+import org.keycloak.crypto.KeyStatus;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntitiesDescriptorType;
@@ -45,6 +52,7 @@ import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
+import org.keycloak.keys.RsaKeyMetadata;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
@@ -52,6 +60,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
+import org.keycloak.saml.SPMetadataDescriptor;
 import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ParsingException;
@@ -168,7 +177,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			
 			if (idpDescriptor == null) {
 				//temporary code - we parse only IdPs
-				logger.info("These entity is not an Identity provider!");
+				logger.infof("The entity %s is not an Identity provider!", entity.getEntityID());
 				continue;
 			}
 					
@@ -214,9 +223,10 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			IdentityProviderModel identityProviderModel = RepresentationToModel.toModel(realm, representation,session);
 	        boolean successful = false;
 			try {
-				successful = realm.addFederationIdp(model, identityProviderModel);
+				successful = session.identityProviderStorage().addFederationIdp(realm, model, identityProviderModel);
 			}
 			catch(Exception ex) {
+				ex.printStackTrace();
 				successful = false;
 			}
 			if(!successful)
@@ -224,7 +234,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			
 		}
 		
-		model.getIdentityprovidersAlias().stream().forEach(idpAlias ->  realm.removeFederationIdp(model, idpAlias));
+		model.getIdentityprovidersAlias().stream().forEach(idpAlias ->  session.identityProviderStorage().removeFederationIdp(realm, model, idpAlias));
 		
         //update also the federation entity with totals and failed entities
 		updateFederation();
@@ -305,11 +315,21 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			}
 		}
 		
+		//saml aggregate metadata config parameters
+		if ( model.getConfig().get("wantAssertionsEncrypted") != null )
+			config.put("wantAssertionsEncrypted", model.getConfig().get("wantAssertionsEncrypted"));
+		
+		if ( model.getConfig().get("wantAssertionsSigned") != null )
+			config.put("wantAssertionsSigned", model.getConfig().get("wantAssertionsSigned"));
+		
+		config.put("nameIDPolicyFormat", model.getConfig().get("nameIDPolicyFormat") != null ?  model.getConfig().get("nameIDPolicyFormat") : JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
+			
+		
 		//put default parameters
-		config.put("nameIDPolicyFormat", JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
 		config.put("signatureAlgorithm","RSA_SHA256");
 		config.put("samlXmlKeyNameTranformer", "KEY_ID");
 		config.put("principalType", "SUBJECT");
+		config.put(IdentityProviderModel.SYNC_MODE, "IMPORT");
 		
 		return config;
 	}
@@ -325,7 +345,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
 		
 		RealmModel realm = session.realms().getRealm(realmId);
-		List<Boolean> results = model.getIdentityprovidersAlias().stream().map(idpAlias -> realm.removeFederationIdp(model, idpAlias)).collect(Collectors.toList());
+		
+		List<Boolean> results = model.getIdentityprovidersAlias().stream().map(idpAlias -> session.identityProviderStorage().removeFederationIdp(realm, model, idpAlias)).collect(Collectors.toList());
 		
 		realm.removeIdentityProvidersFederation(model.getInternalId());
 	}
@@ -339,7 +360,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
     
 	
 	
-	private static String getHash(String str) {
+	public static String getHash(String str) {
 		byte[] hashBytes;
 		try {
 			hashBytes = MessageDigest.getInstance("SHA-256").digest(str.getBytes());
@@ -352,7 +373,60 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             sb.append(String.format("%02x", b));
         return sb.toString();
 	}
+
 	
 	
+	@Override
+    public Response export(UriInfo uriInfo, RealmModel realm) {
+
+        String authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get();
+
+        if (model.isPostBindingAuthnRequest())
+            authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
+
+
+        String endpoint = uriInfo.getBaseUriBuilder()
+                .path("realms").path(realm.getName())
+                .path("broker")
+                .path("endpoint")
+                .build().toString();
+        
+        
+        boolean wantAuthnRequestsSigned = model.isWantAuthnRequestsSigned();
+        boolean wantAssertionsSigned = model.isWantAssertionsSigned();
+        boolean wantAssertionsEncrypted = model.isWantAssertionsEncrypted();
+        String entityId = getEntityId(uriInfo, realm);
+        String nameIDPolicyFormat = model.getNameIDPolicyFormat();
+        
+
+        StringBuilder signingKeysString = new StringBuilder();
+        StringBuilder encryptionKeysString = new StringBuilder();
+        Set<RsaKeyMetadata> keys = new TreeSet<>((o1, o2) -> o1.getStatus() == o2.getStatus() // Status can be only PASSIVE OR ACTIVE, push PASSIVE to end of list
+          ? (int) (o2.getProviderPriority() - o1.getProviderPriority())
+          : (o1.getStatus() == KeyStatus.PASSIVE ? 1 : -1));
+        keys.addAll(session.keys().getRsaKeys(realm));
+        for (RsaKeyMetadata key : keys) {
+            addKeyInfo(signingKeysString, key, KeyTypes.SIGNING.value());
+
+            if (key.getStatus() == KeyStatus.ACTIVE) {
+                addKeyInfo(encryptionKeysString, key, KeyTypes.ENCRYPTION.value());
+            }
+        }
+        String descriptor = SPMetadataDescriptor.getSPDescriptor(authnBinding, endpoint, endpoint,
+          wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
+          entityId, nameIDPolicyFormat, signingKeysString.toString(), encryptionKeysString.toString());
+
+        return Response.ok(descriptor, MediaType.APPLICATION_XML_TYPE).build();
+    }
+	
+	private String getEntityId(UriInfo uriInfo, RealmModel realm) {
+        return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
+    }
+	
+    private static void addKeyInfo(StringBuilder target, RsaKeyMetadata key, String purpose) {
+        if (key == null)
+            return;
+        target.append(SPMetadataDescriptor.xmlKeyInfo("        ", key.getKid(), PemUtils.encodeCertificate(key.getCertificate()), purpose, true));
+    }
 	
 }

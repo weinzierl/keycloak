@@ -362,8 +362,6 @@ public interface RealmModel extends RoleContainerModel {
     void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
     void removeIdentityProvidersFederation(String internalId);
     
-    boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel);
-    boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias);
     
     /**
      * Adds component model.  Will call onCreate() method of ComponentFactory

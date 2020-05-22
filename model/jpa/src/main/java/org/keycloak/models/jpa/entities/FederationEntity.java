@@ -1,6 +1,7 @@
 package org.keycloak.models.jpa.entities;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Access;
@@ -14,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.MapKeyColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -54,6 +56,12 @@ public class FederationEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REALM_ID")
     protected RealmEntity realm;
+    
+    @ElementCollection
+    @MapKeyColumn(name="NAME")
+    @Column(name="VALUE", columnDefinition = "TEXT")
+    @CollectionTable(name="FEDERATION_CONFIG", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    private Map<String, String> config;
 	
 	@ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
@@ -101,6 +109,14 @@ public class FederationEntity {
 
 	public void setRealm(RealmEntity realm) {
 		this.realm = realm;
+	}
+
+	public Map<String, String> getConfig() {
+		return config;
+	}
+
+	public void setConfig(Map<String, String> config) {
+		this.config = config;
 	}
 
 	public Integer getUpdateFrequencyInMins() {

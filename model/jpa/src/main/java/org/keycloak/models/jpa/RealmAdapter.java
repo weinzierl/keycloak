@@ -1294,32 +1294,12 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     	federationModel.setUrl(entity.getUrl());
     	Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
     	federationModel.setIdentityprovidersAlias(identityprovidersAlias);
+    	Map<String, String> copy = new HashMap<>();
+        copy.putAll(entity.getConfig());
+    	federationModel.setConfig(copy);
     	return federationModel;
     }
     
-    
-    private IdentityProviderModel entityToModel(IdentityProviderEntity entity) {
-        IdentityProviderModel identityProviderModel = new IdentityProviderModel();
-        identityProviderModel.setProviderId(entity.getProviderId());
-        identityProviderModel.setAlias(entity.getAlias());
-        identityProviderModel.setDisplayName(entity.getDisplayName());
-        
-        identityProviderModel.setInternalId(entity.getInternalId());
-        Map<String, String> config = entity.getConfig();
-        Map<String, String> copy = new HashMap<>();
-        copy.putAll(config);
-        identityProviderModel.setConfig(copy);
-        identityProviderModel.setEnabled(entity.isEnabled());
-        identityProviderModel.setLinkOnly(entity.isLinkOnly());
-        identityProviderModel.setTrustEmail(entity.isTrustEmail());
-        identityProviderModel.setAuthenticateByDefault(entity.isAuthenticateByDefault());
-        identityProviderModel.setFirstBrokerLoginFlowId(entity.getFirstBrokerLoginFlowId());
-        identityProviderModel.setPostBrokerLoginFlowId(entity.getPostBrokerLoginFlowId());
-        identityProviderModel.setStoreToken(entity.isStoreToken());
-        identityProviderModel.setAddReadTokenRoleOnCreate(entity.isAddReadTokenRoleOnCreate());
-        identityProviderModel.setFederations(entity.getFederations().stream().map(fe -> fe.getInternalId()).collect(Collectors.toCollection(HashSet::new)));
-        return identityProviderModel;
-    }
     
     @Override
     public boolean isIdentityFederationEnabled() {
@@ -1365,6 +1345,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
 		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
+		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
 		
 		realm.addIdentityProvidersFederation(federationEntity);
 		
@@ -1402,6 +1383,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
 		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
+		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
 		
 	}
 	
@@ -1415,130 +1397,8 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		em.flush();
 	}
 	
-	private IdentityProviderEntity getIdentityProviderEntityByAlias(String alias) {
-		TypedQuery<IdentityProviderEntity> query = em.createNamedQuery("findIdentityProviderByRealmAndAlias", IdentityProviderEntity.class);
-        query.setParameter("alias", alias);
-        query.setParameter("realmId", realm.getId());
-        try {
-        	return query.getSingleResult();
-        }
-        catch(NoResultException | NonUniqueResultException ex) {
-        	return null;
-        }
-	}
-	
-	 private IdentityProviderEntity modelToEntity(IdentityProviderModel identityProvider) {
-	    	IdentityProviderEntity entity = new IdentityProviderEntity();
 
-	        if (identityProvider.getInternalId() == null) {
-	            entity.setInternalId(KeycloakModelUtils.generateId());
-	        } else {
-	            entity.setInternalId(identityProvider.getInternalId());
-	        }
-	        entity.setAlias(identityProvider.getAlias());
-	        entity.setDisplayName(identityProvider.getDisplayName());
-	        entity.setProviderId(identityProvider.getProviderId());
-	        entity.setEnabled(identityProvider.isEnabled());
-	        entity.setStoreToken(identityProvider.isStoreToken());
-	        entity.setAddReadTokenRoleOnCreate(identityProvider.isAddReadTokenRoleOnCreate());
-	        entity.setTrustEmail(identityProvider.isTrustEmail());
-	        entity.setAuthenticateByDefault(identityProvider.isAuthenticateByDefault());
-	        entity.setFirstBrokerLoginFlowId(identityProvider.getFirstBrokerLoginFlowId());
-	        entity.setPostBrokerLoginFlowId(identityProvider.getPostBrokerLoginFlowId());
-	        entity.setConfig(identityProvider.getConfig());
-	        entity.setLinkOnly(identityProvider.isLinkOnly());
-	        
-	        return entity;
-	    }
-
-	
-	@Override
-	public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel) {
-		FederationEntity fedEntity = realm.getIdentityProvidersFederations().stream().filter(idpf -> idpf.getInternalId().equals(idpfModel.getInternalId())).findFirst().orElse(null);
-		
-		if(fedEntity != null){
-			
-			IdentityProviderEntity idpEntity = getIdentityProviderEntityByAlias(idpModel.getAlias());
-			
-			if(idpEntity == null)
-				idpEntity = modelToEntity(idpModel);
-			
-			fedEntity.getIdentityproviders().add(idpEntity);
-			idpEntity.addToFederation(fedEntity);
-			
-			session.identityProviderStorage().addIdentityProvider(this, entityToModel(idpEntity));
-			
-			em.persist(idpEntity);
-			em.flush();
-			return true;
-		}
-		return false;
-	}
-	
-	@Override
-	public boolean removeFederationIdp(IdentityProvidersFederationModel idpfModel, String idpAlias) {
-		
-		try {
-			IdentityProviderEntity idpEntity = getIdentityProviderEntityByAlias(idpAlias);
-			if(idpEntity == null) return false;
-			Set<FederationEntity> idpFeds = idpEntity.getFederations();
-			FederationEntity fedEntity = idpFeds.stream().filter(e -> e.getInternalId().equals(idpfModel.getInternalId())).findAny().orElse(null);
-			IdentityProviderModel idpModel = entityToModel(idpEntity);
-			if(idpFeds.size() == 1) {
-				em.remove(idpEntity);
-				em.flush();
-				
-				session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderRemovedEvent() {
-
-	                    @Override
-	                    public RealmModel getRealm() {
-	                        return RealmAdapter.this;
-	                    }
-
-	                    @Override
-	                    public IdentityProviderModel getRemovedIdentityProvider() {
-	                        return idpModel;
-	                    }
-
-	                    @Override
-	                    public KeycloakSession getKeycloakSession() {
-	                        return session;
-	                    }
-	                });
-			}
-			else if(idpFeds.size() > 1) {
-				idpEntity.removeFromFederation(fedEntity);
-				em.persist(idpEntity);
-				em.flush();
-				
-				session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderUpdatedEvent() {
-
-		            @Override
-		            public RealmModel getRealm() {
-		                return RealmAdapter.this;
-		            }
-
-		            @Override
-		            public IdentityProviderModel getUpdatedIdentityProvider() {
-		                return idpModel;
-		            }
-
-		            @Override
-		            public KeycloakSession getKeycloakSession() {
-		                return session;
-		            }
-		        });
-			}
-			
-			return true;
-		}
-		catch(Exception ex) {
-			return false;
-		}
-		
-	}
-	
-	
+	 
     
     @Override
     public boolean isInternationalizationEnabled() {

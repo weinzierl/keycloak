@@ -823,6 +823,11 @@ public class RealmRepresentation {
 		return identityProvidersFederations;
 	}
 
+    public void addIdentityProvider(IdentityProviderRepresentation identityProviderRepresentation) {
+        if (identityProviders == null) identityProviders = new LinkedList<>();
+        identityProviders.add(identityProviderRepresentation);
+    }
+    
 	public void setIdentityProvidersFederations(List<IdentityProvidersFederationRepresentation> identityProvidersFederations) {
 		this.identityProvidersFederations = identityProvidersFederations;
 	}

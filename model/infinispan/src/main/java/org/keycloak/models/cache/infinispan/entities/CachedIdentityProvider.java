@@ -31,38 +31,14 @@ public class CachedIdentityProvider extends AbstractRevisioned implements InReal
 
 	
 	private String realmId;
-	private String internalId;
-    private String alias;
-    private String providerId;
-    private boolean enabled;
-    private boolean trustEmail;
-    private boolean storeToken;
-    protected boolean addReadTokenRoleOnCreate;
-    protected boolean linkOnly;
-    private boolean authenticateByDefault;
-    private String firstBrokerLoginFlowId;
-    private String postBrokerLoginFlowId;
-    private String displayName;
-    private Map<String, String> config = new HashMap<>();
-    
+	
+    private IdentityProviderModel model;
     
     
 	public CachedIdentityProvider(Long revision, RealmModel realm, IdentityProviderModel model) {
 		super(revision, model.getInternalId());
 		this.realmId = realm.getId();
-		this.internalId = model.getInternalId();
-		this.alias = model.getAlias();
-		this.providerId = model.getProviderId();
-		this.enabled = model.isEnabled();
-		this.trustEmail = model.isTrustEmail();
-		this.storeToken = model.isStoreToken();
-		this.addReadTokenRoleOnCreate = model.isAddReadTokenRoleOnCreate();
-		this.linkOnly = model.isLinkOnly();
-		this.authenticateByDefault = model.isAuthenticateByDefault();
-		this.firstBrokerLoginFlowId = model.getFirstBrokerLoginFlowId();
-		this.postBrokerLoginFlowId = model.getPostBrokerLoginFlowId();
-		this.displayName = model.getDisplayName();
-		this.config = model.getConfig();
+		this.model = model;
 	}
 
 
@@ -71,60 +47,10 @@ public class CachedIdentityProvider extends AbstractRevisioned implements InReal
 		return realmId;
 	}
 
-	public String getRealmId() {
-		return realmId;
-	}
 
-	public String getInternalId() {
-		return internalId;
+	public IdentityProviderModel getModel() {
+		return model;
 	}
-
-	public String getAlias() {
-		return alias;
-	}
-
-	public String getProviderId() {
-		return providerId;
-	}
-
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	public boolean isTrustEmail() {
-		return trustEmail;
-	}
-
-	public boolean isStoreToken() {
-		return storeToken;
-	}
-
-	public boolean isAddReadTokenRoleOnCreate() {
-		return addReadTokenRoleOnCreate;
-	}
-
-	public boolean isLinkOnly() {
-		return linkOnly;
-	}
-
-	public boolean isAuthenticateByDefault() {
-		return authenticateByDefault;
-	}
-
-	public String getFirstBrokerLoginFlowId() {
-		return firstBrokerLoginFlowId;
-	}
-
-	public String getPostBrokerLoginFlowId() {
-		return postBrokerLoginFlowId;
-	}
-
-	public String getDisplayName() {
-		return displayName;
-	}
-
-	public Map<String, String> getConfig() {
-		return config;
-	}
+	
 
 }

@@ -1235,6 +1235,239 @@ module.controller('RealmIdentityProviderExportCtrl', function(realm, identityPro
     }
 });
 
+
+module.controller('IdentityProvidersFederationsListCtrl', function(realm, serverInfo, Dialog, IdentityProvidersFederation, $scope, $route, Current, Notifications, $location) {
+    
+	$scope.realm = realm;
+	$scope.serverInfo = serverInfo;
+	
+	$scope.addIdpFederation = function(federation) {
+        $location.url("/realms/" + realm.realm + "/identity-providers-federation/" + federation.id);
+    };
+	
+	$scope.removeIdentityProvidersFederation = function(federation) {
+		
+        Dialog.confirmDelete(federation.alias, 'identity providers federation', function() {
+            
+        	IdentityProvidersFederation.remove({
+                realm : realm.realm,
+                id : federation.internalId
+            }, function() {
+                $route.reload();
+                Notifications.success("The identity providers federation has been deleted.");
+            });
+        	
+        });
+        
+    };
+	
+});
+
+module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialog, $scope, providerId, identityProvidersFederation, IdentityProvidersFederation, Current, Notifications, $location, $http) {
+	
+	
+	$scope.realm = realm;
+	$scope.identityProvidersFederation = identityProvidersFederation;
+	
+	$scope.newIdpFederation = $scope.identityProvidersFederation == null ? true : false;
+
+	
+		
+	$scope.nameIdFormats = [
+        /*
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+            name: "Transient"
+        },
+        */
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
+            name: "Persistent"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+            name: "Email"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos",
+            name: "Kerberos"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+            name: "X.509 Subject Name"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName",
+            name: "Windows Domain Qualified Name"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+            name: "Unspecified"
+
+        }
+    ];
+	
+	
+	
+	$scope.importFrom = function() {
+        
+        var input = {
+            fromUrl: $scope.identityProvidersFederation.url,
+            providerId: providerId
+        }
+        $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/import-config', input)
+            .then(function(response) {
+            	$scope.allIdps = response.data;
+            	$scope.identityProvidersFederation.skipIdps = [];
+            	$scope.identityProvidersFederation.providerId = providerId;
+                Notifications.success("Loaded federation configuration from the url.");
+            }).catch(function() {
+                Notifications.error("Config can not be loaded. Please verify the url.");
+            });
+    };
+	
+    
+    
+    
+    $scope.cancel = function() {
+        $location.url("/realms/" + realm.realm + "/identity-providers-federations");
+    };
+    
+    $scope.save = function(){
+    	
+    	IdentityProvidersFederation.save({
+            realm: $scope.realm.realm
+        }, 
+        $scope.identityProvidersFederation, 
+        function () {
+        	$location.url("/realms/" + realm.realm + "/identity-providers-federations");
+            Notifications.success("The " + $scope.identityProvidersFederation.alias + " provider has been created.");
+        });
+    }
+    
+    
+    $scope.changed = false;
+	
+	$scope.changedUrl = false;
+    
+    var initValues = angular.copy($scope.identityProvidersFederation);
+    
+    if(initValues==null) 
+    	initValues = {};
+    
+    $scope.$watch('identityProvidersFederation.url', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.url) {
+    			$scope.changed = true;
+    			$scope.changedUrl = true;
+    		}
+    		else {
+    			$scope.changed = false;
+    			$scope.changedUrl = false;
+    		}
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.alias', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.alias) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.updateFrequencyInMins', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.updateFrequencyInMins) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+	
+    
+    if(initValues.config == null) 
+    	initValues.config = {};	
+    
+    $scope.$watch('identityProvidersFederation.config.nameIDPolicyFormat', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.config.nameIDPolicyFormat) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.config.postBindingAuthnRequest', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.config.postBindingAuthnRequest) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.config.wantAuthnRequestsSigned', 
+		function (newValue, oldValue, scope) {
+			if(newValue != initValues.config.wantAuthnRequestsSigned) 
+				$scope.changed = true;
+			else 
+				$scope.changed = false;
+		}, 
+	true);
+    
+    $scope.$watch('identityProvidersFederation.config.wantAssertionsSigned', 
+		function (newValue, oldValue, scope) {
+			if(newValue != initValues.config.wantAssertionsSigned) 
+				$scope.changed = true;
+			else 
+				$scope.changed = false;
+		}, 
+	true);
+    
+    $scope.$watch('identityProvidersFederation.config.wantAssertionsEncrypted', 
+		function (newValue, oldValue, scope) {
+			if(newValue != initValues.config.wantAssertionsEncrypted) 
+				$scope.changed = true;
+			else 
+				$scope.changed = false;
+		}, 
+	true);
+    
+    
+    
+});
+
+
+module.controller('IdentityProvidersFederationsExportCtrl', function(realm, Dialog, $scope, identityProvidersFederation, IdentityProvidersFederationExport, Current, Notifications, $location, $http) {
+
+	$scope.realm = realm;
+	$scope.identityProvidersFederation = identityProvidersFederation;
+
+	var url = IdentityProvidersFederationExport.url({realm: realm.realm, alias: identityProvidersFederation.alias}) ;
+	$http.get(url).then(function(response) {
+	    $scope.exportedType = response.headers('Content-Type');
+	    $scope.exported = response.data;
+	});
+	
+	$scope.staticLink = window.location.origin + "/auth/realms/master/broker/federation/" + identityProvidersFederation.internalId + "/endpoint/descriptor";
+	
+});
+
+
+
+
+
+
+
+
+
 module.controller('RealmTokenDetailCtrl', function($scope, Realm, realm, $http, $location, $route, Dialog, Notifications, TimeUnit, TimeUnit2, serverInfo) {
     $scope.realm = realm;
     $scope.serverInfo = serverInfo;

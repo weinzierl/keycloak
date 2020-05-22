@@ -33,7 +33,7 @@ public interface IdentityProvidersFederationResource {
 	public IdentityProvidersFederationRepresentation getIdentityProviderFederation(@PathParam("id") String internalId);
 
 	@DELETE
-	@Path("delete/{id}")
+	@Path("instances/{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response delete(@PathParam("id") String internalId);
 }

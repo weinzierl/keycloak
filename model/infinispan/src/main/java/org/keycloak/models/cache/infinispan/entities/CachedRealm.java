@@ -26,8 +26,6 @@ import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.GroupModel;
-import org.keycloak.models.IdentityProviderMapperModel;
-import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.OTPPolicy;
 import org.keycloak.models.PasswordPolicy;
@@ -112,7 +110,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected MultivaluedHashMap<String, ComponentModel> componentsByParent = new MultivaluedHashMap<>();
     protected MultivaluedHashMap<String, ComponentModel> componentsByParentAndType = new MultivaluedHashMap<>();
     protected Map<String, ComponentModel> components = new HashMap<>();
-    protected List<IdentityProviderModel> identityProviders;
     protected List<IdentityProvidersFederationModel> identityProvidersFederations;
 
     protected Map<String, String> browserSecurityHeaders;
@@ -144,10 +141,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected List<String> defaultRoles;
     private boolean allowUserManagedAccess;
 
-    public Set<IdentityProviderMapperModel> getIdentityProviderMapperSet() {
-        return identityProviderMapperSet;
-    }
-
     protected List<String> defaultGroups = new LinkedList<>();
     protected List<String> clientScopes = new LinkedList<>();
     protected List<String> defaultDefaultClientScopes = new LinkedList<>();
@@ -155,8 +148,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected boolean internationalizationEnabled;
     protected Set<String> supportedLocales;
     protected String defaultLocale;
-    protected MultivaluedHashMap<String, IdentityProviderMapperModel> identityProviderMappers = new MultivaluedHashMap<>();
-    protected Set<IdentityProviderMapperModel> identityProviderMapperSet;
 
     protected Map<String, String> attributes;
 
@@ -224,23 +215,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         requiredCredentials = model.getRequiredCredentials();
         userActionTokenLifespans = Collections.unmodifiableMap(new HashMap<>(model.getUserActionTokenLifespans()));
 
-        this.identityProviders = new ArrayList<>();
-
-        for (IdentityProviderModel identityProviderModel : model.getIdentityProviders()) {
-            this.identityProviders.add(new IdentityProviderModel(identityProviderModel));
-        }
-        this.identityProviders = Collections.unmodifiableList(this.identityProviders);
-        
         this.identityProvidersFederations  = model.getIdentityProviderFederations();
-        
-       
-        this.identityProviderMapperSet = model.getIdentityProviderMappers();
-        for (IdentityProviderMapperModel mapper : identityProviderMapperSet) {
-            identityProviderMappers.add(mapper.getIdentityProviderAlias(), mapper);
-        }
-
-
-
         smtpConfig = model.getSmtpConfig();
         browserSecurityHeaders = model.getBrowserSecurityHeaders();
 
@@ -576,10 +551,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         return adminEventsDetailsEnabled;
     }
 
-    public List<IdentityProviderModel> getIdentityProviders() {
-        return identityProviders;
-    }
-
     public List<IdentityProvidersFederationModel> getIdentityProvidersFederations() {
 		return identityProvidersFederations;
 	}
@@ -594,10 +565,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
 
     public String getDefaultLocale() {
         return defaultLocale;
-    }
-
-    public MultivaluedHashMap<String, IdentityProviderMapperModel> getIdentityProviderMappers() {
-        return identityProviderMappers;
     }
 
     public Map<String, AuthenticationFlowModel> getAuthenticationFlows() {

@@ -41,11 +41,13 @@ import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluato
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -53,6 +55,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import org.keycloak.utils.ReservedCharValidator;
@@ -154,6 +157,22 @@ public class IdentityProvidersResource {
         }
     }
 
+    
+    
+    /**
+     * Get used (initiated) identity provider providerId(s).  i.e. ['saml', 'oidc', 'github'] 
+     *
+     * @return
+     */
+    @GET
+    @Path("types-used")
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<String> getUsedIdentityProviderIdTypes() {
+        this.auth.realm().requireViewIdentityProviders();
+        return session.identityProviderStorage().getUsedIdentityProviderIdTypes(realm);
+    }
+    
     /**
      * Get identity providers
      *
@@ -163,15 +182,26 @@ public class IdentityProvidersResource {
     @Path("instances")
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
-    public List<IdentityProviderRepresentation> getIdentityProviders() {
+    public List<IdentityProviderRepresentation> getIdentityProviders(
+    		@QueryParam("brief") @DefaultValue("false") Boolean brief,
+    		@QueryParam("keyword") @DefaultValue("") String keyword,
+    		@QueryParam("first") @DefaultValue("-1") Integer firstResult,
+            @QueryParam("max") @DefaultValue("-1") Integer maxResults
+    		) {
+    	
         this.auth.realm().requireViewIdentityProviders();
 
-        List<IdentityProviderRepresentation> representations = new ArrayList<IdentityProviderRepresentation>();
-
-        for (IdentityProviderModel identityProviderModel : realm.getIdentityProviders()) {
-            representations.add(StripSecretsUtils.strip(ModelToRepresentation.toRepresentation(realm, identityProviderModel)));
-        }
-        return representations;
+        List<IdentityProviderModel> identityProviders = null;
+        if(keyword.isEmpty() && firstResult == -1 && maxResults == -1)
+        	identityProviders = session.identityProviderStorage().getIdentityProviders(realm);
+        else
+        	identityProviders = session.identityProviderStorage().searchIdentityProviders(realm, keyword, firstResult, maxResults);
+        
+        if(brief)
+        	return identityProviders.stream().map(idpModel -> StripSecretsUtils.strip(ModelToRepresentation.toBriefRepresentation(realm, idpModel))).collect(Collectors.toList());
+        else
+        	return identityProviders.stream().map(idpModel -> StripSecretsUtils.strip(ModelToRepresentation.toRepresentation(realm, idpModel))).collect(Collectors.toList());
+        
     }
 
     /**
@@ -190,7 +220,7 @@ public class IdentityProvidersResource {
         
         try {
             IdentityProviderModel identityProvider = RepresentationToModel.toModel(realm, representation, session);
-            this.realm.addIdentityProvider(identityProvider);
+            this.session.identityProviderStorage().addIdentityProvider(realm, identityProvider);
 
             representation.setInternalId(identityProvider.getInternalId());
             adminEvent.operation(OperationType.CREATE).resourcePath(session.getContext().getUri(), identityProvider.getAlias())
@@ -213,15 +243,11 @@ public class IdentityProvidersResource {
     @Path("instances/{alias}")
     public IdentityProviderResource getIdentityProvider(@PathParam("alias") String alias) {
         this.auth.realm().requireViewIdentityProviders();
-        IdentityProviderModel identityProviderModel = null;
 
-        for (IdentityProviderModel storedIdentityProvider : this.realm.getIdentityProviders()) {
-            if (storedIdentityProvider.getAlias().equals(alias)
-                    || storedIdentityProvider.getInternalId().equals(alias)) {
-                identityProviderModel = storedIdentityProvider;
-            }
-        }
-
+        IdentityProviderModel identityProviderModel = this.session.identityProviderStorage().getIdentityProviderByAlias(realm, alias);
+        if(identityProviderModel==null)
+        	identityProviderModel = this.session.identityProviderStorage().getIdentityProviderById(alias);
+        
         IdentityProviderResource identityProviderResource = new IdentityProviderResource(this.auth, realm, session, identityProviderModel, adminEvent);
         ResteasyProviderFactory.getInstance().injectProperties(identityProviderResource);
         

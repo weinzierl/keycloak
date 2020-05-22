@@ -1,6 +1,5 @@
 package org.keycloak.testsuite.admin.partialexport;
 
-import java.util.Arrays;
 import org.junit.Test;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -42,8 +41,8 @@ public class PartialExportTest extends AbstractAdminTest {
     @Test
     public void testExport() {
 
-        // exportGroupsAndRoles == false, exportClients == false
-        RealmRepresentation rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(false, false);
+        // exportGroupsAndRoles == false, exportClients == false, exportIdentityProviders == false
+        RealmRepresentation rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(false, false, false);
         Assert.assertNull("Users are null", rep.getUsers());
         Assert.assertNull("Default groups are empty", rep.getDefaultGroups());
         Assert.assertNull("Groups are empty", rep.getGroups());
@@ -57,9 +56,27 @@ public class PartialExportTest extends AbstractAdminTest {
         checkScopeMappings(rep.getScopeMappings(), true);
         Assert.assertNull("Client scope mappings empty", rep.getClientScopeMappings());
 
+        Assert.assertNull("IdentityProviders are empty", rep.getIdentityProviders());
+        Assert.assertNull("IdentityProviderMappers are empty", rep.getIdentityProviderMappers());
+        
+        // exportGroupsAndRoles == false, exportClients == false, exportIdentityProviders == true
+        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(false, false, true);
+        Assert.assertNull("Users are null", rep.getUsers());
+        Assert.assertNull("Default groups are empty", rep.getDefaultGroups());
+        Assert.assertNull("Groups are empty", rep.getGroups());
 
-        // exportGroupsAndRoles == true, exportClients == false
-        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(true, false);
+        Assert.assertNotNull("Default roles not empty", rep.getDefaultRoles());
+        checkDefaultRoles(rep.getDefaultRoles());
+
+        Assert.assertNull("Realm and client roles are empty", rep.getRoles());
+        Assert.assertNull("Clients are empty", rep.getClients());
+
+        checkScopeMappings(rep.getScopeMappings(), true);
+        Assert.assertNull("Client scope mappings empty", rep.getClientScopeMappings());
+        
+
+        // exportGroupsAndRoles == true, exportClients == false, exportIdentityProviders == false
+        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(true, false, false);
         Assert.assertNull("Users are null", rep.getUsers());
         Assert.assertNull("Default groups are empty", rep.getDefaultGroups());
         Assert.assertNotNull("Groups not empty", rep.getGroups());
@@ -78,9 +95,33 @@ public class PartialExportTest extends AbstractAdminTest {
         checkScopeMappings(rep.getScopeMappings(), true);
         Assert.assertNull("Client scope mappings empty", rep.getClientScopeMappings());
 
+        Assert.assertNull("IdentityProviders are empty", rep.getIdentityProviders());
+        Assert.assertNull("IdentityProviderMappers are empty", rep.getIdentityProviderMappers());
+        
+        
+        // exportGroupsAndRoles == true, exportClients == false, exportIdentityProviders == true
+        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(true, false, true);
+        Assert.assertNull("Users are null", rep.getUsers());
+        Assert.assertNull("Default groups are empty", rep.getDefaultGroups());
+        Assert.assertNotNull("Groups not empty", rep.getGroups());
+        checkGroups(rep.getGroups());
 
-        // exportGroupsAndRoles == false, exportClients == true
-        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(false, true);
+        Assert.assertNotNull("Default roles not empty", rep.getDefaultRoles());
+        checkDefaultRoles(rep.getDefaultRoles());
+
+        Assert.assertNotNull("Realm and client roles not empty", rep.getRoles());
+        Assert.assertNotNull("Realm roles not empty", rep.getRoles().getRealm());
+        checkRealmRoles(rep.getRoles().getRealm());
+
+        Assert.assertNull("Client roles are empty", rep.getRoles().getClient());
+        Assert.assertNull("Clients are empty", rep.getClients());
+
+        checkScopeMappings(rep.getScopeMappings(), true);
+        Assert.assertNull("Client scope mappings empty", rep.getClientScopeMappings());
+        
+
+        // exportGroupsAndRoles == false, exportClients == true, exportIdentityProviders == false
+        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(false, true, false);
         Assert.assertNotNull("The service accout user should be exported", rep.getUsers());
         Assert.assertEquals("Only one client has a service account", 1, rep.getUsers().size());
         checkServiceAccountRoles(rep.getUsers().get(0), false); // export but without roles
@@ -96,9 +137,30 @@ public class PartialExportTest extends AbstractAdminTest {
         checkScopeMappings(rep.getScopeMappings(), false);
         checkClientScopeMappings(rep.getClientScopeMappings());
 
+        Assert.assertNull("IdentityProviders are empty", rep.getIdentityProviders());
+        Assert.assertNull("IdentityProviderMappers are empty", rep.getIdentityProviderMappers());
+        
 
-        // exportGroupsAndRoles == true, exportClients == true
-        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(true, true);
+        // exportGroupsAndRoles == false, exportClients == true, exportIdentityProviders == true
+        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(false, true, true);
+        Assert.assertNotNull("The service accout user should be exported", rep.getUsers());
+        Assert.assertEquals("Only one client has a service account", 1, rep.getUsers().size());
+        checkServiceAccountRoles(rep.getUsers().get(0), false); // export but without roles
+        Assert.assertNull("Default groups are empty", rep.getDefaultGroups());
+        Assert.assertNull("Groups are empty", rep.getGroups());
+        Assert.assertNotNull("Default roles not empty", rep.getDefaultRoles());
+        checkDefaultRoles(rep.getDefaultRoles());
+
+        Assert.assertNull("Realm and client roles are empty", rep.getRoles());
+        Assert.assertNotNull("Clients not empty", rep.getClients());
+        checkClients(rep.getClients());
+
+        checkScopeMappings(rep.getScopeMappings(), false);
+        checkClientScopeMappings(rep.getClientScopeMappings());
+        
+        
+        // exportGroupsAndRoles == true, exportClients == true, exportIdentityProviders == false
+        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(true, true, false);
         // service accounts are only exported if roles/groups and clients are asked to be exported
         Assert.assertNotNull("The service accout user should be exported", rep.getUsers());
         Assert.assertEquals("Only one client has a service account", 1, rep.getUsers().size());
@@ -123,9 +185,42 @@ public class PartialExportTest extends AbstractAdminTest {
         checkScopeMappings(rep.getScopeMappings(), false);
         checkClientScopeMappings(rep.getClientScopeMappings());
 
-
+        Assert.assertNull("IdentityProviders are empty", rep.getIdentityProviders());
+        Assert.assertNull("IdentityProviderMappers are empty", rep.getIdentityProviderMappers());
+        
         // check that secrets are masked
         checkSecretsAreMasked(rep);
+        
+        
+        // exportGroupsAndRoles == true, exportClients == true, exportIdentityProviders == true
+        rep = adminClient.realm(EXPORT_TEST_REALM).partialExport(true, true, true);
+        // service accounts are only exported if roles/groups and clients are asked to be exported
+        Assert.assertNotNull("The service accout user should be exported", rep.getUsers());
+        Assert.assertEquals("Only one client has a service account", 1, rep.getUsers().size());
+        checkServiceAccountRoles(rep.getUsers().get(0), true); // exported with roles
+        Assert.assertNull("Default groups are empty", rep.getDefaultGroups());
+        Assert.assertNotNull("Groups not empty", rep.getGroups());
+        checkGroups(rep.getGroups());
+
+        Assert.assertNotNull("Default roles not empty", rep.getDefaultRoles());
+        checkDefaultRoles(rep.getDefaultRoles());
+
+        Assert.assertNotNull("Realm and client roles not empty", rep.getRoles());
+        Assert.assertNotNull("Realm roles not empty", rep.getRoles().getRealm());
+        checkRealmRoles(rep.getRoles().getRealm());
+
+        Assert.assertNotNull("Client roles not empty", rep.getRoles().getClient());
+        checkClientRoles(rep.getRoles().getClient());
+
+        Assert.assertNotNull("Clients not empty", rep.getClients());
+        checkClients(rep.getClients());
+
+        checkScopeMappings(rep.getScopeMappings(), false);
+        checkClientScopeMappings(rep.getClientScopeMappings());
+        
+        // check that secrets are masked
+        checkSecretsAreMasked(rep);
+        
     }
 
     private void checkServiceAccountRoles(UserRepresentation serviceAccount, boolean rolesExpected) {

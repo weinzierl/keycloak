@@ -62,9 +62,9 @@ final class BrokerRunOnServerUtil {
             execution.setAuthenticatorFlow(false);
             realm.addAuthenticatorExecution(execution);
 
-            IdentityProviderModel idp = realm.getIdentityProviderByAlias(idpAlias);
+            IdentityProviderModel idp = session.identityProviderStorage().getIdentityProviderByAlias(realm, idpAlias);
             idp.setPostBrokerLoginFlowId(postBrokerFlow.getId());
-            realm.updateIdentityProvider(idp);
+            session.identityProviderStorage().updateIdentityProvider(realm, idp);
         };
     }
 
@@ -72,9 +72,9 @@ final class BrokerRunOnServerUtil {
         return session -> {
             RealmModel realm = session.getContext().getRealm();
 
-            IdentityProviderModel idp = realm.getIdentityProviderByAlias(idpAlias);
+            IdentityProviderModel idp = session.identityProviderStorage().getIdentityProviderByAlias(realm, idpAlias);
             idp.setPostBrokerLoginFlowId(null);
-            realm.updateIdentityProvider(idp);
+            session.identityProviderStorage().updateIdentityProvider(realm, idp);
         };
     }
 
@@ -125,9 +125,9 @@ final class BrokerRunOnServerUtil {
             execution2.setParentFlow(newFlow.getId());
             execution2 = appRealm.addAuthenticatorExecution(execution2);
 
-            IdentityProviderModel idp = appRealm.getIdentityProviderByAlias(idpAlias);
+            IdentityProviderModel idp = session.identityProviderStorage().getIdentityProviderByAlias(appRealm, idpAlias);
             idp.setFirstBrokerLoginFlowId(newFlow.getId());
-            appRealm.updateIdentityProvider(idp);
+            session.identityProviderStorage().updateIdentityProvider(appRealm, idp);
         });
     }
 
@@ -166,7 +166,7 @@ final class BrokerRunOnServerUtil {
                         // Add PasswordForm execution
                         .addAuthenticatorExecution(AuthenticationExecutionModel.Requirement.REQUIRED, PasswordFormFactory.PROVIDER_ID, 20)
                 )
-                .usesInIdentityProvider(idpAlias)
+                .usesInIdentityProvider(session.identityProviderStorage(), idpAlias)
         );
     }
 
@@ -193,7 +193,7 @@ final class BrokerRunOnServerUtil {
                             )
                     )
                     // Setup new FirstBrokerLogin to identity provider
-                    .usesInIdentityProvider(idpAlias);
+                    .usesInIdentityProvider(session.identityProviderStorage(), idpAlias);
         });
     }
 }

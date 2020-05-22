@@ -195,12 +195,6 @@ public class RealmEntity {
     protected ClientEntity masterAdminClient;
 
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
-    protected List<IdentityProviderEntity> identityProviders = new ArrayList<IdentityProviderEntity>();
-
-    @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
-    Collection<IdentityProviderMapperEntity> identityProviderMappers = new ArrayList<IdentityProviderMapperEntity>();
-
-    @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
     protected List<FederationEntity> identityProvidersFederations = new ArrayList<FederationEntity>();
     
 	@OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
@@ -215,7 +209,6 @@ public class RealmEntity {
     @OneToMany(fetch = FetchType.LAZY, cascade ={CascadeType.ALL}, orphanRemoval = true, mappedBy = "realm")
     Set<ComponentEntity> components = new HashSet<>();
 
-    
     @Column(name="BROWSER_FLOW")
     protected String browserFlow;
 
@@ -608,20 +601,6 @@ public class RealmEntity {
         this.attributes = attributes;
     }
 
-    public List<IdentityProviderEntity> getIdentityProviders() {
-        return this.identityProviders;
-    }
-
-    public void setIdentityProviders(List<IdentityProviderEntity> identityProviders) {
-        this.identityProviders = identityProviders;
-    }
-
-    public void addIdentityProvider(IdentityProviderEntity entity) {
-        entity.setRealm(this);
-        getIdentityProviders().add(entity);
-    }
-
-    
     public List<FederationEntity> getIdentityProvidersFederations() {
 		return this.identityProvidersFederations;
 	}
@@ -629,15 +608,12 @@ public class RealmEntity {
 	public void setIdentityProvidersFederations(List<FederationEntity> identityProvidersFederations) {
 		this.identityProvidersFederations = identityProvidersFederations;
 	}
-
-    
     
     public void addIdentityProvidersFederation(FederationEntity entity) {
         entity.setRealm(this);
         getIdentityProvidersFederations().add(entity);
     }
-    
-    
+
     public boolean isInternationalizationEnabled() {
         return internationalizationEnabled;
     }
@@ -660,14 +636,6 @@ public class RealmEntity {
 
     public void setDefaultLocale(String defaultLocale) {
         this.defaultLocale = defaultLocale;
-    }
-
-    public Collection<IdentityProviderMapperEntity> getIdentityProviderMappers() {
-        return identityProviderMappers;
-    }
-
-    public void setIdentityProviderMappers(Collection<IdentityProviderMapperEntity> identityProviderMappers) {
-        this.identityProviderMappers = identityProviderMappers;
     }
 
     public Collection<AuthenticatorConfigEntity> getAuthenticatorConfigs() {

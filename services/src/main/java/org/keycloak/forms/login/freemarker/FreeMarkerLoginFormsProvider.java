@@ -64,6 +64,9 @@ import org.keycloak.theme.beans.MessageType;
 import org.keycloak.theme.beans.MessagesPerFieldBean;
 import org.keycloak.utils.MediaType;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -195,6 +198,14 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
         }
 
         switch (page) {
+        	case LOGIN:
+        		try {
+        			attributes.put("identityProvidersSummary", new ObjectMapper().writeValueAsString(((IdentityProviderBean)attributes.get("social")).getProviders()));
+        		}
+        		catch(JsonProcessingException e) {
+        			logger.error("Failed to add identity providers summary", e);
+        		}
+        		break;
             case LOGIN_CONFIG_TOTP:
                 attributes.put("totp", new TotpBean(session, realm, user, uriInfo.getRequestUriBuilder()));
                 break;
@@ -398,7 +409,7 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
         if (realm != null) {
             attributes.put("realm", new RealmBean(realm));
 
-            List<IdentityProviderModel> identityProviders = realm.getIdentityProviders();
+            List<IdentityProviderModel> identityProviders = session.identityProviderStorage().getIdentityProviders(realm);
             identityProviders = LoginFormsUtil.filterIdentityProviders(identityProviders, session, realm, attributes, formData, context);
             attributes.put("social", new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
 

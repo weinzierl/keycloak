@@ -1,4 +1,48 @@
 <#import "template.ftl" as layout>
+
+	<#noautoesc>
+    <script>
+        var identityProvidersSummary = JSON.parse("${identityProvidersSummary?js_string}");
+    </script>
+	</#noautoesc>
+	<script>
+	
+		var liClass = '${properties.kcFormSocialAccountListLinkClass!}';
+		
+		function buildFiltered(value) {
+			
+			var listElem = document.getElementById('kc-providers-list');
+			if(listElem==null)
+				return;
+			listElem.textContent = "";
+			for(var idp of identityProvidersSummary){
+				
+				if(idp.displayName.toLowerCase().lastIndexOf(value.toLowerCase())>=0){
+					var span = document.createElement('span');
+					span.textContent = idp.displayName
+					var a = document.createElement('a');
+					a.href = idp.loginUrl;
+					a.id = "zocial-" + idp.alias;
+					a.classList.add("zocial");
+					a.classList.add(idp.providerId);
+					
+					var li = document.createElement('li');
+					//li.classList.add(liClass);
+					
+					a.appendChild(span);
+					li.appendChild(a);
+					listElem.appendChild(li);
+				}
+			}
+		}
+		
+		window.onload = function() {
+		  buildFiltered("");
+		};
+		
+    </script>
+
+
 <@layout.registrationLayout displayInfo=social.displayInfo displayWide=(realm.password && social.providers??); section>
     <#if section = "header">
         ${msg("doLogIn")}
@@ -53,11 +97,16 @@
         </div>
         <#if realm.password && social.providers??>
             <div id="kc-social-providers" class="${properties.kcFormSocialAccountContentClass!} ${properties.kcFormSocialAccountClass!}">
-                <ul class="${properties.kcFormSocialAccountListClass!} <#if social.providers?size gt 4>${properties.kcFormSocialAccountDoubleListClass!}</#if>">
-                    <#list social.providers as p>
-                        <li class="${properties.kcFormSocialAccountListLinkClass!}"><a href="${p.loginUrl}" id="zocial-${p.alias}" class="zocial ${p.providerId}"> <span>${p.displayName}</span></a></li>
-                    </#list>
-                </ul>
+            	<#if social.providers?size gt 8>
+            		<input id="kc-providers-filter" type="text" placeholder="Filter..." oninput="buildFiltered(this.value)">
+            		<ul id="kc-providers-list" class="${properties.kcFormSocialAccountListClass!} ${properties.kcFormSocialAccountListClassScrollable!}"></ul>
+            	<#else>
+                	<ul class="${properties.kcFormSocialAccountListClass!} <#if social.providers?size gt 4>${properties.kcFormSocialAccountDoubleListClass!}</#if>">
+                    	<#list social.providers as p>
+                        	<li class="${properties.kcFormSocialAccountListLinkClass!}"><a href="${p.loginUrl}" id="zocial-${p.alias}" class="zocial ${p.providerId}"> <span>${p.displayName}</span></a></li>
+                    	</#list>
+                	</ul>
+                </#if>
             </div>
         </#if>
       </div>

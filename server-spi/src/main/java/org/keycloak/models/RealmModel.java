@@ -62,6 +62,11 @@ public interface RealmModel extends RoleContainerModel {
         KeycloakSession getKeycloakSession();
     }
 
+    
+    interface IdentityProviderCreationEvent extends ProviderEvent {
+    	IdentityProviderModel getCreatedIdentityProvider();
+    }
+    
     interface IdentityProviderUpdatedEvent extends ProviderEvent {
         RealmModel getRealm();
         IdentityProviderModel getUpdatedIdentityProvider();
@@ -349,19 +354,6 @@ public interface RealmModel extends RoleContainerModel {
     void removeRequiredActionProvider(RequiredActionProviderModel model);
     RequiredActionProviderModel getRequiredActionProviderById(String id);
     RequiredActionProviderModel getRequiredActionProviderByAlias(String alias);
-
-    List<IdentityProviderModel> getIdentityProviders();
-    IdentityProviderModel getIdentityProviderByAlias(String alias);
-    void addIdentityProvider(IdentityProviderModel identityProvider);
-    void removeIdentityProviderByAlias(String alias);
-    void updateIdentityProvider(IdentityProviderModel identityProvider);
-    Set<IdentityProviderMapperModel> getIdentityProviderMappers();
-    Set<IdentityProviderMapperModel> getIdentityProviderMappersByAlias(String brokerAlias);
-    IdentityProviderMapperModel addIdentityProviderMapper(IdentityProviderMapperModel model);
-    void removeIdentityProviderMapper(IdentityProviderMapperModel mapping);
-    void updateIdentityProviderMapper(IdentityProviderMapperModel mapping);
-    IdentityProviderMapperModel getIdentityProviderMapperById(String id);
-    IdentityProviderMapperModel getIdentityProviderMapperByName(String brokerAlias, String name);
 
     List<IdentityProvidersFederationModel> getIdentityProviderFederations();
     IdentityProvidersFederationModel getIdentityProvidersFederationById(String id);

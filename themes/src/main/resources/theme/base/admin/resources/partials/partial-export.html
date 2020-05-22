@@ -21,6 +21,13 @@
                     <input ng-model="exportClients" name="exportClients" id="exportClients" onoffswitch on-text="{{:: 'onText'| translate}}" off-text="{{:: 'offText'| translate}}"/>
                 </div>
             </div>
+            
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="exportIdentityProviders">{{:: 'export-identity-providers' | translate}}</label>
+                <div class="col-sm-6">
+                    <input ng-model="exportIdentityProviders" name="exportIdentityProviders" id="exportIdentityProviders" onoffswitch on-text="{{:: 'onText'| translate}}" off-text="{{:: 'offText'| translate}}"/>
+                </div>
+            </div>
 
             <div class="col-sm-12">
                 <button class="btn btn-primary" data-ng-click="export()" type="submit">{{:: 'export' | translate}}</button>

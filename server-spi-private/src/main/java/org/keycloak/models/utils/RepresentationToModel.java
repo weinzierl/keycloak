@@ -160,7 +160,7 @@ public class RepresentationToModel {
     }
 
     public static void importRealm(KeycloakSession session, RealmRepresentation rep, RealmModel newRealm, boolean skipUserDependent) {
-        convertDeprecatedSocialProviders(rep);
+        convertDeprecatedSocialProviders(session, rep, newRealm);
         convertDeprecatedApplications(session, rep);
         convertDeprecatedClientTemplates(rep);
 
@@ -284,7 +284,7 @@ public class RepresentationToModel {
         webAuthnPolicy = getWebAuthnPolicyPasswordless(rep);
         newRealm.setWebAuthnPolicyPasswordless(webAuthnPolicy);
 
-        Map<String, String> mappedFlows = importAuthenticationFlows(newRealm, rep);
+        Map<String, String> mappedFlows = importAuthenticationFlows(session, newRealm, rep);
         if (rep.getRequiredActions() != null) {
             for (RequiredActionProviderRepresentation action : rep.getRequiredActions()) {
                 RequiredActionProviderModel model = toModel(action);
@@ -297,9 +297,9 @@ public class RepresentationToModel {
             DefaultRequiredActions.addActions(newRealm);
         }
 
-	importIdentityProvidersFederations(session,rep.getIdentityProvidersFederations(),newRealm);
-        importIdentityProviders(rep, newRealm, session);
-        importIdentityProviderMappers(rep, newRealm);
+		importIdentityProvidersFederations(session,rep.getIdentityProvidersFederations(),newRealm);
+        importIdentityProviders(session, rep, newRealm);
+        importIdentityProviderMappers(session, rep, newRealm);
         
         Map<String, ClientScopeModel> clientScopes = new HashMap<>();
         if (rep.getClientScopes() != null) {
@@ -717,7 +717,7 @@ public class RepresentationToModel {
         }
     }
 
-    public static Map<String, String> importAuthenticationFlows(RealmModel newRealm, RealmRepresentation rep) {
+    public static Map<String, String> importAuthenticationFlows(KeycloakSession session, RealmModel newRealm, RealmRepresentation rep) {
         Map<String, String> mappedFlows = new HashMap<>();
         if (rep.getAuthenticationFlows() == null) {
             // assume this is an old version being imported
@@ -794,8 +794,9 @@ public class RepresentationToModel {
 
         // Added in 2.2
         String defaultProvider = null;
-        if (rep.getIdentityProviders() != null) {
-            for (IdentityProviderRepresentation i : rep.getIdentityProviders()) {
+        List<IdentityProviderModel> identityProviders = session.identityProviderStorage().getIdentityProviders(newRealm);
+        if (identityProviders != null) {
+            for (IdentityProviderModel i : identityProviders) {
                 if (i.isEnabled() && i.isAuthenticateByDefault()) {
                     defaultProvider = i.getProviderId();
                     break;
@@ -820,8 +821,9 @@ public class RepresentationToModel {
         return mappedFlows;
     }
 
-    private static void convertDeprecatedSocialProviders(RealmRepresentation rep) {
-        if (rep.isSocial() != null && rep.isSocial() && rep.getSocialProviders() != null && !rep.getSocialProviders().isEmpty() && rep.getIdentityProviders() == null) {
+    private static void convertDeprecatedSocialProviders(KeycloakSession session, RealmRepresentation rep, RealmModel model) {
+    	List<IdentityProviderModel> idps = session.identityProviderStorage().getIdentityProviders(model);
+        if (rep.isSocial() != null && rep.isSocial() && rep.getSocialProviders() != null && !rep.getSocialProviders().isEmpty() && (idps == null || idps.isEmpty())) {
             Boolean updateProfileFirstLogin = rep.isUpdateProfileOnInitialSocialLogin() != null && rep.isUpdateProfileOnInitialSocialLogin();
             if (rep.getSocialProviders() != null) {
 
@@ -1884,18 +1886,18 @@ public class RepresentationToModel {
         }
     }
 
-    private static void importIdentityProviders(RealmRepresentation rep, RealmModel newRealm, KeycloakSession session) {
+    private static void importIdentityProviders(KeycloakSession session, RealmRepresentation rep, RealmModel newRealm) {
         if (rep.getIdentityProviders() != null) {
             for (IdentityProviderRepresentation representation : rep.getIdentityProviders()) {
-                newRealm.addIdentityProvider(toModel(newRealm, representation, session));
+            	session.identityProviderStorage().addIdentityProvider(newRealm, toModel(newRealm, representation, session));
             }
         }
     }
 
-    private static void importIdentityProviderMappers(RealmRepresentation rep, RealmModel newRealm) {
+    private static void importIdentityProviderMappers(KeycloakSession session, RealmRepresentation rep, RealmModel newRealm) {
         if (rep.getIdentityProviderMappers() != null) {
             for (IdentityProviderMapperRepresentation representation : rep.getIdentityProviderMappers()) {
-                newRealm.addIdentityProviderMapper(toModel(representation));
+            	session.identityProviderStorage().addIdentityProviderMapper(newRealm, toModel(representation));
             }
         }
     }

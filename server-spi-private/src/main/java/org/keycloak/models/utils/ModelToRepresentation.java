@@ -443,14 +443,6 @@ public class ModelToRepresentation {
             }
         }
 
-        for (IdentityProviderModel provider : realm.getIdentityProviders()) {
-            rep.addIdentityProvider(toRepresentation(realm, provider));
-        }
-
-        for (IdentityProviderMapperModel mapper : realm.getIdentityProviderMappers()) {
-            rep.addIdentityProviderMapper(toRepresentation(mapper));
-        }
-        
         rep.setIdentityProvidersFederations(realm.getIdentityProviderFederations().stream().map(obj -> toRepresentation(obj)).collect(Collectors.toList()));
 
         rep.setInternationalizationEnabled(realm.isInternationalizationEnabled());
@@ -694,6 +686,19 @@ public class ModelToRepresentation {
         return rep;
     }
 
+    public static IdentityProviderRepresentation toBriefRepresentation(RealmModel realm, IdentityProviderModel identityProviderModel) {
+        IdentityProviderRepresentation providerRep = new IdentityProviderRepresentation();
+
+        providerRep.setInternalId(identityProviderModel.getInternalId());
+        providerRep.setProviderId(identityProviderModel.getProviderId());
+        providerRep.setAlias(identityProviderModel.getAlias());
+        providerRep.setDisplayName(identityProviderModel.getDisplayName());
+        providerRep.setEnabled(identityProviderModel.isEnabled());
+        providerRep.setLinkOnly(identityProviderModel.isLinkOnly());
+        
+        return providerRep;
+    }
+    
     public static IdentityProviderRepresentation toRepresentation(RealmModel realm, IdentityProviderModel identityProviderModel) {
         IdentityProviderRepresentation providerRep = new IdentityProviderRepresentation();
 
@@ -746,7 +751,6 @@ public class ModelToRepresentation {
     	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());
         return representation;
     }
-    
 
     public static ProtocolMapperRepresentation toRepresentation(ProtocolMapperModel model) {
         ProtocolMapperRepresentation rep = new ProtocolMapperRepresentation();

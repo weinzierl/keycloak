@@ -114,7 +114,7 @@ public class LinkedAccountsResource {
     }
 
     public SortedSet<LinkedAccountRepresentation> getLinkedAccounts(KeycloakSession session, RealmModel realm, UserModel user) {
-        List<IdentityProviderModel> identityProviders = realm.getIdentityProviders();
+        List<IdentityProviderModel> identityProviders = session.identityProviderStorage().getIdentityProviders(realm);
         SortedSet<LinkedAccountRepresentation> linkedAccounts = new TreeSet<>();
         
         if (identityProviders == null || identityProviders.isEmpty()) return linkedAccounts;
@@ -259,7 +259,7 @@ public class LinkedAccountsResource {
     }
     
     private boolean isValidProvider(String providerId) {
-        for (IdentityProviderModel model : realm.getIdentityProviders()) {
+        for (IdentityProviderModel model : session.identityProviderStorage().getIdentityProviders(realm)) {
             if (model.getAlias().equals(providerId)) {
                 return true;
             }

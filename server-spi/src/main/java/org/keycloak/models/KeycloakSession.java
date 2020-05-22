@@ -105,6 +105,15 @@ public interface KeycloakSession {
      */
     RealmProvider realms();
 
+    
+    /**
+     * If cache is enabled, this will fetch identityProviders from cache, backed by the local storage. 
+     * <br> 
+     * For local storage only, use the <b>identityProviderLocalStorage()</b> instead.
+     * @return
+     */
+    IdentityProviderProvider identityProviderStorage();
+    
     /**
      * Returns a managed provider instance.  Will start a provider transaction.  This transaction is managed by the KeycloakSession
      * transaction.
@@ -158,7 +167,9 @@ public interface KeycloakSession {
      * @return
      */
     UserProvider userLocalStorage();
-
+    
+    IdentityProviderProvider identityProviderLocalStorage();
+    
     RealmProvider realmLocalStorage();
 
     /**

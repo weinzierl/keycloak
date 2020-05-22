@@ -34,6 +34,7 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Index;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -43,10 +44,21 @@ import java.util.Set;
  * @author Pedro Igor
  */
 @Entity
-@Table(name="IDENTITY_PROVIDER")
+@Table(
+		name="IDENTITY_PROVIDER",
+		indexes = {
+				@Index(name = "IDP_PROVIDER_ALIAS_INDX", columnList = "PROVIDER_ALIAS"),
+				@Index(name = "IDP_PROVIDER_DISPLAY_NAME_INDX", columnList = "PROVIDER_DISPLAY_NAME"),
+				@Index(name = "IDP_PROVIDER_ID_INDX", columnList = "PROVIDER_ID")
+		}
+)
 @NamedQueries({
+		@NamedQuery(name="countIdentityProvidersOfRealm", query="select count(identityProvider.internalId) from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId"),
         @NamedQuery(name="findIdentityProvidersByAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias"),
-        @NamedQuery(name="findIdentityProviderByRealmAndAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias and identityProvider.realm.id = :realmId" )
+        @NamedQuery(name="findIdentityProviderByRealm", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId"),
+        @NamedQuery(name="findIdentityProviderByRealmAndKeyword", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId and (lower(identityProvider.alias) like :keyword or lower(identityProvider.displayName) like :keyword )"),
+        @NamedQuery(name="findIdentityProviderByRealmAndAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias and identityProvider.realm.id = :realmId"),
+        @NamedQuery(name="findUtilizedIdentityProviderTypesOfRealm", query="select distinct identityProvider.providerId from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId")
 })
 public class IdentityProviderEntity {
 

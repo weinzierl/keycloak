@@ -819,21 +819,15 @@ public class RealmRepresentation {
         this.identityProviders = identityProviders;
     }
 
-    public void addIdentityProvider(IdentityProviderRepresentation identityProviderRepresentation) {
-        if (identityProviders == null) identityProviders = new LinkedList<>();
-        identityProviders.add(identityProviderRepresentation);
-    }
-    
     public List<IdentityProvidersFederationRepresentation> getIdentityProvidersFederations() {
 		return identityProvidersFederations;
 	}
 
-	public void setIdentityProvidersFederations(
-			List<IdentityProvidersFederationRepresentation> identityProvidersFederations) {
+	public void setIdentityProvidersFederations(List<IdentityProvidersFederationRepresentation> identityProvidersFederations) {
 		this.identityProvidersFederations = identityProvidersFederations;
 	}
 
-	public List<ProtocolMapperRepresentation> getProtocolMappers() {
+    public List<ProtocolMapperRepresentation> getProtocolMappers() {
         return protocolMappers;
     }
 
@@ -883,11 +877,6 @@ public class RealmRepresentation {
 
     public void setIdentityProviderMappers(List<IdentityProviderMapperRepresentation> identityProviderMappers) {
         this.identityProviderMappers = identityProviderMappers;
-    }
-
-    public void addIdentityProviderMapper(IdentityProviderMapperRepresentation rep) {
-        if (identityProviderMappers == null) identityProviderMappers = new LinkedList<>();
-        identityProviderMappers.add(rep);
     }
 
     public List<AuthenticationFlowRepresentation> getAuthenticationFlows() {
@@ -1235,11 +1224,6 @@ public class RealmRepresentation {
 
     public void setComponents(MultivaluedHashMap<String, ComponentExportRepresentation> components) {
         this.components = components;
-    }
-
-    @JsonIgnore
-    public boolean isIdentityFederationEnabled() {
-        return identityProviders != null && !identityProviders.isEmpty();
     }
 
     public void setAttributes(Map<String, String> attributes) {

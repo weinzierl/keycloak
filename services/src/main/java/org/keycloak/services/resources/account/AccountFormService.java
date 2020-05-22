@@ -652,7 +652,7 @@ public class AccountFormService extends AbstractSecuredLocalService {
 
         boolean hasProvider = false;
 
-        for (IdentityProviderModel model : realm.getIdentityProviders()) {
+        for (IdentityProviderModel model : session.identityProviderStorage().getIdentityProviders(realm)) {
             if (model.getAlias().equals(providerId)) {
                 hasProvider = true;
             }

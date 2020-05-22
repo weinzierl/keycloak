@@ -533,3 +533,9 @@ form#kc-select-back-form div.login-pf-social-section {
     padding-left: 0px;
     border-left: 0px;
 }
+
+.login-pf-list-scrollable {
+	max-height: 40vh;
+    overflow: hidden;
+    overflow-y: auto;
+}

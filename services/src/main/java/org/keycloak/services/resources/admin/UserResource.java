@@ -403,7 +403,7 @@ public class UserResource {
         List<FederatedIdentityRepresentation> result = new ArrayList<FederatedIdentityRepresentation>();
 
         for (FederatedIdentityModel identity : identities) {
-            for (IdentityProviderModel identityProviderModel : realm.getIdentityProviders()) {
+            for (IdentityProviderModel identityProviderModel : session.identityProviderStorage().getIdentityProviders(realm)) {
                 if (identityProviderModel.getAlias().equals(identity.getIdentityProvider())) {
                     FederatedIdentityRepresentation rep = ModelToRepresentation.toRepresentation(identity);
                     result.add(rep);

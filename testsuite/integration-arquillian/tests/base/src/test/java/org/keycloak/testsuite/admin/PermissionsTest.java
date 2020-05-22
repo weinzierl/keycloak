@@ -1760,27 +1760,32 @@ public class PermissionsTest extends AbstractKeycloakTest {
     public void partialExport() {
         invoke(new Invocation() {
             public void invoke(RealmResource realm) {
-                realm.partialExport(false, false);
+                realm.partialExport(false, false, false);
             }
         }, clients.get("view-realm"), true);
         invoke(new Invocation() {
             public void invoke(RealmResource realm) {
-                realm.partialExport(true, true);
+                realm.partialExport(true, true, true);
             }
         }, clients.get("multi"), true);
         invoke(new Invocation() {
             public void invoke(RealmResource realm) {
-                realm.partialExport(true, false);
+                realm.partialExport(true, false, false);
             }
         }, clients.get("view-realm"), false);
         invoke(new Invocation() {
             public void invoke(RealmResource realm) {
-                realm.partialExport(false, true);
+                realm.partialExport(false, true, false);
             }
         }, clients.get("view-realm"), false);
         invoke(new Invocation() {
             public void invoke(RealmResource realm) {
-                realm.partialExport(false, false);
+                realm.partialExport(false, false, true);
+            }
+        }, clients.get("view-realm"), false);
+        invoke(new Invocation() {
+            public void invoke(RealmResource realm) {
+                realm.partialExport(false, false, false);
             }
         }, clients.get("none"), false);
     }

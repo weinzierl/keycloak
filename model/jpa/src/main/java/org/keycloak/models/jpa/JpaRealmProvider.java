@@ -25,6 +25,7 @@ import org.keycloak.models.ClientInitialAccessModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.GroupModel;
+import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelDuplicateException;
 import org.keycloak.models.RealmModel;
@@ -176,6 +177,10 @@ public class JpaRealmProvider implements RealmProvider {
         for (GroupModel group : adapter.getGroups()) {
             session.realms().removeGroup(adapter, group);
         }
+        
+        for(IdentityProviderModel identityProviderModel : session.identityProviderStorage().getIdentityProviders(adapter))
+        	session.identityProviderStorage().removeIdentityProviderByAlias(adapter, identityProviderModel.getAlias());
+        
         
         num = em.createNamedQuery("removeClientInitialAccessByRealm")
                 .setParameter("realm", realm).executeUpdate();

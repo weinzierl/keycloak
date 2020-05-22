@@ -22,6 +22,7 @@ import org.keycloak.credential.UserCredentialStoreManager;
 import org.keycloak.jose.jws.DefaultTokenManager;
 import org.keycloak.keys.DefaultKeyManager;
 import org.keycloak.models.ClientProvider;
+import org.keycloak.models.IdentityProviderProvider;
 import org.keycloak.models.TokenManager;
 import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
@@ -33,6 +34,7 @@ import org.keycloak.models.ThemeManager;
 import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.UserSessionProvider;
+import org.keycloak.models.cache.CacheIdpProvider;
 import org.keycloak.models.cache.CacheRealmProvider;
 import org.keycloak.models.cache.UserCache;
 import org.keycloak.provider.Provider;
@@ -64,6 +66,7 @@ public class DefaultKeycloakSession implements KeycloakSession {
     private final DefaultKeycloakTransactionManager transactionManager;
     private final Map<String, Object> attributes = new HashMap<>();
     private RealmProvider model;
+    private IdentityProviderProvider identityProviderStorage;
     private UserStorageManager userStorageManager;
     private ClientStorageManager clientStorageManager;
     private UserCredentialStoreManager userCredentialStorageManager;
@@ -96,6 +99,16 @@ public class DefaultKeycloakSession implements KeycloakSession {
         }
     }
 
+    private IdentityProviderProvider getIdpProvider() {
+        CacheIdpProvider cache = getProvider(CacheIdpProvider.class);
+        if (cache != null) {
+            return cache;
+        } else {
+            return getProvider(IdentityProviderProvider.class);
+        }
+    }
+    
+    
     @Override
     public UserCache userCache() {
         return getProvider(UserCache.class);
@@ -153,6 +166,11 @@ public class DefaultKeycloakSession implements KeycloakSession {
     }
 
     @Override
+    public IdentityProviderProvider identityProviderLocalStorage() {
+    	return getProvider(IdentityProviderProvider.class);
+    }
+    
+    @Override
     public RealmProvider realmLocalStorage() {
         return getProvider(RealmProvider.class);
     }
@@ -169,6 +187,15 @@ public class DefaultKeycloakSession implements KeycloakSession {
     }
 
 
+    @Override
+    public IdentityProviderProvider identityProviderStorage() {
+    	if (identityProviderStorage == null) {
+    		identityProviderStorage = getIdpProvider();
+        }
+        return identityProviderStorage;
+    }
+    
+    
     @Override
     public UserProvider userStorageManager() {
         if (userStorageManager == null) userStorageManager = new UserStorageManager(this);

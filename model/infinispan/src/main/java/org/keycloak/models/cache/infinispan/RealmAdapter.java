@@ -812,43 +812,6 @@ public class RealmAdapter implements CachedRealmModel {
         updated.setSmtpConfig(smtpConfig);
     }
 
-
-    @Override
-    public List<IdentityProviderModel> getIdentityProviders() {
-        if (isUpdated()) return updated.getIdentityProviders();
-        return cached.getIdentityProviders();
-    }
-    
-    @Override
-    public IdentityProviderModel getIdentityProviderByAlias(String alias) {
-        if (isUpdated()) return updated.getIdentityProviderByAlias(alias);
-        for (IdentityProviderModel identityProviderModel : getIdentityProviders()) {
-            if (identityProviderModel.getAlias().equals(alias)) {
-                return identityProviderModel;
-            }
-        }
-
-        return null;
-    }
-    
-    @Override
-    public void addIdentityProvider(IdentityProviderModel identityProvider) {
-        getDelegateForUpdate();
-        updated.addIdentityProvider(identityProvider);
-    }
-
-    @Override
-    public void updateIdentityProvider(IdentityProviderModel identityProvider) {
-        getDelegateForUpdate();
-        updated.updateIdentityProvider(identityProvider);
-    }
-
-    @Override
-    public void removeIdentityProviderByAlias(String alias) {
-        getDelegateForUpdate();
-        updated.removeIdentityProviderByAlias(alias);
-    }
-
     
     @Override
     public List<IdentityProvidersFederationModel> getIdentityProviderFederations() {
@@ -1136,62 +1099,6 @@ public class RealmAdapter implements CachedRealmModel {
         updated.setDefaultLocale(locale);
     }
 
-    @Override
-    public Set<IdentityProviderMapperModel> getIdentityProviderMappers() {
-        if (isUpdated()) return updated.getIdentityProviderMappers();
-        return cached.getIdentityProviderMapperSet();
-    }
-
-    @Override
-    public Set<IdentityProviderMapperModel> getIdentityProviderMappersByAlias(String brokerAlias) {
-        if (isUpdated()) return updated.getIdentityProviderMappersByAlias(brokerAlias);
-        Set<IdentityProviderMapperModel> mappings = new HashSet<>();
-        List<IdentityProviderMapperModel> list = cached.getIdentityProviderMappers().getList(brokerAlias);
-        for (IdentityProviderMapperModel entity : list) {
-            mappings.add(entity);
-        }
-        return Collections.unmodifiableSet(mappings);
-    }
-
-    @Override
-    public IdentityProviderMapperModel addIdentityProviderMapper(IdentityProviderMapperModel model) {
-        getDelegateForUpdate();
-        return updated.addIdentityProviderMapper(model);
-    }
-
-    @Override
-    public void removeIdentityProviderMapper(IdentityProviderMapperModel mapping) {
-        getDelegateForUpdate();
-        updated.removeIdentityProviderMapper(mapping);
-    }
-
-    @Override
-    public void updateIdentityProviderMapper(IdentityProviderMapperModel mapping) {
-        getDelegateForUpdate();
-        updated.updateIdentityProviderMapper(mapping);
-    }
-
-    @Override
-    public IdentityProviderMapperModel getIdentityProviderMapperById(String id) {
-        if (isUpdated()) return updated.getIdentityProviderMapperById(id);
-        for (List<IdentityProviderMapperModel> models : cached.getIdentityProviderMappers().values()) {
-            for (IdentityProviderMapperModel model : models) {
-                if (model.getId().equals(id)) return model;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public IdentityProviderMapperModel getIdentityProviderMapperByName(String alias, String name) {
-        if (isUpdated()) return updated.getIdentityProviderMapperByName(alias, name);
-        List<IdentityProviderMapperModel> models = cached.getIdentityProviderMappers().getList(alias);
-        if (models == null) return null;
-        for (IdentityProviderMapperModel model : models) {
-            if (model.getName().equals(name)) return model;
-        }
-        return null;
-    }
 
     @Override
     public AuthenticationFlowModel getBrowserFlow() {

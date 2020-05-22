@@ -12,7 +12,8 @@
 		function buildFiltered(value) {
 			
 			var listElem = document.getElementById('kc-providers-list');
-			var filterValue = document.getElementById('kc-providers-filter').value;
+			if(listElem==null)
+				return;
 			listElem.textContent = "";
 			for(var idp of identityProvidersSummary){
 				
@@ -96,16 +97,21 @@
         </div>
         <#if realm.password && social.providers??>
             <div id="kc-social-providers" class="${properties.kcFormSocialAccountContentClass!} ${properties.kcFormSocialAccountClass!}">
-            	<#if social.providers?size gt 4>
+            	<#if social.providers?size gt 8>
             		<input id="kc-providers-filter" type="text" placeholder="Filter..." oninput="buildFiltered(this.value)">
-            	</#if>
-                <ul id="kc-providers-list" class="${properties.kcFormSocialAccountListClass!} <#if social.providers?size gt 4>${properties.kcFormSocialAccountListClassScrollable!}</#if>">
-                </ul>
+            		<ul id="kc-providers-list" class="${properties.kcFormSocialAccountListClass!} ${properties.kcFormSocialAccountListClassScrollable!}"></ul>
+            	<#else>
+                	<ul class="${properties.kcFormSocialAccountListClass!} <#if social.providers?size gt 4>${properties.kcFormSocialAccountDoubleListClass!}</#if>">
+                    	<#list social.providers as p>
+                        	<li class="${properties.kcFormSocialAccountListLinkClass!}"><a href="${p.loginUrl}" id="zocial-${p.alias}" class="zocial ${p.providerId}"> <span>${p.displayName}</span></a></li>
+                    	</#list>
+                	</ul>
+                </#if>
             </div>
         </#if>
       </div>
     <#elseif section = "info" >
-        <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
+        <#if realm.password && realm.registrationAllowed && !registrationDisabled??>
             <div id="kc-registration">
                 <span>${msg("noAccount")} <a tabindex="6" href="${url.registrationUrl}">${msg("doRegister")}</a></span>
             </div>

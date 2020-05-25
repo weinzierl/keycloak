@@ -151,6 +151,7 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
         this.cacheManager.defineConfiguration(InfinispanConnectionProvider.USER_REVISIONS_CACHE_NAME, getRevisionCacheConfig(userRevisionsMaxEntries));
         this.cacheManager.getCache(InfinispanConnectionProvider.USER_REVISIONS_CACHE_NAME, true);
         
+        //TODO: finalize idp cache (IdpCacheSession.java) and then uncomment the below code
         long idpRevisionsMaxEntries = this.cacheManager.getCache(InfinispanConnectionProvider.IDP_CACHE_NAME, true).getCacheConfiguration().memory().size();
         idpRevisionsMaxEntries = idpRevisionsMaxEntries > 0
                 ? 2 * idpRevisionsMaxEntries
@@ -323,6 +324,7 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
         cacheManager.defineConfiguration(InfinispanConnectionProvider.USER_REVISIONS_CACHE_NAME, getRevisionCacheConfig(userRevisionsMaxEntries));
         cacheManager.getCache(InfinispanConnectionProvider.USER_REVISIONS_CACHE_NAME, true);
 
+        //TODO: finalize idp cache (IdpCacheSession.java) and then uncomment the below code
         long idpRevisionsMaxEntries = cacheManager.getCache(InfinispanConnectionProvider.IDP_CACHE_NAME, true).getCacheConfiguration().memory().size();
         idpRevisionsMaxEntries = idpRevisionsMaxEntries > 0
                 ? 2 * idpRevisionsMaxEntries

@@ -1,6 +1,7 @@
 package org.keycloak.models.jpa;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +23,7 @@ import org.keycloak.models.jpa.entities.IdentityProviderMapperEntity;
 import org.keycloak.models.jpa.entities.RealmEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
 
-import com.google.common.collect.ImmutableSet;
+//import com.google.common.collect.ImmutableSet;
 
 public class JpaIdpProvider implements IdentityProviderProvider {
 	
@@ -266,7 +267,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
     public Set<IdentityProviderMapperModel> getIdentityProviderMappers(RealmModel realmModel) {
 		TypedQuery<IdentityProviderMapperEntity> query = em.createNamedQuery("findIdentityProviderMappersByRealm", IdentityProviderMapperEntity.class);
 		query.setParameter("realmId", realmModel.getId());
-        return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.collectingAndThen(Collectors.toSet(), ImmutableSet::copyOf));
+        return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override
@@ -274,7 +275,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
     	TypedQuery<IdentityProviderMapperEntity> query = em.createNamedQuery("findIdentityProviderMappersByRealmAndAlias", IdentityProviderMapperEntity.class);
     	query.setParameter("alias", brokerAlias);
     	query.setParameter("realmId", realmModel.getId());
-    	return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.collectingAndThen(Collectors.toSet(), ImmutableSet::copyOf));
+    	return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override

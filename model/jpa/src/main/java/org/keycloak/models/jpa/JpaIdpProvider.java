@@ -135,7 +135,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 	@Override
 	public IdentityProviderModel getIdentityProviderById(String internalId) {
 		IdentityProviderEntity identityProvider = em.find(IdentityProviderEntity.class, internalId);
-		return entityToModel(identityProvider);
+		return identityProvider != null ? entityToModel(identityProvider) : null;
 	}
   
 	private IdentityProviderEntity getIdentityProviderEntityByAlias(RealmModel realmModel, String alias) {
@@ -153,7 +153,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 	@Override
 	public IdentityProviderModel getIdentityProviderByAlias(RealmModel realmModel, String alias) {
 		IdentityProviderEntity identityProvider = getIdentityProviderEntityByAlias(realmModel, alias);
-		return entityToModel(identityProvider);
+		return identityProvider != null ? entityToModel(identityProvider) : null;
 	}
 
 	@Override

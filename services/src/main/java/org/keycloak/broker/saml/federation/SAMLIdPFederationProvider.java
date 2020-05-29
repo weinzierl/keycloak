@@ -217,6 +217,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 				successful = realm.addFederationIdp(model, identityProviderModel);
 			}
 			catch(Exception ex) {
+				ex.printStackTrace();
 				successful = false;
 			}
 			if(!successful)

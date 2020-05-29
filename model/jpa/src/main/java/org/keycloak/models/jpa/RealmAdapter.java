@@ -1464,12 +1464,23 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 				idpEntity = modelToEntity(idpModel);
 			
 			fedEntity.getIdentityproviders().add(idpEntity);
-			idpEntity.addToFederation(fedEntity);
+			idpEntity.getFederations().add(fedEntity);
+			idpEntity.setRealm(realm);
+	//		idpModel = entityToModel(idpEntity);
+		//	idpModel.getFederations().add(idpfModel.getInternalId());
 			
-			session.identityProviderStorage().addIdentityProvider(this, entityToModel(idpEntity));
+		//	session.identityProviderStorage().addIdentityProvider(this, idpModel);
 			
 			em.persist(idpEntity);
 			em.flush();
+			
+			session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderCreationEvent() {
+				@Override
+				public IdentityProviderModel getCreatedIdentityProvider() {
+					return idpModel;
+				}
+			});
+			
 			return true;
 		}
 		return false;

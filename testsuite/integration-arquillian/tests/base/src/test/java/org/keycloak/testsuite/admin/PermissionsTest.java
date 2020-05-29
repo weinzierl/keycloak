@@ -124,6 +124,7 @@ public class PermissionsTest extends AbstractKeycloakTest {
                 .role(Constants.REALM_MANAGEMENT_CLIENT_ID, AdminRoles.QUERY_GROUPS)
                 .role(Constants.REALM_MANAGEMENT_CLIENT_ID, AdminRoles.VIEW_REALM)
                 .role(Constants.REALM_MANAGEMENT_CLIENT_ID, AdminRoles.VIEW_CLIENTS)
+                .role(Constants.REALM_MANAGEMENT_CLIENT_ID, AdminRoles.VIEW_IDENTITY_PROVIDERS)
                 .addPassword("password"));
 
         builder.user(UserBuilder.create().username("none").addPassword("password"));

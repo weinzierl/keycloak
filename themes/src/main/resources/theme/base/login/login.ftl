@@ -15,11 +15,12 @@
 			if(listElem==null)
 				return;
 			listElem.textContent = "";
-			for(var idp of identityProvidersSummary){
+			for(var i=0; i<identityProvidersSummary.length; i++ ){
+				var idp = identityProvidersSummary[i];
 				
 				if(idp.displayName.toLowerCase().lastIndexOf(value.toLowerCase())>=0){
 					var span = document.createElement('span');
-					span.textContent = idp.displayName
+					span.textContent = idp.displayName;
 					var a = document.createElement('a');
 					a.href = idp.loginUrl;
 					a.id = "zocial-" + idp.alias;
@@ -34,7 +35,7 @@
 					listElem.appendChild(li);
 				}
 			}
-		}
+		};
 		
 		window.onload = function() {
 		  buildFiltered("");

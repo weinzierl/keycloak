@@ -850,19 +850,6 @@ public class RealmAdapter implements CachedRealmModel {
 		updated.removeIdentityProvidersFederation(internalId);
 	}
 	
-	@Override
-    public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel) {
-		getDelegateForUpdate();
-		return updated.addFederationIdp(idpfModel, idpModel);
-	}
-	
-	@Override
-	public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias) {
-		getDelegateForUpdate();
-		return updated.removeFederationIdp(identityProvidersFederationModel,  idpAlias);
-	}
-	
-	
 	
     @Override
     public String getLoginTheme() {

@@ -31,9 +31,9 @@
                 <local-cache name="users">
                     <object-memory size="10000"/>
                 </local-cache>
-                <local-cache name="idps">
+                <invalidation-cache name="idps">
                     <object-memory size="10000"/>
-                </local-cache>
+                </invalidation-cache>
                 <local-cache name="sessions"/>
                 <local-cache name="authenticationSessions"/>
                 <local-cache name="offlineSessions"/>

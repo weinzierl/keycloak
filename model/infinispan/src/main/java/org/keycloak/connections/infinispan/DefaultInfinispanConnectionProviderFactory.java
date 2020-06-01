@@ -151,14 +151,13 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
         this.cacheManager.defineConfiguration(InfinispanConnectionProvider.USER_REVISIONS_CACHE_NAME, getRevisionCacheConfig(userRevisionsMaxEntries));
         this.cacheManager.getCache(InfinispanConnectionProvider.USER_REVISIONS_CACHE_NAME, true);
         
-        //TODO: finalize idp cache (IdpCacheSession.java) and then uncomment the below code
-        long idpRevisionsMaxEntries = this.cacheManager.getCache(InfinispanConnectionProvider.IDP_CACHE_NAME, true).getCacheConfiguration().memory().size();
-        idpRevisionsMaxEntries = idpRevisionsMaxEntries > 0
-                ? 2 * idpRevisionsMaxEntries
-                : InfinispanConnectionProvider.IDP_REVISIONS_CACHE_DEFAULT_MAX;
+//        long idpRevisionsMaxEntries = this.cacheManager.getCache(InfinispanConnectionProvider.IDP_CACHE_NAME).getCacheConfiguration().memory().size();
+//        idpRevisionsMaxEntries = idpRevisionsMaxEntries > 0
+//                ? 2 * idpRevisionsMaxEntries
+//                : InfinispanConnectionProvider.IDP_REVISIONS_CACHE_DEFAULT_MAX;
 
-        this.cacheManager.defineConfiguration(InfinispanConnectionProvider.IDP_REVISIONS_CACHE_NAME, getRevisionCacheConfig(idpRevisionsMaxEntries));
-        this.cacheManager.getCache(InfinispanConnectionProvider.IDP_REVISIONS_CACHE_NAME, true);
+//        this.cacheManager.defineConfiguration(InfinispanConnectionProvider.IDP_REVISIONS_CACHE_NAME, getRevisionCacheConfig(idpRevisionsMaxEntries));
+//        this.cacheManager.getCache(InfinispanConnectionProvider.IDP_REVISIONS_CACHE_NAME, true);
         
         
         this.cacheManager.getCache(InfinispanConnectionProvider.AUTHORIZATION_CACHE_NAME, true);
@@ -324,14 +323,13 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
         cacheManager.defineConfiguration(InfinispanConnectionProvider.USER_REVISIONS_CACHE_NAME, getRevisionCacheConfig(userRevisionsMaxEntries));
         cacheManager.getCache(InfinispanConnectionProvider.USER_REVISIONS_CACHE_NAME, true);
 
-        //TODO: finalize idp cache (IdpCacheSession.java) and then uncomment the below code
-        long idpRevisionsMaxEntries = cacheManager.getCache(InfinispanConnectionProvider.IDP_CACHE_NAME, true).getCacheConfiguration().memory().size();
-        idpRevisionsMaxEntries = idpRevisionsMaxEntries > 0
-                ? 2 * idpRevisionsMaxEntries
-                : InfinispanConnectionProvider.IDP_REVISIONS_CACHE_DEFAULT_MAX;
-
-        cacheManager.defineConfiguration(InfinispanConnectionProvider.IDP_REVISIONS_CACHE_NAME, getRevisionCacheConfig(idpRevisionsMaxEntries));
-        cacheManager.getCache(InfinispanConnectionProvider.IDP_REVISIONS_CACHE_NAME, true);
+//        long idpRevisionsMaxEntries = cacheManager.getCache(InfinispanConnectionProvider.IDP_CACHE_NAME).getCacheConfiguration().memory().size();
+//        idpRevisionsMaxEntries = idpRevisionsMaxEntries > 0
+//                ? 2 * idpRevisionsMaxEntries
+//                : InfinispanConnectionProvider.IDP_REVISIONS_CACHE_DEFAULT_MAX;
+//
+//        cacheManager.defineConfiguration(InfinispanConnectionProvider.IDP_REVISIONS_CACHE_NAME, getRevisionCacheConfig(idpRevisionsMaxEntries));
+//        cacheManager.getCache(InfinispanConnectionProvider.IDP_REVISIONS_CACHE_NAME, true);
         
         
         cacheManager.defineConfiguration(InfinispanConnectionProvider.KEYS_CACHE_NAME, getKeysCacheConfig());

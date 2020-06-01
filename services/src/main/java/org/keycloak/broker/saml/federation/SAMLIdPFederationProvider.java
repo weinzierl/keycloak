@@ -214,7 +214,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			IdentityProviderModel identityProviderModel = RepresentationToModel.toModel(realm, representation,session);
 	        boolean successful = false;
 			try {
-				successful = realm.addFederationIdp(model, identityProviderModel);
+				successful = session.identityProviderStorage().addFederationIdp(realm, model, identityProviderModel);
 			}
 			catch(Exception ex) {
 				ex.printStackTrace();
@@ -225,7 +225,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			
 		}
 		
-		model.getIdentityprovidersAlias().stream().forEach(idpAlias ->  realm.removeFederationIdp(model, idpAlias));
+		model.getIdentityprovidersAlias().stream().forEach(idpAlias ->  session.identityProviderStorage().removeFederationIdp(realm, model, idpAlias));
 		
         //update also the federation entity with totals and failed entities
 		updateFederation();
@@ -326,7 +326,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
 		
 		RealmModel realm = session.realms().getRealm(realmId);
-		List<Boolean> results = model.getIdentityprovidersAlias().stream().map(idpAlias -> realm.removeFederationIdp(model, idpAlias)).collect(Collectors.toList());
+		
+		List<Boolean> results = model.getIdentityprovidersAlias().stream().map(idpAlias -> session.identityProviderStorage().removeFederationIdp(realm, model, idpAlias)).collect(Collectors.toList());
 		
 		realm.removeIdentityProvidersFederation(model.getInternalId());
 	}

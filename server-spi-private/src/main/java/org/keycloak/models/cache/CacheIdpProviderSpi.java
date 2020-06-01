@@ -18,12 +18,12 @@ public class CacheIdpProviderSpi implements Spi {
 
 	@Override
 	public Class<? extends Provider> getProviderClass() {
-		return CacheIdpProvider.class;
+		return CacheIdpProviderI.class;
 	}
 
 	@Override
 	public Class<? extends ProviderFactory> getProviderFactoryClass() {
-		return CacheIdpProviderFactory.class;
+		return CacheIdpProviderFactoryI.class;
 	}
 	
 	

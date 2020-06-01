@@ -5,7 +5,7 @@ import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProviderProvider;
 import org.keycloak.models.RealmModel;
 
-public interface CacheIdpProvider extends IdentityProviderProvider {
+public interface CacheIdpProviderI extends IdentityProviderProvider {
 
     /**
      * Evict an identity provider from cache.

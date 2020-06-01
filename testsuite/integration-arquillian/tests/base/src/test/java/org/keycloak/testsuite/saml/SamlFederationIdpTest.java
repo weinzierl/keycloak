@@ -187,7 +187,7 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 
 		assertThat(samlResponse.getSamlObject(), Matchers.instanceOf(AuthnRequestType.class));
 		AuthnRequestType ar = (AuthnRequestType) samlResponse.getSamlObject();
-		assertThat(ar.getDestination(), Matchers.equalTo(URI.create("http://saml.idp/?service=name&serviceType=prod")));
+		assertThat(ar.getDestination(), Matchers.equalTo(URI.create("https://saml.idp/?service=name&serviceType=prod")));
 
 		Header[] headers = new SamlClientBuilder()
 				.authnRequest(getAuthServerSamlEndpoint(REALM_NAME), SAML_CLIENT_ID_SALES_POST,
@@ -196,7 +196,7 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 				.executeAndTransform(resp -> resp.getHeaders(HttpHeaders.LOCATION));
 
 		assertThat(headers.length, Matchers.is(1));
-		assertThat(headers[0].getValue(), Matchers.containsString("http://saml.idp/?service=name&serviceType=prod"));
+		assertThat(headers[0].getValue(), Matchers.containsString("https://saml.idp/?service=name&serviceType=prod"));
 		assertThat(headers[0].getValue(), Matchers.containsString("SAMLRequest"));
 
 	}
@@ -207,7 +207,7 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 		AuthnRequestType req = (AuthnRequestType) so;
 		try {
 			final ResponseType res = new SAML2LoginResponseBuilder().requestID(req.getID())
-					.destination(req.getAssertionConsumerServiceURL().toString()).issuer("http://saml.idp/saml")
+					.destination(req.getAssertionConsumerServiceURL().toString()).issuer("https://saml.idp/saml")
 					.assertionExpiration(1000000).subjectExpiration(1000000)
 					.requestIssuer(getAuthServerRealmBase(REALM_NAME).toString())
 					.sessionIndex("idp:" + UUID.randomUUID()).buildModel();

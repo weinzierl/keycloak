@@ -198,7 +198,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 
 					.getSamlResponse(REDIRECT);
 
-			assertThat(samlResponse.getSamlObject(), isSamlLogoutRequest("http://saml.idp/SLO/saml"));
+			assertThat(samlResponse.getSamlObject(), isSamlLogoutRequest("https://saml.idp/SLO/saml"));
 			LogoutRequestType lr = (LogoutRequestType) samlResponse.getSamlObject();
 			NameIDType logoutRequestNameID = lr.getNameID();
 			assertThat(logoutRequestNameID.getFormat(), is(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.getUri()));

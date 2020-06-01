@@ -39,9 +39,9 @@ NAtA3PK9jAvanOasyEcf64oXQeOJolpG1Hg/YJkzCCEcrP0eZmR8FRERdiDcEXFT
           <mdui:Logo width="125" height="52" xml:lang="en">https://idp.rash.al/simplesaml/rash_logo.png</mdui:Logo>
         </mdui:UIInfo>
       </md:Extensions>
-      <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://saml.idp/SLO/saml"/>
+      <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://saml.idp/SLO/saml"/>
       <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
-      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://saml.idp/saml"/>
+      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://saml.idp/saml"/>
     </md:IDPSSODescriptor>
     <md:Organization>
       <md:OrganizationName xml:lang="en">RASH EDUID</md:OrganizationName>
@@ -75,9 +75,9 @@ NAtA3PK9jAvanOasyEcf64oXQeOJolpG1Hg/YJkzCCEcrP0eZmR8FRERdiDcEXFT
           <mdui:DisplayName xml:lang="en">Bedrijfsbureau Humanitiescluster KNAW</mdui:DisplayName>
         </mdui:UIInfo>
       </md:Extensions>
-      <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://saml.idp/?service=name&amp;serviceType=prod"/>
+      <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://saml.idp/?service=name&amp;serviceType=prod"/>
       <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
-      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://saml.idp/?service=name&amp;serviceType=prod"/>
+      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://saml.idp/?service=name&amp;serviceType=prod"/>
     </md:IDPSSODescriptor>
     <md:Organization>
       <md:OrganizationName xml:lang="nl">KNAW Humanities Cluster</md:OrganizationName>
@@ -145,7 +145,7 @@ NAtA3PK9jAvanOasyEcf64oXQeOJolpG1Hg/YJkzCCEcrP0eZmR8FRERdiDcEXFT
       <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://idp.admin.grnet.gr/idp/profile/SAML2/POST/SLO"/>
       <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
       <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>
-      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://saml-idp-sso-service/"/>
+      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://saml-idp-sso-service/"/>
       <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.admin.grnet.gr/idp/profile/SAML2/Redirect/SSO"/>
       <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="https://idp.admin.grnet.gr/idp/profile/SAML2/SOAP/ECP"/>
     </md:IDPSSODescriptor>

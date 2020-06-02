@@ -33,14 +33,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
     protected KeycloakSession session;
     protected IdentityProviderProvider identityProviderDelegate;
     
-//    protected boolean transactionActive;
-//    protected boolean setRollbackOnly;
-//    protected final long startupRevision;
-	
-    
-//    protected Map<String, IdentityProviderModel> managedIdps = new HashMap<>(); 
-//    protected Map<String, IdentityProviderMapperModel> managedIdpMappers = new HashMap<>();
-    
     
     protected Set<String> invalidations = new HashSet<>();
     protected Set<String> realmInvalidations = new HashSet<>();
@@ -48,13 +40,9 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 //    protected Set<InvalidationEvent> invalidationEvents = new HashSet<>(); // Events to be sent across cluster
     
     
-    
-    
     public IdpCacheProvider(Cache<String, CachedIdentityProviders> cache, KeycloakSession session) {
         this.cache = cache;
         this.session = session;
-//        this.startupRevision = cache.getCurrentCounter();
-//        session.getTransactionManager().enlistAfterCompletion(getTransaction());
     }
     
     
@@ -72,7 +60,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
     
 	@Override
     public IdentityProviderProvider getIdentityProviderDelegate() {
-//        if (!transactionActive) throw new IllegalStateException("Cannot access delegate without a transaction");
         if (identityProviderDelegate != null) return identityProviderDelegate;
         identityProviderDelegate = session.identityProviderLocalStorage();
         return identityProviderDelegate;
@@ -81,11 +68,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	
 	@Override
     public void evict(RealmModel realm, IdentityProviderModel identityProvider) {
-//        if (!transactionActive) throw new IllegalStateException("Cannot call evict() without a transaction");
-//        getIdentityProviderDelegate(); // invalidations need delegate set
-//        cache.identityProviderRemoved(identityProvider.getInternalId(), invalidations);
-//        invalidationEvents.add(IdentityProviderRemovedEvent.create(identityProvider.getInternalId(), identityProvider.getAlias(), realm.getId()));
-		
 		CachedIdentityProviders cachedIdps = (CachedIdentityProviders) cache.get(realm.getId());
 		cachedIdps.getIdentityProviders().remove(identityProvider.getInternalId());
 		cachedIdps = new CachedIdentityProviders(realm.getId(), cachedIdps.getIdentityProviders());
@@ -101,41 +83,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
     }
 	
     
-    public void sendInvalidationEvents(KeycloakSession session, Collection<InvalidationEvent> invalidationEvents, String eventKey) {
-        ClusterProvider clusterProvider = session.getProvider(ClusterProvider.class);
-
-        // Maybe add InvalidationEvent, which will be collection of all invalidationEvents? That will reduce cluster traffic even more.
-        for (InvalidationEvent event : invalidationEvents) {
-            clusterProvider.notify(eventKey, event, true, ClusterProvider.DCNotify.ALL_DCS);
-        }
-    }
-    
-    
-    public void invalidationEventReceived(InvalidationEvent invalidationEvent) {
-    	
-    }
-    
-	
-//    private void addRealmInvalidation(String realmId) {
-//        realmInvalidations.add(realmId);
-//        invalidationEvents.add(IdentityProvidersRealmRemovedEvent.create(realmId));
-//    }
-    
-    
-//    protected void runInvalidations() {
-//        for (String realmId : realmInvalidations) {
-//            cache.invalidateRealmIdentityProviders(realmId, invalidations);
-//        }
-//        for (String invalidation : invalidations) {
-//            cache.invalidateObject(invalidation);
-//        }
-//
-//        cache.sendInvalidationEvents(session, invalidationEvents, InfinispanUserCacheProviderFactory.USER_INVALIDATION_EVENTS);
-//    }
-    
-    
-    
-    
 	@Override
 	public void close() {
 		if (identityProviderDelegate != null) identityProviderDelegate.close();
@@ -144,8 +91,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 	@Override
 	public List<String> getUsedIdentityProviderIdTypes(RealmModel realm) {
-//		return getIdentityProviderDelegate().getUsedIdentityProviderIdTypes(realm);
-		
 		Set<String> resp = new HashSet<String>();
 		getIdentityProviders(realm).stream().forEach(idp -> resp.add(idp.getProviderId()));
 		return new ArrayList<>(resp);
@@ -201,8 +146,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 	@Override
 	public IdentityProviderModel getIdentityProviderByAlias(RealmModel realm, String alias) {
-//		return getIdentityProviderDelegate().getIdentityProviderByAlias(realm, alias);
-		
 		return getIdentityProviders(realm).stream().filter(idp -> idp.getAlias().equals(alias)).findAny().orElse(null);
 	}
 
@@ -212,7 +155,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	@Override
 	public void addIdentityProvider(RealmModel realm, IdentityProviderModel identityProvider) {
 		getIdentityProviderDelegate().addIdentityProvider(realm, identityProvider);
-//        addedIdentityProvider(realm, identityProvider);
+		
 		CachedIdentityProviders cached = cache.get(realm.getId());
 		if(cached == null)
 			cached = new CachedIdentityProviders(realm.getId(), new HashMap<String, IdentityProviderModel>());
@@ -221,25 +164,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 		//TODO: notify the other cluster nodes
 	}
 
-//	private IdentityProviderModel addedIdentityProvider(RealmModel realm, IdentityProviderModel identityProvider) {
-//        logger.trace("added identity provider.....");
-//
-//        invalidateIdentityProvider(identityProvider.getInternalId());
-//        // this is needed so that an identity provider that hasn't been committed isn't cached in a query
-//        listInvalidations.add(realm.getId());
-//
-////        invalidationEvents.add(IdentityProviderAddedEvent.create(identityProvider.getInternalId(), identityProvider.getAlias(), realm.getId()));
-//        cache.identityProviderAdded(realm.getId(), identityProvider.getInternalId(), identityProvider.getAlias(), invalidations);
-//        return identityProvider;
-//    }
-	
-	
-//    private void invalidateIdentityProvider(String id) {
-//        invalidations.add(id);
-//        IdentityProviderProvider adapter = managedIdentityProviders.get(id);
-//        if (adapter != null && adapter instanceof IdentityProviderAdapter) ((IdentityProviderAdapter)adapter).invalidate();
-//    }
-	
 
 	@Override
 	public void removeIdentityProviderByAlias(RealmModel realm, String alias) {

@@ -168,7 +168,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			
 			if (idpDescriptor == null) {
 				//temporary code - we parse only IdPs
-				logger.info("These entity is not an Identity provider!");
+				logger.infof("The entity %s is not an Identity provider!", entity.getEntityID());
 				continue;
 			}
 					

@@ -142,24 +142,25 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	}
 	
 
-	
 	@Override
 	public List<String> getUsedIdentityProviderIdTypes(RealmModel realm) {
-		return getIdentityProviderDelegate().getUsedIdentityProviderIdTypes(realm);
+//		return getIdentityProviderDelegate().getUsedIdentityProviderIdTypes(realm);
+		
+		Set<String> resp = new HashSet<String>();
+		getIdentityProviders(realm).stream().forEach(idp -> resp.add(idp.getProviderId()));
+		return new ArrayList<>(resp);
 	}
     
+	
 	@Override
 	public Long countIdentityProviders(RealmModel realm) {
-		return getIdentityProviderDelegate().countIdentityProviders(realm);
+		return new Long(getIdentityProviders(realm).size());
     }
 	
 	
 	@Override
 	public List<IdentityProviderModel> getIdentityProviders(RealmModel realm) {
-		
-//		return getIdentityProviderDelegate().getIdentityProviders(realm);
-		
-		CachedIdentityProviders cachedIdps = (CachedIdentityProviders)cache.get(realm.getId());
+		CachedIdentityProviders cachedIdps = cache.get(realm.getId());
 		if(cachedIdps != null) {
 			return new ArrayList<IdentityProviderModel>(cachedIdps.getIdentityProviders().values());
 		}
@@ -175,8 +176,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 	@Override
 	public List<IdentityProviderModel> searchIdentityProviders(RealmModel realm, String keyword, Integer firstResult, Integer maxResults) {
-//		return getIdentityProviderDelegate().searchIdentityProviders(realm, keyword, firstResult, maxResults);
-		
 		List<IdentityProviderModel> identityProviders = getIdentityProviders(realm).stream()
 				.filter(idp -> {
 					String name = idp.getDisplayName()==null ? "" : idp.getDisplayName();
@@ -192,8 +191,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 	@Override
 	public IdentityProviderModel getIdentityProviderById(String internalId) {
-//		return getIdentityProviderDelegate().getIdentityProviderById(internalId);
-		
 		IdentityProviderModel identityProviderModel = null;
 		for(CachedIdentityProviders cidp : cache.values()) {
 			IdentityProviderModel temp = cidp.getIdentityProviders().get(internalId);
@@ -316,8 +313,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	
 	@Override
 	public boolean isIdentityFederationEnabled(RealmModel realm) {
-//		return getIdentityProviderDelegate().isIdentityFederationEnabled(realm);
-		
 		return getIdentityProviders(realm).size() > 0;
 	}
 

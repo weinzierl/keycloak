@@ -791,6 +791,11 @@ public class RealmRepresentation {
         if (userFederationMappers == null) userFederationMappers = new LinkedList<>();
         userFederationMappers.add(userFederationMapper);
     }
+    
+    public void addIdentityProvider(IdentityProviderRepresentation identityProviderRepresentation) {
+        if (identityProviders == null) identityProviders = new LinkedList<>();
+        identityProviders.add(identityProviderRepresentation);
+    }
 
     public List<IdentityProviderRepresentation> getIdentityProviders() {
         return identityProviders;

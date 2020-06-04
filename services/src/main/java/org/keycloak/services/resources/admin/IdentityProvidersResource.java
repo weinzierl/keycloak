@@ -169,6 +169,22 @@ public class IdentityProvidersResource {
         return session.identityProviderStorage().getUsedIdentityProviderIdTypes(realm);
     }
     
+    @GET
+    @Path("instances")
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+	public List<IdentityProviderRepresentation> getIdentityProviders() {
+
+		this.auth.realm().requireViewIdentityProviders();
+
+		List<IdentityProviderModel> identityProviders = session.identityProviderStorage().getIdentityProviders(realm);
+
+		return identityProviders.stream()
+				.map(idpModel -> StripSecretsUtils.strip(ModelToRepresentation.toRepresentation(realm, idpModel)))
+				.collect(Collectors.toList());
+
+	}
+    
     /**
      * Get identity providers
      *

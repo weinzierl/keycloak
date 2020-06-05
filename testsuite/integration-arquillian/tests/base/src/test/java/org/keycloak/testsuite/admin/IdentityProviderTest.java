@@ -126,7 +126,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
 
         create(createRep("facebook", "facebook"));
 
-        Assert.assertNames(realm.identityProviders().findAll(), "google", "facebook");
+        Assert.assertNames(realm.identityProviders().findAll(false,"",-1,-1), "google", "facebook");
     }
 
     @Test
@@ -170,7 +170,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
 
         assertEquals("some secret value", testingClient.testing("admin-client-test").getIdentityProviderConfig("new-identity-provider").get("clientSecret"));
 
-        IdentityProviderRepresentation rep = realm.identityProviders().findAll().stream().filter(i -> i.getAlias().equals("new-identity-provider")).findFirst().get();
+        IdentityProviderRepresentation rep = realm.identityProviders().findAll(false,"",-1,-1).stream().filter(i -> i.getAlias().equals("new-identity-provider")).findFirst().get();
         assertEquals(ComponentRepresentation.SECRET_VALUE, rep.getConfig().get("clientSecret"));
     }
 
@@ -278,7 +278,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
 
         assertEquals("some secret value", testingClient.testing("admin-client-test").getIdentityProviderConfig("new-identity-provider").get("clientSecret"));
 
-        IdentityProviderRepresentation rep = realm.identityProviders().findAll().stream().filter(i -> i.getAlias().equals("new-identity-provider")).findFirst().get();
+        IdentityProviderRepresentation rep = realm.identityProviders().findAll(false,"",-1,-1).stream().filter(i -> i.getAlias().equals("new-identity-provider")).findFirst().get();
         assertEquals(ComponentRepresentation.SECRET_VALUE, rep.getConfig().get("clientSecret"));
     }
 
@@ -623,7 +623,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
         assertCreatedSamlIdp(rep);
 
         // Now list the providers - we should see the one just created
-        List<IdentityProviderRepresentation> providers = realm.identityProviders().findAll();
+        List<IdentityProviderRepresentation> providers = realm.identityProviders().findAll(false,"",-1,-1);
         Assert.assertNotNull("identityProviders not null", providers);
         Assert.assertEquals("identityProviders instance count", 1, providers.size());
         assertEqual(rep, providers.get(0));
@@ -661,7 +661,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
         assertCreatedSamlIdp(rep);
 
         // Now list the providers - we should see the one just created
-        List<IdentityProviderRepresentation> providers = realm.identityProviders().findAll();
+        List<IdentityProviderRepresentation> providers = realm.identityProviders().findAll(false,"",-1,-1);
         Assert.assertNotNull("identityProviders not null", providers);
         Assert.assertEquals("identityProviders instance count", 1, providers.size());
         assertEqual(rep, providers.get(0));

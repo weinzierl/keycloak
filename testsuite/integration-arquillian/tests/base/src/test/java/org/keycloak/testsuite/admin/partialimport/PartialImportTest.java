@@ -179,7 +179,7 @@ public class PartialImportTest extends AbstractAuthTest {
 
     @Before
     public void removeProviders() {
-        List<IdentityProviderRepresentation> toRemove = testRealmResource().identityProviders().findAll();
+        List<IdentityProviderRepresentation> toRemove = testRealmResource().identityProviders().findAll(false,"",-1,-1);
         for (IdentityProviderRepresentation idp : toRemove) {
             testRealmResource().identityProviders().get(idp.getInternalId()).remove();
         }

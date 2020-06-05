@@ -288,7 +288,7 @@ public class ExportImportUtil {
         Assert.assertEquals("3025", smtpConfig.get("port"));
 
         // Test identity providers
-        List<IdentityProviderRepresentation> identityProviders = realmRsc.identityProviders().findAll();
+        List<IdentityProviderRepresentation> identityProviders = realmRsc.identityProviders().findAll(false,"",-1,-1);
         Assert.assertEquals(5, identityProviders.size());
         IdentityProviderRepresentation google = null;
         IdentityProviderRepresentation samlIdp = null;

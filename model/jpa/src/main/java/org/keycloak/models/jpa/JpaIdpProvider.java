@@ -316,6 +316,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
         entity.setConfig(model.getConfig());
         
         em.persist(entity);
+        em.flush();
         
         return entityToModel(entity);
     }

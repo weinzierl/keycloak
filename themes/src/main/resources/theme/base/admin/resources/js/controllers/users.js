@@ -175,18 +175,15 @@ module.controller('UserFederatedIdentityAddCtrl', function($scope, $location, re
     $scope.federatedIdentity = {};
 
     var getAvailableProvidersToCreate = function() {
+    	var federatedAliases = federatedIdentities.map(fi => fi.identityProvider);
         var realmProviders = [];
         for (var i=0 ; i<realm.identityProviders.length ; i++) {
-            var providerAlias = realm.identityProviders[i].alias;
-            realmProviders.push(providerAlias);
-        };
-
-        for (var i=0 ; i<federatedIdentities.length ; i++) {
-            var providerAlias = federatedIdentities[i].identityProvider;
-            var index = realmProviders.indexOf(providerAlias);
-            realmProviders.splice(index, 1);
+        	var identityProvider = realm.identityProviders[i];
+        	if(federatedAliases.indexOf(identityProvider.alias) < 0){
+        		var providerName = identityProvider.displayName != null ? identityProvider.displayName : identityProvider.alias;
+        		realmProviders.push(providerName);
+        	}
         }
-
         return realmProviders;
     }
     $scope.availableProvidersToCreate = getAvailableProvidersToCreate();

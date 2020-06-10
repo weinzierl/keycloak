@@ -72,3 +72,9 @@ target
 # testsuite #
 #############
 *offline-token.txt
+
+# VS code files
+.vscode
+
+# STS 4 cache
+*.sts4-cache

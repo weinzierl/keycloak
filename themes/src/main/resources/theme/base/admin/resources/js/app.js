@@ -675,6 +675,9 @@ module.config([ '$routeProvider', function($routeProvider) {
                 },
                 federatedIdentities : function(UserFederatedIdentityLoader) {
                     return UserFederatedIdentityLoader();
+                },
+                identityProvidersList : function(IdentityProviderListLoader) {
+                    return IdentityProviderListLoader();
                 }
             },
             controller : 'UserFederatedIdentityCtrl'
@@ -690,6 +693,9 @@ module.config([ '$routeProvider', function($routeProvider) {
                 },
                 federatedIdentities : function(UserFederatedIdentityLoader) {
                     return UserFederatedIdentityLoader();
+                },
+                identityProvidersList : function(IdentityProviderListLoader) {
+                    return IdentityProviderListLoader();
                 }
             },
             controller : 'UserFederatedIdentityAddCtrl'

@@ -144,8 +144,9 @@ module.controller('UserSessionsCtrl', function($scope, realm, user, sessions, Us
     }
 });
 
-module.controller('UserFederatedIdentityCtrl', function($scope, $location, realm, user, federatedIdentities, UserFederatedIdentity, Notifications, Dialog) {
-    $scope.realm = realm;
+module.controller('UserFederatedIdentityCtrl', function($scope, $location, realm, user, identityProvidersList, federatedIdentities, UserFederatedIdentity, Notifications, Dialog) {
+	realm.identityProviders = identityProvidersList;
+	$scope.realm = realm;
     $scope.user = user;
     $scope.federatedIdentities = federatedIdentities;
 
@@ -167,8 +168,9 @@ module.controller('UserFederatedIdentityCtrl', function($scope, $location, realm
     }
 });
 
-module.controller('UserFederatedIdentityAddCtrl', function($scope, $location, realm, user, federatedIdentities, UserFederatedIdentity, Notifications) {
-    $scope.realm = realm;
+module.controller('UserFederatedIdentityAddCtrl', function($scope, $location, realm, user, identityProvidersList, federatedIdentities, UserFederatedIdentity, Notifications) {
+	realm.identityProviders = identityProvidersList;
+	$scope.realm = realm;
     $scope.user = user;
     $scope.federatedIdentity = {};
 

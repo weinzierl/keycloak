@@ -11,6 +11,8 @@
 		
 		function buildFiltered(value) {
 			
+			if(!Array.isArray(identityProvidersSummary)) return;
+			
 			var listElem = document.getElementById('kc-providers-list');
 			if(listElem==null)
 				return;

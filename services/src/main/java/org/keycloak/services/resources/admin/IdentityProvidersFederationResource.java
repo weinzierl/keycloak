@@ -169,7 +169,7 @@ public class IdentityProvidersFederationResource {
      * @return
      */
     @DELETE
-    @Path("delete/{id}")
+    @Path("instances/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @NoCache
     public Response delete(@PathParam("id") String internalId) {

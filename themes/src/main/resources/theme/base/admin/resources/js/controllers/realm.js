@@ -1147,7 +1147,7 @@ module.controller('RealmIdentityProviderExportCtrl', function(realm, identityPro
 });
 
 
-module.controller('IdentityProviderFederationsListCtrl', function(realm, serverInfo, Dialog, $scope, Current, Notifications, $location) {
+module.controller('IdentityProviderFederationsListCtrl', function(realm, serverInfo, Dialog, IdentityProvidersFederation, $scope, Current, Notifications, $location) {
     
 	$scope.realm = realm;
 	$scope.serverInfo = serverInfo;
@@ -1157,25 +1157,30 @@ module.controller('IdentityProviderFederationsListCtrl', function(realm, serverI
     };
 	
 	
-	$scope.removeIdentityProviderFederation = function() {
-		/*
-        Dialog.confirmDelete($scope.identityProvider.alias, 'provider', function() {
-            $scope.identityProvider.$remove({
-                realm : Current.realm.realm,
-                alias : $scope.identityProvider.alias
+	$scope.removeIdentityProviderFederation = function(federation) {
+		
+        Dialog.confirmDelete(federation.alias, 'identity provider federation', function() {
+            
+        	IdentityProvidersFederation.remove({
+                realm : realm.realm,
+                id : federation.internalId
             }, function() {
-                $location.url("/realms/" + Current.realm.realm + "/identity-provider-settings");
-                Notifications.success("The identity provider has been deleted.");
+                $route.reload();
+                Notifications.success("The identity provider federation has been deleted.");
             });
+        	
         });
-        */
+        
     };
 	
 });
 
 module.controller('IdentityProviderFederationConfigCtrl', function(realm, Dialog, $scope, Current, Notifications, $location) {
     
+	debugger;
 	$scope.realm = realm;
+	
+	
 	
 	
 });

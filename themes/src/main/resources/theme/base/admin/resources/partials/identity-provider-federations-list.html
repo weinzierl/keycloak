@@ -51,11 +51,12 @@
                         	<td>{{federation.lastMetadataRefreshTimestamp | date : 'yyyy-MM-dd HH:mm:ss'}}</td>
                         	
                         	<td class="kc-action-cell">{{:: 'edit' | translate}}</td>
-                        	<td class="kc-action-cell">{{:: 'delete' | translate}}</td>
                         	<!--
+                        	<td class="kc-action-cell">{{:: 'delete' | translate}}</td>
+
                         	<td class="kc-action-cell" kc-open="/realms/{{realm.realm}}/identity-provider-settings/provider/{{identityProvider.providerId}}/{{identityProvider.alias}}">{{:: 'edit' | translate}}</td>
-                        	<td class="kc-action-cell" data-ng-show="access.manageIdentityProviders" data-ng-click="removeIdentityProvider(identityProvider)">{{:: 'delete' | translate}}</td>
                         	-->
+                        	<td class="kc-action-cell" data-ng-show="access.manageIdentityProviders" data-ng-click="removeIdentityProviderFederation(federation)">{{:: 'delete' | translate}}</td>
                     	</tr>
                     </tbody>
                 </table>

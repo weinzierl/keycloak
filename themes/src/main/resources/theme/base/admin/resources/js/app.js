@@ -514,11 +514,9 @@ module.config([ '$routeProvider', function($routeProvider) {
             controller : 'IdentityProviderFederationsListCtrl'
         })
         
-//        /create/identity-provider-federation/" + realm.realm + "/" + provider.id
-        
         
         .when('/realms/:realm/identity-provider-federations/:providerId', {
-            templateUrl : function(params){ return resourceUrl + '/partials/identity-provider-federation-config.html'; },
+            templateUrl : function(params){ return resourceUrl + '/partials/identity-provider-federation-' + params.providerId + '.html'; },
             resolve : {
                 realm : function(RealmLoader) {
                     return RealmLoader();

@@ -1,0 +1,63 @@
+<div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2">
+    <h1>{{:: 'identity-providers' | translate}}</h1>
+    
+    <ul class="nav nav-tabs">
+        <li><a href="#/realms/{{realm.realm}}/identity-provider-settings">{{:: 'realm-identity-providers' | translate}}</a></li>
+        <li class="active"><a href="#/realms/{{realm.realm}}/identity-providers-federations">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
+    </ul>
+ 
+    <form name="realmForm" novalidate class="form-horizontal">
+        <fieldset>
+            <div>
+                <table class="table table-striped table-bordered">
+                    <caption class="hidden">{{:: 'table-of-identity-provider-federations' | translate}}</caption>
+                    <thead>
+                    	<tr>
+                        	<th colspan="8" class="kc-table-actions">
+                         	   <div class="dropdown pull-right" data-ng-show="access.manageIdentityProviders">
+                        	        <select class="form-control" ng-model="federation"
+                            	            ng-options="f.name for f in serverInfo.identityProviderAggregations track by f.id"
+                             	           data-ng-change="addIdpFederation(federation); federation = null">
+                            	        <option value="" disabled selected>{{:: 'add-idp-federation.placeholder' | translate}}</option>
+                            	    </select>
+                            	    
+                            	</div>
+                        	</th>
+                    	</tr>
+                    	<tr>
+                        	<th>{{:: 'name' | translate}}</th>
+                        	<th>{{:: 'provider' | translate}}</th>
+                        	<th> Url </th>
+                        	<th>{{:: 'update-frequency-mins' | translate}}</th>
+                        	<th>{{:: 'valid-until' | translate}}</th>
+                        	<th>{{:: 'last-updated' | translate}}</th>
+                        	<th colspan="2">{{:: 'actions' | translate}}</th>
+                    	</tr>
+                    </thead>
+                    <tbody>
+	                    <tr ng-repeat="federation in realm.identityProvidersFederations">
+                        	<td>
+                            	<a href="#/realms/{{realm.realm}}/identity-providers-federation/{{federation.providerId}}/{{federation.internalId}}">
+                                	<span>{{federation.alias}}</span>
+                            	</a>
+                        	</td>
+                        	<td>{{federation.providerId}}</td>
+                        	<td>{{federation.url}}</td>
+                        	<td>{{federation.updateFrequencyInMins}}</td>
+                        	<td>{{federation.validUntilTimestamp | date : 'yyyy-MM-dd HH:mm:ss'}}</td>
+                        	<td>{{federation.lastMetadataRefreshTimestamp | date : 'yyyy-MM-dd HH:mm:ss'}}</td>
+                        	
+                        	<td class="kc-action-cell" kc-open="/realms/{{realm.realm}}/identity-providers-federation/{{federation.providerId}}/{{federation.internalId}}">{{:: 'edit' | translate}}</td>
+                        	<td class="kc-action-cell" data-ng-show="access.manageIdentityProviders" data-ng-click="removeIdentityProvidersFederation(federation)">{{:: 'delete' | translate}}</td>
+                    	</tr>
+                    </tbody>
+                </table>
+            </div>
+        </fieldset>
+    </form>
+	
+    
+</div>
+
+
+<kc-menu></kc-menu>

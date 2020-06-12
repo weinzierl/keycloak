@@ -1146,6 +1146,128 @@ module.controller('RealmIdentityProviderExportCtrl', function(realm, identityPro
     }
 });
 
+
+module.controller('IdentityProvidersFederationsListCtrl', function(realm, serverInfo, Dialog, IdentityProvidersFederation, $scope, $route, Current, Notifications, $location) {
+    
+	$scope.realm = realm;
+	$scope.serverInfo = serverInfo;
+	
+	$scope.addIdpFederation = function(federation) {
+        $location.url("/realms/" + realm.realm + "/identity-providers-federation/" + federation.id);
+    };
+	
+	$scope.removeIdentityProvidersFederation = function(federation) {
+		
+        Dialog.confirmDelete(federation.alias, 'identity providers federation', function() {
+            
+        	IdentityProvidersFederation.remove({
+                realm : realm.realm,
+                id : federation.internalId
+            }, function() {
+                $route.reload();
+                Notifications.success("The identity providers federation has been deleted.");
+            });
+        	
+        });
+        
+    };
+	
+});
+
+module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialog, $scope, providerId, identityProvidersFederation, IdentityProvidersFederation, Current, Notifications, $location, $http) {
+	
+	$scope.realm = realm;
+	$scope.identityProvidersFederation = identityProvidersFederation;
+	
+	
+	$scope.newIdpFederation = $scope.identityProvidersFederation == null ? true : false;
+	
+	
+	
+	
+	$scope.importFrom = function() {
+        
+        var input = {
+            fromUrl: $scope.identityProvidersFederation.url,
+            providerId: providerId
+        }
+        $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/import-config', input)
+            .then(function(response) {
+            	$scope.allIdps = response.data;
+            	$scope.identityProvidersFederation.skipIdps = [];
+            	$scope.identityProvidersFederation.providerId = providerId;
+                Notifications.success("Loaded federation configuration from the url.");
+            }).catch(function() {
+                Notifications.error("Config can not be loaded. Please verify the url.");
+            });
+    };
+	
+    
+    
+    
+    $scope.cancel = function() {
+        $location.url("/realms/" + realm.realm + "/identity-providers-federations");
+    };
+    
+    $scope.save = function(){
+    	
+    	IdentityProvidersFederation.save({
+            realm: $scope.realm.realm
+        }, 
+        $scope.identityProvidersFederation, 
+        function () {
+        	$location.url("/realms/" + realm.realm + "/identity-providers-federations");
+            Notifications.success("The " + $scope.identityProvidersFederation.alias + " provider has been created.");
+        });
+    }
+    
+    
+    $scope.changed = false;
+	
+	$scope.changedUrl = false;
+    
+    var initValues = angular.copy($scope.identityProvidersFederation);
+    
+    if(initValues==null) 
+    	initValues = {};
+    
+    $scope.$watch('identityProvidersFederation.url', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.url) {
+    			$scope.changed = true;
+    			$scope.changedUrl = true;
+    		}
+    		else {
+    			$scope.changed = false;
+    			$scope.changedUrl = false;
+    		}
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.alias', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.alias) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.updateFrequencyInMins', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.updateFrequencyInMins) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+	
+    
+});
+
+
+
+
 module.controller('RealmTokenDetailCtrl', function($scope, Realm, realm, $http, $location, $route, Dialog, Notifications, TimeUnit, TimeUnit2, serverInfo) {
     $scope.realm = realm;
     $scope.serverInfo = serverInfo;

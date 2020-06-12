@@ -500,6 +500,32 @@ module.config([ '$routeProvider', function($routeProvider) {
             },
             controller : 'IdentityProviderMapperCreateCtrl'
         })
+        
+        .when('/realms/:realm/identity-provider-federations', {
+            templateUrl : function(params){ return resourceUrl + '/partials/identity-provider-federations-list.html'; },
+            resolve : {
+                realm : function(RealmLoader) {
+                    return RealmLoader();
+                },
+                serverInfo : function(ServerInfoLoader) {
+                    return ServerInfoLoader();
+                }
+            },
+            controller : 'IdentityProviderFederationsListCtrl'
+        })
+        
+//        /create/identity-provider-federation/" + realm.realm + "/" + provider.id
+        
+        
+        .when('/realms/:realm/identity-provider-federations/:providerId', {
+            templateUrl : function(params){ return resourceUrl + '/partials/identity-provider-federation-config.html'; },
+            resolve : {
+                realm : function(RealmLoader) {
+                    return RealmLoader();
+                }
+            },
+            controller : 'IdentityProviderFederationConfigCtrl'
+        })
 
         .when('/realms/:realm/default-roles', {
             templateUrl : resourceUrl + '/partials/realm-default-roles.html',

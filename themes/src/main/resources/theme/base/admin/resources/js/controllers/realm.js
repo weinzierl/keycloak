@@ -1146,6 +1146,43 @@ module.controller('RealmIdentityProviderExportCtrl', function(realm, identityPro
     }
 });
 
+
+module.controller('IdentityProviderFederationsListCtrl', function(realm, serverInfo, Dialog, $scope, Current, Notifications, $location) {
+    
+	$scope.realm = realm;
+	$scope.serverInfo = serverInfo;
+	
+	$scope.addProvider = function(provider) {
+        $location.url("/realms/" + realm.realm + "/identity-provider-federations/" + provider.id);
+    };
+	
+	
+	$scope.removeIdentityProviderFederation = function() {
+		/*
+        Dialog.confirmDelete($scope.identityProvider.alias, 'provider', function() {
+            $scope.identityProvider.$remove({
+                realm : Current.realm.realm,
+                alias : $scope.identityProvider.alias
+            }, function() {
+                $location.url("/realms/" + Current.realm.realm + "/identity-provider-settings");
+                Notifications.success("The identity provider has been deleted.");
+            });
+        });
+        */
+    };
+	
+});
+
+module.controller('IdentityProviderFederationConfigCtrl', function(realm, Dialog, $scope, Current, Notifications, $location) {
+    
+	$scope.realm = realm;
+	
+	
+});
+
+
+
+
 module.controller('RealmTokenDetailCtrl', function($scope, Realm, realm, $http, $location, $route, Dialog, Notifications, TimeUnit, TimeUnit2, serverInfo) {
     $scope.realm = realm;
     $scope.serverInfo = serverInfo;

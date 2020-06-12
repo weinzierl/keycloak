@@ -1032,8 +1032,7 @@ public class RealmAdapter implements CachedRealmModel {
 
     @Override
     public boolean isIdentityFederationEnabled() {
-        if (isUpdated()) return updated.isIdentityFederationEnabled();
-        return cached.isIdentityFederationEnabled();
+    	return session.identityProviderStorage().countIdentityProviders(this) > 0;
     }
 
 

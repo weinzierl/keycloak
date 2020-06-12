@@ -1706,6 +1706,25 @@ module.factory('IdentityProviderMapper', function($resource) {
     });
 });
 
+
+
+
+module.factory('IdentityProvidersFederation', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id', {
+        realm : '@realm',
+        id : '@id'
+    }, {
+        update: {
+            method : 'PUT'
+        }
+    });
+});
+
+
+
+
+
+
 module.factory('AuthenticationFlowExecutions', function($resource) {
     return $resource(authUrl + '/admin/realms/:realm/authentication/flows/:alias/executions', {
         realm : '@realm',

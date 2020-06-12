@@ -435,6 +435,17 @@ module.factory('IdentityProviderMapperLoader', function(Loader, IdentityProvider
     });
 });
 
+
+module.factory('IdentityProvidersFederationLoader', function(Loader, IdentityProvidersFederation, $route, $q) {
+    return Loader.get(IdentityProvidersFederation, function () {
+        return {
+            realm: $route.current.params.realm,
+            id: $route.current.params.internalId
+        }
+    });
+});
+
+
 module.factory('AuthenticationFlowsLoader', function(Loader, AuthenticationFlows, $route, $q) {
     return Loader.query(AuthenticationFlows, function() {
         return {

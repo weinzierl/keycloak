@@ -19,8 +19,11 @@ package org.keycloak.services.resources.admin;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -41,12 +44,15 @@ import org.keycloak.broker.federation.IdpFederationProviderFactory;
 import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
+import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelDuplicateException;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.models.utils.RepresentationToModel;
+import org.keycloak.models.utils.StripSecretsUtils;
+import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
 import org.keycloak.services.ErrorResponse;
 import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluator;
@@ -100,6 +106,19 @@ public class IdentityProvidersFederationResource {
     }
 
     
+    /**
+     * Get a list with all identity provider federations of the realm
+     *
+     * @return
+     */
+    @GET
+    @Path("instances")
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<IdentityProvidersFederationRepresentation> list() {
+        this.auth.realm().requireViewIdentityProviders();
+        return realm.getIdentityProviderFederations().stream().map(model -> ModelToRepresentation.toRepresentation(model)).collect(Collectors.toList());
+    }
     
     /**
      * Create a new identity provider federation
@@ -150,7 +169,7 @@ public class IdentityProvidersFederationResource {
      * @return
      */
     @DELETE
-    @Path("delete/{id}")
+    @Path("instances/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @NoCache
     public Response delete(@PathParam("id") String internalId) {

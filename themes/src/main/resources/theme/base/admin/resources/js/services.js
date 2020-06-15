@@ -1696,17 +1696,6 @@ module.factory('IdentityProvidersFederation', function($resource) {
     });
 });
 
-/*
- * 
-module.factory('IdentityProviderFactory', function($resource) {
-    return $resource(authUrl + '/admin/realms/:realm/identity-provider/providers/:provider_id', {
-        realm : '@realm',
-        provider_id : '@provider_id'
-    });
-});
-
-*/
-
 
 
 

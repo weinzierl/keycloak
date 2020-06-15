@@ -3,7 +3,7 @@
     
     <ul class="nav nav-tabs">
         <li><a href="#/realms/{{realm.realm}}/identity-provider-settings">{{:: 'realm-identity-providers' | translate}}</a></li>
-        <li class="active"><a href="#/realms/{{realm.realm}}/identity-provider-federations">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
+        <li class="active"><a href="#/realms/{{realm.realm}}/identity-providers-federations">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
     </ul>
  
     <form name="realmForm" novalidate class="form-horizontal">
@@ -37,12 +37,9 @@
                     <tbody>
 	                    <tr ng-repeat="federation in realm.identityProvidersFederations">
                         	<td>
-                        		<!--
-                            	<a href="#/realms/{{realm.realm}}/identity-provider-settings/provider/{{identityProvider.providerId}}/{{identityProvider.alias}}">
+                            	<a href="#/realms/{{realm.realm}}/identity-providers-federation/{{federation.providerId}}/{{federation.internalId}}">
                                 	<span>{{federation.alias}}</span>
                             	</a>
-                            	-->
-                            	{{federation.alias}}
                         	</td>
                         	<td>{{federation.providerId}}</td>
                         	<td>{{federation.url}}</td>
@@ -50,13 +47,11 @@
                         	<td>{{federation.validUntilTimestamp | date : 'yyyy-MM-dd HH:mm:ss'}}</td>
                         	<td>{{federation.lastMetadataRefreshTimestamp | date : 'yyyy-MM-dd HH:mm:ss'}}</td>
                         	
-                        	<td class="kc-action-cell">{{:: 'edit' | translate}}</td>
                         	<!--
-                        	<td class="kc-action-cell">{{:: 'delete' | translate}}</td>
-
                         	<td class="kc-action-cell" kc-open="/realms/{{realm.realm}}/identity-provider-settings/provider/{{identityProvider.providerId}}/{{identityProvider.alias}}">{{:: 'edit' | translate}}</td>
                         	-->
-                        	<td class="kc-action-cell" data-ng-show="access.manageIdentityProviders" data-ng-click="removeIdentityProviderFederation(federation)">{{:: 'delete' | translate}}</td>
+                        	<td class="kc-action-cell">{{:: 'edit' | translate}}</td>
+                        	<td class="kc-action-cell" data-ng-show="access.manageIdentityProviders" data-ng-click="removeIdentityProvidersFederation(federation)">{{:: 'delete' | translate}}</td>
                     	</tr>
                     </tbody>
                 </table>

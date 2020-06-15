@@ -501,8 +501,8 @@ module.config([ '$routeProvider', function($routeProvider) {
             controller : 'IdentityProviderMapperCreateCtrl'
         })
         
-        .when('/realms/:realm/identity-provider-federations', {
-            templateUrl : function(params){ return resourceUrl + '/partials/identity-provider-federations-list.html'; },
+        .when('/realms/:realm/identity-providers-federations', {
+            templateUrl : function(params){ return resourceUrl + '/partials/identity-providers-federations-list.html'; },
             resolve : {
                 realm : function(RealmLoader) {
                     return RealmLoader();
@@ -511,19 +511,52 @@ module.config([ '$routeProvider', function($routeProvider) {
                     return ServerInfoLoader();
                 }
             },
-            controller : 'IdentityProviderFederationsListCtrl'
+            controller : 'IdentityProvidersFederationsListCtrl'
         })
         
         
-        .when('/realms/:realm/identity-provider-federations/:providerId', {
-            templateUrl : function(params){ return resourceUrl + '/partials/identity-provider-federation-' + params.providerId + '.html'; },
+        .when('/realms/:realm/identity-providers-federation/:providerId', {
+            templateUrl : function(params){ return resourceUrl + '/partials/identity-providers-federation-' + params.providerId + '.html'; },
             resolve : {
-                realm : function(RealmLoader) {
+            	realm : function(RealmLoader) {
                     return RealmLoader();
+                },
+                serverInfo : function(ServerInfoLoader) {
+                    return ServerInfoLoader();
+                },
+                providerId: function ($route) {
+                    return $route.current.params.providerId;
+                },
+                identityProvidersFederation : function() {
+                    return null;
                 }
             },
-            controller : 'IdentityProviderFederationConfigCtrl'
+            controller : 'IdentityProvidersFederationConfigCtrl'
         })
+        
+        
+        .when('/realms/:realm/identity-providers-federation/:providerId/:internalId', {
+            templateUrl : function(params){ return resourceUrl + '/partials/identity-providers-federation-' + params.providerId + '.html'; },
+            resolve : {
+            	realm : function(RealmLoader) {
+                    return RealmLoader();
+                },
+                serverInfo : function(ServerInfoLoader) {
+                    return ServerInfoLoader();
+                },
+                providerId: function ($route) {
+                    return $route.current.params.providerId;
+                },
+                identityProvidersFederation : function(IdentityProvidersFederationLoader) {
+                    return IdentityProvidersFederationLoader();
+                }
+                
+            },
+            controller : 'IdentityProvidersFederationConfigCtrl'
+        })
+        
+        
+        
 
         .when('/realms/:realm/default-roles', {
             templateUrl : resourceUrl + '/partials/realm-default-roles.html',

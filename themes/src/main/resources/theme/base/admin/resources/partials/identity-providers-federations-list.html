@@ -15,9 +15,9 @@
                     	<tr>
                         	<th colspan="8" class="kc-table-actions">
                          	   <div class="dropdown pull-right" data-ng-show="access.manageIdentityProviders">
-                        	        <select class="form-control" ng-model="provider"
+                        	        <select class="form-control" ng-model="federation"
                             	            ng-options="f.name for f in serverInfo.identityProviderAggregations track by f.id"
-                             	           data-ng-change="addProvider(provider); provider = null">
+                             	           data-ng-change="addIdpFederation(federation); federation = null">
                             	        <option value="" disabled selected>{{:: 'add-idp-federation.placeholder' | translate}}</option>
                             	    </select>
                             	    
@@ -47,10 +47,7 @@
                         	<td>{{federation.validUntilTimestamp | date : 'yyyy-MM-dd HH:mm:ss'}}</td>
                         	<td>{{federation.lastMetadataRefreshTimestamp | date : 'yyyy-MM-dd HH:mm:ss'}}</td>
                         	
-                        	<!--
-                        	<td class="kc-action-cell" kc-open="/realms/{{realm.realm}}/identity-provider-settings/provider/{{identityProvider.providerId}}/{{identityProvider.alias}}">{{:: 'edit' | translate}}</td>
-                        	-->
-                        	<td class="kc-action-cell">{{:: 'edit' | translate}}</td>
+                        	<td class="kc-action-cell" kc-open="/realms/{{realm.realm}}/identity-providers-federation/{{federation.providerId}}/{{federation.internalId}}">{{:: 'edit' | translate}}</td>
                         	<td class="kc-action-cell" data-ng-show="access.manageIdentityProviders" data-ng-click="removeIdentityProvidersFederation(federation)">{{:: 'delete' | translate}}</td>
                     	</tr>
                     </tbody>

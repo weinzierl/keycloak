@@ -1152,8 +1152,8 @@ module.controller('IdentityProvidersFederationsListCtrl', function(realm, server
 	$scope.realm = realm;
 	$scope.serverInfo = serverInfo;
 	
-	$scope.addProvider = function(provider) {
-        $location.url("/realms/" + realm.realm + "/identity-providers-federation/" + provider.id);
+	$scope.addIdpFederation = function(federation) {
+        $location.url("/realms/" + realm.realm + "/identity-providers-federation/" + federation.id);
     };
 	
 	$scope.removeIdentityProvidersFederation = function(federation) {
@@ -1217,7 +1217,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
         $scope.identityProvidersFederation, 
         function () {
         	$location.url("/realms/" + realm.realm + "/identity-providers-federations");
-            Notifications.success("The " + $scope.identityProvider.alias + " provider has been created.");
+            Notifications.success("The " + $scope.identityProvidersFederation.alias + " provider has been created.");
         });
     }
     

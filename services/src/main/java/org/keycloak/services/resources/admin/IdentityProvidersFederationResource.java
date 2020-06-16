@@ -19,7 +19,6 @@ package org.keycloak.services.resources.admin;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +36,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.http.HttpStatus;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.broker.federation.IdpFederationProvider;
 import org.keycloak.broker.federation.IdpFederationProviderFactory;

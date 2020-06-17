@@ -29,13 +29,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.namespace.QName;
 
 import org.jboss.logging.Logger;
 import org.keycloak.broker.federation.AbstractIdPFederationProvider;
+import org.keycloak.common.util.PemUtils;
 import org.keycloak.connections.httpclient.HttpClientProvider;
+import org.keycloak.crypto.KeyStatus;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntitiesDescriptorType;
@@ -45,6 +52,7 @@ import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
+import org.keycloak.keys.RsaKeyMetadata;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
@@ -52,6 +60,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
+import org.keycloak.saml.SPMetadataDescriptor;
 import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ParsingException;
@@ -353,7 +362,61 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             sb.append(String.format("%02x", b));
         return sb.toString();
 	}
+
 	
 	
+	@Override
+    public Response export(UriInfo uriInfo, RealmModel realm, String format) {
+
+        String authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get();
+
+//        if (getConfig().isPostBindingAuthnRequest())
+//            authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
+
+
+        String endpoint = uriInfo.getBaseUriBuilder()
+                .path("realms").path(realm.getName())
+                .path("broker")
+//                .path(getConfig().getAlias())
+                .path("endpoint")
+                .build().toString();
+        
+        
+        boolean wantAuthnRequestsSigned = false; //getConfig().isWantAuthnRequestsSigned();
+        boolean wantAssertionsSigned = false; //getConfig().isWantAssertionsSigned();
+        boolean wantAssertionsEncrypted = false; //getConfig().isWantAssertionsEncrypted();
+        String entityId = getEntityId(uriInfo, realm);
+        String nameIDPolicyFormat = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"; //getConfig().getNameIDPolicyFormat();
+        
+
+        StringBuilder signingKeysString = new StringBuilder();
+        StringBuilder encryptionKeysString = new StringBuilder();
+        Set<RsaKeyMetadata> keys = new TreeSet<>((o1, o2) -> o1.getStatus() == o2.getStatus() // Status can be only PASSIVE OR ACTIVE, push PASSIVE to end of list
+          ? (int) (o2.getProviderPriority() - o1.getProviderPriority())
+          : (o1.getStatus() == KeyStatus.PASSIVE ? 1 : -1));
+        keys.addAll(session.keys().getRsaKeys(realm));
+        for (RsaKeyMetadata key : keys) {
+            addKeyInfo(signingKeysString, key, KeyTypes.SIGNING.value());
+
+            if (key.getStatus() == KeyStatus.ACTIVE) {
+                addKeyInfo(encryptionKeysString, key, KeyTypes.ENCRYPTION.value());
+            }
+        }
+        String descriptor = SPMetadataDescriptor.getSPDescriptor(authnBinding, endpoint, endpoint,
+          wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
+          entityId, nameIDPolicyFormat, signingKeysString.toString(), encryptionKeysString.toString());
+
+        return Response.ok(descriptor, MediaType.APPLICATION_XML_TYPE).build();
+    }
+	
+	private String getEntityId(UriInfo uriInfo, RealmModel realm) {
+        return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
+    }
+	
+    private static void addKeyInfo(StringBuilder target, RsaKeyMetadata key, String purpose) {
+        if (key == null)
+            return;
+        target.append(SPMetadataDescriptor.xmlKeyInfo("        ", key.getKid(), PemUtils.encodeCertificate(key.getCertificate()), purpose, true));
+    }
 	
 }

@@ -1355,6 +1355,27 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 });
 
 
+module.controller('IdentityProvidersFederationsExportCtrl', function(realm, Dialog, $scope, identityProvidersFederation, IdentityProvidersFederationExport, Current, Notifications, $location, $http) {
+
+	$scope.realm = realm;
+	$scope.identityProvidersFederation = identityProvidersFederation;
+
+	var url = IdentityProvidersFederationExport.url({realm: realm.realm, alias: identityProvidersFederation.alias}) ;
+	$http.get(url).then(function(response) {
+	    $scope.exportedType = response.headers('Content-Type');
+	    $scope.exported = response.data;
+	});
+	
+	
+	
+});
+
+
+
+
+
+
+
 
 
 module.controller('RealmTokenDetailCtrl', function($scope, Realm, realm, $http, $location, $route, Dialog, Notifications, TimeUnit, TimeUnit2, serverInfo) {

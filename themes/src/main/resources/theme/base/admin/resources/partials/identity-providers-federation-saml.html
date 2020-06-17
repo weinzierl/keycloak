@@ -5,9 +5,11 @@
         <li data-ng-show="newIdpFederation">{{:: 'add-idp-federation' | translate}}</li>
     </ol>
 
-<!-- 
-    <kc-tabs-identity-provider></kc-tabs-identity-provider>
- -->
+
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
+        <li><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}/export">{{:: 'identity-providers-federation-export' | translate}}</a></li>
+    </ul>
 
 
     <form class="form-horizontal" name="realmForm" novalidate kc-read-only="!access.manageIdentityProviders">

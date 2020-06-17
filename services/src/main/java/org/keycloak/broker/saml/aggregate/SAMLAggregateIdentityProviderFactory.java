@@ -1,8 +1,9 @@
-package org.keycloak.broker.saml.federation;
+package org.keycloak.broker.saml.aggregate;
 
 import org.keycloak.broker.provider.AbstractIdentityProviderFactory;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.KeycloakSessionFactory;
 
 public class SAMLAggregateIdentityProviderFactory
     extends AbstractIdentityProviderFactory<SAMLAggregateIdentityProvider> {
@@ -10,8 +11,15 @@ public class SAMLAggregateIdentityProviderFactory
   public static final String PROVIDER_ID = "saml-aggregate";
   public static final String PROVIDER_NAME = "SAML v2.0 Aggregate";
 
+  private KeycloakSessionFactory sessionFactory;
+
   public SAMLAggregateIdentityProviderFactory() {
     // TODO Auto-generated constructor stub
+  }
+
+  @Override
+  public void postInit(KeycloakSessionFactory factory) {
+    this.sessionFactory = factory;
   }
 
   @Override
@@ -24,7 +32,9 @@ public class SAMLAggregateIdentityProviderFactory
   @SuppressWarnings("unchecked")
   @Override
   public SAMLAggregateIdentityProviderConfig createConfig() {
-    return new SAMLAggregateIdentityProviderConfig();
+    SAMLAggregateIdentityProviderConfig config = new SAMLAggregateIdentityProviderConfig();
+    config.setSessionFactory(sessionFactory);
+    return config;
   }
 
   @Override
@@ -35,8 +45,11 @@ public class SAMLAggregateIdentityProviderFactory
   @Override
   public SAMLAggregateIdentityProvider create(KeycloakSession session,
       IdentityProviderModel model) {
-    return new SAMLAggregateIdentityProvider(session,
-        new SAMLAggregateIdentityProviderConfig(model));
+
+
+    SAMLAggregateIdentityProviderConfig config = new SAMLAggregateIdentityProviderConfig(model);
+
+    return new SAMLAggregateIdentityProvider(session, config);
   }
 
 }

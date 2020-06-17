@@ -1,4 +1,4 @@
-package org.keycloak.broker.saml.federation;
+package org.keycloak.broker.saml.aggregate;
 
 import javax.ws.rs.core.Response;
 

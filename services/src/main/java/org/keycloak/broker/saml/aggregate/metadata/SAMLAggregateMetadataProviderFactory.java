@@ -1,4 +1,4 @@
-package org.keycloak.broker.saml.federation.metadata;
+package org.keycloak.broker.saml.aggregate.metadata;
 
 import org.keycloak.provider.ProviderFactory;
 

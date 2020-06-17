@@ -189,6 +189,9 @@ public class SAMLIdpDescriptor {
 
     private void initOrganizationName() {
       
+      descriptor.getExtensions().getAny().forEach(System.out::println);
+        
+      
     }
 
     public Builder(String entityId, IDPSSODescriptorType descriptor) {

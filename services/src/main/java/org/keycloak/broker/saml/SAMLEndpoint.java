@@ -525,12 +525,12 @@ public class SAMLEndpoint {
                 event.error(Errors.INVALID_SAML_LOGOUT_RESPONSE);
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
             }
-            if (! destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), statusResponse.getDestination())) {
-                event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                event.detail(Details.REASON, "invalid_destination");
-                event.error(Errors.INVALID_SAML_RESPONSE);
-                return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
-            }
+//            if (! destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), statusResponse.getDestination())) {
+//                event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+//                event.detail(Details.REASON, "invalid_destination");
+//                event.error(Errors.INVALID_SAML_RESPONSE);
+//                return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
+//            }
             if (config.isValidateSignature()) {
                 try {
                     verifySignature(GeneralConstants.SAML_RESPONSE_KEY, holder);

@@ -349,7 +349,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
     
 	
 	
-	private static String getHash(String str) {
+	public static String getHash(String str) {
 		byte[] hashBytes;
 		try {
 			hashBytes = MessageDigest.getInstance("SHA-256").digest(str.getBytes());

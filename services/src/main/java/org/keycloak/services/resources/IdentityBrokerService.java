@@ -141,6 +141,9 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
     private static final Logger logger = Logger.getLogger(IdentityBrokerService.class);
 
+    public static final String ENDPOINT_PATH = "/endpoint";
+    
+    
     private final RealmModel realmModel;
 
     @Context
@@ -397,6 +400,10 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
             IdentityProvider identityProvider = providerFactory.create(session, identityProviderModel);
 
+            boolean isMemberOfAggregation = (identityProviderModel.getFederations() != null && identityProviderModel.getFederations().size() > 0) ? true : false;
+            if(isMemberOfAggregation)
+            	providerId = null;
+            
             Response response = identityProvider.performLogin(createAuthenticationRequest(providerId, clientSessionCode));
 
             if (response != null) {
@@ -414,7 +421,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         return redirectToErrorPage(Response.Status.INTERNAL_SERVER_ERROR, Messages.COULD_NOT_PROCEED_WITH_AUTHENTICATION_REQUEST);
     }
 
-    @Path("{provider_id}/endpoint")
+    @Path("{provider_id}"+ENDPOINT_PATH)
     public Object getEndpoint(@PathParam("provider_id") String providerId) {
         IdentityProvider identityProvider = getIdentityProvider(session, realmModel, providerId);
         Object callback = identityProvider.callback(realmModel, this, event);
@@ -428,17 +435,33 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
     
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Path("/endpoint")
-    public void getFederationEndpoint(@FormParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse) {
+    @Path(ENDPOINT_PATH)
+    public void getIdpFederationEndpointPOST(@FormParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse) {
     	byte[] samlBytes = PostBindingUtil.base64Decode(samlResponse);
         SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseDocument(samlBytes);
         StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
         String alias = SAMLIdPFederationProvider.getHash(issuer);
         String path = request.getUri().getPath();
-        path = path.replace("/broker/endpoint", "/broker/" + alias + "/endpoint");
+        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
         request.forward(path);
     }
+    
+    
+    @GET
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Path(ENDPOINT_PATH)
+    public void getIdpFederationEndpointGET(@QueryParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse) {
+    	SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseRedirectBinding(samlResponse);
+        StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
+        String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
+        String alias = SAMLIdPFederationProvider.getHash(issuer);
+        String path = request.getUri().getPath();
+        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
+        request.forward(path);
+    }
+    
+    
 
     @Path("{provider_id}/token")
     @OPTIONS
@@ -1166,12 +1189,17 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
             encodedState = IdentityBrokerState.decoded(relayState, authSession.getClient().getClientId(), authSession.getTabId());
         }
 
-        return new AuthenticationRequest(this.session, this.realmModel, authSession, this.request, this.session.getContext().getUri(), encodedState, getRedirectUri(providerId));
+        return new AuthenticationRequest(this.session, this.realmModel, authSession, this.request, this.session.getContext().getUri(), encodedState, providerId==null ? getRedirectUri() : getRedirectUri(providerId));
     }
 
     private String getRedirectUri(String providerId) {
         return Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), providerId, this.realmModel.getName()).toString();
     }
+    
+    private String getRedirectUri() {
+        return Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), this.realmModel.getName()).toString();
+    }
+    
 
     private Response redirectToErrorPage(AuthenticationSessionModel authSession, Response.Status status, String message, Object ... parameters) {
         return redirectToErrorPage(authSession, status, message, null, parameters);

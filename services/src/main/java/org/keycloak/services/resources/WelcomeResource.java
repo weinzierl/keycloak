@@ -61,7 +61,7 @@ import java.util.Map;
  */
 @Path("/")
 public class WelcomeResource {
-
+	
     protected static final Logger logger = Logger.getLogger(WelcomeResource.class);
 
     private static final String KEYCLOAK_STATE_CHECKER = "WELCOME_STATE_CHECKER";

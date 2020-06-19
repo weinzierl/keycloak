@@ -373,13 +373,12 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
         String authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get();
 
 //        if (getConfig().isPostBindingAuthnRequest())
-//            authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
+            authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
 
 
         String endpoint = uriInfo.getBaseUriBuilder()
                 .path("realms").path(realm.getName())
                 .path("broker")
-//                .path(getConfig().getAlias())
                 .path("endpoint")
                 .build().toString();
         

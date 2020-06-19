@@ -4,9 +4,9 @@ import org.keycloak.provider.Provider;
 import org.keycloak.provider.ProviderFactory;
 import org.keycloak.provider.Spi;
 
-public class SAMLAggregateMetadataSpi implements Spi {
+public class SAMLAggregateMetadataStoreSpi implements Spi {
 
-  public static final String NAME = "saml-aggregate-metadata";
+  public static final String NAME = "saml-aggregate-metadata-store";
 
   @Override
   public boolean isInternal() {
@@ -20,13 +20,13 @@ public class SAMLAggregateMetadataSpi implements Spi {
 
   @Override
   public Class<? extends Provider> getProviderClass() {
-    return SAMLAggregateMetadataProvider.class;
+    return SAMLAggregateMetadataStoreProvider.class;
   }
 
   @SuppressWarnings("rawtypes")
   @Override
   public Class<? extends ProviderFactory> getProviderFactoryClass() {
-    return SAMLAggregateMetadataProviderFactory.class;
+    return SAMLAggregateMetadataStoreProviderFactory.class;
   }
 
 

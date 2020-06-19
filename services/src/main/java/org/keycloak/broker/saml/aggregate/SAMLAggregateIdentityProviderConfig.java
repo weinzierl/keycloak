@@ -1,12 +1,9 @@
 package org.keycloak.broker.saml.aggregate;
 
-import static java.util.Objects.isNull;
-
-import org.keycloak.broker.saml.aggregate.metadata.SAMLAggregateMetadataProvider;
+import org.keycloak.broker.saml.aggregate.metadata.SAMLAggregateMetadataStoreProvider;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
-import org.keycloak.models.utils.KeycloakModelUtils;
 
 public class SAMLAggregateIdentityProviderConfig extends IdentityProviderModel {
 
@@ -34,17 +31,12 @@ public class SAMLAggregateIdentityProviderConfig extends IdentityProviderModel {
 
   @Override
   public void validate(RealmModel realm) {
-    
-    if (isNull(getInternalId())) {
-      setInternalId(KeycloakModelUtils.generateId());
-    }
-
-    SAMLAggregateMetadataProvider provider = getMetadataProvider();
-    provider.parseMetadata(this);
+    SAMLAggregateMetadataStoreProvider provider = getMetadataProvider();
+    provider.parseMetadata(realm, getAlias(), getMetadataUrl());
   }
 
-  private SAMLAggregateMetadataProvider getMetadataProvider() {
-    return sessionFactory.create().getProvider(SAMLAggregateMetadataProvider.class);
+  private SAMLAggregateMetadataStoreProvider getMetadataProvider() {
+    return sessionFactory.create().getProvider(SAMLAggregateMetadataStoreProvider.class);
   }
 
   public void setSessionFactory(KeycloakSessionFactory sessionFactory) {

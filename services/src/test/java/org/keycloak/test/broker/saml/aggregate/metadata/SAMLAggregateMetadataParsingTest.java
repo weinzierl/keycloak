@@ -21,7 +21,5 @@ public class SAMLAggregateMetadataParsingTest {
     parser.parseMetadata(mdUrl.openStream());
     
   }
-  
-  
 
 }

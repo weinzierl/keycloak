@@ -16,7 +16,23 @@
  */
 package org.keycloak.services.resources;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.transaction.SystemException;
+import javax.transaction.Transaction;
+import javax.ws.rs.core.Application;
+
 import org.jboss.logging.Logger;
 import org.keycloak.Config;
 import org.keycloak.common.util.Resteasy;
@@ -58,21 +74,7 @@ import org.keycloak.timer.TimerProvider;
 import org.keycloak.transaction.JtaTransactionManagerLookup;
 import org.keycloak.util.JsonSerialization;
 
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-import javax.ws.rs.core.Application;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.ServiceLoader;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -115,6 +117,7 @@ public class KeycloakApplication extends Application {
 
             singletons.add(new ObjectMapperResolver(Boolean.parseBoolean(System.getProperty("keycloak.jsonPrettyPrint", "false"))));
             singletons.add(new WelcomeResource());
+            singletons.add(new SAMLAggregateWayfResource());
 
             platform.onStartup(this::startup);
             platform.onShutdown(this::shutdown);

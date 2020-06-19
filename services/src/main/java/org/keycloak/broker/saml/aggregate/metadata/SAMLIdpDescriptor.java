@@ -12,6 +12,7 @@ import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
+import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.w3c.dom.Element;
@@ -19,7 +20,7 @@ import org.w3c.dom.Element;
 public class SAMLIdpDescriptor {
 
   private final String entityId;
-  private final String organizationName;
+  private final String displayName;
 
   private final boolean postBindingResponse;
   private final boolean postBindingLogout;
@@ -34,7 +35,7 @@ public class SAMLIdpDescriptor {
 
   private SAMLIdpDescriptor(Builder builder) {
     this.entityId = builder.entityId;
-    this.organizationName = builder.organizationName;
+    this.displayName = builder.displayName;
     this.postBindingLogout = builder.postBindingLogout;
     this.postBindingResponse = builder.postBindingResponse;
     this.singleSignOnServiceUrl = builder.singleSignOnServiceUrl;
@@ -48,8 +49,8 @@ public class SAMLIdpDescriptor {
     return entityId;
   }
 
-  public String getOrganizationName() {
-    return organizationName;
+  public String getDisplayName() {
+    return displayName;
   }
 
   public boolean isPostBindingResponse() {
@@ -87,7 +88,7 @@ public class SAMLIdpDescriptor {
   public static class Builder {
     private final String entityId;
 
-    private String organizationName;
+    private String displayName;
 
     private boolean postBindingResponse;
     private boolean postBindingLogout;
@@ -187,11 +188,17 @@ public class SAMLIdpDescriptor {
       }
     }
 
-    private void initOrganizationName() {
-      
-      descriptor.getExtensions().getAny().forEach(System.out::println);
-        
-      
+    private void initDisplayName() {
+      if (!isNull(descriptor.getExtensions().getUIInfo())) {
+        displayName = descriptor.getExtensions()
+          .getUIInfo()
+          .getDisplayName()
+          .stream()
+          .filter(l -> l.getLang().equals("en"))
+          .map(LocalizedNameType::getValue)
+          .findFirst()
+          .orElse(null);
+      }
     }
 
     public Builder(String entityId, IDPSSODescriptorType descriptor) {
@@ -199,7 +206,7 @@ public class SAMLIdpDescriptor {
       this.descriptor = descriptor;
       initSso();
       initCerts();
-      initOrganizationName();
+      initDisplayName();
     }
 
     public SAMLIdpDescriptor build() {

@@ -1,6 +1,6 @@
 package org.keycloak.testsuite.broker;
 
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.crypto.Algorithm;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.models.IdentityProviderSyncMode;
@@ -121,10 +121,10 @@ public class KcSamlSignedBrokerTest extends AbstractBrokerTest {
 
             Map<String, String> config = result.getConfig();
 
-            config.put(SAMLIdentityProviderConfig.VALIDATE_SIGNATURE, "true");
-            config.put(SAMLIdentityProviderConfig.WANT_ASSERTIONS_SIGNED, "true");
-            config.put(SAMLIdentityProviderConfig.WANT_AUTHN_REQUESTS_SIGNED, "true");
-            config.put(SAMLIdentityProviderConfig.SIGNING_CERTIFICATE_KEY, providerCert);
+            config.put(SAMLConfigNames.VALIDATE_SIGNATURE, "true");
+            config.put(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, "true");
+            config.put(SAMLConfigNames.WANT_AUTHN_REQUESTS_SIGNED, "true");
+            config.put(SAMLConfigNames.SIGNING_CERTIFICATE_KEY, providerCert);
 
             return result;
         }
@@ -143,12 +143,12 @@ public class KcSamlSignedBrokerTest extends AbstractBrokerTest {
         Assert.assertThat(consumerCert, Matchers.notNullValue());
 
         try (Closeable idpUpdater = new IdentityProviderAttributeUpdater(identityProviderResource)
-            .setAttribute(SAMLIdentityProviderConfig.VALIDATE_SIGNATURE, Boolean.toString(signedAssertion || signedDocument))
-            .setAttribute(SAMLIdentityProviderConfig.WANT_ASSERTIONS_SIGNED, Boolean.toString(signedAssertion))
-            .setAttribute(SAMLIdentityProviderConfig.WANT_ASSERTIONS_ENCRYPTED, Boolean.toString(encryptedAssertion))
-            .setAttribute(SAMLIdentityProviderConfig.WANT_AUTHN_REQUESTS_SIGNED, "false")
-            .setAttribute(SAMLIdentityProviderConfig.ENCRYPTION_PUBLIC_KEY, PUBLIC_KEY)
-            .setAttribute(SAMLIdentityProviderConfig.SIGNING_CERTIFICATE_KEY, providerCert)
+            .setAttribute(SAMLConfigNames.VALIDATE_SIGNATURE, Boolean.toString(signedAssertion || signedDocument))
+            .setAttribute(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, Boolean.toString(signedAssertion))
+            .setAttribute(SAMLConfigNames.WANT_ASSERTIONS_ENCRYPTED, Boolean.toString(encryptedAssertion))
+            .setAttribute(SAMLConfigNames.WANT_AUTHN_REQUESTS_SIGNED, "false")
+            .setAttribute(SAMLConfigNames.ENCRYPTION_PUBLIC_KEY, PUBLIC_KEY)
+            .setAttribute(SAMLConfigNames.SIGNING_CERTIFICATE_KEY, providerCert)
             .update();
           Closeable clientUpdater = ClientAttributeUpdater.forClient(adminClient, bc.providerRealmName(), bc.getIDPClientIdInProviderRealm(suiteContext))
             .setAttribute(SamlConfigAttributes.SAML_ENCRYPT, Boolean.toString(encryptedAssertion))
@@ -283,11 +283,11 @@ public class KcSamlSignedBrokerTest extends AbstractBrokerTest {
     @Test
     public void testWithExpiredBrokerCertificate() throws Exception {
         try (Closeable idpUpdater = new IdentityProviderAttributeUpdater(identityProviderResource)
-            .setAttribute(SAMLIdentityProviderConfig.VALIDATE_SIGNATURE, Boolean.toString(true))
-            .setAttribute(SAMLIdentityProviderConfig.WANT_ASSERTIONS_SIGNED, Boolean.toString(true))
-            .setAttribute(SAMLIdentityProviderConfig.WANT_ASSERTIONS_ENCRYPTED, Boolean.toString(false))
-            .setAttribute(SAMLIdentityProviderConfig.WANT_AUTHN_REQUESTS_SIGNED, "true")
-            .setAttribute(SAMLIdentityProviderConfig.SIGNING_CERTIFICATE_KEY, AbstractSamlTest.SAML_CLIENT_SALES_POST_SIG_EXPIRED_CERTIFICATE)
+            .setAttribute(SAMLConfigNames.VALIDATE_SIGNATURE, Boolean.toString(true))
+            .setAttribute(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, Boolean.toString(true))
+            .setAttribute(SAMLConfigNames.WANT_ASSERTIONS_ENCRYPTED, Boolean.toString(false))
+            .setAttribute(SAMLConfigNames.WANT_AUTHN_REQUESTS_SIGNED, "true")
+            .setAttribute(SAMLConfigNames.SIGNING_CERTIFICATE_KEY, AbstractSamlTest.SAML_CLIENT_SALES_POST_SIG_EXPIRED_CERTIFICATE)
             .update();
           Closeable clientUpdater = ClientAttributeUpdater.forClient(adminClient, bc.providerRealmName(), bc.getIDPClientIdInProviderRealm(suiteContext))
             .setAttribute(SamlConfigAttributes.SAML_ENCRYPT, Boolean.toString(false))

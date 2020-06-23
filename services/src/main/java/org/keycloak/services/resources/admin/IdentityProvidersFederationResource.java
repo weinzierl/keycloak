@@ -112,8 +112,7 @@ public class IdentityProvidersFederationResource {
     @Path("instances/{alias}/export")
     @NoCache
     public Response export(
-    		@PathParam("alias") String alias,
-    		@QueryParam("format") String format
+    		@PathParam("alias") String alias
     		) {
         this.auth.realm().requireViewIdentityProviders();
 
@@ -124,7 +123,7 @@ public class IdentityProvidersFederationResource {
 
         try {
         	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session, model, this.realm.getId());
-        	return idpFederationProvider.export(session.getContext().getUri(), realm, format);
+        	return idpFederationProvider.export(session.getContext().getUri(), realm);
         } catch (Exception e) {
             return ErrorResponse.error("Could not export public broker configuration for IdP aggregation [" + model.getProviderId() + "].", Response.Status.NOT_FOUND);
         }

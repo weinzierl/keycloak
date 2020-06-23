@@ -23,6 +23,6 @@ public interface IdpFederationProvider <C extends IdentityProvidersFederationMod
 
 	void enableUpdateTask();
 
-	Response export(UriInfo uriInfo, RealmModel realm, String format);
+	Response export(UriInfo uriInfo, RealmModel realm);
 	
 }

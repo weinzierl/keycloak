@@ -1982,6 +1982,7 @@ identityProviderModel.setFederations(representation.getFederations());
     	model.setUrl(representation.getUrl());
     	model.setValidUntilTimestamp(representation.getValidUntilTimestamp());
     	model.setIdentityprovidersAlias(representation.getIdentityprovidersAlias());
+    	model.setConfig(removeEmptyString(representation.getConfig()));
     	return model;
     }
 

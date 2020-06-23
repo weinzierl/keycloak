@@ -368,11 +368,11 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 	
 	
 	@Override
-    public Response export(UriInfo uriInfo, RealmModel realm, String format) {
+    public Response export(UriInfo uriInfo, RealmModel realm) {
 
         String authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get();
 
-//        if (getConfig().isPostBindingAuthnRequest())
+        if (model.isPostBindingAuthnRequest())
             authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
 
 
@@ -383,11 +383,11 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                 .build().toString();
         
         
-        boolean wantAuthnRequestsSigned = false; //getConfig().isWantAuthnRequestsSigned();
-        boolean wantAssertionsSigned = false; //getConfig().isWantAssertionsSigned();
-        boolean wantAssertionsEncrypted = false; //getConfig().isWantAssertionsEncrypted();
+        boolean wantAuthnRequestsSigned = model.isWantAuthnRequestsSigned();
+        boolean wantAssertionsSigned = model.isWantAssertionsSigned();
+        boolean wantAssertionsEncrypted = model.isWantAssertionsEncrypted();
         String entityId = getEntityId(uriInfo, realm);
-        String nameIDPolicyFormat = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"; //getConfig().getNameIDPolicyFormat();
+        String nameIDPolicyFormat = model.getNameIDPolicyFormat();
         
 
         StringBuilder signingKeysString = new StringBuilder();

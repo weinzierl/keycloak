@@ -51,6 +51,8 @@ public class IdentityProvidersFederationModel implements Serializable {
     
     private Set<String> identityprovidersAlias;
     
+    private Map<String, String> config;
+    
 
     public IdentityProvidersFederationModel() {
 		super();
@@ -69,6 +71,7 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.setSkipIdps(model.getSkipIdps() != null ? model.getSkipIdps() : new HashSet<String>());
 		this.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
 		this.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
+		this.setConfig(model.getConfig());
 	}
 
 	public IdentityProvidersFederationModel(String internalId, String alias, String providerId, String url,
@@ -167,6 +170,13 @@ public class IdentityProvidersFederationModel implements Serializable {
 	public void setValidUntilTimestamp(Long validUntilTimestamp) {
 		this.validUntilTimestamp = validUntilTimestamp;
 	}
+
+	public Map<String, String> getConfig() {
+		return config;
+	}
+
+	public void setConfig(Map<String, String> config) {
+		this.config = config;
+	}
 	
-    
 }

@@ -1282,6 +1282,9 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     	federationModel.setUrl(entity.getUrl());
     	Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
     	federationModel.setIdentityprovidersAlias(identityprovidersAlias);
+    	Map<String, String> copy = new HashMap<>();
+        copy.putAll(entity.getConfig());
+    	federationModel.setConfig(copy);
     	return federationModel;
     }
     
@@ -1446,6 +1449,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
 		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
+		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
 		
 		realm.addIdentityProvidersFederation(federationEntity);
 		
@@ -1483,6 +1487,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
 		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
+		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
 		
 	}
 	

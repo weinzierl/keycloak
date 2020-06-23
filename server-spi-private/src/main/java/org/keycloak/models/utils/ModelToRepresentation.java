@@ -744,6 +744,7 @@ public class ModelToRepresentation {
     	representation.setUrl(model.getUrl());
     	representation.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
     	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());
+    	representation.setConfig(model.getConfig());
         return representation;
     }
     

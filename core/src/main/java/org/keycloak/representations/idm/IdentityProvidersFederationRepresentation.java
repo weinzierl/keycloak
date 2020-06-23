@@ -1,6 +1,7 @@
 package org.keycloak.representations.idm;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class IdentityProvidersFederationRepresentation {
@@ -25,6 +26,8 @@ public class IdentityProvidersFederationRepresentation {
     private Set<String> skipIdps;
     
     private Set<String> identityprovidersAlias;
+    
+    private Map<String, String> config;
     
     public IdentityProvidersFederationRepresentation() {
     	this.skipIdps = new HashSet<String>();
@@ -111,6 +114,12 @@ public class IdentityProvidersFederationRepresentation {
 		this.validUntilTimestamp = validUntilTimestamp;
 	}
 
-    
+	public Map<String, String> getConfig() {
+		return config;
+	}
+
+	public void setConfig(Map<String, String> config) {
+		this.config = config;
+	}
 
 }

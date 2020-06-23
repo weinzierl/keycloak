@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.authentication.authenticators.broker.IdpReviewProfileAuthenticatorFactory;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.dom.saml.v2.SAML2Object;
 import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
@@ -252,8 +252,8 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 
 		assertNotNull(representation);
 		
-		representation.getConfig().put(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT, JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get());
-		representation.getConfig().put(SAMLIdentityProviderConfig.BACKCHANNEL_SUPPORTED, Boolean.FALSE.toString());
+		representation.getConfig().put(SAMLConfigNames.NAME_ID_POLICY_FORMAT, JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get());
+		representation.getConfig().put(SAMLConfigNames.BACKCHANNEL_SUPPORTED, Boolean.FALSE.toString());
 		
 		identityProviderResource.update(representation);
 		return representation;

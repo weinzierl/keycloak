@@ -274,6 +274,7 @@ public class IdentityProviderResource {
         }
 
         try {
+      //  	if (identityProviderModel.getFederations() )
             IdentityProviderFactory factory = getIdentityProviderFactory();
             return factory.create(session, identityProviderModel).export(session.getContext().getUri(), realm, format);
         } catch (Exception e) {

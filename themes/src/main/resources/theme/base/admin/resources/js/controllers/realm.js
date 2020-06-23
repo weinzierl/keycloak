@@ -1176,12 +1176,52 @@ module.controller('IdentityProvidersFederationsListCtrl', function(realm, server
 
 module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialog, $scope, providerId, identityProvidersFederation, IdentityProvidersFederation, Current, Notifications, $location, $http) {
 	
+	
 	$scope.realm = realm;
 	$scope.identityProvidersFederation = identityProvidersFederation;
 	
-	
 	$scope.newIdpFederation = $scope.identityProvidersFederation == null ? true : false;
+
 	
+		
+	$scope.nameIdFormats = [
+        /*
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+            name: "Transient"
+        },
+        */
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
+            name: "Persistent"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+            name: "Email"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos",
+            name: "Kerberos"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+            name: "X.509 Subject Name"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName",
+            name: "Windows Domain Qualified Name"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+            name: "Unspecified"
+
+        }
+    ];
 	
 	
 	
@@ -1262,6 +1302,56 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     	}, 
     true);
 	
+    
+    if(initValues.config == null) 
+    	initValues.config = {};	
+    
+    $scope.$watch('identityProvidersFederation.config.nameIDPolicyFormat', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.config.nameIDPolicyFormat) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.config.postBindingAuthnRequest', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.config.postBindingAuthnRequest) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.config.wantAuthnRequestsSigned', 
+		function (newValue, oldValue, scope) {
+			if(newValue != initValues.config.wantAuthnRequestsSigned) 
+				$scope.changed = true;
+			else 
+				$scope.changed = false;
+		}, 
+	true);
+    
+    $scope.$watch('identityProvidersFederation.config.wantAssertionsSigned', 
+		function (newValue, oldValue, scope) {
+			if(newValue != initValues.config.wantAssertionsSigned) 
+				$scope.changed = true;
+			else 
+				$scope.changed = false;
+		}, 
+	true);
+    
+    $scope.$watch('identityProvidersFederation.config.wantAssertionsEncrypted', 
+		function (newValue, oldValue, scope) {
+			if(newValue != initValues.config.wantAssertionsEncrypted) 
+				$scope.changed = true;
+			else 
+				$scope.changed = false;
+		}, 
+	true);
+    
+    
     
 });
 

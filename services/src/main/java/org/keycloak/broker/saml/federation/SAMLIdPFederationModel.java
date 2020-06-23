@@ -29,11 +29,7 @@ public class SAMLIdPFederationModel extends IdentityProvidersFederationModel {
     public boolean isWantAssertionsEncrypted() {
         return Boolean.valueOf(getConfig().get(WANT_ASSERTIONS_ENCRYPTED));
     }
-
-    public boolean isAddExtensionsElementWithKeyInfo() {
-        return Boolean.valueOf(getConfig().get(ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO));
-    }
-
+    
     public boolean isPostBindingAuthnRequest() {
         return Boolean.valueOf(getConfig().get(POST_BINDING_AUTHN_REQUEST));
     }

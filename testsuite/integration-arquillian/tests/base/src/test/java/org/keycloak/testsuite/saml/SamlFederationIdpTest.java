@@ -13,7 +13,9 @@ import static org.keycloak.testsuite.util.SamlClient.Binding.REDIRECT;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -232,6 +234,13 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 		representation.setProviderId("saml");
 		representation.setUpdateFrequencyInMins(60);
 		representation.setUrl(url);
+		Map<String,String> map = new HashMap<>();
+		map.put(SAMLConfigNames.NAME_ID_POLICY_FORMAT, "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");
+		map.put(SAMLConfigNames.WANT_AUTHN_REQUESTS_SIGNED, "false");
+		map.put(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, "false");
+		map.put(SAMLConfigNames.WANT_ASSERTIONS_ENCRYPTED, "false");
+		map.put(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, "true");
+		representation.setConfig(map);
 
 		Response response = realm.identityProvidersFederation().create(representation);
 		String id = ApiUtil.getCreatedId(response);

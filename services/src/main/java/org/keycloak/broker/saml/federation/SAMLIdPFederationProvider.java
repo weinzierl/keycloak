@@ -314,8 +314,17 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			}
 		}
 		
+		//saml aggregate metadata config parameters
+		if ( model.getConfig().get("wantAssertionsEncrypted") != null )
+			config.put("wantAssertionsEncrypted", model.getConfig().get("wantAssertionsEncrypted"));
+		
+		if ( model.getConfig().get("wantAssertionsSigned") != null )
+			config.put("wantAssertionsSigned", model.getConfig().get("wantAssertionsSigned"));
+		
+		config.put("nameIDPolicyFormat", model.getConfig().get("nameIDPolicyFormat") != null ?  model.getConfig().get("nameIDPolicyFormat") : JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
+			
+		
 		//put default parameters
-		config.put("nameIDPolicyFormat", JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
 		config.put("signatureAlgorithm","RSA_SHA256");
 		config.put("samlXmlKeyNameTranformer", "KEY_ID");
 		config.put("principalType", "SUBJECT");

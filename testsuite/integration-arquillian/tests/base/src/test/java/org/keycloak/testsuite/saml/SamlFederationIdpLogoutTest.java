@@ -143,7 +143,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 					// Virtually perform login at IdP (return artificial SAML response)
 					.login().idp(brokerIdp).build().processSamlResponse(REDIRECT)
 					.transformObject(this::createAuthnResponse).targetAttributeSamlResponse()
-					.targetUri(getSamlBrokerIdpUrl(REALM_NAME)).build().updateProfile().username("a").email("a@b.c")
+					.targetUri(getSamlBrokerUrl(REALM_NAME)).build().updateProfile().username("a").email("a@b.c")
 					.firstName("A").lastName("B").build().followOneRedirect()
 
 					// Now returning back to the app
@@ -157,7 +157,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 
 					// Should redirect now to logout from IdP
 					.processSamlResponse(REDIRECT).transformObject(this::createIdPLogoutResponse)
-					.targetAttributeSamlResponse().targetUri(getSamlBrokerIdpUrl(REALM_NAME)).build()
+					.targetAttributeSamlResponse().targetUri(getSamlBrokerUrl(REALM_NAME)).build()
 
 					.getSamlResponse(REDIRECT);
 
@@ -186,7 +186,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 					// Virtually perform login at IdP (return artificial SAML response)
 					.login().idp(brokerIdp).build().processSamlResponse(REDIRECT)
 					.transformObject(this::createAuthnResponse).targetAttributeSamlResponse()
-					.targetUri(getSamlBrokerIdpUrl(REALM_NAME)).build().updateProfile().username("a").email("a@b.c")
+					.targetUri(getSamlBrokerUrl(REALM_NAME)).build().updateProfile().username("a").email("a@b.c")
 					.firstName("A").lastName("B").build().followOneRedirect()
 
 					// Now returning back to the app
@@ -217,7 +217,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		AuthnRequestType req = (AuthnRequestType) so;
 		try {
 			final ResponseType res = new SAML2LoginResponseBuilder().requestID(req.getID())
-					.destination(req.getAssertionConsumerServiceURL().toString()).issuer("http://saml.idp/saml")
+					.destination(req.getAssertionConsumerServiceURL().toString()).issuer("https://idp.rash.al/simplesaml/saml2/idp/metadata.php")
 					.assertionExpiration(1000000).subjectExpiration(1000000)
 					.requestIssuer(getAuthServerRealmBase(REALM_NAME).toString())
 					.nameIdentifier(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get(), "a@b.c")
@@ -257,7 +257,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		LogoutRequestType req = (LogoutRequestType) so;
 		try {
 			return new SAML2LogoutResponseBuilder().logoutRequestID(req.getID())
-					.destination(getSamlBrokerIdpUrl(REALM_NAME).toString()).issuer("http://saml.idp/saml")
+					.destination(getSamlBrokerUrl(REALM_NAME).toString()).issuer("https://idp.rash.al/simplesaml/saml2/idp/metadata.php")
 					.buildModel();
 		} catch (ConfigurationException ex) {
 			throw new RuntimeException(ex);
@@ -314,8 +314,8 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		}
 	}
 
-	protected URI getSamlBrokerIdpUrl(String realmName) {
-		return URI.create(getAuthServerRealmBase(realmName).toString() + "/broker/" + brokerIdp + "/endpoint");
+	protected URI getSamlBrokerUrl(String realmName) {
+		return URI.create(getAuthServerRealmBase(realmName).toString() + "/broker/endpoint");
 	}
 
 }

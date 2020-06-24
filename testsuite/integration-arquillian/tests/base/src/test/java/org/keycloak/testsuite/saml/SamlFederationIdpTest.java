@@ -158,7 +158,7 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 
 					// Virtually perform login at IdP (return artificial SAML response)
 					.processSamlResponse(REDIRECT).transformObject(this::createAuthnResponse)
-					.targetAttributeSamlResponse().targetUri(getSamlBrokerIdpUrl(REALM_NAME)).build()
+					.targetAttributeSamlResponse().targetUri(getSamlBrokerUrl(REALM_NAME)).build()
 					.followOneRedirect() // first-broker-login
 					.followOneRedirect() // after-first-broker-login
 					.getSamlResponse(POST);
@@ -209,7 +209,7 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 		AuthnRequestType req = (AuthnRequestType) so;
 		try {
 			final ResponseType res = new SAML2LoginResponseBuilder().requestID(req.getID())
-					.destination(req.getAssertionConsumerServiceURL().toString()).issuer("https://saml.idp/saml")
+					.destination(req.getAssertionConsumerServiceURL().toString()).issuer("https://idp.rash.al/simplesaml/saml2/idp/metadata.php")
 					.assertionExpiration(1000000).subjectExpiration(1000000)
 					.requestIssuer(getAuthServerRealmBase(REALM_NAME).toString())
 					.sessionIndex("idp:" + UUID.randomUUID()).buildModel();
@@ -277,8 +277,8 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 		}
 	}
 
-	protected URI getSamlBrokerIdpUrl(String realmName) {
-		return URI.create(getAuthServerRealmBase(realmName).toString() + "/broker/" + brokerIdp + "/endpoint");
+	protected URI getSamlBrokerUrl(String realmName) {
+		return URI.create(getAuthServerRealmBase(realmName).toString() + "/broker/endpoint");
 	}
 
 }

@@ -26,6 +26,8 @@ import org.keycloak.authentication.AuthenticationFlowException;
 import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticator;
 import org.keycloak.authentication.authenticators.broker.util.PostBrokerLoginConstants;
 import org.keycloak.authentication.authenticators.broker.util.SerializedBrokeredIdentityContext;
+import org.keycloak.broker.federation.IdpFederationProvider;
+import org.keycloak.broker.federation.IdpFederationProviderFactory;
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
@@ -55,6 +57,7 @@ import org.keycloak.models.Constants;
 import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
@@ -461,6 +464,18 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         request.forward(path);
     }
     
+    @GET
+    @NoCache
+    @Path("/federation/{provider_id}" + ENDPOINT_PATH + "/descriptor")
+    public Response getIdpFederationService(@PathParam("provider_id") String providerId) {
+    	IdentityProvidersFederationModel idpFederationModel = realmModel.getIdentityProvidersFederationByAlias(providerId);
+    	if(idpFederationModel == null)
+    		idpFederationModel = realmModel.getIdentityProvidersFederationById(providerId);
+    	if (idpFederationModel == null)
+            throw new IdentityBrokerException("Could not find any federation for the identifier: " + providerId);
+    	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, idpFederationModel.getProviderId()).create(session, idpFederationModel, realmModel.getId());
+    	return idpFederationProvider.export(session.getContext().getUri(), realmModel);
+    }
     
 
     @Path("{provider_id}/token")

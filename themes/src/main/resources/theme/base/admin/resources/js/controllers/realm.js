@@ -1456,7 +1456,7 @@ module.controller('IdentityProvidersFederationsExportCtrl', function(realm, Dial
 	    $scope.exported = response.data;
 	});
 	
-	
+	$scope.staticLink = window.location.origin + "/auth/realms/master/broker/federation/" + identityProvidersFederation.internalId + "/endpoint/descriptor";
 	
 });
 

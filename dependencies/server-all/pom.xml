@@ -95,6 +95,14 @@
             <groupId>com.openshift</groupId>
             <artifactId>openshift-restclient-java</artifactId>
         </dependency>
+        
+        <!-- plugins -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>oidc-federation</artifactId>
+        </dependency>
+        
+        
     </dependencies>
 
 </project>

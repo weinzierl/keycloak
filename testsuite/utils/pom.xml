@@ -169,6 +169,11 @@
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-jaxrs-oauth-client</artifactId>
         </dependency>
+        <!-- plugins -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>oidc-federation</artifactId>
+        </dependency>
         <!-- Dependency on services from integration-arquillian -->
         <dependency>
             <groupId>org.keycloak.testsuite</groupId>

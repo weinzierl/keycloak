@@ -5,15 +5,11 @@
 	
 	<artifactId>oidc-federation</artifactId>
 	
-	<properties>
-		<keycloak.version>12.0.0-SNAPSHOT</keycloak.version>
-	</properties>
-	
 	
 	<parent>
         <groupId>org.keycloak</groupId>
         <artifactId>plugins</artifactId>
-        <version>12.0.0-SNAPSHOT</version>
+        <version>11.0.2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     

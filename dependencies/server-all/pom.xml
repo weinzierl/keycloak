@@ -99,7 +99,7 @@
         <!-- plugins -->
         <dependency>
             <groupId>org.keycloak</groupId>
-            <artifactId>oidc-federation</artifactId>
+            <artifactId>keycloak-oidc-federation</artifactId>
         </dependency>
         
         

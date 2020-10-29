@@ -18,7 +18,7 @@ public class EntityStatement extends JsonWebToken {
     
     @JsonProperty("metadata")
     protected MetadataI metadata;
-
+    
     
 	public List<String> getAuthorityHints() {
 		return authorityHints;

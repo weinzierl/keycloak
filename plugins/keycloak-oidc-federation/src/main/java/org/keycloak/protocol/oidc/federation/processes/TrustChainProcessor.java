@@ -131,7 +131,7 @@ public class TrustChainProcessor {
 	}
 	
 	
-	private static EntityStatement parseChainLink(String endodedChainLink) throws UnparsableException {
+	public static EntityStatement parseChainLink(String endodedChainLink) throws UnparsableException {
 		String [] splits = endodedChainLink.split("\\.");
 		if(splits.length != 3)
 			throw new UnparsableException("Trust chain contains a chain-link which does not abide to the dot-delimited format of xxx.yyy.zzz");

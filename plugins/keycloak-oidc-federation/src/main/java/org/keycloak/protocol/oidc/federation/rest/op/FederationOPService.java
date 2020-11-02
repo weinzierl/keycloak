@@ -1,5 +1,6 @@
 package org.keycloak.protocol.oidc.federation.rest.op;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -15,7 +16,6 @@ import javax.ws.rs.core.Response;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
-import org.keycloak.models.ClientInitialAccessModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelDuplicateException;
@@ -25,7 +25,9 @@ import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
-import org.keycloak.protocol.oidc.federation.beans.RPMetadata;
+import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
+import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
+import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
 import org.keycloak.protocol.oidc.mappers.PairwiseSubMapperHelper;
 import org.keycloak.protocol.oidc.mappers.SHA256PairwiseSubMapper;
@@ -34,7 +36,6 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.services.ErrorResponseException;
 import org.keycloak.services.ServicesLogger;
-import org.keycloak.services.clientregistration.AbstractClientRegistrationProvider;
 import org.keycloak.services.clientregistration.ClientRegistrationAuth;
 import org.keycloak.services.clientregistration.ClientRegistrationContext;
 import org.keycloak.services.clientregistration.ClientRegistrationException;
@@ -43,7 +44,6 @@ import org.keycloak.services.clientregistration.ClientRegistrationTokenUtils;
 import org.keycloak.services.clientregistration.ErrorCodes;
 import org.keycloak.services.clientregistration.oidc.DescriptionConverter;
 import org.keycloak.services.clientregistration.oidc.OIDCClientRegistrationContext;
-import org.keycloak.services.clientregistration.policy.ClientRegistrationPolicyManager;
 import org.keycloak.services.clientregistration.policy.RegistrationAuth;
 import org.keycloak.services.managers.ClientManager;
 import org.keycloak.services.managers.RealmManager;
@@ -51,7 +51,7 @@ import org.keycloak.services.validation.ValidationMessages;
 import org.keycloak.validation.ClientValidationUtil;
 
 public class FederationOPService implements ClientRegistrationProvider {
-    
+
     private KeycloakSession session;
     private EventBuilder event;
     private ClientRegistrationAuth auth;
@@ -66,29 +66,46 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     @POST
     @Path("fedreg")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFederationRegistration(EntityStatement statement) {
-        List<String> authorityHints = statement.getAuthorityHints();
-        // 9.2.1.2.1. bullet 1 verified at least one trust chain
-        Random random = new Random();
-        boolean verified = true;
-            //random.nextBoolean();
-        if (verified) {
-            RPMetadata metadata = (RPMetadata) statement.getMetadata();
-            ClientRepresentation client = createClient(metadata.getRelyingParty());
-            //add trust_anchor_id = trust anchor op chose
-            //add metadata policy
-            metadata.getRelyingParty().setClientId(client.getId());
-            statement.setMetadata(metadata);
-            return Response.ok(statement).build();
+    public Response getFederationRegistration(String jwtStatement) {
+        boolean valid;
+        try {
+            valid = TrustChainProcessor.validateLinkSig(jwtStatement);
+        } catch (IOException | UnparsableException | BadSigningOrEncryptionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("exception in parsing token").build();
+        }
+        if (valid) {
+            try {
+                EntityStatement statement = TrustChainProcessor.parseChainLink(jwtStatement);
 
+                List<String> authorityHints = statement.getAuthorityHints();
+                // 9.2.1.2.1. bullet 1 verified at least one trust chain
+                Random random = new Random();
+                boolean verified = true;
+                // random.nextBoolean();
+                if (verified) {
+                    ClientRepresentation client = createClient(statement.getMetadata().getRp());
+                    // add trust_anchor_id = trust anchor op chose
+                    // add metadata policy
+                    statement.getMetadata().getRp().setClientId(client.getId());
+                    return Response.ok(statement).build();
+
+                } else {
+                    return Response.status(Response.Status.FORBIDDEN).entity("Not accepted authority_hints").build();
+                }
+            } catch (UnparsableException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("exception in parsing entity statement").build();
+            }
         } else {
-            return Response.status(Response.Status.FORBIDDEN).entity("Not accepted authority_hints").build();
+            return Response.status(Response.Status.NOT_ACCEPTABLE).entity("Not valid token").build();
         }
 
     }
-    
+
     private ClientRepresentation create(ClientRegistrationContext context) {
         ClientRepresentation client = context.getClient();
 
@@ -222,7 +239,7 @@ public class FederationOPService implements ClientRegistrationProvider {
         }
         return "Hello " + name;
     }
-    
+
     @Override
     public void setAuth(ClientRegistrationAuth auth) {
         this.auth = auth;

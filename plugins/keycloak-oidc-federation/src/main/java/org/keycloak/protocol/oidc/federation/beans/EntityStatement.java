@@ -17,7 +17,7 @@ public class EntityStatement extends JsonWebToken {
     protected JSONWebKeySet jwks;
     
     @JsonProperty("metadata")
-    protected MetadataI metadata;
+    protected Metadata metadata;
     
     
 	public List<String> getAuthorityHints() {
@@ -36,11 +36,11 @@ public class EntityStatement extends JsonWebToken {
 		this.jwks = jwks;
 	}
 
-	public MetadataI getMetadata() {
+	public Metadata getMetadata() {
 		return metadata;
 	}
 
-	public void setMetadata(MetadataI metadata) {
+	public void setMetadata(Metadata metadata) {
 		this.metadata = metadata;
 	}
     

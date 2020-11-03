@@ -144,7 +144,7 @@ public class TrustChainProcessor {
 
 	
 	
-	public static EntityStatement parseAndValidateChainLink(String token) throws IOException, UnparsableException, BadSigningOrEncryptionException {
+	public static EntityStatement parseAndValidateChainLink(String token) throws UnparsableException, BadSigningOrEncryptionException {
 	    EntityStatement statement = parseChainLink(token);
 	    String jsonKey = om.writeValueAsString(statement.getJwks());
 	    
@@ -153,7 +153,7 @@ public class TrustChainProcessor {
 			JWKSource<SecurityContext> keySource = new ImmutableJWKSet<SecurityContext>(jwkSet);
 			
 			ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
-			jwtProcessor.setJWSTypeVerifier(new DefaultJOSEObjectTypeVerifier<>(new JOSEObjectType("JWT")));
+			//jwtProcessor.setJWSTypeVerifier(new DefaultJOSEObjectTypeVerifier<>(new JOSEObjectType("JWT")));
 			JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, keySource);
 			jwtProcessor.setJWSKeySelector(keySelector);
 	

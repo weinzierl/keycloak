@@ -66,45 +66,68 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     @POST
     @Path("fedreg")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response getFederationRegistration(String jwtStatement) {
-        boolean valid;
         try {
-            valid = TrustChainProcessor.validateLinkSig(jwtStatement);
-        } catch (IOException | UnparsableException | BadSigningOrEncryptionException e) {
+            EntityStatement statement = TrustChainProcessor.parseAndValidateChainLink(jwtStatement);
+
+            List<String> authorityHints = statement.getAuthorityHints();
+            // 9.2.1.2.1. bullet 1 verified at least one trust chain
+            Random random = new Random();
+            boolean verified = true;
+            // random.nextBoolean();
+            if (verified) {
+                ClientRepresentation client = createClient(statement.getMetadata().getRp());
+                // add trust_anchor_id = trust anchor op chose
+                // add metadata policy
+                statement.getMetadata().getRp().setClientId(client.getId());
+                String token = session.tokens().encode(statement);
+                return Response.ok(token).build();
+
+            } else {
+                return Response.status(Response.Status.FORBIDDEN).entity("Not accepted authority_hints").build();
+            }
+        } catch (UnparsableException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("exception in parsing token").build();
-        }
-        if (valid) {
-            try {
-                EntityStatement statement = TrustChainProcessor.parseChainLink(jwtStatement);
-
-                List<String> authorityHints = statement.getAuthorityHints();
-                // 9.2.1.2.1. bullet 1 verified at least one trust chain
-                Random random = new Random();
-                boolean verified = true;
-                // random.nextBoolean();
-                if (verified) {
-                    ClientRepresentation client = createClient(statement.getMetadata().getRp());
-                    // add trust_anchor_id = trust anchor op chose
-                    // add metadata policy
-                    statement.getMetadata().getRp().setClientId(client.getId());
-                    return Response.ok(statement).build();
-
-                } else {
-                    return Response.status(Response.Status.FORBIDDEN).entity("Not accepted authority_hints").build();
-                }
-            } catch (UnparsableException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("exception in parsing entity statement").build();
-            }
-        } else {
-            return Response.status(Response.Status.NOT_ACCEPTABLE).entity("Not valid token").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("exception in parsing entity statement")
+                .build();
+        } catch (BadSigningOrEncryptionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("No valid token").build();
         }
 
     }
+
+    private ClientRepresentation createClient(OIDCFederationClientRepresentation clientRepresentastion) {
+        // 9.2.1.2.1. 3 check. How? -> extend client for having entity identifier??
+        if (clientRepresentastion.getClientId() != null) {
+            throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client Identifier included",
+                Response.Status.BAD_REQUEST);
+        }
+        try {
+            ClientRepresentation client = DescriptionConverter.toInternal(session, clientRepresentastion);
+            List<String> grantTypes = clientRepresentastion.getGrantTypes();
+
+            if (grantTypes != null && grantTypes.contains(OAuth2Constants.UMA_GRANT_TYPE)) {
+                client.setAuthorizationServicesEnabled(true);
+            }
+
+            OIDCClientRegistrationContext oidcContext = new OIDCClientRegistrationContext(session, client, this,
+                clientRepresentastion);
+            client = create(oidcContext);
+
+            ClientModel clientModel = session.getContext().getRealm().getClientByClientId(client.getClientId());
+            updatePairwiseSubMappers(clientModel, SubjectType.parse(clientRepresentastion.getSubjectType()),
+                clientRepresentastion.getSectorIdentifierUri());
+            return client;
+        } catch (ClientRegistrationException cre) {
+            ServicesLogger.LOGGER.clientRegistrationException(cre.getMessage());
+            throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client metadata invalid",
+                Response.Status.BAD_REQUEST);
+        }
+    }
+    
 
     private ClientRepresentation create(ClientRegistrationContext context) {
         ClientRepresentation client = context.getClient();
@@ -154,36 +177,6 @@ public class FederationOPService implements ClientRegistrationProvider {
         }
     }
 
-    private ClientRepresentation createClient(OIDCFederationClientRepresentation clientRepresentastion) {
-        // 9.2.1.2.1. 3 check. How? -> extend client for having entity identifier??
-        if (clientRepresentastion.getClientId() != null) {
-            throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client Identifier included",
-                Response.Status.BAD_REQUEST);
-        }
-        try {
-            ClientRepresentation client = DescriptionConverter.toInternal(session, clientRepresentastion);
-            List<String> grantTypes = clientRepresentastion.getGrantTypes();
-
-            if (grantTypes != null && grantTypes.contains(OAuth2Constants.UMA_GRANT_TYPE)) {
-                client.setAuthorizationServicesEnabled(true);
-            }
-
-            OIDCClientRegistrationContext oidcContext = new OIDCClientRegistrationContext(session, client, this,
-                clientRepresentastion);
-            client = create(oidcContext);
-
-            ClientModel clientModel = session.getContext().getRealm().getClientByClientId(client.getClientId());
-            updatePairwiseSubMappers(clientModel, SubjectType.parse(clientRepresentastion.getSubjectType()),
-                clientRepresentastion.getSectorIdentifierUri());
-            updateClientRepWithProtocolMappers(clientModel, client);
-            return client;
-        } catch (ClientRegistrationException cre) {
-            ServicesLogger.LOGGER.clientRegistrationException(cre.getMessage());
-            throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client metadata invalid",
-                Response.Status.BAD_REQUEST);
-        }
-    }
-
     // same as in OIDCClientRegistrationProvider
     private void updatePairwiseSubMappers(ClientModel clientModel, SubjectType subjectType, String sectorIdentifierUri) {
         if (subjectType == SubjectType.PAIRWISE) {
@@ -218,15 +211,6 @@ public class FederationOPService implements ClientRegistrationProvider {
                 clientModel.getProtocolMappers().remove(mapping);
             });
         }
-    }
-
-    // same as in OIDCClientRegistrationProvider
-    private void updateClientRepWithProtocolMappers(ClientModel clientModel, ClientRepresentation rep) {
-        List<ProtocolMapperRepresentation> mappings = new LinkedList<>();
-        for (ProtocolMapperModel model : clientModel.getProtocolMappers()) {
-            mappings.add(ModelToRepresentation.toRepresentation(model));
-        }
-        rep.setProtocolMappers(mappings);
     }
 
     @POST

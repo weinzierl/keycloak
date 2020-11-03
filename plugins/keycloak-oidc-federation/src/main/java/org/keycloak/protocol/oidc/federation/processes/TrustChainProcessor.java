@@ -20,6 +20,7 @@ import org.keycloak.protocol.oidc.federation.paths.TrustChainParsed;
 import org.keycloak.protocol.oidc.federation.paths.TrustChainRaw;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
@@ -72,7 +73,7 @@ public class TrustChainProcessor {
 		EntityStatement es;
 		try {
 			es = parseAndValidateChainLink(encodedNode);
-		} catch (UnparsableException | IOException | BadSigningOrEncryptionException e) {
+		} catch (UnparsableException | BadSigningOrEncryptionException | JsonProcessingException e) {
 			System.out.println("Cannot process a subchain link. Might not be able to form a trustchain. " + e.getMessage());
 			return chainsList;
 		}
@@ -127,7 +128,7 @@ public class TrustChainProcessor {
 				EntityStatement es = parseAndValidateChainLink(chainLink);
 				//TODO: might also want to validate the integrity of the contained information, as described at chapter 7.2 of OpenID Connect Federation 1.0
 			}
-			catch( IOException | UnparsableException | BadSigningOrEncryptionException ex) {
+			catch( UnparsableException | BadSigningOrEncryptionException | JsonProcessingException ex) {
 				ex.printStackTrace();
 				return false;
 			}
@@ -144,7 +145,7 @@ public class TrustChainProcessor {
 
 	
 	
-	public static EntityStatement parseAndValidateChainLink(String token) throws UnparsableException, BadSigningOrEncryptionException {
+	public static EntityStatement parseAndValidateChainLink(String token) throws UnparsableException, BadSigningOrEncryptionException, JsonProcessingException {
 	    EntityStatement statement = parseChainLink(token);
 	    String jsonKey = om.writeValueAsString(statement.getJwks());
 	    

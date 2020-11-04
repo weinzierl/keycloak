@@ -13,11 +13,12 @@ public class EntityStatement extends JsonWebToken {
     @JsonProperty("authority_hints")
     protected List<String> authorityHints;
 	
-    @JsonProperty("jwks")
     protected JSONWebKeySet jwks;
     
-    @JsonProperty("metadata")
     protected Metadata metadata;
+    
+    @JsonProperty("metadata_policy")
+    protected MetadataPolicy metadataPolicy;
     
     
 	public List<String> getAuthorityHints() {
@@ -44,6 +45,14 @@ public class EntityStatement extends JsonWebToken {
 		this.metadata = metadata;
 	}
     
+    public MetadataPolicy getMetadataPolicy() {
+        return metadataPolicy;
+    }
+
+    public void setMetadataPolicy(MetadataPolicy metadataPolicy) {
+        this.metadataPolicy = metadataPolicy;
+    }
+
     @Override
     public TokenCategory getCategory() {
         return TokenCategory.ACCESS; //treat it as an access token (use asymmetric crypto algorithms)

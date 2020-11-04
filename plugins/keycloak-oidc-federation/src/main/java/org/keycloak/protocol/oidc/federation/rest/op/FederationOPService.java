@@ -1,7 +1,5 @@
 package org.keycloak.protocol.oidc.federation.rest.op;
 
-import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,7 +22,10 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
+import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
+import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
+import org.keycloak.protocol.oidc.federation.beans.Policy;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
@@ -80,7 +81,12 @@ public class FederationOPService implements ClientRegistrationProvider {
             if (verified) {
                 ClientRepresentation client = createClient(statement.getMetadata().getRp());
                 // add trust_anchor_id = trust anchor op chose
-                // add metadata policy
+                //add one or more authority_hints, from its collection
+                // add metadata policy (now add default)                
+                OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
+                rpPolicy.setClient_name(Policy.<String>builder().defaultValue("oidc fed client").build());
+                MetadataPolicy policy = new MetadataPolicy(rpPolicy);
+                statement.setMetadataPolicy(policy);
                 statement.getMetadata().getRp().setClientId(client.getId());
                 String token = session.tokens().encode(statement);
                 return Response.ok(token).build();
@@ -129,7 +135,7 @@ public class FederationOPService implements ClientRegistrationProvider {
                 Response.Status.BAD_REQUEST);
         }
     }
-    
+
 
     private ClientRepresentation create(ClientRegistrationContext context) {
         ClientRepresentation client = context.getClient();
@@ -216,14 +222,13 @@ public class FederationOPService implements ClientRegistrationProvider {
     }
 
     @POST
-    @Path("par")
-    @Produces("text/plain; charset=utf-8")
-    public String postPushedAuthorization() {
-        String name = session.getContext().getRealm().getDisplayName();
-        if (name == null) {
-            name = session.getContext().getRealm().getName();
-        }
-        return "Hello " + name;
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("policy")
+    public Response testPolicy(EntityStatement entity) {
+
+        entity.getMetadataPolicy().getRpPolicy().setClient_name(Policy.<String>builder().defaultValue("oidc fed client").build());
+        return Response.ok(entity).build();
     }
 
     @Override

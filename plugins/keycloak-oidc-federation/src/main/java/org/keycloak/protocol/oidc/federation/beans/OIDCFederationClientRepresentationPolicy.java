@@ -1,7 +1,5 @@
 package org.keycloak.protocol.oidc.federation.beans;
 
-import java.util.List;
-
 import org.keycloak.jose.jwk.JSONWebKeySet;
 
 public class OIDCFederationClientRepresentationPolicy {

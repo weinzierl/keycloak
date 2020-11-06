@@ -73,7 +73,7 @@ public class TrustChainProcessor {
 		EntityStatement es;
 		try {
 			es = parseAndValidateChainLink(encodedNode);
-		} catch (UnparsableException | BadSigningOrEncryptionException | JsonProcessingException e) {
+		} catch (UnparsableException | BadSigningOrEncryptionException e ) {
 			System.out.println("Cannot process a subchain link. Might not be able to form a trustchain. " + e.getMessage());
 			return chainsList;
 		}
@@ -128,7 +128,7 @@ public class TrustChainProcessor {
 				EntityStatement es = parseAndValidateChainLink(chainLink);
 				//TODO: might also want to validate the integrity of the contained information, as described at chapter 7.2 of OpenID Connect Federation 1.0
 			}
-			catch( UnparsableException | BadSigningOrEncryptionException | JsonProcessingException ex) {
+			catch( UnparsableException | BadSigningOrEncryptionException ex) {
 				ex.printStackTrace();
 				return false;
 			}
@@ -145,11 +145,12 @@ public class TrustChainProcessor {
 
 	
 	
-	public static EntityStatement parseAndValidateChainLink(String token) throws UnparsableException, BadSigningOrEncryptionException, JsonProcessingException {
+	public static EntityStatement parseAndValidateChainLink(String token) throws UnparsableException, BadSigningOrEncryptionException {
 	    EntityStatement statement = parseChainLink(token);
-	    String jsonKey = om.writeValueAsString(statement.getJwks());
-	    
 	    try{
+	        String jsonKey = om.writeValueAsString(statement.getJwks());
+	    
+	    
 			JWKSet jwkSet = JWKSet.load(new ByteArrayInputStream(jsonKey.getBytes()));
 			JWKSource<SecurityContext> keySource = new ImmutableJWKSet<SecurityContext>(jwkSet);
 			
@@ -186,6 +187,7 @@ public class TrustChainProcessor {
 		} catch (JsonParseException e) {
 			throw new UnparsableException("Trust chain link contains an entity statement which is not json-encoded");
 		} catch (JsonMappingException e) {
+		    e.printStackTrace();
 			throw new UnparsableException("Trust chain link contains an entity statement which can not be mapped to EntityStatement.class");
 		} catch (IOException e) {
 			throw new UnparsableException(e.getMessage());

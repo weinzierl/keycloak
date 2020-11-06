@@ -99,7 +99,7 @@ public class FederationOPService implements ClientRegistrationProvider {
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("exception in parsing entity statement")
                 .build();
-        }  catch (BadSigningOrEncryptionException | JsonProcessingException e) {
+        }  catch (BadSigningOrEncryptionException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("No valid token").build();

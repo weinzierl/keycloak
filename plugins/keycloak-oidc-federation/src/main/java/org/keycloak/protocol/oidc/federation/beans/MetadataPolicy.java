@@ -9,6 +9,10 @@ public class MetadataPolicy {
     
     @JsonProperty("openid_provider")
     private OIDCFederationConfigurationRepresentationPolicy opPolicy;
+    
+    public MetadataPolicy() {
+        
+    }
 
     public MetadataPolicy(OIDCFederationClientRepresentationPolicy rpPolicy) {
         this.rpPolicy =rpPolicy;

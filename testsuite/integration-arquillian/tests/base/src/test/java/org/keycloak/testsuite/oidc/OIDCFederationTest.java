@@ -3,11 +3,18 @@ package org.keycloak.testsuite.oidc;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -16,10 +23,18 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.crypto.Algorithm;
+import org.keycloak.crypto.KeyType;
+import org.keycloak.crypto.KeyUse;
+import org.keycloak.crypto.KeyWrapper;
 import org.keycloak.jose.jwe.JWEConstants;
+import org.keycloak.jose.jwk.JSONWebKeySet;
+import org.keycloak.jose.jwk.JWK;
+import org.keycloak.jose.jwk.JWKBuilder;
+import org.keycloak.models.KeycloakSession;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolFactory;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolService;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
+import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentation;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
@@ -29,6 +44,7 @@ import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.representations.IDToken;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.services.clientregistration.ClientRegistrationService;
 import org.keycloak.services.clientregistration.oidc.OIDCClientRegistrationProviderFactory;
@@ -36,7 +52,9 @@ import org.keycloak.services.resources.RealmsResource;
 import org.keycloak.testsuite.AbstractKeycloakTest;
 import org.keycloak.testsuite.Assert;
 import org.keycloak.testsuite.admin.AbstractAdminTest;
+import org.keycloak.testsuite.arquillian.annotation.ModelTest;
 import org.keycloak.testsuite.util.OAuthClient;
+import org.keycloak.util.JsonSerialization;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -148,6 +166,35 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
             client.close();
         }
     }
+    
+    @Test
+    @ModelTest
+    public void testExplicitRegistration(KeycloakSession session)
+        throws IOException, URISyntaxException, UnparsableException, BadSigningOrEncryptionException {
+        Client client = ClientBuilder.newClient();
+        String clientId = null;
+        try {
+            String st = federationRegistrationExecution(client, session);
+            EntityStatement statement = TrustChainProcessor
+                .parseAndValidateChainLink(st);
+            // check entity statements enchancements
+            Assert.assertNotNull(statement.getMetadataPolicy());
+            Assert.assertNotNull(statement.getMetadataPolicy().getRpPolicy());
+            OIDCFederationClientRepresentationPolicy rpPolicy = statement.getMetadataPolicy().getRpPolicy();
+            Assert.assertNotNull(rpPolicy.getClient_name());
+            assertEquals(rpPolicy.getClient_name().getDefaultValue(), "oidc fed client");
+            Assert.assertNotNull(statement.getMetadata());
+            Assert.assertNotNull(statement.getMetadata().getRp());
+            clientId = statement.getMetadata().getRp().getClientId();
+            Assert.assertNotNull(clientId);
+
+            // check client exist
+//            List<ClientRepresentation> clients = adminClient.realm("test").clients().findByClientId(clientId);
+        } finally {
+            client.close();
+
+        }
+    }
 
     private String getOIDCDiscoveryConfiguration(Client client) {
         URI oidcDiscoveryUri = RealmsResource.wellKnownProviderUrl(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT))
@@ -158,6 +205,43 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
 
         return response.readEntity(String.class);
     }
+    
+    private String federationRegistrationExecution(Client client,KeycloakSession session) throws IOException, URISyntaxException {
+        URI federationRegistrationUri = OIDCFederationResourceProvider
+            .federationExplicitRegistration(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT)).build("test");
+        WebTarget oidcDiscoveryTarget = client.target(federationRegistrationUri);
+        URL rpEntityStatement = getClass().getClassLoader().getResource("oidc/rpEntityStatement.json");
+        byte [] content = Files.readAllBytes(Paths.get(rpEntityStatement.toURI()));
+        EntityStatement statement = JsonSerialization.readValue(content, EntityStatement.class);
+       // statement.setJwks(getKeySet(session));
+        String token = session.tokens().encode(statement);
+
+        Response response = oidcDiscoveryTarget.request().post(Entity.text(token));
+
+        return response.readEntity(String.class);
+    }
+    
+//    private JSONWebKeySet getKeySet(KeycloakSession session) {
+//        List<JWK> keys = new LinkedList<>();
+//        for (KeyWrapper k : session.keys().getKeys(session.getContext().getRealm())) {
+//            if (k.getStatus().isEnabled() && k.getUse().equals(KeyUse.SIG) && k.getPublicKey() != null) {
+//                JWKBuilder b = JWKBuilder.create().kid(k.getKid()).algorithm(k.getAlgorithm());
+//                if (k.getType().equals(KeyType.RSA)) {
+//                    keys.add(b.rsa(k.getPublicKey(), k.getCertificate()));
+//                } else if (k.getType().equals(KeyType.EC)) {
+//                    keys.add(b.ec(k.getPublicKey()));
+//                }
+//            }
+//        }
+//
+//        JSONWebKeySet keySet = new JSONWebKeySet();
+//
+//        JWK[] k = new JWK[keys.size()];
+//        k = keys.toArray(k);
+//        keySet.setKeys(k);
+//        return keySet;
+//    }
+
 
     private void assertContains(List<String> actual, String... expected) {
         for (String exp : expected) {

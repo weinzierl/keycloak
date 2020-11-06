@@ -18,11 +18,13 @@
 package org.keycloak.protocol.oidc.federation.rest;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.core.UriBuilder;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
 import org.keycloak.services.resource.RealmResourceProvider;
+import org.keycloak.services.resources.RealmsResource;
 
 public class OIDCFederationResourceProvider implements RealmResourceProvider {
 
@@ -39,6 +41,11 @@ public class OIDCFederationResourceProvider implements RealmResourceProvider {
 
     @Override
     public void close() {
+    }
+    
+    public static UriBuilder federationExplicitRegistration(UriBuilder builder) {
+        return builder.path(RealmsResource.class).path(RealmsResource.class, "getRealmResource").path(OIDCFederationResourceProviderFactory.ID).path(OIDCFederationResourceProvider.class, "getFederationOPService")
+            .path(FederationOPService.class, "getFederationRegistration");
     }
     
     @Path("op")

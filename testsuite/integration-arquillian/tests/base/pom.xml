@@ -104,6 +104,11 @@
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-model-map</artifactId>
         </dependency>
+        <!-- plugins -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-oidc-federation</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.keycloak.testsuite</groupId>
             <artifactId>integration-arquillian-servers-app-server-spi</artifactId>

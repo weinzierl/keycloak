@@ -222,13 +222,14 @@ public class FederationOPService implements ClientRegistrationProvider {
     }
 
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("policy")
-    public Response testPolicy(EntityStatement entity) {
-
-        entity.getMetadataPolicy().getRpPolicy().setClient_name(Policy.<String>builder().defaultValue("oidc fed client").build());
-        return Response.ok(entity).build();
+    @Path("par")
+    @Produces("text/plain; charset=utf-8")
+    public String postPushedAuthorization() {
+        String name = session.getContext().getRealm().getDisplayName();
+        if (name == null) {
+            name = session.getContext().getRealm().getName();
+        }
+        return "Hello " + name;
     }
 
     @Override

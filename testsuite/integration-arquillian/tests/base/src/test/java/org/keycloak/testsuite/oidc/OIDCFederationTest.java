@@ -179,9 +179,6 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
             // check entity statements enchancements
             Assert.assertNotNull(statement.getMetadataPolicy());
             Assert.assertNotNull(statement.getMetadataPolicy().getRpPolicy());
-            OIDCFederationClientRepresentationPolicy rpPolicy = statement.getMetadataPolicy().getRpPolicy();
-            Assert.assertNotNull(rpPolicy.getClient_name());
-            assertEquals(rpPolicy.getClient_name().getDefaultValue(), "oidc fed client");
             Assert.assertNotNull(statement.getMetadata());
             Assert.assertNotNull(statement.getMetadata().getRp());
             clientId = statement.getMetadata().getRp().getClientId();

@@ -101,6 +101,12 @@ public class Policy<T> {
         private T defaultValue;
         private T essential;
 
+        
+        public PolicyBuilder<T> subsetOf(List<T> subsetOfList) {
+            this.subset_of= subsetOfList;
+            return this;
+        }
+        
         public PolicyBuilder<T> addSubsetOf(T subsetOf) {
             this.subset_of.add(subsetOf);
             return this;

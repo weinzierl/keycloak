@@ -1,14 +1,13 @@
 package org.keycloak.protocol.oidc.federation.rest.op;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.keycloak.OAuth2Constants;
@@ -32,6 +31,7 @@ import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
 import org.keycloak.protocol.oidc.mappers.PairwiseSubMapperHelper;
 import org.keycloak.protocol.oidc.mappers.SHA256PairwiseSubMapper;
+import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.SubjectType;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
@@ -51,13 +51,12 @@ import org.keycloak.services.managers.RealmManager;
 import org.keycloak.services.validation.ValidationMessages;
 import org.keycloak.validation.ClientValidationUtil;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 public class FederationOPService implements ClientRegistrationProvider {
 
     private KeycloakSession session;
     private EventBuilder event;
     private ClientRegistrationAuth auth;
+    private static final List<String> ALLOWED_RESPONSE_TYPES = Arrays.asList(OIDCResponseType.CODE, OIDCResponseType.TOKEN, OIDCResponseType.ID_TOKEN, OIDCResponseType.NONE);
 
     public FederationOPService(KeycloakSession session) {
         this.session = session;
@@ -75,19 +74,17 @@ public class FederationOPService implements ClientRegistrationProvider {
 
             List<String> authorityHints = statement.getAuthorityHints();
             // 9.2.1.2.1. bullet 1 verified at least one trust chain
-            Random random = new Random();
             boolean verified = true;
             // random.nextBoolean();
             if (verified) {
-                ClientRepresentation client = createClient(statement.getMetadata().getRp());
+                OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
+                createMetadataPolicies(rpPolicy,statement.getMetadata().getRp());
+                ClientRepresentation clientSaved= createClient(statement.getMetadata().getRp());
                 // add trust_anchor_id = trust anchor op chose
                 //add one or more authority_hints, from its collection
-                // add metadata policy (now add default)                
-                OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
-                rpPolicy.setClient_name(Policy.<String>builder().defaultValue("oidc fed client").build());
                 MetadataPolicy policy = new MetadataPolicy(rpPolicy);
                 statement.setMetadataPolicy(policy);
-                statement.getMetadata().getRp().setClientId(client.getId());
+                statement.getMetadata().getRp().setClientId(clientSaved.getId());
                 String token = session.tokens().encode(statement);
                 return Response.ok(token).build();
 
@@ -104,6 +101,19 @@ public class FederationOPService implements ClientRegistrationProvider {
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("No valid token").build();
         }
+
+    }
+
+    private void createMetadataPolicies(OIDCFederationClientRepresentationPolicy rpPolicy,OIDCFederationClientRepresentation client) {
+        //enhancement may be needed from (OIDCConfigurationRepresentation) super.getConfig()
+        List<String> removedResponseTypes= new ArrayList<>();
+        client.getResponseTypes().stream().forEach(rtype-> {
+            if (!ALLOWED_RESPONSE_TYPES.contains(rtype)) {
+                rpPolicy.setResponse_types(Policy.<String>builder().subsetOf(ALLOWED_RESPONSE_TYPES).build());
+                removedResponseTypes.add(rtype);
+            }
+        });
+        client.getResponseTypes().removeAll(removedResponseTypes);
 
     }
 

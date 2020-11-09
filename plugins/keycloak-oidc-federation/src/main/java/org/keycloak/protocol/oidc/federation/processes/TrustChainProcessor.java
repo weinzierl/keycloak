@@ -70,7 +70,10 @@ public class TrustChainProcessor {
 		
 		printIssSub(encodedLeafES);
 		
-		return subTrustChains(encodedLeafES, trustAnchorIds);
+		List<TrustChainRaw> trustChains = subTrustChains(encodedLeafES, trustAnchorIds);
+		trustChains.forEach(trustChain -> trustChain.add(0, encodedLeafES)); //add also the leaf node 
+		return trustChains;
+		
 	}
 	
 	private List<TrustChainRaw> subTrustChains(String encodedNode, Set<String> trustAnchorIds) {
@@ -87,7 +90,7 @@ public class TrustChainProcessor {
 		if(es.getAuthorityHints() == null || es.getAuthorityHints().isEmpty()) {
 			if(trustAnchorIds.contains(es.getIssuer())) {
 				TrustChainRaw trustChainRaw = new TrustChainRaw();
-				trustChainRaw.add(encodedNode);
+//				trustChainRaw.add(encodedNode); //this is the self-issued statement of a trust anchor. Should not add it in the chain (as of oidc fed spec version draft 12) 
 				chainsList.add(trustChainRaw);
 			}
 		}
@@ -96,16 +99,16 @@ public class TrustChainProcessor {
 			es.getAuthorityHints().forEach(authHint -> {
 				try {
 					String encodedSubNodeSelf = Remote.getContentFrom(new URL(authHint + "/.well-known/openid-federation"));
-					
+					EntityStatement subNodeSelfES = parseAndValidateChainLink(encodedSubNodeSelf);
+
 					printIssSub(encodedSubNodeSelf);
 					
-					EntityStatement subNodeSelfES = parseAndValidateChainLink(encodedSubNodeSelf);
 					String fedApiUrl = subNodeSelfES.getMetadata().getFederationEntity().getFederationApiEndpoint();
-					String encodedSubNodeSubordinate = Remote.getContentFrom(new URL(fedApiUrl + "?iss="+urlEncode(subNodeSelfES.getIssuer())+"&sub="+urlEncode(es.getIssuer())));
+					String encodedSubNodeSubordinate = Remote.getContentFrom(new URL(fedApiUrl + "?iss="+urlEncode(subNodeSelfES.getIssuer())+"&sub="+urlEncode(es.getIssuer())));					
+					EntityStatement subNodeSubordinateES = parseAndValidateChainLink(encodedSubNodeSubordinate);
 					
 					printIssSub(encodedSubNodeSubordinate);
 					
-					EntityStatement subNodeSubordinateES = parseAndValidateChainLink(encodedSubNodeSubordinate);
 					//TODO: might want to make some more checks on subNodeSubordinateES integrity
 					List<TrustChainRaw> subList = subTrustChains(encodedSubNodeSelf, trustAnchorIds);
 					for(TrustChainRaw tcr : subList) {
@@ -135,7 +138,7 @@ public class TrustChainProcessor {
 	
 	private void printIssSub(String token) throws UnparsableException {
 		EntityStatement statement = parseChainLink(token);
-		System.out.println(String.format("Asking %s about %s. AuthHints: %s", statement.getIssuer(), statement.getSubject(), statement.getAuthorityHints()));
+		System.out.println(String.format("Asked (+ validated) %s about %s. AuthHints: %s", statement.getIssuer(), statement.getSubject(), statement.getAuthorityHints()));
 	}
 	
 	/**

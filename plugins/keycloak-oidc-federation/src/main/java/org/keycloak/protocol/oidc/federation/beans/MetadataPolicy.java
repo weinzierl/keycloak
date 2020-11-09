@@ -29,5 +29,14 @@ public class MetadataPolicy {
     public void setRpPolicy(OIDCFederationClientRepresentationPolicy rpPolicy) {
         this.rpPolicy = rpPolicy;
     }
+
+	public OIDCFederationConfigurationRepresentationPolicy getOpPolicy() {
+		return opPolicy;
+	}
+
+	public void setOpPolicy(OIDCFederationConfigurationRepresentationPolicy opPolicy) {
+		this.opPolicy = opPolicy;
+	}
+    
     
 }

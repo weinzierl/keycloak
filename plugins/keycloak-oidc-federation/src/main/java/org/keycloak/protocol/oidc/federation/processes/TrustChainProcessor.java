@@ -67,9 +67,7 @@ public class TrustChainProcessor {
 	public List<TrustChainRaw> constructTrustChains(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException, UnparsableException, BadSigningOrEncryptionException {		
 		trustAnchorIds.stream().map(s -> s.trim()).collect(Collectors.toCollection(HashSet::new));
 		String encodedLeafES = Remote.getContentFrom(new URL(leafNodeBaseUrl + "/.well-known/openid-federation"));
-		
-		printIssSub(encodedLeafES);
-		
+//		printIssSub(encodedLeafES);
 		List<TrustChainRaw> trustChains = subTrustChains(encodedLeafES, trustAnchorIds);
 		trustChains.forEach(trustChain -> trustChain.add(0, encodedLeafES)); //add also the leaf node 
 		return trustChains;
@@ -100,15 +98,11 @@ public class TrustChainProcessor {
 				try {
 					String encodedSubNodeSelf = Remote.getContentFrom(new URL(authHint + "/.well-known/openid-federation"));
 					EntityStatement subNodeSelfES = parseAndValidateChainLink(encodedSubNodeSelf);
-
-					printIssSub(encodedSubNodeSelf);
-					
+//					printIssSub(encodedSubNodeSelf);
 					String fedApiUrl = subNodeSelfES.getMetadata().getFederationEntity().getFederationApiEndpoint();
 					String encodedSubNodeSubordinate = Remote.getContentFrom(new URL(fedApiUrl + "?iss="+urlEncode(subNodeSelfES.getIssuer())+"&sub="+urlEncode(es.getIssuer())));					
 					EntityStatement subNodeSubordinateES = parseAndValidateChainLink(encodedSubNodeSubordinate);
-					
-					printIssSub(encodedSubNodeSubordinate);
-					
+//					printIssSub(encodedSubNodeSubordinate);
 					//TODO: might want to make some more checks on subNodeSubordinateES integrity
 					List<TrustChainRaw> subList = subTrustChains(encodedSubNodeSelf, trustAnchorIds);
 					for(TrustChainRaw tcr : subList) {
@@ -176,8 +170,7 @@ public class TrustChainProcessor {
 	    EntityStatement statement = parseChainLink(token);
 	    try{
 	        String jsonKey = om.writeValueAsString(statement.getJwks());
-	    
-	    
+	        
 			JWKSet jwkSet = JWKSet.load(new ByteArrayInputStream(jsonKey.getBytes()));
 			JWKSource<SecurityContext> keySource = new ImmutableJWKSet<SecurityContext>(jwkSet);
 			

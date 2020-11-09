@@ -1,10 +1,16 @@
 package org.keycloak.protocol.oidc.federation.rest.op;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -26,8 +32,11 @@ import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
 import org.keycloak.protocol.oidc.federation.beans.Policy;
+import org.keycloak.protocol.oidc.federation.configuration.Config;
+import org.keycloak.protocol.oidc.federation.configuration.beans.OIDCFederationConfig;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
+import org.keycloak.protocol.oidc.federation.paths.TrustChainRaw;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
 import org.keycloak.protocol.oidc.mappers.PairwiseSubMapperHelper;
@@ -67,6 +76,21 @@ public class FederationOPService implements ClientRegistrationProvider {
         setAuth(new ClientRegistrationAuth(session, this, event, "oidc"));
     }
 
+    @GET
+    @Path("trustchain")
+    @Produces("application/json; charset=utf-8")
+    public Response getTrustChain() throws IOException, UnparsableException, BadSigningOrEncryptionException {
+    	
+    	String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master"; 
+    	Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
+    	
+    	TrustChainProcessor trustChainProcessor = new TrustChainProcessor(session);
+    	List<TrustChainRaw> trustChain = trustChainProcessor.constructTrustChains(leafNodeBaseUrl, trustAnchorIds);
+    	
+    	return Response.ok(trustChain).build();
+    }
+    
+    
     @POST
     @Path("fedreg")
     public Response getFederationRegistration(String jwtStatement) {

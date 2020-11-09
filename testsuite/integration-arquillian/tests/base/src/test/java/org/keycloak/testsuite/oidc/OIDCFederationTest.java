@@ -1,6 +1,5 @@
 package org.keycloak.testsuite.oidc;
 
-import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -19,7 +18,6 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.crypto.Algorithm;
@@ -30,7 +28,9 @@ import org.keycloak.jose.jwe.JWEConstants;
 import org.keycloak.jose.jwk.JSONWebKeySet;
 import org.keycloak.jose.jwk.JWK;
 import org.keycloak.jose.jwk.JWKBuilder;
+import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolFactory;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolService;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
@@ -44,7 +44,6 @@ import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.representations.IDToken;
-import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.services.clientregistration.ClientRegistrationService;
 import org.keycloak.services.clientregistration.oidc.OIDCClientRegistrationProviderFactory;
@@ -166,7 +165,7 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
             client.close();
         }
     }
-    
+
     @Test
     @ModelTest
     public void testExplicitRegistration(KeycloakSession session)
@@ -189,7 +188,17 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
             Assert.assertNotNull(clientId);
 
             // check client exist
-//            List<ClientRepresentation> clients = adminClient.realm("test").clients().findByClientId(clientId);
+            RealmModel realm = session.realms().getRealmByName("test");
+            ClientModel cl = realm.getClientByClientId(clientId);
+            Assert.assertNotNull(cl);
+            Assert.assertNotNull(cl.getRedirectUris());
+            assertEquals("client RedirectUris size", 1, cl.getRedirectUris().size());
+            assertEquals("https://127.0.0.1:4000/authz_cb/local", cl.getRedirectUris().stream().findFirst().get());
+            Assert.assertTrue(cl.isStandardFlowEnabled());
+            Assert.assertFalse(cl.isImplicitFlowEnabled());
+            Assert.assertFalse(cl.isPublicClient());
+            assertEquals("client-secret", cl.getClientAuthenticatorType());
+            Assert.assertNotNull(cl.getSecret());
         } finally {
             client.close();
 
@@ -205,7 +214,7 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
 
         return response.readEntity(String.class);
     }
-    
+
     private String federationRegistrationExecution(Client client,KeycloakSession session) throws IOException, URISyntaxException {
         URI federationRegistrationUri = OIDCFederationResourceProvider
             .federationExplicitRegistration(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT)).build("test");
@@ -213,34 +222,34 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         URL rpEntityStatement = getClass().getClassLoader().getResource("oidc/rpEntityStatement.json");
         byte [] content = Files.readAllBytes(Paths.get(rpEntityStatement.toURI()));
         EntityStatement statement = JsonSerialization.readValue(content, EntityStatement.class);
-       // statement.setJwks(getKeySet(session));
+        statement.setJwks(getKeySet(session));
         String token = session.tokens().encode(statement);
 
         Response response = oidcDiscoveryTarget.request().post(Entity.text(token));
 
         return response.readEntity(String.class);
     }
-    
-//    private JSONWebKeySet getKeySet(KeycloakSession session) {
-//        List<JWK> keys = new LinkedList<>();
-//        for (KeyWrapper k : session.keys().getKeys(session.getContext().getRealm())) {
-//            if (k.getStatus().isEnabled() && k.getUse().equals(KeyUse.SIG) && k.getPublicKey() != null) {
-//                JWKBuilder b = JWKBuilder.create().kid(k.getKid()).algorithm(k.getAlgorithm());
-//                if (k.getType().equals(KeyType.RSA)) {
-//                    keys.add(b.rsa(k.getPublicKey(), k.getCertificate()));
-//                } else if (k.getType().equals(KeyType.EC)) {
-//                    keys.add(b.ec(k.getPublicKey()));
-//                }
-//            }
-//        }
-//
-//        JSONWebKeySet keySet = new JSONWebKeySet();
-//
-//        JWK[] k = new JWK[keys.size()];
-//        k = keys.toArray(k);
-//        keySet.setKeys(k);
-//        return keySet;
-//    }
+
+    private JSONWebKeySet getKeySet(KeycloakSession session) {
+        List<JWK> keys = new LinkedList<>();
+        for (KeyWrapper k : session.keys().getKeys(session.getContext().getRealm())) {
+            if (k.getStatus().isEnabled() && k.getUse().equals(KeyUse.SIG) && k.getPublicKey() != null) {
+                JWKBuilder b = JWKBuilder.create().kid(k.getKid()).algorithm(k.getAlgorithm());
+                if (k.getType().equals(KeyType.RSA)) {
+                    keys.add(b.rsa(k.getPublicKey(), k.getCertificate()));
+                } else if (k.getType().equals(KeyType.EC)) {
+                    keys.add(b.ec(k.getPublicKey()));
+                }
+            }
+        }
+
+        JSONWebKeySet keySet = new JSONWebKeySet();
+
+        JWK[] k = new JWK[keys.size()];
+        k = keys.toArray(k);
+        keySet.setKeys(k);
+        return keySet;
+    }
 
 
     private void assertContains(List<String> actual, String... expected) {

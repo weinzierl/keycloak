@@ -22,23 +22,6 @@
   "authority_hints": [
     "https://127.0.0.1:6000/eid/lu.se"
   ],
-  "jwks": {
-    "keys": [
-      {
-        "kid": "ogNWe_zKNiWHxNw8FSBg8YhfIdfgGzo3OPqhZvFnAyE",
-        "kty": "RSA",
-        "alg": "RS256",
-        "use": "sig",
-        "n": "nU_UWytiFase7qXk5b9NuXRz8YE6j1qsFDn2BSepyoh7xkgydxDpsWuOjGstL0zRrsVi18krowDB6pQNLt12zjVVlHnF__CKDRMyFfVyyk0oiHh9qh9q4a8HZzkVFfnhVLHGXOM8v8ydJX4vlEBvy7EHpNXl9oehO7ZQQNEeFTMju8Dh9CvRlSe-YIOn7rkj5votkQuf7yYn5j14s1qIYnVdEb9s5hzsHihp7dZqMK5cSyT8RE1m4ViGpZZ79t6JVSaoeisVIM1hCo2Hlh8UWIyvybSeCb7dX9VB7EEUmLaDKMfFnI3-5_fi8FGEPQTv4iFz0QLy3gfdKdPdummRbw",
-        "e": "AQAB",
-        "x5c": [
-          "MIICmzCCAYMCBgF1kp1y7DANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZtYXN0ZXIwHhcNMjAxMTA0MDkzNDUzWhcNMzAxMTA0MDkzNjMzWjARMQ8wDQYDVQQDDAZtYXN0ZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCdT9RbK2IVqx7upeTlv025dHPxgTqPWqwUOfYFJ6nKiHvGSDJ3EOmxa46May0vTNGuxWLXySujAMHqlA0u3XbONVWUecX/8IoNEzIV9XLKTSiIeH2qH2rhrwdnORUV+eFUscZc4zy/zJ0lfi+UQG/LsQek1eX2h6E7tlBA0R4VMyO7wOH0K9GVJ75gg6fuuSPm+i2RC5/vJifmPXizWohidV0Rv2zmHOweKGnt1mowrlxLJPxETWbhWIallnv23olVJqh6KxUgzWEKjYeWHxRYjK/JtJ4Jvt1f1UHsQRSYtoMox8Wcjf7n9+LwUYQ9BO/iIXPRAvLeB90p0926aZFvAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAEz47CT2rp96ByuPh6c/D0Bcwb6DjYKA365ulvZIC1VjN8n13KTBAy+7alLB5GPmTiiHPjPOJy0EwPv1V5ATLoivSWe7B6xwgcIn3YOa1Pk+XKVGp62ZZlaliXso+fR5Esorzl7ztm71wveGEn4LYqaTj7I8JewQCuOaR8A6xasmKX4AV4+bkX59VlmGtcy9G6aRzdc4n8D85agJY10ormfCrghpiovXnk9I1h/Gy0nUm/XfGzEA6+1cnh1xjO9OuK7Oxqx1kCSfo2E2E7HAjXRiAMh0vTPpPVjhcm1RqIOfBUXAZ2hHGCippYH/XG5I4NqFk7fxxoyZW5wa+f8fvFk="
-        ],
-        "x5t": "HJdtRWy9WFwh-3uFOQC4AcHFHAE",
-        "x5t#S256": "95J97eBqM7pswLs68XPs5Avl7gMwjBek_ZH8zguVhsk"
-      }
-    ]
-  },
   "iss": "https://127.0.0.1:4000/local",
   "iat": 1604657216,
   "exp": 1920190016

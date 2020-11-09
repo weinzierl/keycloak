@@ -2,7 +2,11 @@ package org.keycloak.protocol.oidc.federation.processes;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -63,6 +67,9 @@ public class TrustChainProcessor {
 	public List<TrustChainRaw> constructTrustChains(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException, UnparsableException, BadSigningOrEncryptionException {		
 		trustAnchorIds.stream().map(s -> s.trim()).collect(Collectors.toCollection(HashSet::new));
 		String encodedLeafES = Remote.getContentFrom(new URL(leafNodeBaseUrl + "/.well-known/openid-federation"));
+		
+		printIssSub(encodedLeafES);
+		
 		return subTrustChains(encodedLeafES, trustAnchorIds);
 	}
 	
@@ -78,7 +85,7 @@ public class TrustChainProcessor {
 			return chainsList;
 		}
 		if(es.getAuthorityHints() == null || es.getAuthorityHints().isEmpty()) {
-			if(es.getAuthorityHints().stream().anyMatch(authHint -> trustAnchorIds.contains(authHint))) {
+			if(trustAnchorIds.contains(es.getIssuer())) {
 				TrustChainRaw trustChainRaw = new TrustChainRaw();
 				trustChainRaw.add(encodedNode);
 				chainsList.add(trustChainRaw);
@@ -89,9 +96,15 @@ public class TrustChainProcessor {
 			es.getAuthorityHints().forEach(authHint -> {
 				try {
 					String encodedSubNodeSelf = Remote.getContentFrom(new URL(authHint + "/.well-known/openid-federation"));
+					
+					printIssSub(encodedSubNodeSelf);
+					
 					EntityStatement subNodeSelfES = parseAndValidateChainLink(encodedSubNodeSelf);
 					String fedApiUrl = subNodeSelfES.getMetadata().getFederationEntity().getFederationApiEndpoint();
-					String encodedSubNodeSubordinate = Remote.getContentFrom(new URL(fedApiUrl + "?iss="+subNodeSelfES.getIssuer()+"&sub="+es.getIssuer()));
+					String encodedSubNodeSubordinate = Remote.getContentFrom(new URL(fedApiUrl + "?iss="+urlEncode(subNodeSelfES.getIssuer())+"&sub="+urlEncode(es.getIssuer())));
+					
+					printIssSub(encodedSubNodeSubordinate);
+					
 					EntityStatement subNodeSubordinateES = parseAndValidateChainLink(encodedSubNodeSubordinate);
 					//TODO: might want to make some more checks on subNodeSubordinateES integrity
 					List<TrustChainRaw> subList = subTrustChains(encodedSubNodeSelf, trustAnchorIds);
@@ -112,7 +125,18 @@ public class TrustChainProcessor {
 		
 	}
 	
+	private String urlEncode(String url) throws UnsupportedEncodingException {
+		return URLEncoder.encode(url, StandardCharsets.UTF_8.toString());
+	}
 	
+	private String urlDecode(String url) throws UnsupportedEncodingException {
+		return URLDecoder.decode(url, StandardCharsets.UTF_8.toString());
+	}
+	
+	private void printIssSub(String token) throws UnparsableException {
+		EntityStatement statement = parseChainLink(token);
+		System.out.println(String.format("Asking %s about %s. AuthHints: %s", statement.getIssuer(), statement.getSubject(), statement.getAuthorityHints()));
+	}
 	
 	/**
 	 * This validates the whole trustChain signature

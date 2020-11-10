@@ -2,6 +2,7 @@ package org.keycloak.protocol.oidc.federation.configuration;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import org.keycloak.protocol.oidc.federation.configuration.beans.OIDCFederationConfig;
 
@@ -15,11 +16,10 @@ public class Config {
 	
 	static {
 		ObjectMapper om = new ObjectMapper(new YAMLFactory());
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		File file = new File(classLoader.getResource("federation-config.yml").getFile());
+	    URL resource = Thread.currentThread().getContextClassLoader().getResource("federation-config.yml");
 		
 		try {
-			config = om.readValue(file, OIDCFederationConfig.class);
+			config = om.readValue(resource, OIDCFederationConfig.class);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

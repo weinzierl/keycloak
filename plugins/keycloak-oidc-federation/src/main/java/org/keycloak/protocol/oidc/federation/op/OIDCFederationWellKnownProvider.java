@@ -20,19 +20,12 @@ package org.keycloak.protocol.oidc.federation.op;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.keycloak.common.util.Time;
-import org.keycloak.crypto.KeyType;
-import org.keycloak.crypto.KeyUse;
-import org.keycloak.crypto.KeyWrapper;
-import org.keycloak.jose.jwk.JSONWebKeySet;
-import org.keycloak.jose.jwk.JWK;
-import org.keycloak.jose.jwk.JWKBuilder;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.OIDCWellKnownProvider;

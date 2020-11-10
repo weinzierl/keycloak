@@ -1,9 +1,14 @@
 package org.keycloak.protocol.oidc.federation.rest.op;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -25,8 +30,10 @@ import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
 import org.keycloak.protocol.oidc.federation.beans.Policy;
+import org.keycloak.protocol.oidc.federation.configuration.Config;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
+import org.keycloak.protocol.oidc.federation.paths.TrustChainRaw;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
@@ -58,51 +65,96 @@ public class FederationOPService implements ClientRegistrationProvider {
     private EventBuilder event;
     private ClientRegistrationAuth auth;
     private static final List<String> ALLOWED_RESPONSE_TYPES = Arrays.asList(OIDCResponseType.CODE, OIDCResponseType.TOKEN, OIDCResponseType.ID_TOKEN, OIDCResponseType.NONE);
-
+    private TrustChainProcessor trustChainProcessor;
+    
     public FederationOPService(KeycloakSession session) {
         this.session = session;
         EventBuilder event = new EventBuilder(session.getContext().getRealm(), session, session.getContext().getConnection());
         setEvent(event);
         //endpoint = oidc for being oidc client
         setAuth(new ClientRegistrationAuth(session, this, event, "oidc"));
+        trustChainProcessor = new TrustChainProcessor(session);
     }
 
+    
+    /**
+     * THIS SHOULD BE REMOVED
+     */
+//    @GET
+//    @Path("trustchain")
+//    @Produces("application/json; charset=utf-8")
+//    public Response getTrustChain() throws IOException, UnparsableException, BadSigningOrEncryptionException {
+//      String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master"; 
+//      Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
+//      TrustChainProcessor trustChainProcessor = new TrustChainProcessor(session);
+//      List<TrustChainRaw> trustChain = trustChainProcessor.constructTrustChains(leafNodeBaseUrl, trustAnchorIds);
+//      return Response.ok(trustChain).build();
+//    }
+    
     @POST
     @Path("fedreg")
     public Response getFederationRegistration(String jwtStatement) {
+        
+        EntityStatement statement;
         try {
-            EntityStatement statement = TrustChainProcessor.parseAndValidateChainLink(jwtStatement);
-
-            List<String> authorityHints = statement.getAuthorityHints();
-            // 9.2.1.2.1. bullet 1 verified at least one trust chain
-            boolean verified = true;
-            // random.nextBoolean();
-            if (verified) {
-                OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
-                createMetadataPolicies(rpPolicy,statement.getMetadata().getRp());
-                ClientRepresentation clientSaved= createClient(statement.getMetadata().getRp());
-                // add trust_anchor_id = trust anchor op chose
-                //add one or more authority_hints, from its collection
-                MetadataPolicy policy = new MetadataPolicy(rpPolicy);
-                statement.setMetadataPolicy(policy);
-                statement.setJwks(FedUtils.getKeySet(session));
-                statement.getMetadata().getRp().setClientId(clientSaved.getId());
-                String token = session.tokens().encode(statement);
-                return Response.ok(token).build();
-
-            } else {
-                return Response.status(Response.Status.FORBIDDEN).entity("Not accepted authority_hints").build();
-            }
+            statement = TrustChainProcessor.parseAndValidateChainLink(jwtStatement);
         } catch (UnparsableException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("exception in parsing entity statement")
-                .build();
-        }  catch (BadSigningOrEncryptionException e) {
-            // TODO Auto-generated catch block
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Exception in parsing entity statement").build();
+        } catch (BadSigningOrEncryptionException e) {
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("No valid token").build();
         }
+        
+        //DELETE THIS LINE
+        statement.setAuthorityHints(Arrays.asList("http://localhost:8080/intermediate2"));
+        
+        if(!statement.getIssuer().trim().equals(statement.getSubject().trim()))
+            return Response.status(Response.Status.BAD_REQUEST).entity("The registration request issuer differs from the subject.").build();
+
+        Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
+        
+        ConcurrentHashMap<String, List<TrustChainRaw>> authHintsTrustChains = new ConcurrentHashMap<String, List<TrustChainRaw>>();
+        
+        statement.getAuthorityHints().parallelStream().forEach(authorityHint -> {
+            try {
+                authHintsTrustChains.put(authorityHint, trustChainProcessor.constructTrustChains(authorityHint, trustAnchorIds));
+            } catch (IOException | UnparsableException | BadSigningOrEncryptionException e) {
+                // TODO Replace with an appropriate log here
+                e.printStackTrace();
+            }
+        });
+        
+        // 9.2.1.2.1. bullet 1 found and verified at least one trust chain
+        boolean verified = false;
+        TrustChainRaw trustChainPicked = null;
+        String authHintPicked = null;
+        if(authHintsTrustChains.size() > 0) {
+            verified = true;
+            //just pick one randomly
+            authHintPicked = (String)authHintsTrustChains.keySet().toArray()[new Random().nextInt(authHintsTrustChains.keySet().size())];
+            List<TrustChainRaw> chains = authHintsTrustChains.get(authHintPicked);
+            trustChainPicked = chains.get(new Random().nextInt(chains.size()));
+        }
+        
+        // random.nextBoolean();
+        if (verified) {
+            OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
+            createMetadataPolicies(rpPolicy,statement.getMetadata().getRp());
+            ClientRepresentation clientSaved= createClient(statement.getMetadata().getRp());
+            // add trust_anchor_id = trust anchor op chose
+            //add one or more authority_hints, from its collection
+            MetadataPolicy policy = new MetadataPolicy(rpPolicy);
+            statement.setMetadataPolicy(policy);
+            statement.setJwks(FedUtils.getKeySet(session));
+            statement.getMetadata().getRp().setClientId(clientSaved.getId());
+            String token = session.tokens().encode(statement);
+            return Response.ok(token).build();
+
+        } else {
+            return Response.status(Response.Status.FORBIDDEN).entity("Not accepted authority_hints").build();
+        }
+
 
     }
 

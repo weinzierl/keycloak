@@ -89,7 +89,7 @@ public class FederationOPService implements ClientRegistrationProvider {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Exception in parsing entity statement").build();
         } catch (BadSigningOrEncryptionException e) {
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("No valid token").build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity("No valid token").build();
         }
         
         if(!statement.getIssuer().trim().equals(statement.getSubject().trim()))
@@ -101,7 +101,9 @@ public class FederationOPService implements ClientRegistrationProvider {
         
         statement.getAuthorityHints().parallelStream().forEach(authorityHint -> {
             try {
-                authHintsTrustChains.put(authorityHint, trustChainProcessor.constructTrustChains(authorityHint, trustAnchorIds));
+                List<TrustChainRaw> trustChains = trustChainProcessor.constructTrustChains(authorityHint, trustAnchorIds);
+                if(trustChains!=null && !trustChains.isEmpty())
+                    authHintsTrustChains.put(authorityHint, trustChains);
             } catch (IOException | UnparsableException | BadSigningOrEncryptionException e) {
                 // TODO Replace with an appropriate log here
                 e.printStackTrace();
@@ -109,19 +111,11 @@ public class FederationOPService implements ClientRegistrationProvider {
         });
         
         // 9.2.1.2.1. bullet 1 found and verified at least one trust chain
-        boolean verified = false;
-        TrustChainRaw trustChainPicked = null;
-        String authHintPicked = null;
         if(authHintsTrustChains.size() > 0) {
-            verified = true;
             //just pick one randomly
-            authHintPicked = (String)authHintsTrustChains.keySet().toArray()[new Random().nextInt(authHintsTrustChains.keySet().size())];
+            String authHintPicked = (String)authHintsTrustChains.keySet().toArray()[new Random().nextInt(authHintsTrustChains.keySet().size())];
             List<TrustChainRaw> chains = authHintsTrustChains.get(authHintPicked);
-            trustChainPicked = chains.get(new Random().nextInt(chains.size()));
-        }
-        
-        // random.nextBoolean();
-        if (verified) {
+            TrustChainRaw trustChainPicked = chains.get(new Random().nextInt(chains.size()));     
             OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
             createMetadataPolicies(rpPolicy,statement.getMetadata().getRp());
             ClientRepresentation clientSaved= createClient(statement.getMetadata().getRp());

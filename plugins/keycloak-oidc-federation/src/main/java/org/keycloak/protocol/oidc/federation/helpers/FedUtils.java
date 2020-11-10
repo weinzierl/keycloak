@@ -19,25 +19,16 @@ import org.keycloak.models.KeycloakSession;
 public class FedUtils {
 
     public static String getContentFrom(URL url) throws IOException {
+        StringBuffer content = new StringBuffer();
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
-        StringBuffer content = new StringBuffer();
-        try {
-            while ((inputLine = in.readLine()) != null)
-                content.append(inputLine);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-            }
-        }
+        while ((inputLine = in.readLine()) != null)
+            content.append(inputLine);
         return content.toString();
     }
-
+    
     public static JSONWebKeySet getKeySet(KeycloakSession session) {
         List<JWK> keys = new LinkedList<>();
         for (KeyWrapper k : session.keys().getKeys(session.getContext().getRealm())) {

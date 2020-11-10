@@ -39,6 +39,7 @@ import org.keycloak.protocol.oidc.OIDCWellKnownProvider;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.Metadata;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentation;
+import org.keycloak.protocol.oidc.federation.configuration.Config;
 import org.keycloak.protocol.oidc.federation.exceptions.InternalServerErrorException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
@@ -91,13 +92,12 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
 		Metadata metadata = new Metadata();
 		metadata.setOp(config);
 
-
         EntityStatement entityStatement = new EntityStatement();
-        entityStatement.issuedFor(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
         entityStatement.setMetadata(metadata);
-//        entityStatement.setAuthorityHints(authorityHints);
-        entityStatement.setJwks(FedUtils.getKeySet(session));
+        entityStatement.setAuthorityHints(Config.getConfig().getAuthorityHints());
+         entityStatement.setJwks(FedUtils.getKeySet(session));
         entityStatement.issuer(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
+        entityStatement.subject(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
         entityStatement.issuedNow();
         entityStatement.exp(Long.valueOf(Time.currentTime()) + ENTITY_EXPIRES_AFTER_SEC);
 
@@ -114,28 +114,5 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
     public static OIDCFederationConfigurationRepresentation from(OIDCConfigurationRepresentation representation) throws IOException {
     	return JsonSerialization.readValue(JsonSerialization.writeValueAsString(representation), OIDCFederationConfigurationRepresentation.class);
     }
-
-
-//    private List<String> getAvailableAsymSigAlgTypes(){
-//    	return session.keys().getKeys(session.getContext().getRealm()).stream()
-//    			.filter(key -> key.getUse().equals(KeyUse.SIG) && key.getType().equals(KeyType.RSA))
-//    			.map(key -> key.getAlgorithm())
-//    			.collect(Collectors.toList());
-//    }
-//
-//
-//
-//	private String generateOIDCHash(String input) throws NoAlgorithmException {
-//		String signatureAlgorithm = getAvailableAsymSigAlgTypes().stream().findFirst().orElseThrow(() -> new NoAlgorithmException("No available asymmetric key signing algorithm available for realm "+session.getContext().getRealm().getName()));
-//
-//        SignatureProvider signatureProvider = session.getProvider(SignatureProvider.class, signatureAlgorithm);
-//        String hashAlgorithm = signatureProvider.signer().getHashAlgorithm();
-//
-//        HashProvider hashProvider = session.getProvider(HashProvider.class, hashAlgorithm);
-//        byte[] hash = hashProvider.hash(input);
-//
-//        return HashUtils.encodeHashToOIDC(hash);
-//    }
-
 
 }

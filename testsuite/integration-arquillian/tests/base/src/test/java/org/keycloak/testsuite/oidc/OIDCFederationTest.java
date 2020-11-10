@@ -38,6 +38,7 @@ import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresent
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentation;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
+import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.op.OIDCFederationWellKnownProvider;
 import org.keycloak.protocol.oidc.federation.op.OIDCFederationWellKnownProviderFactory;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
@@ -76,10 +77,12 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
             // check statement fields
             assertEquals(statement.getIssuer(),
                 RealmsResource.realmBaseUrl(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT)).build("test").toString());
-            // assertEquals(statement.getSubject(),RealmsResource.realmBaseUrl(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT)).build("test").toString());
-            // Assert.assertNotNull(statement.getAuthorityHints());
-            // assertEquals("AuthorityHints.size", 1, statement.getAuthorityHints().size());
-            // assertEquals("AuthorityHints.size", statement.getAuthorityHints().get(0));
+            assertEquals(statement.getSubject(),
+                RealmsResource.realmBaseUrl(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT)).build("test").toString());
+            Assert.assertNotNull(statement.getAuthorityHints());
+            assertEquals("AuthorityHints.size", 2, statement.getAuthorityHints().size());
+            assertContains(statement.getAuthorityHints(), "http://localhost:8080/intermediate1",
+                "http://localhost:8080/intermediate2");
             Assert.assertNotNull(statement.getMetadata());
             Assert.assertNotNull(statement.getMetadata().getOp());
             // check federation open id provider configuration
@@ -219,35 +222,13 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         URL rpEntityStatement = getClass().getClassLoader().getResource("oidc/rpEntityStatement.json");
         byte [] content = Files.readAllBytes(Paths.get(rpEntityStatement.toURI()));
         EntityStatement statement = JsonSerialization.readValue(content, EntityStatement.class);
-        statement.setJwks(getKeySet(session));
+        statement.setJwks(FedUtils.getKeySet(session));
         String token = session.tokens().encode(statement);
 
         Response response = oidcDiscoveryTarget.request().post(Entity.text(token));
 
         return response.readEntity(String.class);
     }
-
-    private JSONWebKeySet getKeySet(KeycloakSession session) {
-        List<JWK> keys = new LinkedList<>();
-        for (KeyWrapper k : session.keys().getKeys(session.getContext().getRealm())) {
-            if (k.getStatus().isEnabled() && k.getUse().equals(KeyUse.SIG) && k.getPublicKey() != null) {
-                JWKBuilder b = JWKBuilder.create().kid(k.getKid()).algorithm(k.getAlgorithm());
-                if (k.getType().equals(KeyType.RSA)) {
-                    keys.add(b.rsa(k.getPublicKey(), k.getCertificate()));
-                } else if (k.getType().equals(KeyType.EC)) {
-                    keys.add(b.ec(k.getPublicKey()));
-                }
-            }
-        }
-
-        JSONWebKeySet keySet = new JSONWebKeySet();
-
-        JWK[] k = new JWK[keys.size()];
-        k = keys.toArray(k);
-        keySet.setKeys(k);
-        return keySet;
-    }
-
 
     private void assertContains(List<String> actual, String... expected) {
         for (String exp : expected) {

@@ -19,7 +19,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
-import org.keycloak.protocol.oidc.federation.helpers.Remote;
+import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.paths.TrustChainParsed;
 import org.keycloak.protocol.oidc.federation.paths.TrustChainRaw;
 
@@ -66,7 +66,7 @@ public class TrustChainProcessor {
 	 */
 	public List<TrustChainRaw> constructTrustChains(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException, UnparsableException, BadSigningOrEncryptionException {		
 		trustAnchorIds.stream().map(s -> s.trim()).collect(Collectors.toCollection(HashSet::new));
-		String encodedLeafES = Remote.getContentFrom(new URL(leafNodeBaseUrl + "/.well-known/openid-federation"));
+		String encodedLeafES = FedUtils.getContentFrom(new URL(leafNodeBaseUrl + "/.well-known/openid-federation"));
 		
 		printIssSub(encodedLeafES);
 		
@@ -98,13 +98,13 @@ public class TrustChainProcessor {
 			
 			es.getAuthorityHints().forEach(authHint -> {
 				try {
-					String encodedSubNodeSelf = Remote.getContentFrom(new URL(authHint + "/.well-known/openid-federation"));
+					String encodedSubNodeSelf = FedUtils.getContentFrom(new URL(authHint + "/.well-known/openid-federation"));
 					EntityStatement subNodeSelfES = parseAndValidateChainLink(encodedSubNodeSelf);
 
 					printIssSub(encodedSubNodeSelf);
 					
 					String fedApiUrl = subNodeSelfES.getMetadata().getFederationEntity().getFederationApiEndpoint();
-					String encodedSubNodeSubordinate = Remote.getContentFrom(new URL(fedApiUrl + "?iss="+urlEncode(subNodeSelfES.getIssuer())+"&sub="+urlEncode(es.getIssuer())));					
+					String encodedSubNodeSubordinate = FedUtils.getContentFrom(new URL(fedApiUrl + "?iss="+urlEncode(subNodeSelfES.getIssuer())+"&sub="+urlEncode(es.getIssuer())));					
 					EntityStatement subNodeSubordinateES = parseAndValidateChainLink(encodedSubNodeSubordinate);
 					
 					printIssSub(encodedSubNodeSubordinate);

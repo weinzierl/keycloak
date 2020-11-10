@@ -27,6 +27,7 @@ import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresent
 import org.keycloak.protocol.oidc.federation.beans.Policy;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
+import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
 import org.keycloak.protocol.oidc.mappers.PairwiseSubMapperHelper;
@@ -84,6 +85,7 @@ public class FederationOPService implements ClientRegistrationProvider {
                 //add one or more authority_hints, from its collection
                 MetadataPolicy policy = new MetadataPolicy(rpPolicy);
                 statement.setMetadataPolicy(policy);
+                statement.setJwks(FedUtils.getKeySet(session));
                 statement.getMetadata().getRp().setClientId(clientSaved.getId());
                 String token = session.tokens().encode(statement);
                 return Response.ok(token).build();

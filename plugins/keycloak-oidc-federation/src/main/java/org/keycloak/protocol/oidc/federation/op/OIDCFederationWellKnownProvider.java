@@ -40,6 +40,7 @@ import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.Metadata;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentation;
 import org.keycloak.protocol.oidc.federation.exceptions.InternalServerErrorException;
+import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProviderFactory;
 import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
@@ -95,7 +96,7 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
         entityStatement.issuedFor(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
         entityStatement.setMetadata(metadata);
 //        entityStatement.setAuthorityHints(authorityHints);
-        entityStatement.setJwks(getKeySet());
+        entityStatement.setJwks(FedUtils.getKeySet(session));
         entityStatement.issuer(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
         entityStatement.issuedNow();
         entityStatement.exp(Long.valueOf(Time.currentTime()) + ENTITY_EXPIRES_AFTER_SEC);
@@ -108,28 +109,6 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
 
     @Override
     public void close() {
-    }
-
-
-    private JSONWebKeySet getKeySet() {
-    	List<JWK> keys = new LinkedList<>();
-        for (KeyWrapper k : session.keys().getKeys(session.getContext().getRealm())) {
-            if (k.getStatus().isEnabled() && k.getUse().equals(KeyUse.SIG) && k.getPublicKey() != null) {
-                JWKBuilder b = JWKBuilder.create().kid(k.getKid()).algorithm(k.getAlgorithm());
-                if (k.getType().equals(KeyType.RSA)) {
-                    keys.add(b.rsa(k.getPublicKey(), k.getCertificate()));
-                } else if (k.getType().equals(KeyType.EC)) {
-                    keys.add(b.ec(k.getPublicKey()));
-                }
-            }
-        }
-
-        JSONWebKeySet keySet = new JSONWebKeySet();
-
-        JWK[] k = new JWK[keys.size()];
-        k = keys.toArray(k);
-        keySet.setKeys(k);
-        return keySet;
     }
 
     public static OIDCFederationConfigurationRepresentation from(OIDCConfigurationRepresentation representation) throws IOException {

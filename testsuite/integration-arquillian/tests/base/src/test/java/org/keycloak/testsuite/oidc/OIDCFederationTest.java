@@ -72,7 +72,7 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         Client client = ClientBuilder.newClient();
         try {
 
-            EntityStatement statement = TrustChainProcessor.parseAndValidateChainLink(getOIDCDiscoveryConfiguration(client));
+            EntityStatement statement = TrustChainProcessor.parseAndValidateSelfSigned(getOIDCDiscoveryConfiguration(client));
 
             // check statement fields
             assertEquals(statement.getIssuer(),
@@ -178,7 +178,7 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         try {
             String st = federationRegistrationExecution(client, session);
             EntityStatement statement = TrustChainProcessor
-                .parseAndValidateChainLink(st);
+                .parseAndValidateSelfSigned(st);
             // check entity statements enchancements
             Assert.assertNotNull(statement.getMetadataPolicy());
             Assert.assertNotNull(statement.getMetadataPolicy().getRpPolicy());

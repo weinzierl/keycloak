@@ -1,8 +1,10 @@
 package org.keycloak.protocol.oidc.federation.rest.op;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -16,6 +18,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
+import org.jboss.logging.Logger;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
@@ -34,8 +37,8 @@ import org.keycloak.protocol.oidc.federation.beans.Policy;
 import org.keycloak.protocol.oidc.federation.configuration.Config;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
-import org.keycloak.protocol.oidc.federation.paths.TrustChainRaw;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
+import org.keycloak.protocol.oidc.federation.paths.TrustChainRaw;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
 import org.keycloak.protocol.oidc.mappers.PairwiseSubMapperHelper;
@@ -44,6 +47,7 @@ import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.SubjectType;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
+import org.keycloak.representations.oidc.OIDCClientRepresentation;
 import org.keycloak.services.ErrorResponseException;
 import org.keycloak.services.ServicesLogger;
 import org.keycloak.services.clientregistration.ClientRegistrationAuth;
@@ -61,6 +65,8 @@ import org.keycloak.services.validation.ValidationMessages;
 import org.keycloak.validation.ClientValidationUtil;
 
 public class FederationOPService implements ClientRegistrationProvider {
+
+    private static final Logger logger = Logger.getLogger(FederationOPService.class);
 
     private KeycloakSession session;
     private EventBuilder event;
@@ -104,19 +110,23 @@ public class FederationOPService implements ClientRegistrationProvider {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Exception in parsing entity statement").build();
         } catch (BadSigningOrEncryptionException e) {
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("No valid token").build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity("No valid token").build();
         }
-        
-        if(!statement.getIssuer().trim().equals(statement.getSubject().trim()))
+
+        if(!statement.getIssuer().trim().equals(statement.getSubject().trim())) {
             return Response.status(Response.Status.BAD_REQUEST).entity("The registration request issuer differs from the subject.").build();
+        }
 
         Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
         
+        logger.info("starting validating trust chains");
         ConcurrentHashMap<String, List<TrustChainRaw>> authHintsTrustChains = new ConcurrentHashMap<String, List<TrustChainRaw>>();
         
         statement.getAuthorityHints().parallelStream().forEach(authorityHint -> {
             try {
-                authHintsTrustChains.put(authorityHint, trustChainProcessor.constructTrustChains(authorityHint, trustAnchorIds));
+                List<TrustChainRaw> trustChains = trustChainProcessor.constructTrustChains(authorityHint, trustAnchorIds);
+                if(trustChains!=null && !trustChains.isEmpty())
+                    authHintsTrustChains.put(authorityHint, trustChains);
             } catch (IOException | UnparsableException | BadSigningOrEncryptionException e) {
                 // TODO Replace with an appropriate log here
                 e.printStackTrace();
@@ -124,28 +134,26 @@ public class FederationOPService implements ClientRegistrationProvider {
         });
         
         // 9.2.1.2.1. bullet 1 found and verified at least one trust chain
-        boolean verified = false;
-        TrustChainRaw trustChainPicked = null;
-        String authHintPicked = null;
-        if(authHintsTrustChains.size() > 0) {
-            verified = true;
+     if(authHintsTrustChains.size() > 0) {
             //just pick one randomly
-            authHintPicked = (String)authHintsTrustChains.keySet().toArray()[new Random().nextInt(authHintsTrustChains.keySet().size())];
+            String authHintPicked = (String) authHintsTrustChains.keySet().toArray()[new Random()
+                .nextInt(authHintsTrustChains.keySet().size())];
             List<TrustChainRaw> chains = authHintsTrustChains.get(authHintPicked);
-            trustChainPicked = chains.get(new Random().nextInt(chains.size()));
-        }
-        
-        // random.nextBoolean();
-        if (verified) {
+            TrustChainRaw trustChainPicked = chains.get(new Random().nextInt(chains.size()));
             OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
-            createMetadataPolicies(rpPolicy,statement.getMetadata().getRp());
-            ClientRepresentation clientSaved= createClient(statement.getMetadata().getRp());
+            createMetadataPolicies(rpPolicy, statement.getMetadata().getRp());
+            ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer());
+            URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
+            OIDCClientRepresentation clientOIDC = DescriptionConverter.toExternalResponse(session, clientSaved, uri);
+            OIDCFederationClientRepresentation fedClient = new OIDCFederationClientRepresentation(clientOIDC,
+                statement.getMetadata().getRp().getClient_registration_types(),
+                statement.getMetadata().getRp().getOrganization_name());
+            statement.getMetadata().setRp(fedClient);
             // add trust_anchor_id = trust anchor op chose
-            //add one or more authority_hints, from its collection
+            // add one or more authority_hints, from its collection
             MetadataPolicy policy = new MetadataPolicy(rpPolicy);
             statement.setMetadataPolicy(policy);
             statement.setJwks(FedUtils.getKeySet(session));
-            statement.getMetadata().getRp().setClientId(clientSaved.getId());
             String token = session.tokens().encode(statement);
             return Response.ok(token).build();
 
@@ -169,14 +177,16 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     }
 
-    private ClientRepresentation createClient(OIDCFederationClientRepresentation clientRepresentastion) {
+    private ClientRepresentation createClient(OIDCFederationClientRepresentation clientRepresentastion, String identifier) {
         // 9.2.1.2.1. 3 check. How? -> extend client for having entity identifier??
         if (clientRepresentastion.getClientId() != null) {
             throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client Identifier included",
                 Response.Status.BAD_REQUEST);
         }
         try {
+            logger.info("Starting creating client for identifier: "+identifier);
             ClientRepresentation client = DescriptionConverter.toInternal(session, clientRepresentastion);
+            client.setClientId(identifier);
             List<String> grantTypes = clientRepresentastion.getGrantTypes();
 
             if (grantTypes != null && grantTypes.contains(OAuth2Constants.UMA_GRANT_TYPE)) {

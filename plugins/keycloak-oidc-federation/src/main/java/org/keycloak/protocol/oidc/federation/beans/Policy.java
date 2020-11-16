@@ -1,71 +1,139 @@
 package org.keycloak.protocol.oidc.federation.beans;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyCombinationException;
+import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyException;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class Policy<T> {
+public class Policy<T> extends AbstractPolicy<T> {
 
-    private List<T> subset_of;
-    private List<T> one_of;
-    private List<T> superset_of;
-    private T add;
     private T value;
     @JsonProperty("default")
     private T defaultValue;
-    private T essential;
 
     public static <T> PolicyBuilder<T> builder() {
         return new PolicyBuilder<T>();
     }
-    
-    protected Policy(){
-        
+
+    public Policy() {
+
     }
 
     protected Policy(PolicyBuilder<T> builder) {
-        this.subset_of = builder.subset_of;
-        this.one_of = builder.one_of;
-        this.superset_of = builder.superset_of;
-        this.add = builder.add;
+        this.subset_of = builder.subset_of.isEmpty() ? null : builder.subset_of;
+        this.one_of = builder.one_of.isEmpty() ? null : builder.one_of;
+        this.superset_of = builder.superset_of.isEmpty() ? null : builder.superset_of;
+        this.add = builder.add.isEmpty() ? null : builder.add;
         this.value = builder.value;
         this.defaultValue = builder.defaultValue;
         this.essential = builder.essential;
     }
 
-    public List<T> getSubset_of() {
-        return subset_of;
+    public Policy<T> combinePolicy(Policy<T> inferior) throws MetadataPolicyCombinationException {
+
+        if (inferior == null)
+            return this;
+        // first check combination value with one_of, subset_of , superset_of
+        if (notNullnotEqual(this.value, inferior.getValue())) {
+            throw new MetadataPolicyCombinationException("Could not combine two different values");
+        }
+        if (this.value != null) {
+            this.one_of = null;
+            this.subset_of = null;
+            this.superset_of = null;
+            inferior.setOne_of(null);
+            inferior.setSubset_of(null);
+            inferior.setSuperset_of(null);
+        }
+
+        this.combinePolicyCommon(inferior);
+
+        if (this.value == null) {
+            if (inferior.getValue() != null && ((this.one_of != null && !this.one_of.contains(inferior.getValue()))
+                || (this.subset_of != null && !this.subset_of.contains(inferior.getValue()))
+                || (this.superset_of != null && !this.superset_of.contains(inferior.getValue()))))
+                throw new MetadataPolicyCombinationException(
+                    "Not null inferior value must be containing in one_of,subset_of and superset_of, if one of these exist ");
+            this.value = inferior.getValue();
+        }
+        if (notNullnotEqual(this.defaultValue, inferior.getDefaultValue())) {
+            throw new MetadataPolicyCombinationException("Could not construct two different values");
+        } else if (this.defaultValue == null) {
+            this.defaultValue = inferior.getDefaultValue();
+        }
+        if (illegalDefaultValueCombination())
+            throw new MetadataPolicyCombinationException(
+                "Not null default value must be containing in one_of,subset_of and superset_of, if one of these exist ");
+
+        if (isNotAcceptedCombination(this.defaultValue, this.value))
+            throw new MetadataPolicyCombinationException("False Policy Type Combination exists");
+
+        return this;
     }
 
-    public void setSubset_of(List<T> subset_of) {
-        this.subset_of = subset_of;
+    public Policy<T> policyTypeCombination() throws MetadataPolicyCombinationException {
+        // same rules as for combination
+        if (illegalDefaultValueCombination())
+            throw new MetadataPolicyCombinationException(
+                "Not null default value must be subset of one_of,subset_of and superset of superset_of, if one of these exist ");
+
+        if (isNotAcceptedCombination(this.defaultValue, this.value))
+            throw new MetadataPolicyCombinationException("False Policy Type Combination exists");
+
+        if (this.value != null) {
+            this.one_of = null;
+            this.subset_of = null;
+            this.superset_of = null;
+        }
+
+
+        return this;
     }
 
-    public List<T> getOne_of() {
-        return one_of;
+    private boolean illegalDefaultValueCombination() {
+        return this.defaultValue != null && ((this.one_of != null && !this.one_of.contains(this.defaultValue))
+            || (this.subset_of != null && !this.subset_of.contains(this.defaultValue))
+            || (this.superset_of != null && !this.superset_of.contains(this.defaultValue)));
     }
 
-    public void setOne_of(List<T> one_of) {
-        this.one_of = one_of;
+    private boolean notNullnotEqual(T superiorValue, T inferiorValue) {
+        return superiorValue != null && inferiorValue != null && !superiorValue.equals(inferiorValue);
     }
 
-    public List<T> getSuperset_of() {
-        return superset_of;
-    }
+    public T enforcePolicy(T t, String name) throws MetadataPolicyException {
+        //If essential is not present that is the same as stating essential=true.
+        if (this.essential == null)
+            this.essential = true;
+        
+        if (t == null && this.essential != null && this.essential)
+            throw new MetadataPolicyException(name + " must exist in rp");
 
-    public void setSuperset_of(List<T> superset_of) {
-        this.superset_of = superset_of;
-    }
+        // add ???
+        if (this.value != null) {
+            return this.value;
+        }
 
-    public T getAdd() {
-        return add;
-    }
+        if (this.one_of != null && ((t != null && !this.one_of.contains(t)) || t == null))
+            throw new MetadataPolicyException(
+                name + " must have one values of " + StringUtils.join(this.one_of.toArray(), ","));
+        if (this.superset_of != null && (this.superset_of.size() > 1 || (t != null && !this.superset_of.contains(t))))
+            throw new MetadataPolicyException(
+                name + " value must be superset of " + StringUtils.join(this.one_of.toArray(), ","));
 
-    public void setAdd(T add) {
-        this.add = add;
+        if (this.defaultValue != null && t == null) {
+            return this.defaultValue;
+        }
+
+        if (this.subset_of != null && t != null && !this.subset_of.contains(t))
+            t = null;
+
+        return t;
     }
 
     public T getValue() {
@@ -84,29 +152,20 @@ public class Policy<T> {
         this.defaultValue = defaultValue;
     }
 
-    public T getEssential() {
-        return essential;
-    }
-
-    public void setEssential(T essential) {
-        this.essential = essential;
-    }
-
     public static class PolicyBuilder<T> {
-        private List<T> subset_of = new ArrayList<>();
-        private List<T> one_of = new ArrayList<>();
-        private List<T> superset_of = new ArrayList<>();
-        private T add;
+        private Set<T> subset_of = new HashSet<>();
+        private Set<T> one_of = new HashSet<>();
+        private Set<T> superset_of = new HashSet<>();
+        private Set<T> add = new HashSet<>();
         private T value;
         private T defaultValue;
-        private T essential;
+        private Boolean essential;
 
-        
-        public PolicyBuilder<T> subsetOf(List<T> subsetOfList) {
-            this.subset_of= subsetOfList;
+        public PolicyBuilder<T> subsetOf(Set<T> subsetOfSet) {
+            this.subset_of = subsetOfSet;
             return this;
         }
-        
+
         public PolicyBuilder<T> addSubsetOf(T subsetOf) {
             this.subset_of.add(subsetOf);
             return this;
@@ -122,8 +181,8 @@ public class Policy<T> {
             return this;
         }
 
-        public PolicyBuilder<T> add(T add) {
-            this.add = add;
+        public PolicyBuilder<T> addAdd(T add) {
+            this.add.add(add);
             return this;
         }
 
@@ -137,7 +196,7 @@ public class Policy<T> {
             return this;
         }
 
-        public PolicyBuilder<T> essential(T essential) {
+        public PolicyBuilder<T> essential(Boolean essential) {
             this.essential = essential;
             return this;
         }

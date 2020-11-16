@@ -19,6 +19,7 @@ public class OIDCFederationConfigurationRepresentation extends OIDCConfiguration
     @JsonProperty("client_registration_types_supported")
     private List<String> clientRegistrationTypesSupported;
     
+    //needed if automatic client registration is supported ( section 9.1)
     @JsonProperty("client_registration_authn_methods_supported")
     private Map<String,List<String>> clientRegistrationAuthnMethodsSupported;
 

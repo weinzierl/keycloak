@@ -2,15 +2,13 @@ package org.keycloak.protocol.oidc.federation.rest.op;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -32,7 +30,7 @@ import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
-import org.keycloak.protocol.oidc.federation.beans.Policy;
+import org.keycloak.protocol.oidc.federation.beans.PolicyList;
 import org.keycloak.protocol.oidc.federation.configuration.Config;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
@@ -70,9 +68,11 @@ public class FederationOPService implements ClientRegistrationProvider {
     private KeycloakSession session;
     private EventBuilder event;
     private ClientRegistrationAuth auth;
-    private static final List<String> ALLOWED_RESPONSE_TYPES = Arrays.asList(OIDCResponseType.CODE, OIDCResponseType.TOKEN, OIDCResponseType.ID_TOKEN, OIDCResponseType.NONE);
+    private static final Set<String> ALLOWED_RESPONSE_TYPES = Stream
+        .of(OIDCResponseType.CODE, OIDCResponseType.TOKEN, OIDCResponseType.ID_TOKEN, OIDCResponseType.NONE)
+        .collect(Collectors.toSet());
     private TrustChainProcessor trustChainProcessor;
-    
+
     public FederationOPService(KeycloakSession session) {
         this.session = session;
         EventBuilder event = new EventBuilder(session.getContext().getRealm(), session, session.getContext().getConnection());
@@ -82,11 +82,11 @@ public class FederationOPService implements ClientRegistrationProvider {
         trustChainProcessor = new TrustChainProcessor(session);
     }
 
-    
+
     @POST
     @Path("fedreg")
     public Response getFederationRegistration(String jwtStatement) {
-        
+
         EntityStatement statement;
         try {
             statement = TrustChainProcessor.parseAndValidateChainLink(jwtStatement);
@@ -103,21 +103,22 @@ public class FederationOPService implements ClientRegistrationProvider {
         }
 
         Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
-        
+
         logger.info("starting validating trust chains");
         ConcurrentHashMap<String, List<TrustChainRaw>> authHintsTrustChains = new ConcurrentHashMap<String, List<TrustChainRaw>>();
-        
+
         statement.getAuthorityHints().parallelStream().forEach(authorityHint -> {
             try {
                 List<TrustChainRaw> trustChains = trustChainProcessor.constructTrustChains(authorityHint, trustAnchorIds);
-                if(trustChains!=null && !trustChains.isEmpty())
+                if(trustChains!=null && !trustChains.isEmpty()) {
                     authHintsTrustChains.put(authorityHint, trustChains);
+                }
             } catch (IOException | UnparsableException | BadSigningOrEncryptionException e) {
                 // TODO Replace with an appropriate log here
                 e.printStackTrace();
             }
         });
-        
+
         // 9.2.1.2.1. bullet 1 found and verified at least one trust chain
      if(authHintsTrustChains.size() > 0) {
             //just pick one randomly
@@ -125,8 +126,7 @@ public class FederationOPService implements ClientRegistrationProvider {
                 .nextInt(authHintsTrustChains.keySet().size())];
             List<TrustChainRaw> chains = authHintsTrustChains.get(authHintPicked);
             TrustChainRaw trustChainPicked = chains.get(new Random().nextInt(chains.size()));
-            OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
-            createMetadataPolicies(rpPolicy, statement.getMetadata().getRp());
+            OIDCFederationClientRepresentationPolicy rpPolicy =createMetadataPolicies();
             ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer());
             URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
             OIDCClientRepresentation clientOIDC = DescriptionConverter.toExternalResponse(session, clientSaved, uri);
@@ -149,16 +149,13 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     }
 
-    private void createMetadataPolicies(OIDCFederationClientRepresentationPolicy rpPolicy,OIDCFederationClientRepresentation client) {
+    private OIDCFederationClientRepresentationPolicy createMetadataPolicies() {
         //enhancement may be needed from (OIDCConfigurationRepresentation) super.getConfig()
-        List<String> removedResponseTypes= new ArrayList<>();
-        client.getResponseTypes().stream().forEach(rtype-> {
-            if (!ALLOWED_RESPONSE_TYPES.contains(rtype)) {
-                rpPolicy.setResponse_types(Policy.<String>builder().subsetOf(ALLOWED_RESPONSE_TYPES).build());
-                removedResponseTypes.add(rtype);
-            }
-        });
-        client.getResponseTypes().removeAll(removedResponseTypes);
+        PolicyList<String> policy = new PolicyList<String>();
+        policy.setSubset_of(ALLOWED_RESPONSE_TYPES);
+        OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
+        rpPolicy.setResponse_types(policy);
+        return rpPolicy;
 
     }
 

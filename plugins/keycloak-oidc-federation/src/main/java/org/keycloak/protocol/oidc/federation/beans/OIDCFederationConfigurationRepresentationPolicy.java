@@ -1,5 +1,10 @@
 package org.keycloak.protocol.oidc.federation.beans;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class OIDCFederationConfigurationRepresentationPolicy {
@@ -11,7 +16,7 @@ public class OIDCFederationConfigurationRepresentationPolicy {
     private Policy<String> pushedAuthorizationRequestEndpoint;
     
     @JsonProperty("client_registration_types_supported")
-    private Policy<String> clientRegistrationTypesSupported;
+    private PolicyList<String> clientRegistrationTypesSupported;
     
     //needed?how?
 //    @JsonProperty("client_registration_authn_methods_supported")
@@ -45,52 +50,52 @@ public class OIDCFederationConfigurationRepresentationPolicy {
     private Policy<String> checkSessionIframe;
 
     @JsonProperty("grant_types_supported")
-    private Policy<String> grantTypesSupported;
+    private PolicyList<String> grantTypesSupported;
 
     @JsonProperty("response_types_supported")
-    private Policy<String> responseTypesSupported;
+    private PolicyList<String> responseTypesSupported;
 
     @JsonProperty("subject_types_supported")
-    private Policy<String> subjectTypesSupported;
+    private PolicyList<String> subjectTypesSupported;
 
     @JsonProperty("id_token_signing_alg_values_supported")
-    private Policy<String> idTokenSigningAlgValuesSupported;
+    private PolicyList<String> idTokenSigningAlgValuesSupported;
 
     @JsonProperty("id_token_encryption_alg_values_supported")
-    private Policy<String> idTokenEncryptionAlgValuesSupported;
+    private PolicyList<String> idTokenEncryptionAlgValuesSupported;
 
     @JsonProperty("id_token_encryption_enc_values_supported")
-    private Policy<String> idTokenEncryptionEncValuesSupported;
+    private PolicyList<String> idTokenEncryptionEncValuesSupported;
 
     @JsonProperty("userinfo_signing_alg_values_supported")
-    private Policy<String> userInfoSigningAlgValuesSupported;
+    private PolicyList<String> userInfoSigningAlgValuesSupported;
 
     @JsonProperty("request_object_signing_alg_values_supported")
-    private Policy<String> requestObjectSigningAlgValuesSupported;
+    private PolicyList<String> requestObjectSigningAlgValuesSupported;
 
     @JsonProperty("response_modes_supported")
-    private Policy<String> responseModesSupported;
+    private PolicyList<String> responseModesSupported;
 
     @JsonProperty("registration_endpoint")
     private Policy<String> registrationEndpoint;
 
     @JsonProperty("token_endpoint_auth_methods_supported")
-    private Policy<String> tokenEndpointAuthMethodsSupported;
+    private PolicyList<String> tokenEndpointAuthMethodsSupported;
 
     @JsonProperty("token_endpoint_auth_signing_alg_values_supported")
-    private Policy<String> tokenEndpointAuthSigningAlgValuesSupported;
+    private PolicyList<String> tokenEndpointAuthSigningAlgValuesSupported;
 
     @JsonProperty("claims_supported")
-    private Policy<String> claimsSupported;
+    private PolicyList<String> claimsSupported;
 
     @JsonProperty("claim_types_supported")
-    private Policy<String> claimTypesSupported;
+    private PolicyList<String> claimTypesSupported;
 
     @JsonProperty("claims_parameter_supported")
     private Policy<Boolean> claimsParameterSupported;
 
     @JsonProperty("scopes_supported")
-    private Policy<String> scopesSupported;
+    private PolicyList<String> scopesSupported;
 
     @JsonProperty("request_parameter_supported")
     private Policy<Boolean> requestParameterSupported;
@@ -99,10 +104,12 @@ public class OIDCFederationConfigurationRepresentationPolicy {
     private Policy<Boolean> requestUriParameterSupported;
 
     @JsonProperty("code_challenge_methods_supported")
-    private Policy<String> codeChallengeMethodsSupported;
+    private PolicyList<String> codeChallengeMethodsSupported;
 
     @JsonProperty("tls_client_certificate_bound_access_tokens")
     private Policy<Boolean> tlsClientCertificateBoundAccessTokens;
+    
+    protected Map<String, Object> otherClaims = new HashMap<String, Object>();
 
     public Policy<String> getFederationRegistrationEndpoint() {
         return federationRegistrationEndpoint;
@@ -120,11 +127,11 @@ public class OIDCFederationConfigurationRepresentationPolicy {
         this.pushedAuthorizationRequestEndpoint = pushedAuthorizationRequestEndpoint;
     }
 
-    public Policy<String> getClientRegistrationTypesSupported() {
+    public PolicyList<String> getClientRegistrationTypesSupported() {
         return clientRegistrationTypesSupported;
     }
 
-    public void setClientRegistrationTypesSupported(Policy<String> clientRegistrationTypesSupported) {
+    public void setClientRegistrationTypesSupported(PolicyList<String> clientRegistrationTypesSupported) {
         this.clientRegistrationTypesSupported = clientRegistrationTypesSupported;
     }
 
@@ -200,75 +207,75 @@ public class OIDCFederationConfigurationRepresentationPolicy {
         this.checkSessionIframe = checkSessionIframe;
     }
 
-    public Policy<String> getGrantTypesSupported() {
+    public PolicyList<String> getGrantTypesSupported() {
         return grantTypesSupported;
     }
 
-    public void setGrantTypesSupported(Policy<String> grantTypesSupported) {
+    public void setGrantTypesSupported(PolicyList<String> grantTypesSupported) {
         this.grantTypesSupported = grantTypesSupported;
     }
 
-    public Policy<String> getResponseTypesSupported() {
+    public PolicyList<String> getResponseTypesSupported() {
         return responseTypesSupported;
     }
 
-    public void setResponseTypesSupported(Policy<String> responseTypesSupported) {
+    public void setResponseTypesSupported(PolicyList<String> responseTypesSupported) {
         this.responseTypesSupported = responseTypesSupported;
     }
 
-    public Policy<String> getSubjectTypesSupported() {
+    public PolicyList<String> getSubjectTypesSupported() {
         return subjectTypesSupported;
     }
 
-    public void setSubjectTypesSupported(Policy<String> subjectTypesSupported) {
+    public void setSubjectTypesSupported(PolicyList<String> subjectTypesSupported) {
         this.subjectTypesSupported = subjectTypesSupported;
     }
 
-    public Policy<String> getIdTokenSigningAlgValuesSupported() {
+    public PolicyList<String> getIdTokenSigningAlgValuesSupported() {
         return idTokenSigningAlgValuesSupported;
     }
 
-    public void setIdTokenSigningAlgValuesSupported(Policy<String> idTokenSigningAlgValuesSupported) {
+    public void setIdTokenSigningAlgValuesSupported(PolicyList<String> idTokenSigningAlgValuesSupported) {
         this.idTokenSigningAlgValuesSupported = idTokenSigningAlgValuesSupported;
     }
 
-    public Policy<String> getIdTokenEncryptionAlgValuesSupported() {
+    public PolicyList<String> getIdTokenEncryptionAlgValuesSupported() {
         return idTokenEncryptionAlgValuesSupported;
     }
 
-    public void setIdTokenEncryptionAlgValuesSupported(Policy<String> idTokenEncryptionAlgValuesSupported) {
+    public void setIdTokenEncryptionAlgValuesSupported(PolicyList<String> idTokenEncryptionAlgValuesSupported) {
         this.idTokenEncryptionAlgValuesSupported = idTokenEncryptionAlgValuesSupported;
     }
 
-    public Policy<String> getIdTokenEncryptionEncValuesSupported() {
+    public PolicyList<String> getIdTokenEncryptionEncValuesSupported() {
         return idTokenEncryptionEncValuesSupported;
     }
 
-    public void setIdTokenEncryptionEncValuesSupported(Policy<String> idTokenEncryptionEncValuesSupported) {
+    public void setIdTokenEncryptionEncValuesSupported(PolicyList<String> idTokenEncryptionEncValuesSupported) {
         this.idTokenEncryptionEncValuesSupported = idTokenEncryptionEncValuesSupported;
     }
 
-    public Policy<String> getUserInfoSigningAlgValuesSupported() {
+    public PolicyList<String> getUserInfoSigningAlgValuesSupported() {
         return userInfoSigningAlgValuesSupported;
     }
 
-    public void setUserInfoSigningAlgValuesSupported(Policy<String> userInfoSigningAlgValuesSupported) {
+    public void setUserInfoSigningAlgValuesSupported(PolicyList<String> userInfoSigningAlgValuesSupported) {
         this.userInfoSigningAlgValuesSupported = userInfoSigningAlgValuesSupported;
     }
 
-    public Policy<String> getRequestObjectSigningAlgValuesSupported() {
+    public PolicyList<String> getRequestObjectSigningAlgValuesSupported() {
         return requestObjectSigningAlgValuesSupported;
     }
 
-    public void setRequestObjectSigningAlgValuesSupported(Policy<String> requestObjectSigningAlgValuesSupported) {
+    public void setRequestObjectSigningAlgValuesSupported(PolicyList<String> requestObjectSigningAlgValuesSupported) {
         this.requestObjectSigningAlgValuesSupported = requestObjectSigningAlgValuesSupported;
     }
 
-    public Policy<String> getResponseModesSupported() {
+    public PolicyList<String> getResponseModesSupported() {
         return responseModesSupported;
     }
 
-    public void setResponseModesSupported(Policy<String> responseModesSupported) {
+    public void setResponseModesSupported(PolicyList<String> responseModesSupported) {
         this.responseModesSupported = responseModesSupported;
     }
 
@@ -280,35 +287,35 @@ public class OIDCFederationConfigurationRepresentationPolicy {
         this.registrationEndpoint = registrationEndpoint;
     }
 
-    public Policy<String> getTokenEndpointAuthMethodsSupported() {
+    public PolicyList<String> getTokenEndpointAuthMethodsSupported() {
         return tokenEndpointAuthMethodsSupported;
     }
 
-    public void setTokenEndpointAuthMethodsSupported(Policy<String> tokenEndpointAuthMethodsSupported) {
+    public void setTokenEndpointAuthMethodsSupported(PolicyList<String> tokenEndpointAuthMethodsSupported) {
         this.tokenEndpointAuthMethodsSupported = tokenEndpointAuthMethodsSupported;
     }
 
-    public Policy<String> getTokenEndpointAuthSigningAlgValuesSupported() {
+    public PolicyList<String> getTokenEndpointAuthSigningAlgValuesSupported() {
         return tokenEndpointAuthSigningAlgValuesSupported;
     }
 
-    public void setTokenEndpointAuthSigningAlgValuesSupported(Policy<String> tokenEndpointAuthSigningAlgValuesSupported) {
+    public void setTokenEndpointAuthSigningAlgValuesSupported(PolicyList<String> tokenEndpointAuthSigningAlgValuesSupported) {
         this.tokenEndpointAuthSigningAlgValuesSupported = tokenEndpointAuthSigningAlgValuesSupported;
     }
 
-    public Policy<String> getClaimsSupported() {
+    public PolicyList<String> getClaimsSupported() {
         return claimsSupported;
     }
 
-    public void setClaimsSupported(Policy<String> claimsSupported) {
+    public void setClaimsSupported(PolicyList<String> claimsSupported) {
         this.claimsSupported = claimsSupported;
     }
 
-    public Policy<String> getClaimTypesSupported() {
+    public PolicyList<String> getClaimTypesSupported() {
         return claimTypesSupported;
     }
 
-    public void setClaimTypesSupported(Policy<String> claimTypesSupported) {
+    public void setClaimTypesSupported(PolicyList<String> claimTypesSupported) {
         this.claimTypesSupported = claimTypesSupported;
     }
 
@@ -320,11 +327,11 @@ public class OIDCFederationConfigurationRepresentationPolicy {
         this.claimsParameterSupported = claimsParameterSupported;
     }
 
-    public Policy<String> getScopesSupported() {
+    public PolicyList<String> getScopesSupported() {
         return scopesSupported;
     }
 
-    public void setScopesSupported(Policy<String> scopesSupported) {
+    public void setScopesSupported(PolicyList<String> scopesSupported) {
         this.scopesSupported = scopesSupported;
     }
 
@@ -344,11 +351,11 @@ public class OIDCFederationConfigurationRepresentationPolicy {
         this.requestUriParameterSupported = requestUriParameterSupported;
     }
 
-    public Policy<String> getCodeChallengeMethodsSupported() {
+    public PolicyList<String> getCodeChallengeMethodsSupported() {
         return codeChallengeMethodsSupported;
     }
 
-    public void setCodeChallengeMethodsSupported(Policy<String> codeChallengeMethodsSupported) {
+    public void setCodeChallengeMethodsSupported(PolicyList<String> codeChallengeMethodsSupported) {
         this.codeChallengeMethodsSupported = codeChallengeMethodsSupported;
     }
 
@@ -360,6 +367,15 @@ public class OIDCFederationConfigurationRepresentationPolicy {
         this.tlsClientCertificateBoundAccessTokens = tlsClientCertificateBoundAccessTokens;
     }
     
+    @JsonAnyGetter
+    public Map<String, Object> getOtherClaims() {
+        return otherClaims;
+    }
+
+    @JsonAnySetter
+    public void setOtherClaims(String name, Object value) {
+        otherClaims.put(name, value);
+    }
     
 
 }

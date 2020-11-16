@@ -1,31 +1,24 @@
 package org.keycloak.protocol.oidc.federation.beans;
 
-import org.keycloak.jose.jwk.JSONWebKeySet;
-
 public class OIDCFederationClientRepresentationPolicy {
     
-    private Policy<ClientRegistrationEnum> client_registration_types;
+    private PolicyList<ClientRegistrationEnum> client_registration_types;
 
     private Policy<String> organization_name;
 
-    private Policy<String> trust_anchor_id;
     // OIDC Dynamic client registration properties
 
-    private Policy<String> redirect_uris;
+    private PolicyList<String> redirect_uris;
 
     private Policy<String> token_endpoint_auth_method;
 
     private Policy<String> token_endpoint_auth_signing_alg;
 
-    private Policy<String> grant_types;
+    private PolicyList<String> grant_types;
 
-    private Policy<String> response_types;
+    private PolicyList<String> response_types;
 
     private Policy<String> application_type;
-
-    private Policy<String> client_id;
-
-    private Policy<String> client_secret;
 
     private Policy<String> client_name;
 
@@ -35,15 +28,13 @@ public class OIDCFederationClientRepresentationPolicy {
 
     private Policy<String> scope;
 
-    private Policy<String> contacts;
+    private PolicyList<String> contacts;
 
     private Policy<String> tos_uri;
 
     private Policy<String> policy_uri;
 
     private Policy<String> jwks_uri;
-
-    private Policy<JSONWebKeySet> jwks;
 
     private Policy<String> sector_identifier_uri;
 
@@ -71,11 +62,11 @@ public class OIDCFederationClientRepresentationPolicy {
 
     private Policy<Boolean> require_auth_time;
 
-    private Policy<String> default_acr_values;
+    private PolicyList<String> default_acr_values;
 
     private Policy<String> initiate_login_uri;
 
-    private Policy<String> request_uris;
+    private PolicyList<String> request_uris;
 
     // KEYCLOAK-6771 Certificate Bound Token
     // https://tools.ietf.org/html/draft-ietf-oauth-mtls-08#section-6.5
@@ -84,7 +75,7 @@ public class OIDCFederationClientRepresentationPolicy {
     private Policy<String> tls_client_auth_subject_dn;
 
     // OIDC Session Management
-    private Policy<String> post_logout_redirect_uris;
+    private PolicyList<String> post_logout_redirect_uris;
 
     // Not sure from which specs this comes
     private Policy<String> software_id;
@@ -99,12 +90,14 @@ public class OIDCFederationClientRepresentationPolicy {
     private Policy<String> registration_client_uri;
 
     private Policy<String> registration_access_token;
+    
+   
 
-    public Policy<ClientRegistrationEnum> getClient_registration_types() {
+    public PolicyList<ClientRegistrationEnum> getClient_registration_types() {
         return client_registration_types;
     }
 
-    public void setClient_registration_types(Policy<ClientRegistrationEnum> client_registration_types) {
+    public void setClient_registration_types(PolicyList<ClientRegistrationEnum> client_registration_types) {
         this.client_registration_types = client_registration_types;
     }
 
@@ -116,19 +109,11 @@ public class OIDCFederationClientRepresentationPolicy {
         this.organization_name = organization_name;
     }
 
-    public Policy<String> getTrust_anchor_id() {
-        return trust_anchor_id;
-    }
-
-    public void setTrust_anchor_id(Policy<String> trust_anchor_id) {
-        this.trust_anchor_id = trust_anchor_id;
-    }
-
-    public Policy<String> getRedirect_uris() {
+    public PolicyList<String> getRedirect_uris() {
         return redirect_uris;
     }
 
-    public void setRedirect_uris(Policy<String> redirect_uris) {
+    public void setRedirect_uris(PolicyList<String> redirect_uris) {
         this.redirect_uris = redirect_uris;
     }
 
@@ -148,19 +133,19 @@ public class OIDCFederationClientRepresentationPolicy {
         this.token_endpoint_auth_signing_alg = token_endpoint_auth_signing_alg;
     }
 
-    public Policy<String> getGrant_types() {
+    public PolicyList<String> getGrant_types() {
         return grant_types;
     }
 
-    public void setGrant_types(Policy<String> grant_types) {
+    public void setGrant_types(PolicyList<String> grant_types) {
         this.grant_types = grant_types;
     }
 
-    public Policy<String> getResponse_types() {
+    public PolicyList<String> getResponse_types() {
         return response_types;
     }
 
-    public void setResponse_types(Policy<String> response_types) {
+    public void setResponse_types(PolicyList<String> response_types) {
         this.response_types = response_types;
     }
 
@@ -170,22 +155,6 @@ public class OIDCFederationClientRepresentationPolicy {
 
     public void setApplication_type(Policy<String> application_type) {
         this.application_type = application_type;
-    }
-
-    public Policy<String> getClient_id() {
-        return client_id;
-    }
-
-    public void setClient_id(Policy<String> client_id) {
-        this.client_id = client_id;
-    }
-
-    public Policy<String> getClient_secret() {
-        return client_secret;
-    }
-
-    public void setClient_secret(Policy<String> client_secret) {
-        this.client_secret = client_secret;
     }
 
     public Policy<String> getClient_name() {
@@ -220,11 +189,11 @@ public class OIDCFederationClientRepresentationPolicy {
         this.scope = scope;
     }
 
-    public Policy<String> getContacts() {
+    public PolicyList<String> getContacts() {
         return contacts;
     }
 
-    public void setContacts(Policy<String> contacts) {
+    public void setContacts(PolicyList<String> contacts) {
         this.contacts = contacts;
     }
 
@@ -250,14 +219,6 @@ public class OIDCFederationClientRepresentationPolicy {
 
     public void setJwks_uri(Policy<String> jwks_uri) {
         this.jwks_uri = jwks_uri;
-    }
-
-    public Policy<JSONWebKeySet> getJwks() {
-        return jwks;
-    }
-
-    public void setJwks(Policy<JSONWebKeySet> jwks) {
-        this.jwks = jwks;
     }
 
     public Policy<String> getSector_identifier_uri() {
@@ -364,11 +325,11 @@ public class OIDCFederationClientRepresentationPolicy {
         this.require_auth_time = require_auth_time;
     }
 
-    public Policy<String> getDefault_acr_values() {
+    public PolicyList<String> getDefault_acr_values() {
         return default_acr_values;
     }
 
-    public void setDefault_acr_values(Policy<String> default_acr_values) {
+    public void setDefault_acr_values(PolicyList<String> default_acr_values) {
         this.default_acr_values = default_acr_values;
     }
 
@@ -380,11 +341,11 @@ public class OIDCFederationClientRepresentationPolicy {
         this.initiate_login_uri = initiate_login_uri;
     }
 
-    public Policy<String> getRequest_uris() {
+    public PolicyList<String> getRequest_uris() {
         return request_uris;
     }
 
-    public void setRequest_uris(Policy<String> request_uris) {
+    public void setRequest_uris(PolicyList<String> request_uris) {
         this.request_uris = request_uris;
     }
 
@@ -404,11 +365,11 @@ public class OIDCFederationClientRepresentationPolicy {
         this.tls_client_auth_subject_dn = tls_client_auth_subject_dn;
     }
 
-    public Policy<String> getPost_logout_redirect_uris() {
+    public PolicyList<String> getPost_logout_redirect_uris() {
         return post_logout_redirect_uris;
     }
 
-    public void setPost_logout_redirect_uris(Policy<String> post_logout_redirect_uris) {
+    public void setPost_logout_redirect_uris(PolicyList<String> post_logout_redirect_uris) {
         this.post_logout_redirect_uris = post_logout_redirect_uris;
     }
 

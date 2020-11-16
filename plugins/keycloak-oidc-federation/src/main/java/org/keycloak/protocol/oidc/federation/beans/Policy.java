@@ -118,6 +118,10 @@ public class Policy<T> extends AbstractPolicy<T> {
         if (this.value != null) {
             return this.value;
         }
+        
+        if (this.defaultValue != null && t == null) {
+            return this.defaultValue;
+        }
 
         if (this.one_of != null && ((t != null && !this.one_of.contains(t)) || t == null))
             throw new MetadataPolicyException(
@@ -125,10 +129,6 @@ public class Policy<T> extends AbstractPolicy<T> {
         if (this.superset_of != null && (this.superset_of.size() > 1 || (t != null && !this.superset_of.contains(t))))
             throw new MetadataPolicyException(
                 name + " value must be superset of " + StringUtils.join(this.one_of.toArray(), ","));
-
-        if (this.defaultValue != null && t == null) {
-            return this.defaultValue;
-        }
 
         if (this.subset_of != null && t != null && !this.subset_of.contains(t))
             t = null;

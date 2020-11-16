@@ -100,6 +100,7 @@ public class PolicyList<T> extends AbstractPolicy<T> {
         if (t == null && this.essential != null && this.essential)
             throw new MetadataPolicyException(name + " must exist in rp");
 
+        //add can only exist alone
         if (add != null) {
             if (t == null)
                 t = new ArrayList<>();
@@ -110,6 +111,10 @@ public class PolicyList<T> extends AbstractPolicy<T> {
         if (this.value != null) {
             return this.value.stream().collect(Collectors.toList());
         }
+        
+        if (this.defaultValue != null && t == null) {
+            return this.defaultValue.stream().collect(Collectors.toList());
+        }
 
         if (this.one_of != null && ((t != null && !this.one_of.containsAll(t)) || t == null))
             throw new MetadataPolicyException(
@@ -118,9 +123,6 @@ public class PolicyList<T> extends AbstractPolicy<T> {
             throw new MetadataPolicyException(
                 name + " values must be superset of " + StringUtils.join(this.one_of.toArray(), ","));
 
-        if (this.defaultValue != null && t == null) {
-            return this.defaultValue.stream().collect(Collectors.toList());
-        }
 
         if (this.subset_of != null && t != null) {
             t.stream().filter(e -> this.subset_of.contains(e)).collect(Collectors.toList());

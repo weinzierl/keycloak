@@ -2,6 +2,9 @@ package org.keycloak.protocol.oidc.federation.rest.op;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -10,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -82,14 +86,28 @@ public class FederationOPService implements ClientRegistrationProvider {
         trustChainProcessor = new TrustChainProcessor(session);
     }
 
-
+    
+    /**
+     * THIS SHOULD BE REMOVED
+     */
+    @GET
+    @Path("trustchain")
+    @Produces("application/json; charset=utf-8")
+    public Response getTrustChain() throws IOException, UnparsableException, BadSigningOrEncryptionException {
+      String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master"; 
+      Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
+      TrustChainProcessor trustChainProcessor = new TrustChainProcessor(session);
+      List<TrustChainRaw> trustChain = trustChainProcessor.constructTrustChains(leafNodeBaseUrl, trustAnchorIds);
+      return Response.ok(trustChain).build();
+    }
+    
     @POST
     @Path("fedreg")
     public Response getFederationRegistration(String jwtStatement) {
 
         EntityStatement statement;
         try {
-            statement = TrustChainProcessor.parseAndValidateChainLink(jwtStatement);
+            statement = TrustChainProcessor.parseAndValidateSelfSigned(jwtStatement);
         } catch (UnparsableException e) {
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Exception in parsing entity statement").build();

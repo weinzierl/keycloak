@@ -57,6 +57,7 @@ public abstract class AbstractPolicy<T> {
         } else if (inferior.getAdd() != null) {
             this.add.addAll(inferior.getAdd());
         }
+        //combine essential
         if (this.essential != null || inferior.getEssential() != null) {
             this.essential = this.essential == null || inferior.getEssential() == null || this.essential
                 || inferior.getEssential();

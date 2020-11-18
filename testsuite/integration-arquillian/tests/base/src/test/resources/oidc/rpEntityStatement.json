@@ -9,6 +9,7 @@
         "ops@example.com"
       ],
       "token_endpoint_auth_method": "client_secret_basic",
+      "id_token_signed_response_alg": "ES384",
       "redirect_uris": [
         "https://127.0.0.1:4000/authz_cb/local"
       ],

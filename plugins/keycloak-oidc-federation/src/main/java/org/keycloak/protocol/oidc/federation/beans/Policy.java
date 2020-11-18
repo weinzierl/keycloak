@@ -107,9 +107,6 @@ public class Policy<T> extends AbstractPolicy<T> {
     }
 
     public T enforcePolicy(T t, String name) throws MetadataPolicyException {
-        //If essential is not present that is the same as stating essential=true.
-        if (this.essential == null)
-            this.essential = true;
         
         if (t == null && this.essential != null && this.essential)
             throw new MetadataPolicyException(name + " must exist in rp");

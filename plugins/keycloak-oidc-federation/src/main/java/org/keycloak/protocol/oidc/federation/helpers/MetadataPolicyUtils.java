@@ -1,6 +1,7 @@
 package org.keycloak.protocol.oidc.federation.helpers;
 
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
+import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
 import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyCombinationException;
@@ -455,7 +456,9 @@ public class MetadataPolicyUtils {
             rp.setUserinfoSignedResponseAlg(policy.getUserinfo_signed_response_alg().enforcePolicy(rp.getUserinfoSignedResponseAlg(),"UserinfoSignedResponseAlg"));
         } 
         
-        entity.getMetadataPolicy().setRpPolicy(policy);
+        MetadataPolicy metadataPolicy = new MetadataPolicy();
+        metadataPolicy.setRpPolicy(policy);
+        entity.setMetadataPolicy(metadataPolicy);
         return entity;
     }
 

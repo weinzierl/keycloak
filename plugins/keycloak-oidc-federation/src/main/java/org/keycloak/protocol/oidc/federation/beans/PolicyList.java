@@ -93,18 +93,18 @@ public class PolicyList<T> extends AbstractPolicy<T> {
     }
 
     public List<T> enforcePolicy(List<T> t, String name) throws MetadataPolicyException {
-        //If essential is not present that is the same as stating essential=true.
-        if (this.essential == null)
-            this.essential = true;
         
         if (t == null && this.essential != null && this.essential)
             throw new MetadataPolicyException(name + " must exist in rp");
 
         //add can only exist alone
-        if (add != null) {
+        if (this.add != null) {
             if (t == null)
                 t = new ArrayList<>();
-            t.addAll(this.add);
+            for (T val : this.add) {
+                if (!t.contains(val))
+                    t.add(val);
+            }
             return t;
         }
 

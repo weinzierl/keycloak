@@ -18,6 +18,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.jboss.logging.Logger;
 import org.keycloak.OAuth2Constants;
@@ -39,7 +40,7 @@ import org.keycloak.protocol.oidc.federation.configuration.Config;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
-import org.keycloak.protocol.oidc.federation.paths.TrustChainRaw;
+import org.keycloak.protocol.oidc.federation.paths.TrustChain;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
 import org.keycloak.protocol.oidc.mappers.PairwiseSubMapperHelper;
@@ -51,6 +52,7 @@ import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.oidc.OIDCClientRepresentation;
 import org.keycloak.services.ErrorResponseException;
 import org.keycloak.services.ServicesLogger;
+import org.keycloak.services.Urls;
 import org.keycloak.services.clientregistration.ClientRegistrationAuth;
 import org.keycloak.services.clientregistration.ClientRegistrationContext;
 import org.keycloak.services.clientregistration.ClientRegistrationException;
@@ -63,6 +65,7 @@ import org.keycloak.services.clientregistration.policy.RegistrationAuth;
 import org.keycloak.services.managers.ClientManager;
 import org.keycloak.services.managers.RealmManager;
 import org.keycloak.services.validation.ValidationMessages;
+import org.keycloak.urls.UrlType;
 import org.keycloak.validation.ClientValidationUtil;
 
 public class FederationOPService implements ClientRegistrationProvider {
@@ -97,13 +100,13 @@ public class FederationOPService implements ClientRegistrationProvider {
       String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master"; 
       Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
       TrustChainProcessor trustChainProcessor = new TrustChainProcessor(session);
-      List<TrustChainRaw> trustChain = trustChainProcessor.constructTrustChains(leafNodeBaseUrl, trustAnchorIds);
+      List<TrustChain> trustChain = trustChainProcessor.constructTrustChains(leafNodeBaseUrl, trustAnchorIds);
       return Response.ok(trustChain).build();
     }
     
     @POST
     @Path("fedreg")
-    public Response getFederationRegistration(String jwtStatement) {
+    public Response getFederationRegistration(String jwtStatement) throws UnparsableException {
 
         EntityStatement statement;
         try {
@@ -123,11 +126,11 @@ public class FederationOPService implements ClientRegistrationProvider {
         Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
 
         logger.info("starting validating trust chains");
-        ConcurrentHashMap<String, List<TrustChainRaw>> authHintsTrustChains = new ConcurrentHashMap<String, List<TrustChainRaw>>();
+        ConcurrentHashMap<String, List<TrustChain>> authHintsTrustChains = new ConcurrentHashMap<String, List<TrustChain>>();
 
         statement.getAuthorityHints().parallelStream().forEach(authorityHint -> {
             try {
-                List<TrustChainRaw> trustChains = trustChainProcessor.constructTrustChains(authorityHint, trustAnchorIds);
+                List<TrustChain> trustChains = trustChainProcessor.constructTrustChains(authorityHint, trustAnchorIds);
                 if(trustChains!=null && !trustChains.isEmpty()) {
                     authHintsTrustChains.put(authorityHint, trustChains);
                 }
@@ -138,12 +141,12 @@ public class FederationOPService implements ClientRegistrationProvider {
         });
 
         // 9.2.1.2.1. bullet 1 found and verified at least one trust chain
-     if(authHintsTrustChains.size() > 0) {
+        if(authHintsTrustChains.size() > 0) {
             //just pick one randomly
             String authHintPicked = (String) authHintsTrustChains.keySet().toArray()[new Random()
                 .nextInt(authHintsTrustChains.keySet().size())];
-            List<TrustChainRaw> chains = authHintsTrustChains.get(authHintPicked);
-            TrustChainRaw trustChainPicked = chains.get(new Random().nextInt(chains.size()));
+            List<TrustChain> chains = authHintsTrustChains.get(authHintPicked);
+            TrustChain trustChainPicked = chains.get(new Random().nextInt(chains.size()));
             OIDCFederationClientRepresentationPolicy rpPolicy =createMetadataPolicies();
             ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer());
             URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
@@ -151,12 +154,18 @@ public class FederationOPService implements ClientRegistrationProvider {
             OIDCFederationClientRepresentation fedClient = new OIDCFederationClientRepresentation(clientOIDC,
                 statement.getMetadata().getRp().getClient_registration_types(),
                 statement.getMetadata().getRp().getOrganization_name());
+            int idx = trustChainPicked.getChain().size() > 0 ? idx = trustChainPicked.getChain().size() - 1 : 0;
+            String trustAnchorId = TrustChainProcessor.parse(trustChainPicked.getChain().get(idx)).getIssuer(); //this throws an exception. It should not continue if this fails.
+            // add trust_anchor_id = trust anchor op chose
+            fedClient.setTrust_anchor_id(trustAnchorId);
+            
             statement.getMetadata().setRp(fedClient);
             // add trust_anchor_id = trust anchor op chose
             // add one or more authority_hints, from its collection
             MetadataPolicy policy = new MetadataPolicy(rpPolicy);
             statement.setMetadataPolicy(policy);
             statement.setJwks(FedUtils.getKeySet(session));
+            statement.issuer(Urls.realmIssuer(session.getContext().getUri(UrlType.FRONTEND).getBaseUri(), session.getContext().getRealm().getName()));
             String token = session.tokens().encode(statement);
             return Response.ok(token).build();
 

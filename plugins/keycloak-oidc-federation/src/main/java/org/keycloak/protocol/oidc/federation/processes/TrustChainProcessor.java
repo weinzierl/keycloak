@@ -15,16 +15,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jboss.logging.Logger;
 import org.keycloak.jose.jwk.JSONWebKeySet;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
+import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.InvalidTrustChainException;
+import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyCombinationException;
 import org.keycloak.protocol.oidc.federation.exceptions.RemoteFetchingException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
-import org.keycloak.protocol.oidc.federation.paths.TrustChainParsed;
-import org.keycloak.protocol.oidc.federation.paths.TrustChainRaw;
+import org.keycloak.protocol.oidc.federation.helpers.MetadataPolicyUtils;
+import org.keycloak.protocol.oidc.federation.paths.TrustChain;
+import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -47,6 +51,8 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
 public class TrustChainProcessor {
 
+    private static final Logger logger = Logger.getLogger(TrustChainProcessor.class);
+    
 	private static ObjectMapper om = new ObjectMapper();
 	
 	private KeycloakSession session;
@@ -67,21 +73,65 @@ public class TrustChainProcessor {
 	 * @throws IOException 
 	 * @throws  
 	 */
-	public List<TrustChainRaw> constructTrustChains(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException, UnparsableException, BadSigningOrEncryptionException {		
+	public List<TrustChain> constructTrustChains(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException, UnparsableException, BadSigningOrEncryptionException {		
 		trustAnchorIds.stream().map(s -> s.trim()).collect(Collectors.toCollection(HashSet::new));
 		String encodedLeafES = FedUtils.getContentFrom(new URL(leafNodeBaseUrl + "/.well-known/openid-federation"));
 		
 		printIssSub(encodedLeafES);
 		
-		List<TrustChainRaw> trustChains = subTrustChains(encodedLeafES, trustAnchorIds);
-		trustChains.forEach(trustChain -> trustChain.add(0, encodedLeafES)); //add also the leaf node 
+		List<TrustChain> trustChains = subTrustChains(encodedLeafES, trustAnchorIds);
+		
+		//add also the leaf self-signed node
+        trustChains.forEach(trustChain -> trustChain.getChain().add(0, encodedLeafES));
+		
+        //parse chain nodes
+        trustChains.stream().map(trustChain -> {
+            List<EntityStatement> parsedChain = trustChain.getChain().stream().map(node -> { 
+                    try{
+                        return parse(node); 
+                    }
+                    catch(UnparsableException ex) {
+                        logger.debug("Cannot parse a node of a chain. Ignoring the whole chain as invalid");
+                        return null;
+                    }
+                })
+                .filter(node -> node!=null)
+                .collect(Collectors.toList());
+            if(parsedChain.size() == trustChain.getChain().size())
+                trustChain.setParsedChain(parsedChain);
+            else
+                trustChain = null;
+
+            //combine policies if valid till now
+            if(trustChain != null && parsedChain.size()>1) {
+                OIDCFederationClientRepresentationPolicy combinedPolicy = parsedChain.get(parsedChain.size()-1).getMetadataPolicy().getRpPolicy();
+                for(int i=parsedChain.size()-2; i>0; i--) {
+                    try {
+                        combinedPolicy = MetadataPolicyUtils.combineClientPOlicies(combinedPolicy, parsedChain.get(i).getMetadataPolicy().getRpPolicy());
+                    }
+                    catch (MetadataPolicyCombinationException e) {
+                        logger.debug(String.format("Cannot combine metadata policy of iss=%s sub=%s and its inferiors", parsedChain.get(i).getIssuer(), parsedChain.get(i).getSubject()));
+                        combinedPolicy = null;
+                    }
+                }
+                if(combinedPolicy!=null)
+                    trustChain.setCombinedPolicy(combinedPolicy);
+                else
+                    trustChain = null;
+            }
+            
+            return trustChain;
+        })
+        .filter(chain -> chain!=null)
+        .collect(Collectors.toList());
+
 		return trustChains;
 		
 	}
 	
-	private List<TrustChainRaw> subTrustChains(String encodedNode, Set<String> trustAnchorIds) {
+	private List<TrustChain> subTrustChains(String encodedNode, Set<String> trustAnchorIds) {
 
-		List<TrustChainRaw> chainsList = new ArrayList<>();
+		List<TrustChain> chainsList = new ArrayList<>();
 		
 		EntityStatement es;
 		try {
@@ -92,9 +142,9 @@ public class TrustChainProcessor {
 		}
 		if(es.getAuthorityHints() == null || es.getAuthorityHints().isEmpty()) {
 			if(trustAnchorIds.contains(es.getIssuer())) {
-				TrustChainRaw trustChainRaw = new TrustChainRaw();
+				TrustChain trustChain = new TrustChain();
 //				trustChainRaw.add(encodedNode); //this is the self-issued statement of a trust anchor. Should not add it in the chain (as of oidc fed spec version draft 12) 
-				chainsList.add(trustChainRaw);
+				chainsList.add(trustChain);
 			}
 		}
 		else {
@@ -110,9 +160,9 @@ public class TrustChainProcessor {
 					validate(encodedSubNodeSubordinate, subNodeSelfES.getJwks());
 					printIssSub(encodedSubNodeSubordinate);
 					//TODO: might want to make some more checks on subNodeSubordinateES integrity
-					List<TrustChainRaw> subList = subTrustChains(encodedSubNodeSelf, trustAnchorIds);
-					for(TrustChainRaw tcr : subList) {
-						tcr.add(0, encodedSubNodeSubordinate);
+					List<TrustChain> subList = subTrustChains(encodedSubNodeSelf, trustAnchorIds);
+					for(TrustChain tcr : subList) {
+						tcr.getChain().add(0, encodedSubNodeSubordinate);
 						chainsList.add(tcr);
 					}
 				}
@@ -150,7 +200,8 @@ public class TrustChainProcessor {
 	 * @throws RemoteFetchingException 
 	 * @throws BadSigningOrEncryptionException 
 	 */
-	public void validateTrustChain(TrustChainRaw trustChainRaw) throws InvalidTrustChainException, UnparsableException, RemoteFetchingException, BadSigningOrEncryptionException {
+	public void validateTrustChain(TrustChain trustChain) throws InvalidTrustChainException, UnparsableException, RemoteFetchingException, BadSigningOrEncryptionException {
+	    List<String> trustChainRaw = trustChain.getChain();
 	    
 	    if(trustChainRaw.size() < 2)
 	        throw new InvalidTrustChainException("Trying to validate a trust chain with zero or one element. A trust chain should contain at least 2 elements.");
@@ -190,12 +241,12 @@ public class TrustChainProcessor {
 	    
 	}
 	
-	public TrustChainParsed transformTrustChain(TrustChainRaw trustChainRaw) throws UnparsableException {
-		TrustChainParsed tcp = new TrustChainParsed();
-		for(String tcr : trustChainRaw) 
-			tcp.add(parse(tcr));
-		return tcp;
-	}
+//	public TrustChainParsed transformTrustChain(TrustChainRaw trustChainRaw) throws UnparsableException {
+//		TrustChainParsed tcp = new TrustChainParsed();
+//		for(String tcr : trustChainRaw) 
+//			tcp.add(parse(tcr));
+//		return tcp;
+//	}
 
 	
 	public static void validate(String token, JSONWebKeySet publicKey) throws UnparsableException, BadSigningOrEncryptionException {

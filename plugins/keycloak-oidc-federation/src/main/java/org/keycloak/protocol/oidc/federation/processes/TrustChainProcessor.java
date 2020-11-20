@@ -19,6 +19,7 @@ import org.jboss.logging.Logger;
 import org.keycloak.jose.jwk.JSONWebKeySet;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
+import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.InvalidTrustChainException;
@@ -63,29 +64,42 @@ public class TrustChainProcessor {
 
 	
 	
+	
 	/**
-	 * @throws BadSigningOrEncryptionException 
-	 * @throws UnparsableException 
-	 * This should construct all possible trust chains from a given leaf node url to a trust anchor url 
-	 * @param leafNodeBaseUrl  this url should point to the base path of the leaf node (without the .well-known discovery subpath)
-	 * @param trustAnchorId this should hold the trust anchor ids
-	 * @return any valid trust chains from the leaf node to the trust anchor.
-	 * @throws IOException 
-	 * @throws  
-	 */
-	public List<TrustChain> constructTrustChains(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException, UnparsableException, BadSigningOrEncryptionException {		
-		trustAnchorIds.stream().map(s -> s.trim()).collect(Collectors.toCollection(HashSet::new));
-		String encodedLeafES = FedUtils.getContentFrom(new URL(leafNodeBaseUrl + "/.well-known/openid-federation"));
-		
-		printIssSub(encodedLeafES);
-		
-		List<TrustChain> trustChains = subTrustChains(encodedLeafES, trustAnchorIds);
-		
-		//add also the leaf self-signed node
-        trustChains.forEach(trustChain -> trustChain.getChain().add(0, encodedLeafES));
-		
-        //parse chain nodes
+     * @throws BadSigningOrEncryptionException 
+     * @throws UnparsableException 
+     * This should construct all possible trust chains from a given leaf node url to a trust anchor url 
+     * @param leafNodeBaseUrl  this url should point to the base path of the leaf node (without the .well-known discovery subpath)
+     * @param trustAnchorId this should hold the trust anchor ids
+     * @return any valid trust chains from the leaf node to the trust anchor.
+     * @throws IOException 
+     * @throws  
+     */
+    public List<TrustChain> constructTrustChainsFromUrl(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException {      
+        String encodedLeafES = FedUtils.getContentFrom(new URL(leafNodeBaseUrl + "/.well-known/openid-federation"));
+        return constructTrustChainsFromJWT(encodedLeafES, trustAnchorIds);
+    }
+	
+	
+	public List<TrustChain> constructTrustChainsFromJWT(String leafJWT, Set<String> trustAnchorIds) {
+	    
+	    trustAnchorIds = trustAnchorIds.stream().map(s -> s.trim()).collect(Collectors.toCollection(HashSet::new));
+	    
+	    try {
+	        EntityStatement leafEs = parse(leafJWT);
+	        logger.debug(String.format("EntityStatement of %s about %s. AuthHints: %s", leafEs.getIssuer(), leafEs.getSubject(), leafEs.getAuthorityHints()));
+	    }catch(UnparsableException ex) {
+	        logger.debug("Leaf's self-signed entity statement is not a valid jwt. Will return no chains...");
+	    }
+	    
+        List<TrustChain> trustChains = subTrustChains(leafJWT, trustAnchorIds);
+        
+        //add also the leaf self-signed node
+        trustChains.forEach(trustChain -> trustChain.getChain().add(0, leafJWT));
+        
+        
         trustChains.stream().map(trustChain -> {
+            //parse chain nodes
             List<EntityStatement> parsedChain = trustChain.getChain().stream().map(node -> { 
                     try{
                         return parse(node); 
@@ -104,6 +118,7 @@ public class TrustChainProcessor {
 
             //combine policies if valid till now
             if(trustChain != null && parsedChain.size()>1) {
+                MetadataPolicy metadataPolicy = parsedChain.get(parsedChain.size()-1).getMetadataPolicy();
                 OIDCFederationClientRepresentationPolicy combinedPolicy = parsedChain.get(parsedChain.size()-1).getMetadataPolicy().getRpPolicy();
                 for(int i=parsedChain.size()-2; i>0; i--) {
                     try {
@@ -125,9 +140,18 @@ public class TrustChainProcessor {
         .filter(chain -> chain!=null)
         .collect(Collectors.toList());
 
-		return trustChains;
-		
+        //fill-in the trustAnchorId and leafId values
+        trustChains.forEach(trustChain -> {
+            //trust chain always has at least one element!
+            trustChain.setTrustAnchorId(trustChain.getParsedChain().get(trustChain.getParsedChain().size()-1).getIssuer());
+            trustChain.setLeafId(trustChain.getParsedChain().get(0).getIssuer());
+        });
+        
+        
+        return trustChains;
+	
 	}
+	
 	
 	private List<TrustChain> subTrustChains(String encodedNode, Set<String> trustAnchorIds) {
 
@@ -137,7 +161,7 @@ public class TrustChainProcessor {
 		try {
 			es = parseAndValidateSelfSigned(encodedNode);
 		} catch (UnparsableException | BadSigningOrEncryptionException e ) {
-			System.out.println("Cannot process a subchain link. Might not be able to form a trustchain. " + e.getMessage());
+			logger.info("Cannot process a subchain link. Might not be able to form a trustchain. " + e.getMessage());
 			return chainsList;
 		}
 		if(es.getAuthorityHints() == null || es.getAuthorityHints().isEmpty()) {
@@ -153,12 +177,12 @@ public class TrustChainProcessor {
 				try {
 					String encodedSubNodeSelf = FedUtils.getContentFrom(new URL(authHint + "/.well-known/openid-federation"));
 					EntityStatement subNodeSelfES = parseAndValidateSelfSigned(encodedSubNodeSelf);
-					printIssSub(encodedSubNodeSelf);
+					logger.debug(String.format("EntityStatement of %s about %s. AuthHints: %s", subNodeSelfES.getIssuer(), subNodeSelfES.getSubject(), subNodeSelfES.getAuthorityHints()));
 					String fedApiUrl = subNodeSelfES.getMetadata().getFederationEntity().getFederationApiEndpoint();
 					String encodedSubNodeSubordinate = FedUtils.getContentFrom(new URL(fedApiUrl + "?iss="+urlEncode(subNodeSelfES.getIssuer())+"&sub="+urlEncode(es.getIssuer())));					
 					EntityStatement subNodeSubordinateES = parse(encodedSubNodeSubordinate);
 					validate(encodedSubNodeSubordinate, subNodeSelfES.getJwks());
-					printIssSub(encodedSubNodeSubordinate);
+					logger.debug(String.format("EntityStatement of %s about %s. AuthHints: %s", subNodeSubordinateES.getIssuer(), subNodeSubordinateES.getSubject(), subNodeSubordinateES.getAuthorityHints()));
 					//TODO: might want to make some more checks on subNodeSubordinateES integrity
 					List<TrustChain> subList = subTrustChains(encodedSubNodeSelf, trustAnchorIds);
 					for(TrustChain tcr : subList) {
@@ -186,10 +210,6 @@ public class TrustChainProcessor {
 		return URLDecoder.decode(url, StandardCharsets.UTF_8.toString());
 	}
 	
-	private void printIssSub(String token) throws UnparsableException {
-		EntityStatement statement = parse(token);
-		System.out.println(String.format("Asked (+ validated) %s about %s. AuthHints: %s", statement.getIssuer(), statement.getSubject(), statement.getAuthorityHints()));
-	}
 	
 	/**
 	 * This validates the whole trustChain signature
@@ -240,13 +260,6 @@ public class TrustChainProcessor {
 	        throw new InvalidTrustChainException("The trust chain has one or more invalid signed ");
 	    
 	}
-	
-//	public TrustChainParsed transformTrustChain(TrustChainRaw trustChainRaw) throws UnparsableException {
-//		TrustChainParsed tcp = new TrustChainParsed();
-//		for(String tcr : trustChainRaw) 
-//			tcp.add(parse(tcr));
-//		return tcp;
-//	}
 
 	
 	public static void validate(String token, JSONWebKeySet publicKey) throws UnparsableException, BadSigningOrEncryptionException {

@@ -8,12 +8,13 @@ import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresent
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-//@JsonIgnoreProperties(value = { "parsedChain", "combinedPolicies" })
 public class TrustChain {
 
     private List<String> chain;
     private List<EntityStatement> parsedChain;
     private OIDCFederationClientRepresentationPolicy combinedPolicy;
+    private String trustAnchorId;
+    private String leafId;
     
     public TrustChain() {
         chain = new ArrayList<String>();
@@ -41,5 +42,21 @@ public class TrustChain {
     public void setCombinedPolicy(OIDCFederationClientRepresentationPolicy combinedPolicy) {
         this.combinedPolicy = combinedPolicy;
     }
+
+    public String getTrustAnchorId() {
+        return trustAnchorId;
+    }
+    public void setTrustAnchorId(String trustAnchorId) {
+        this.trustAnchorId = trustAnchorId;
+    }
+
+    public String getLeafId() {
+        return leafId;
+    }
+    public void setLeafId(String leafId) {
+        this.leafId = leafId;
+    }
+    
+    
     
 }

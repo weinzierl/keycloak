@@ -214,7 +214,6 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         URL rpEntityStatement = getClass().getClassLoader().getResource("oidc/rpEntityStatement.json");
         byte [] content = Files.readAllBytes(Paths.get(rpEntityStatement.toURI()));
         EntityStatement statement = JsonSerialization.readValue(content, EntityStatement.class);
-        // statement.setJwks(FedUtils.getKeySet(session));
         URL policyTA = getClass().getClassLoader().getResource("oidc/policyTrustAnchor.json");
         byte [] contentpolicyTA = Files.readAllBytes(Paths.get(policyTA.toURI()));
         OIDCFederationClientRepresentationPolicy superiorPolicy = JsonSerialization.readValue(contentpolicyTA, OIDCFederationClientRepresentationPolicy.class);
@@ -223,6 +222,24 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         OIDCFederationClientRepresentationPolicy inferiorPolicy = JsonSerialization.readValue(contentpolicyInter, OIDCFederationClientRepresentationPolicy.class);
         superiorPolicy = MetadataPolicyUtils.combineClientPOlicies(superiorPolicy, inferiorPolicy);
         statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, superiorPolicy);
+        
+        //check statement for proper rp policy data
+        Assert.assertNotNull(superiorPolicy.getScope());
+        Assert.assertNotNull(superiorPolicy.getScope().getSubset_of());
+        Assert.assertNames(superiorPolicy.getScope().getSubset_of(), "openid","eduperson");
+        Assert.assertNotNull(superiorPolicy.getScope().getSuperset_of());
+        Assert.assertNames(superiorPolicy.getScope().getSuperset_of(), "openid");
+        assertEquals("openid",superiorPolicy.getScope().getDefaultValue());
+        Assert.assertNotNull(superiorPolicy.getApplication_type());
+        assertEquals("web",superiorPolicy.getApplication_type().getValue());
+        Assert.assertNotNull(superiorPolicy.getContacts());
+        Assert.assertNotNull(superiorPolicy.getContacts().getAdd());
+        Assert.assertNames(superiorPolicy.getContacts().getAdd(), "helpdesk@org.example.org","helpdesk@federation.example.org");
+        Assert.assertNotNull(superiorPolicy.getId_token_signed_response_alg());
+        Assert.assertNotNull(superiorPolicy.getId_token_signed_response_alg().getOne_of());
+        Assert.assertNames(superiorPolicy.getId_token_signed_response_alg().getOne_of(), "ES384","ES256");
+        assertEquals("ES256",superiorPolicy.getId_token_signed_response_alg().getDefaultValue());
+        Assert.assertTrue(superiorPolicy.getId_token_signed_response_alg().getEssential());
         
         //check statement for proper rp data
         Assert.assertNotNull(statement.getMetadata());
@@ -242,8 +259,35 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         assertEquals("ES384", rp.getIdTokenSignedResponseAlg());
         assertEquals("openid", rp.getScope());
         
-        //check statement for proper rp policy data
     }
+    
+    @Test 
+    public void incorrectRPStatement() throws IOException, URISyntaxException, MetadataPolicyCombinationException {
+        URL rpEntityStatement = getClass().getClassLoader().getResource("oidc/rpEntityStatement.json");
+        byte [] content = Files.readAllBytes(Paths.get(rpEntityStatement.toURI()));
+        EntityStatement statement = JsonSerialization.readValue(content, EntityStatement.class);
+        //add scope address for being invalid rp metadata
+        statement.getMetadata().getRp().setScope("address");
+        URL policyTA = getClass().getClassLoader().getResource("oidc/policyTrustAnchor.json");
+        byte [] contentpolicyTA = Files.readAllBytes(Paths.get(policyTA.toURI()));
+        OIDCFederationClientRepresentationPolicy superiorPolicy = JsonSerialization.readValue(contentpolicyTA, OIDCFederationClientRepresentationPolicy.class);
+        URL policyInter = getClass().getClassLoader().getResource("oidc/policyInter.json");
+        byte [] contentpolicyInter  = Files.readAllBytes(Paths.get(policyInter.toURI()));
+        OIDCFederationClientRepresentationPolicy inferiorPolicy = JsonSerialization.readValue(contentpolicyInter, OIDCFederationClientRepresentationPolicy.class);
+        superiorPolicy = MetadataPolicyUtils.combineClientPOlicies(superiorPolicy, inferiorPolicy);
+        
+        //check that rp metadata is invalid due to policies
+        boolean exceptionThrown = false;
+        try {
+            statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, superiorPolicy);
+        } catch (MetadataPolicyException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            exceptionThrown = true;
+        }
+        Assert.assertTrue("RP metadata must be invalid due to enforcing policies", exceptionThrown);
+    }
+
 
     private String getOIDCDiscoveryConfiguration(Client client) {
         URI oidcDiscoveryUri = RealmsResource.wellKnownProviderUrl(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT))

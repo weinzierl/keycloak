@@ -121,7 +121,7 @@ public class PolicyList<T> extends AbstractPolicy<T> {
                 name + " must have one values of " + StringUtils.join(this.one_of.toArray(), ","));
         if (this.superset_of != null && (t == null || !t.containsAll(this.superset_of)))
             throw new MetadataPolicyException(
-                name + " values must be superset of " + StringUtils.join(this.one_of.toArray(), ","));
+                name + " values must be superset of " + StringUtils.join(this.superset_of.toArray(), ","));
 
 
         if (this.subset_of != null && t != null) {

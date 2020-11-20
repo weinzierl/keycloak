@@ -290,6 +290,9 @@ public class MetadataPolicyUtils {
         if (entity.getMetadata().getRp() == null)
             throw new MetadataPolicyException("Try to enforce metapolicy for RP to an entity statement withoup RP");
         
+        if (policy == null)
+            return entity;
+        
         OIDCFederationClientRepresentation rp = entity.getMetadata().getRp();
         
         if (policy.getApplication_type() != null) {

@@ -66,14 +66,11 @@ public class TrustChainProcessor {
 	
 	
 	/**
-     * @throws BadSigningOrEncryptionException 
-     * @throws UnparsableException 
-     * This should construct all possible trust chains from a given leaf node url to a trust anchor url 
+     * This should construct all possible trust chains from a given leaf node url to a set of trust anchor urls 
      * @param leafNodeBaseUrl  this url should point to the base path of the leaf node (without the .well-known discovery subpath)
      * @param trustAnchorId this should hold the trust anchor ids
      * @return any valid trust chains from the leaf node to the trust anchor.
      * @throws IOException 
-     * @throws  
      */
     public List<TrustChain> constructTrustChainsFromUrl(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException {      
         String encodedLeafES = FedUtils.getContentFrom(new URL(leafNodeBaseUrl + "/.well-known/openid-federation"));
@@ -81,6 +78,12 @@ public class TrustChainProcessor {
     }
 	
 	
+    /**
+     * This should construct all possible trust chains from a given leaf node self-signed and encoded JWT to a set of trust anchor urls 
+     * @param leafJWT  this is the self-signed JWT EntityStatement of a leaf node (Relay party or Openid Provider)
+     * @param trustAnchorId this should hold the trust anchor ids
+     * @return any valid trust chains from the leaf node JWT to the trust anchor.
+     */
 	public List<TrustChain> constructTrustChainsFromJWT(String leafJWT, Set<String> trustAnchorIds) {
 	    
 	    trustAnchorIds = trustAnchorIds.stream().map(s -> s.trim()).collect(Collectors.toCollection(HashSet::new));

@@ -21,9 +21,10 @@
   },
 
   "authority_hints": [
-    "https://127.0.0.1:6000/eid/lu.se"
+    "http://localhost:8080/intermediate2"
   ],
   "iss": "https://127.0.0.1:4000/local",
+  "sub": "https://127.0.0.1:4000/local",
   "iat": 1604657216,
   "exp": 1920190016
 }

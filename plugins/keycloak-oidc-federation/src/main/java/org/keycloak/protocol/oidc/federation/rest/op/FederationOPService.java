@@ -100,7 +100,7 @@ public class FederationOPService implements ClientRegistrationProvider {
     @GET
     @Path("trustchain")
     @Produces("application/json; charset=utf-8")
-    public Response getTrustChain() throws IOException, UnparsableException, BadSigningOrEncryptionException {
+    public Response getTrustChain() throws IOException {
       String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master"; 
       Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
       TrustChainProcessor trustChainProcessor = new TrustChainProcessor(session);
@@ -130,42 +130,29 @@ public class FederationOPService implements ClientRegistrationProvider {
         Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
 
         logger.info("starting validating trust chains");
-        ConcurrentHashMap<String, List<TrustChain>> authHintsTrustChains = new ConcurrentHashMap<String, List<TrustChain>>();
+        
+        List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromJWT(jwtStatement, trustAnchorIds);
+        
 
-        statement.getAuthorityHints().parallelStream().forEach(authorityHint -> {
-            try {
-                List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromUrl(authorityHint, trustAnchorIds);
-                if(trustChains!=null && !trustChains.isEmpty()) {
-                    authHintsTrustChains.put(authorityHint, trustChains);
-                }
-            } catch (IOException e) {
-                // TODO Replace with an appropriate log here
-                e.printStackTrace();
-            }
-        });
-
+        
         // 9.2.1.2.1. bullet 1 found and verified at least one trust chain
-        if(authHintsTrustChains.size() > 0) {
+        if(trustChains.size() > 0) {
             //just pick one randomly
             TrustChain validChain = null;
             OIDCFederationClientRepresentationPolicy rpPolicy =createMetadataPolicies();
-            for (Map.Entry<String, List<TrustChain>> entry : authHintsTrustChains.entrySet()) {
-                for (TrustChain chain : entry.getValue()) {
-                    try {
-                        OIDCFederationClientRepresentationPolicy finalPolicy = MetadataPolicyUtils
-                            .combineClientPOlicies(chain.getCombinedPolicy(), rpPolicy);
-                        statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, finalPolicy);
-                        validChain = chain;
-                        break;
-                    } catch (MetadataPolicyCombinationException | MetadataPolicyException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-                if (validChain !=null)  
+            for(TrustChain chain : trustChains) {
+                try {
+                    OIDCFederationClientRepresentationPolicy finalPolicy = MetadataPolicyUtils
+                        .combineClientPOlicies(chain.getCombinedPolicy(), rpPolicy);
+                    statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, finalPolicy);
+                    validChain = chain;
                     break;
-                    
+                } catch (MetadataPolicyCombinationException | MetadataPolicyException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
+                    
             if (validChain != null) {
                 ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer());
                 URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
@@ -175,11 +162,25 @@ public class FederationOPService implements ClientRegistrationProvider {
                     statement.getMetadata().getRp().getOrganization_name());
                
                 // add trust_anchor_id = trust anchor op chose
-                fedClient.setTrust_anchor_id(validChain.getParsedChain().get(validChain.getParsedChain().size() - 1).getIssuer());
+                fedClient.setTrust_anchor_id(validChain.getTrustAnchorId());
 
                 statement.getMetadata().setRp(fedClient);
-                // add trust_anchor_id = trust anchor op chose
+
                 // add one or more authority_hints, from its collection
+                final String pickedTrustAnchorId = validChain.getTrustAnchorId();
+                ConcurrentHashMap<String, List<TrustChain>> opAuthHintsPaths = new ConcurrentHashMap<String, List<TrustChain>>();
+                Config.getConfig().getAuthorityHints().parallelStream().forEach(authorityHint -> {
+                    try {
+                        List<TrustChain> paths = trustChainProcessor.constructTrustChainsFromUrl(authorityHint, Stream.of(pickedTrustAnchorId).collect(Collectors.toSet()));
+                        if(paths!=null && !paths.isEmpty()) {
+                            opAuthHintsPaths.put(authorityHint, paths);
+                        }
+                    } catch (IOException e) {
+                        logger.debug(String.format("Could not find a path from %s to %s", authorityHint, trustAnchorIds));
+                    }
+                });
+                statement.setAuthorityHints(new ArrayList<>(opAuthHintsPaths.keySet()));
+                
                 statement.setJwks(FedUtils.getKeySet(session));
                 statement.issuer(Urls.realmIssuer(session.getContext().getUri(UrlType.FRONTEND).getBaseUri(),
                     session.getContext().getRealm().getName()));

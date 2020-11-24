@@ -3,8 +3,12 @@ package org.keycloak.protocol.oidc.federation.helpers;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,7 +22,22 @@ import org.keycloak.models.KeycloakSession;
 
 public class FedUtils {
 
-    public static String getContentFrom(URL url) throws IOException {
+    private static String WELL_KNOWN_SUBPATH = ".well-known/openid-federation";
+    
+    
+    public static String getSelfSignedToken(String issuer) throws MalformedURLException, IOException {
+        issuer = issuer.trim();
+        if(!issuer.endsWith("/"))
+            issuer += "/";
+        return getContentFrom(new URL(issuer + WELL_KNOWN_SUBPATH));
+    }
+    
+    public static String getSubordinateToken(String fedApiUrl, String issuer, String subject) throws MalformedURLException, UnsupportedEncodingException, IOException {
+        return getContentFrom(new URL(fedApiUrl + "?iss="+urlEncode(issuer)+"&sub="+urlEncode(subject)));
+    }
+    
+    
+    private static String getContentFrom(URL url) throws IOException {
         StringBuffer content = new StringBuffer();
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
@@ -48,6 +67,11 @@ public class FedUtils {
         k = keys.toArray(k);
         keySet.setKeys(k);
         return keySet;
+    }
+    
+    
+    private static String urlEncode(String url) throws UnsupportedEncodingException {
+        return URLEncoder.encode(url, StandardCharsets.UTF_8.toString());
     }
 
 }

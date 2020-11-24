@@ -90,7 +90,7 @@ public class FederationOPService implements ClientRegistrationProvider {
         setEvent(event);
         //endpoint = oidc for being oidc client
         setAuth(new ClientRegistrationAuth(session, this, event, "oidc"));
-        trustChainProcessor = new TrustChainProcessor(session);
+        trustChainProcessor = new TrustChainProcessor();
     }
 
     
@@ -103,7 +103,7 @@ public class FederationOPService implements ClientRegistrationProvider {
     public Response getTrustChain() throws IOException {
       String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master"; 
       Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
-      TrustChainProcessor trustChainProcessor = new TrustChainProcessor(session);
+      TrustChainProcessor trustChainProcessor = new TrustChainProcessor();
       List<TrustChain> trustChain = trustChainProcessor.constructTrustChainsFromUrl(leafNodeBaseUrl, trustAnchorIds);
       return Response.ok(trustChain).build();
     }
@@ -114,7 +114,7 @@ public class FederationOPService implements ClientRegistrationProvider {
 
         EntityStatement statement;
         try {
-            statement = TrustChainProcessor.parseAndValidateSelfSigned(jwtStatement);
+            statement = trustChainProcessor.parseAndValidateSelfSigned(jwtStatement);
         } catch (UnparsableException e) {
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Exception in parsing entity statement").build();

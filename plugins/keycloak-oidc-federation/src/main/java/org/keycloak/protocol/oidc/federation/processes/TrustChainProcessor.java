@@ -56,13 +56,6 @@ public class TrustChainProcessor {
     
 	private static ObjectMapper om = new ObjectMapper();
 	
-	private KeycloakSession session;
-
-	public TrustChainProcessor(KeycloakSession session) {
-		this.session = session;
-	}
-
-	
 	
 	
 	/**
@@ -73,7 +66,7 @@ public class TrustChainProcessor {
      * @throws IOException 
      */
     public List<TrustChain> constructTrustChainsFromUrl(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException {      
-        String encodedLeafES = FedUtils.getContentFrom(new URL(leafNodeBaseUrl + "/.well-known/openid-federation"));
+        String encodedLeafES = FedUtils.getSelfSignedToken(leafNodeBaseUrl);
         return constructTrustChainsFromJWT(encodedLeafES, trustAnchorIds);
     }
 	
@@ -170,7 +163,7 @@ public class TrustChainProcessor {
 		if(es.getAuthorityHints() == null || es.getAuthorityHints().isEmpty()) {
 			if(trustAnchorIds.contains(es.getIssuer())) {
 				TrustChain trustChain = new TrustChain();
-//				trustChainRaw.add(encodedNode); //this is the self-issued statement of a trust anchor. Should not add it in the chain (as of oidc fed spec version draft 12) 
+//				trustChainRaw.add(encodedNode); //this is the self-issued statement of a trust anchor. Should not add it in the chain (see oidc federation spec version draft 12) 
 				chainsList.add(trustChain);
 			}
 		}
@@ -178,11 +171,12 @@ public class TrustChainProcessor {
 			
 			es.getAuthorityHints().forEach(authHint -> {
 				try {
-					String encodedSubNodeSelf = FedUtils.getContentFrom(new URL(authHint + "/.well-known/openid-federation"));
+				    
+					String encodedSubNodeSelf = FedUtils.getSelfSignedToken(authHint);
 					EntityStatement subNodeSelfES = parseAndValidateSelfSigned(encodedSubNodeSelf);
 					logger.debug(String.format("EntityStatement of %s about %s. AuthHints: %s", subNodeSelfES.getIssuer(), subNodeSelfES.getSubject(), subNodeSelfES.getAuthorityHints()));
 					String fedApiUrl = subNodeSelfES.getMetadata().getFederationEntity().getFederationApiEndpoint();
-					String encodedSubNodeSubordinate = FedUtils.getContentFrom(new URL(fedApiUrl + "?iss="+urlEncode(subNodeSelfES.getIssuer())+"&sub="+urlEncode(es.getIssuer())));					
+					String encodedSubNodeSubordinate = FedUtils.getSubordinateToken(fedApiUrl, subNodeSelfES.getIssuer(), es.getIssuer());
 					EntityStatement subNodeSubordinateES = parse(encodedSubNodeSubordinate);
 					validate(encodedSubNodeSubordinate, subNodeSelfES.getJwks());
 					logger.debug(String.format("EntityStatement of %s about %s. AuthHints: %s", subNodeSubordinateES.getIssuer(), subNodeSubordinateES.getSubject(), subNodeSubordinateES.getAuthorityHints()));
@@ -205,13 +199,7 @@ public class TrustChainProcessor {
 		
 	}
 	
-	private String urlEncode(String url) throws UnsupportedEncodingException {
-		return URLEncoder.encode(url, StandardCharsets.UTF_8.toString());
-	}
-	
-	private String urlDecode(String url) throws UnsupportedEncodingException {
-		return URLDecoder.decode(url, StandardCharsets.UTF_8.toString());
-	}
+
 	
 	
 	/**
@@ -232,7 +220,7 @@ public class TrustChainProcessor {
 	    String trustAnchorUri = parse(trustChainRaw.get(trustChainRaw.size()-1)).getIssuer();
         String trustAnchorSelfSigned;
         try {
-            trustAnchorSelfSigned = FedUtils.getContentFrom(new URL(trustAnchorUri + "/.well-known/openid-federation"));
+            trustAnchorSelfSigned = FedUtils.getSelfSignedToken(trustAnchorUri);
         } catch (IOException e) {
             throw new RemoteFetchingException(e.getMessage());
         }
@@ -265,7 +253,7 @@ public class TrustChainProcessor {
 	}
 
 	
-	public static void validate(String token, JSONWebKeySet publicKey) throws UnparsableException, BadSigningOrEncryptionException {
+	public void validate(String token, JSONWebKeySet publicKey) throws UnparsableException, BadSigningOrEncryptionException {
 	    String jsonKey;
         try {
             jsonKey = om.writeValueAsString(publicKey);
@@ -275,7 +263,7 @@ public class TrustChainProcessor {
 	    validate(token, jsonKey);
     }
 	
-	public static void validate(String token, String jsonPublicKey) throws UnparsableException, BadSigningOrEncryptionException {
+	public void validate(String token, String jsonPublicKey) throws UnparsableException, BadSigningOrEncryptionException {
         try{
             om.writeValueAsString(jsonPublicKey);
             JWKSet jwkSet = JWKSet.load(new ByteArrayInputStream(jsonPublicKey.getBytes()));
@@ -300,7 +288,7 @@ public class TrustChainProcessor {
         }
     }
 	
-	public static EntityStatement parseAndValidateSelfSigned(String token) throws UnparsableException, BadSigningOrEncryptionException {
+	public EntityStatement parseAndValidateSelfSigned(String token) throws UnparsableException, BadSigningOrEncryptionException {
 	    EntityStatement statement = parse(token);
 	    try{
 	        String jsonKey = om.writeValueAsString(statement.getJwks());
@@ -332,7 +320,7 @@ public class TrustChainProcessor {
 	
 	
 	
-	public static EntityStatement parse(String token) throws UnparsableException {
+	public EntityStatement parse(String token) throws UnparsableException {
 		String [] splits = token.split("\\.");
 		if(splits.length != 3)
 			throw new UnparsableException("Trust chain contains a chain-link which does not abide to the dot-delimited format of xxx.yyy.zzz");

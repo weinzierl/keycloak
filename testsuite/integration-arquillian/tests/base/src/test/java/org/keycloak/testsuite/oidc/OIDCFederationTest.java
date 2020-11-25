@@ -76,7 +76,8 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         Client client = ClientBuilder.newClient();
         try {
 
-            EntityStatement statement = TrustChainProcessor.parseAndValidateSelfSigned(getOIDCDiscoveryConfiguration(client));
+            TrustChainProcessor processor= new TrustChainProcessor();
+            EntityStatement statement = processor.parseAndValidateSelfSigned(getOIDCDiscoveryConfiguration(client));
 
             // check statement fields
             assertEquals(statement.getIssuer(),

@@ -112,6 +112,12 @@ public class Policy<T> extends AbstractPolicy<T> {
             throw new MetadataPolicyException(name + " must exist in rp");
 
         // add ???
+        if ( this.add != null && t != null) {
+            throw new MetadataPolicyException(name + " can not add extra value to an already existing single value");
+        } else if (this.add != null) {
+            t = this.add.iterator().next();
+        }
+        
         if (this.value != null) {
             return this.value;
         }

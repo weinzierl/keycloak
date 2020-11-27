@@ -78,10 +78,7 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     private KeycloakSession session;
     private EventBuilder event;
-    private ClientRegistrationAuth auth;
-    private static final Set<String> ALLOWED_RESPONSE_TYPES = Stream
-        .of(OIDCResponseType.CODE, OIDCResponseType.TOKEN, OIDCResponseType.ID_TOKEN, OIDCResponseType.NONE)
-        .collect(Collectors.toSet());
+    private ClientRegistrationAuth auth;   
     private TrustChainProcessor trustChainProcessor;
 
     public FederationOPService(KeycloakSession session) {
@@ -137,23 +134,9 @@ public class FederationOPService implements ClientRegistrationProvider {
         
         // 9.2.1.2.1. bullet 1 found and verified at least one trust chain
         if(trustChains.size() > 0) {
-            //just pick one randomly
-            TrustChain validChain = null;
-            OIDCFederationClientRepresentationPolicy rpPolicy =createMetadataPolicies();
-            for(TrustChain chain : trustChains) {
-                try {
-                    OIDCFederationClientRepresentationPolicy finalPolicy = MetadataPolicyUtils
-                        .combineClientPOlicies(chain.getCombinedPolicy(), rpPolicy);
-                    statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, finalPolicy);
-                    validChain = chain;
-                    break;
-                } catch (MetadataPolicyCombinationException | MetadataPolicyException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-                    
-            if (validChain != null) {
+            //just pick one with valid metadata policies randomly
+            TrustChain validChain =trustChainProcessor.findAcceptedTrustChain(trustChains, statement) ; 
+            if ( validChain != null) {
                 ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer());
                 URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
                 OIDCClientRepresentation clientOIDC = DescriptionConverter.toExternalResponse(session, clientSaved, uri);
@@ -194,16 +177,6 @@ public class FederationOPService implements ClientRegistrationProvider {
             return Response.status(Response.Status.FORBIDDEN).entity("No trusted trust anchor could be found").build();
         }
 
-
-    }
-
-    private OIDCFederationClientRepresentationPolicy createMetadataPolicies() {
-        //enhancement may be needed from (OIDCConfigurationRepresentation) super.getConfig()
-        PolicyList<String> policy = new PolicyList<String>();
-        policy.setSubset_of(ALLOWED_RESPONSE_TYPES);
-        OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
-        rpPolicy.setResponse_types(policy);
-        return rpPolicy;
 
     }
 

@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jboss.logging.Logger;
 import org.keycloak.jose.jwk.JSONWebKeySet;
@@ -21,15 +22,18 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
+import org.keycloak.protocol.oidc.federation.beans.PolicyList;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.InvalidTrustChainException;
 import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyCombinationException;
+import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyException;
 import org.keycloak.protocol.oidc.federation.exceptions.RemoteFetchingException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.helpers.MetadataPolicyUtils;
 import org.keycloak.protocol.oidc.federation.paths.TrustChain;
 import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
+import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -55,6 +59,9 @@ public class TrustChainProcessor {
     private static final Logger logger = Logger.getLogger(TrustChainProcessor.class);
     
 	private static ObjectMapper om = new ObjectMapper();
+	private static final Set<String> ALLOWED_RESPONSE_TYPES = Stream
+	        .of(OIDCResponseType.CODE, OIDCResponseType.TOKEN, OIDCResponseType.ID_TOKEN, OIDCResponseType.NONE)
+	        .collect(Collectors.toSet());
 	
 	
 	
@@ -336,5 +343,35 @@ public class TrustChainProcessor {
 		}
 	}
 
-	
+    public TrustChain findAcceptedTrustChain(List<TrustChain> trustChains, EntityStatement statement) {
+        TrustChain validChain = null;
+        OIDCFederationClientRepresentationPolicy rpPolicy = createMetadataPolicies();
+        for (TrustChain chain : trustChains) {
+            try {
+                OIDCFederationClientRepresentationPolicy finalPolicy = MetadataPolicyUtils
+                    .combineClientPOlicies(chain.getCombinedPolicy(), rpPolicy);
+                statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, finalPolicy);
+                validChain = chain;
+                break;
+            } catch (MetadataPolicyCombinationException | MetadataPolicyException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return validChain;
+    }
+
+    /**
+     * only for allowed Response_types. 
+     * Keycloak implementation raise validation error if an invalid Response_types exists
+     * @return
+     */
+    private OIDCFederationClientRepresentationPolicy createMetadataPolicies() {
+        PolicyList<String> policy = new PolicyList<String>();
+        policy.setSubset_of(ALLOWED_RESPONSE_TYPES);
+        OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
+        rpPolicy.setResponse_types(policy);
+        return rpPolicy;
+
+    }
 }

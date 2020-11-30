@@ -164,5 +164,43 @@ public class FederationConfigurationEndpoint {
         }
         return Response.ok("TrustAnchor  was deleted").build();
     }
+    
+    //DUMMY endpoint for start configuration
+    @POST
+    @Path("default")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response startConfiguration(FederationConf conf) {
+        this.auth.realm().requireManageRealm();
+        try {
+            conf.getAuthHints().stream().forEach(val -> authorityHintService.create(val));
+            conf.getTrustAnchors().stream().forEach(val -> trustAnchorService.create(val));
+            return Response.ok("Configuration success").build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ErrorResponse.error(e.getMessage(), Response.Status.BAD_REQUEST);
+        }
+
+    }
+    
+    public static class FederationConf {
+        private List<String> authHints;
+        private List<String> trustAnchors;
+                
+        public List<String> getAuthHints() {
+            return authHints;
+        }
+        public void setAuthHints(List<String> authHints) {
+            this.authHints = authHints;
+        }
+        public List<String> getTrustAnchors() {
+            return trustAnchors;
+        }
+        public void setTrustAnchors(List<String> trustAnchors) {
+            this.trustAnchors = trustAnchors;
+        }
+        
+        
+    }
 
 }

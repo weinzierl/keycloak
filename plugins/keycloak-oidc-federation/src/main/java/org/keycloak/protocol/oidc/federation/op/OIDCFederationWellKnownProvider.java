@@ -21,7 +21,9 @@ package org.keycloak.protocol.oidc.federation.op;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
@@ -32,9 +34,10 @@ import org.keycloak.protocol.oidc.OIDCWellKnownProvider;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.Metadata;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentation;
-import org.keycloak.protocol.oidc.federation.configuration.Config;
 import org.keycloak.protocol.oidc.federation.exceptions.InternalServerErrorException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
+import org.keycloak.protocol.oidc.federation.model.AuthorityHint;
+import org.keycloak.protocol.oidc.federation.model.AuthorityHintService;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProviderFactory;
 import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
@@ -50,17 +53,23 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
 	public static final Long ENTITY_EXPIRES_AFTER_SEC = 86400L; //24 hours
 	public static final List<String> CLIENT_REGISTRATION_TYPES_SUPPORTED = Arrays.asList("automatic", "explicit");
 
-
     private KeycloakSession session;
+    private AuthorityHintService authorityHintService;
 
     public OIDCFederationWellKnownProvider(KeycloakSession session) {
     	super(session);
         this.session = session;
+        this.authorityHintService = new AuthorityHintService(session);
     }
 
     @Override
     public Object getConfig() {
-
+        
+        List<AuthorityHint> authorityHints = authorityHintService.findAuthorityHintsByRealm();
+        //realm without authority hints must not expose this web service
+        if ( authorityHints.isEmpty())
+            throw new NotFoundException("No authority hints exists for this realm");
+        
         UriInfo frontendUriInfo = session.getContext().getUri(UrlType.FRONTEND);
         UriInfo backendUriInfo = session.getContext().getUri(UrlType.BACKEND);
 
@@ -87,8 +96,9 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
 
         EntityStatement entityStatement = new EntityStatement();
         entityStatement.setMetadata(metadata);
-        entityStatement.setAuthorityHints(Config.getConfig().getAuthorityHints());
-         entityStatement.setJwks(FedUtils.getKeySet(session));
+        entityStatement.setAuthorityHints(authorityHints.stream().map(AuthorityHint::getValue)
+            .collect(Collectors.toList()));
+        entityStatement.setJwks(FedUtils.getKeySet(session));
         entityStatement.issuer(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
         entityStatement.subject(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
         entityStatement.issuedNow();

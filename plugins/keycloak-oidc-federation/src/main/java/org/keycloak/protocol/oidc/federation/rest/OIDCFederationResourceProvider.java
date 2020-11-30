@@ -42,19 +42,28 @@ public class OIDCFederationResourceProvider implements RealmResourceProvider {
     @Override
     public void close() {
     }
-    
+
     public static UriBuilder federationExplicitRegistration(UriBuilder builder) {
         return builder.path(RealmsResource.class).path(RealmsResource.class, "getRealmResource").path(OIDCFederationResourceProviderFactory.ID).path(OIDCFederationResourceProvider.class, "getFederationOPService")
             .path(FederationOPService.class, "getFederationRegistration");
     }
-    
+
     @Path("op")
     public FederationOPService getFederationOPService() {
         FederationOPService opService = new FederationOPService(session);
         ResteasyProviderFactory.getInstance().injectProperties(opService);
         return opService;
     }
-    
-    
-    
+
+    @Path("conf")
+    public FederationConfigurationEndpoint getFederationConfigurationEndpoint() {
+        FederationConfigurationEndpoint confEndpoint = new FederationConfigurationEndpoint(session);
+        ResteasyProviderFactory.getInstance().injectProperties(confEndpoint);
+        return confEndpoint;
+    }
+
+
+
+
+
 }

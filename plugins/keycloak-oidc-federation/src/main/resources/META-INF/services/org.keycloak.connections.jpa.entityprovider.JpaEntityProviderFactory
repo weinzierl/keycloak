@@ -1,0 +1,2 @@
+org.keycloak.protocol.oidc.federation.model.AuthorityHintJpaEntityProviderFactory
+org.keycloak.protocol.oidc.federation.model.TrustAnchorJpaEntityProviderFactory

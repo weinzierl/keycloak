@@ -1,8 +1,0 @@
-authorityHints:
-    - http://localhost:8080/intermediate1
-    - http://localhost:8080/intermediate2
-#    - https://127.0.0.1:6000/eid/umu.se
-
-trustAnchors:
-    - http://localhost:8080/trustanchor1
-    - http://localhost:8080/trustanchor2

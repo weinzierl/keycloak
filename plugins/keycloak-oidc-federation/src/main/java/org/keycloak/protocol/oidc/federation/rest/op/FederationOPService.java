@@ -3,11 +3,7 @@ package org.keycloak.protocol.oidc.federation.rest.op;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,7 +15,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.jboss.logging.Logger;
 import org.keycloak.OAuth2Constants;
@@ -33,23 +28,19 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
-import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
-import org.keycloak.protocol.oidc.federation.beans.PolicyList;
-import org.keycloak.protocol.oidc.federation.configuration.Config;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
-import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyCombinationException;
-import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
-import org.keycloak.protocol.oidc.federation.helpers.MetadataPolicyUtils;
+import org.keycloak.protocol.oidc.federation.model.AuthorityHint;
+import org.keycloak.protocol.oidc.federation.model.AuthorityHintService;
+import org.keycloak.protocol.oidc.federation.model.TrustAnchor;
+import org.keycloak.protocol.oidc.federation.model.TrustAnchorService;
 import org.keycloak.protocol.oidc.federation.paths.TrustChain;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
 import org.keycloak.protocol.oidc.mappers.PairwiseSubMapperHelper;
 import org.keycloak.protocol.oidc.mappers.SHA256PairwiseSubMapper;
-import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.SubjectType;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
@@ -78,8 +69,10 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     private KeycloakSession session;
     private EventBuilder event;
-    private ClientRegistrationAuth auth;   
+    private ClientRegistrationAuth auth;
     private TrustChainProcessor trustChainProcessor;
+    private AuthorityHintService authorityHintService;
+    private TrustAnchorService trustAnchorService;
 
     public FederationOPService(KeycloakSession session) {
         this.session = session;
@@ -88,9 +81,11 @@ public class FederationOPService implements ClientRegistrationProvider {
         //endpoint = oidc for being oidc client
         setAuth(new ClientRegistrationAuth(session, this, event, "oidc"));
         trustChainProcessor = new TrustChainProcessor();
+        this.authorityHintService = new AuthorityHintService(session);
+        this.trustAnchorService = new TrustAnchorService(session);
     }
 
-    
+
     /**
      * THIS SHOULD BE REMOVED
      */
@@ -98,13 +93,13 @@ public class FederationOPService implements ClientRegistrationProvider {
     @Path("trustchain")
     @Produces("application/json; charset=utf-8")
     public Response getTrustChain() throws IOException {
-      String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master"; 
-      Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
+      String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master";
+      Set<String> trustAnchorIds = trustAnchorService.findTrustAnchorByRealm().stream().map(TrustAnchor::getValue).collect(Collectors.toSet());
       TrustChainProcessor trustChainProcessor = new TrustChainProcessor();
       List<TrustChain> trustChain = trustChainProcessor.constructTrustChainsFromUrl(leafNodeBaseUrl, trustAnchorIds);
       return Response.ok(trustChain).build();
     }
-    
+
     @POST
     @Path("fedreg")
     public Response getFederationRegistration(String jwtStatement) throws UnparsableException {
@@ -124,18 +119,18 @@ public class FederationOPService implements ClientRegistrationProvider {
             return Response.status(Response.Status.BAD_REQUEST).entity("The registration request issuer differs from the subject.").build();
         }
 
-        Set<String> trustAnchorIds = Config.getConfig().getTrustAnchors().stream().collect(Collectors.toSet());
+        Set<String> trustAnchorIds = trustAnchorService.findTrustAnchorByRealm().stream().map(TrustAnchor::getValue).collect(Collectors.toSet());
 
         logger.info("starting validating trust chains");
-        
-        List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromJWT(jwtStatement, trustAnchorIds);
-        
 
-        
+        List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromJWT(jwtStatement, trustAnchorIds);
+
+
+
         // 9.2.1.2.1. bullet 1 found and verified at least one trust chain
         if(trustChains.size() > 0) {
             //just pick one with valid metadata policies randomly
-            TrustChain validChain =trustChainProcessor.findAcceptedTrustChain(trustChains, statement) ; 
+            TrustChain validChain =trustChainProcessor.findAcceptedTrustChain(trustChains, statement) ;
             if ( validChain != null) {
                 ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer());
                 URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
@@ -143,7 +138,7 @@ public class FederationOPService implements ClientRegistrationProvider {
                 OIDCFederationClientRepresentation fedClient = new OIDCFederationClientRepresentation(clientOIDC,
                     statement.getMetadata().getRp().getClient_registration_types(),
                     statement.getMetadata().getRp().getOrganization_name());
-               
+
                 // add trust_anchor_id = trust anchor op chose
                 fedClient.setTrust_anchor_id(validChain.getTrustAnchorId());
 
@@ -152,7 +147,8 @@ public class FederationOPService implements ClientRegistrationProvider {
                 // add one or more authority_hints, from its collection
                 final String pickedTrustAnchorId = validChain.getTrustAnchorId();
                 ConcurrentHashMap<String, List<TrustChain>> opAuthHintsPaths = new ConcurrentHashMap<String, List<TrustChain>>();
-                Config.getConfig().getAuthorityHints().parallelStream().forEach(authorityHint -> {
+                List<AuthorityHint> authorityHints = authorityHintService.findAuthorityHintsByRealm();
+                authorityHints.parallelStream().map(AuthorityHint::getValue).forEach(authorityHint -> {
                     try {
                         List<TrustChain> paths = trustChainProcessor.constructTrustChainsFromUrl(authorityHint, Stream.of(pickedTrustAnchorId).collect(Collectors.toSet()));
                         if(paths!=null && !paths.isEmpty()) {
@@ -163,7 +159,7 @@ public class FederationOPService implements ClientRegistrationProvider {
                     }
                 });
                 statement.setAuthorityHints(new ArrayList<>(opAuthHintsPaths.keySet()));
-                
+
                 statement.setJwks(FedUtils.getKeySet(session));
                 statement.issuer(Urls.realmIssuer(session.getContext().getUri(UrlType.FRONTEND).getBaseUri(),
                     session.getContext().getRealm().getName()));

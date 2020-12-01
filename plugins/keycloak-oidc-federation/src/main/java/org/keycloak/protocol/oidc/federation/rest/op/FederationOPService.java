@@ -182,6 +182,10 @@ public class FederationOPService implements ClientRegistrationProvider {
             throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client Identifier included",
                 Response.Status.BAD_REQUEST);
         }
+        if (session.getContext().getRealm().getClientByClientId(identifier) != null) {
+            throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client with this entity identifier exists",
+                Response.Status.BAD_REQUEST);
+        }
         try {
             logger.info("Starting creating client for identifier: "+identifier);
             ClientRepresentation client = DescriptionConverter.toInternal(session, clientRepresentastion);

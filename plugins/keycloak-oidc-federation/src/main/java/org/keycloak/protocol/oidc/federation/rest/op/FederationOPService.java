@@ -104,6 +104,10 @@ public class FederationOPService implements ClientRegistrationProvider {
     @Path("fedreg")
     public Response getFederationRegistration(String jwtStatement) throws UnparsableException {
 
+        List<AuthorityHint> authorityHints = authorityHintService.findAuthorityHintsByRealm();
+        if (authorityHints.isEmpty()) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Explicit Registration is not supported in this realm").build();
+        }
         EntityStatement statement;
         try {
             statement = trustChainProcessor.parseAndValidateSelfSigned(jwtStatement);
@@ -147,7 +151,6 @@ public class FederationOPService implements ClientRegistrationProvider {
                 // add one or more authority_hints, from its collection
                 final String pickedTrustAnchorId = validChain.getTrustAnchorId();
                 ConcurrentHashMap<String, List<TrustChain>> opAuthHintsPaths = new ConcurrentHashMap<String, List<TrustChain>>();
-                List<AuthorityHint> authorityHints = authorityHintService.findAuthorityHintsByRealm();
                 authorityHints.parallelStream().map(AuthorityHint::getValue).forEach(authorityHint -> {
                     try {
                         List<TrustChain> paths = trustChainProcessor.constructTrustChainsFromUrl(authorityHint, Stream.of(pickedTrustAnchorId).collect(Collectors.toSet()));

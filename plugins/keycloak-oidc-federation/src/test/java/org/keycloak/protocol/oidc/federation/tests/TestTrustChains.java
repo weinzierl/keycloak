@@ -33,7 +33,7 @@ public class TestTrustChains extends TestBase {
             new HashSet<>(trustAnchors));
         
         assertNotNull(trustChains);
-        assertTrue(trustChains.size()>0);
+        assertTrue(trustChains.size()==3);
         
         String leafId = trustChains.get(0).getLeafId();
         for(TrustChain trustChain: trustChains) {
@@ -44,6 +44,33 @@ public class TestTrustChains extends TestBase {
             trustChainProcessor.validateTrustChain(trustChain);
         }
         
+    }
+    
+    @Test
+    public void test2() throws Exception {
+        
+        String host = YamlConfiguration.getConfig().getHost();
+        host = host.endsWith("/") ? host : host+"/";
+        
+        List<String> trustAnchors = Arrays.asList(host + "trustanchor1", host + "trustanchor2");
+
+        TrustChainProcessor trustChainProcessor = new TrustChainProcessor();
+        
+        List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromUrl(
+            host + "intermediate2", 
+            new HashSet<>(trustAnchors));
+        
+        assertNotNull(trustChains);
+        assertTrue(trustChains.size()==1);
+        
+        String leafId = trustChains.get(0).getLeafId();
+        for(TrustChain trustChain: trustChains) {
+            assertEquals(trustChain.getLeafId(), leafId);
+            assertTrue(trustAnchors.contains(trustChain.getTrustAnchorId()));
+            for(int i = trustChain.getParsedChain().size()-1 ; i>0 ; i--)
+                assertEquals(trustChain.getParsedChain().get(i).getSubject(), trustChain.getParsedChain().get(i-1).getIssuer());
+            trustChainProcessor.validateTrustChain(trustChain);
+        }
     }
     
     

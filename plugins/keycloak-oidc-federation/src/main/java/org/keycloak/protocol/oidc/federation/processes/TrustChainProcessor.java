@@ -95,7 +95,7 @@ public class TrustChainProcessor {
 	        logger.debug("Leaf's self-signed entity statement is not a valid jwt. Will return no chains...");
 	    }
 	    
-        List<TrustChain> trustChains = subTrustChains(leafJWT, trustAnchorIds);
+        List<TrustChain> trustChains = subTrustChains(leafJWT, trustAnchorIds, new HashSet<String>());
         
         //add also the leaf self-signed node
         trustChains.forEach(trustChain -> trustChain.getChain().add(0, leafJWT));
@@ -156,13 +156,14 @@ public class TrustChainProcessor {
 	}
 	
 	
-	private List<TrustChain> subTrustChains(String encodedNode, Set<String> trustAnchorIds) {
+	private List<TrustChain> subTrustChains(String encodedNode, Set<String> trustAnchorIds, Set<String> visitedNodes) {
 
 		List<TrustChain> chainsList = new ArrayList<>();
 		
 		EntityStatement es;
 		try {
 			es = parseAndValidateSelfSigned(encodedNode);
+			visitedNodes.add(es.getIssuer());
 		} catch (UnparsableException | BadSigningOrEncryptionException e ) {
 			logger.info("Cannot process a subchain link. Might not be able to form a trustchain. " + e.getMessage());
 			return chainsList;
@@ -178,7 +179,9 @@ public class TrustChainProcessor {
 			
 			es.getAuthorityHints().forEach(authHint -> {
 				try {
-				    
+				    // Honor loop prevention as specified in https://openid.net/specs/openid-connect-federation-1_0.html#rfc.section.7.1
+				    if(visitedNodes.contains(authHint) && !trustAnchorIds.contains(authHint)) 
+				        return;
 					String encodedSubNodeSelf = FedUtils.getSelfSignedToken(authHint);
 					EntityStatement subNodeSelfES = parseAndValidateSelfSigned(encodedSubNodeSelf);
 					logger.debug(String.format("EntityStatement of %s about %s. AuthHints: %s", subNodeSelfES.getIssuer(), subNodeSelfES.getSubject(), subNodeSelfES.getAuthorityHints()));
@@ -188,7 +191,8 @@ public class TrustChainProcessor {
 					validate(encodedSubNodeSubordinate, subNodeSelfES.getJwks());
 					logger.debug(String.format("EntityStatement of %s about %s. AuthHints: %s", subNodeSubordinateES.getIssuer(), subNodeSubordinateES.getSubject(), subNodeSubordinateES.getAuthorityHints()));
 					//TODO: might want to make some more checks on subNodeSubordinateES integrity
-					List<TrustChain> subList = subTrustChains(encodedSubNodeSelf, trustAnchorIds);
+					visitedNodes.add(subNodeSelfES.getIssuer());
+					List<TrustChain> subList = subTrustChains(encodedSubNodeSelf, trustAnchorIds, visitedNodes);
 					for(TrustChain tcr : subList) {
 						tcr.getChain().add(0, encodedSubNodeSubordinate);
 						chainsList.add(tcr);

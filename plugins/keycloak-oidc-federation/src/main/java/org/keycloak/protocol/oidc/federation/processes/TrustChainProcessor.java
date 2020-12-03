@@ -343,7 +343,7 @@ public class TrustChainProcessor {
 		}
 	}
 
-    public TrustChain findAcceptedTrustChain(List<TrustChain> trustChains, EntityStatement statement) {
+    public TrustChain findAcceptableMetadataPolicyChain(List<TrustChain> trustChains, EntityStatement statement) {
         TrustChain validChain = null;
         OIDCFederationClientRepresentationPolicy rpPolicy = createMetadataPolicies();
         for (TrustChain chain : trustChains) {

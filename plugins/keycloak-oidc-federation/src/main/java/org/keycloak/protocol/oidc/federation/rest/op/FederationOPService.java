@@ -134,7 +134,7 @@ public class FederationOPService implements ClientRegistrationProvider {
         // 9.2.1.2.1. bullet 1 found and verified at least one trust chain
         if(trustChains.size() > 0) {
             //just pick one with valid metadata policies randomly
-            TrustChain validChain =trustChainProcessor.findAcceptedTrustChain(trustChains, statement) ;
+            TrustChain validChain =trustChainProcessor.findAcceptableMetadataPolicyChain(trustChains, statement) ;
             if ( validChain != null) {
                 ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer());
                 URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();

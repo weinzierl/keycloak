@@ -80,20 +80,7 @@ public class FederationOPService implements ClientRegistrationProvider {
         this.configurationService = new ConfigurationService(session);
     }
 
-
-    /**
-     * THIS SHOULD BE REMOVED
-     */
-    @GET
-    @Path("trustchain")
-    @Produces("application/json; charset=utf-8")
-    public Response getTrustChain() throws IOException {
-      String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master";
-      Set<String> trustAnchorIds = configurationService.getEntity().getConfiguration().getTrustAnchors();
-      TrustChainProcessor trustChainProcessor = new TrustChainProcessor();
-      List<TrustChain> trustChain = trustChainProcessor.constructTrustChainsFromUrl(leafNodeBaseUrl, trustAnchorIds);
-      return Response.ok(trustChain).build();
-    }
+    
 
     @POST
     @Path("fedreg")

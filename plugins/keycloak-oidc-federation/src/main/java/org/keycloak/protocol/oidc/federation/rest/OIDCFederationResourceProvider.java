@@ -55,7 +55,7 @@ public class OIDCFederationResourceProvider implements RealmResourceProvider {
         return opService;
     }
 
-    @Path("conf")
+    @Path("configuration")
     public FederationConfigurationEndpoint getFederationConfigurationEndpoint() {
         FederationConfigurationEndpoint confEndpoint = new FederationConfigurationEndpoint(session);
         ResteasyProviderFactory.getInstance().injectProperties(confEndpoint);

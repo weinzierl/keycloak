@@ -21,6 +21,7 @@ package org.keycloak.protocol.oidc.federation.op;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.NotFoundException;
@@ -36,8 +37,7 @@ import org.keycloak.protocol.oidc.federation.beans.Metadata;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentation;
 import org.keycloak.protocol.oidc.federation.exceptions.InternalServerErrorException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
-import org.keycloak.protocol.oidc.federation.model.AuthorityHint;
-import org.keycloak.protocol.oidc.federation.model.AuthorityHintService;
+import org.keycloak.protocol.oidc.federation.model.ConfigurationService;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProviderFactory;
 import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
@@ -54,18 +54,18 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
 	public static final List<String> CLIENT_REGISTRATION_TYPES_SUPPORTED = Arrays.asList("automatic", "explicit");
 
     private KeycloakSession session;
-    private AuthorityHintService authorityHintService;
+    private ConfigurationService configurationService;
 
     public OIDCFederationWellKnownProvider(KeycloakSession session) {
     	super(session);
         this.session = session;
-        this.authorityHintService = new AuthorityHintService(session);
+        this.configurationService = new ConfigurationService(session);
     }
 
     @Override
     public Object getConfig() {
         
-        List<AuthorityHint> authorityHints = authorityHintService.findAuthorityHintsByRealm();
+        Set<String> authorityHints = configurationService.getEntity().getConfiguration().getAuthorityHints();
         //realm without authority hints must not expose this web service
         if ( authorityHints.isEmpty())
             throw new NotFoundException("No authority hints exists for this realm");
@@ -96,8 +96,7 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
 
         EntityStatement entityStatement = new EntityStatement();
         entityStatement.setMetadata(metadata);
-        entityStatement.setAuthorityHints(authorityHints.stream().map(AuthorityHint::getValue)
-            .collect(Collectors.toList()));
+        entityStatement.setAuthorityHints(authorityHints.stream().collect(Collectors.toList()));
         entityStatement.setJwks(FedUtils.getKeySet(session));
         entityStatement.issuer(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
         entityStatement.subject(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));

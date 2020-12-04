@@ -6,13 +6,13 @@ import org.keycloak.connections.jpa.entityprovider.JpaEntityProviderFactory;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 
-public class AuthorityHintJpaEntityProviderFactory implements JpaEntityProviderFactory {
+public class ConfigurationJpaEntityProviderFactory implements JpaEntityProviderFactory {
 
-    protected static final String ID = "authority-hint-entity-provider";
+    protected static final String ID = "oidc-federation-configuration-entity-provider";
     
     @Override
     public JpaEntityProvider create(KeycloakSession session) {
-        return new AuthorityHintJpaEntityProvider();
+        return new ConfigurationJpaEntityProvider();
     }
 
     @Override

@@ -1,6 +1,5 @@
 package org.keycloak.protocol.oidc.federation.rest;
 
-import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -9,7 +8,6 @@ import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -21,10 +19,9 @@ import org.keycloak.jose.jws.JWSInputException;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
-import org.keycloak.protocol.oidc.federation.model.AuthorityHint;
-import org.keycloak.protocol.oidc.federation.model.AuthorityHintService;
-import org.keycloak.protocol.oidc.federation.model.TrustAnchor;
-import org.keycloak.protocol.oidc.federation.model.TrustAnchorService;
+import org.keycloak.protocol.oidc.federation.model.Configuration;
+import org.keycloak.protocol.oidc.federation.model.ConfigurationEntity;
+import org.keycloak.protocol.oidc.federation.model.ConfigurationService;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.services.ErrorResponse;
 import org.keycloak.services.managers.AppAuthManager;
@@ -40,14 +37,13 @@ public class FederationConfigurationEndpoint {
 
     private KeycloakSession session;
     private AdminPermissionEvaluator auth;
-    private AuthorityHintService authorityHintService;
-    private TrustAnchorService trustAnchorService;
+    private ConfigurationService configurationService;
 
     public FederationConfigurationEndpoint(KeycloakSession session) {
         this.session = session;
         this.auth = authenticateRealmAdminRequest();
-        this.authorityHintService = new AuthorityHintService(session);
-        this.trustAnchorService = new TrustAnchorService(session);
+        this.configurationService = new ConfigurationService(session);
+        
     }
 
     private AdminPermissionEvaluator authenticateRealmAdminRequest() {
@@ -90,36 +86,39 @@ public class FederationConfigurationEndpoint {
     }
 
     @GET
-    @Path("authority-hint")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<AuthorityHint> getRealmAuthorityHint() {
+    public Configuration getConfiguration() {
         this.auth.realm().requireViewRealm();
-        List<AuthorityHint> results = authorityHintService.findAuthorityHintsByRealm();
-        return results;
+        ConfigurationEntity entity = configurationService.getEntity();
+        return entity != null ? entity.getConfiguration() : null;
     }
 
     @POST
-    @Path("authority-hint")
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createRealmAuthorityHint(String value) {
+    public Response saveConfiguration(Configuration configuration) {
         this.auth.realm().requireManageRealm();
+        RealmModel realmModel = session.getContext().getRealm();
         try {
-            AuthorityHint authHint = authorityHintService.create(value);
-            return Response.ok(authHint).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ErrorResponse.error(e.getMessage(), Response.Status.BAD_REQUEST);
+            ConfigurationEntity entity = configurationService.getEntity();
+            if(entity == null)
+                entity = new ConfigurationEntity(realmModel.getId(), configuration);
+            else
+                entity.setConfiguration(configuration);
+            configurationService.saveEntity(entity);
+            return Response.ok(configuration).build();
         }
-
+        catch(Exception ex) {
+            return ErrorResponse.error("Failed to create configuration for the realm " + realmModel.getName(), Response.Status.NOT_FOUND);
+        }
     }
 
     @DELETE
-    @Path("authority-hint/{id}")
-    public Response deleteAuthorityHint(@PathParam("id") String id) {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteConfiguration() {
         this.auth.realm().requireManageRealm();
         try {
-            authorityHintService.delete(id);
+            configurationService.deleteEntity();
         } catch (NotFoundException e) {
             e.printStackTrace();
             return ErrorResponse.error(e.getMessage(), Response.Status.NOT_FOUND);
@@ -127,80 +126,5 @@ public class FederationConfigurationEndpoint {
         return Response.ok("Authority hint was deleted").build();
     }
 
-    @GET
-    @Path("trust-anchor")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<TrustAnchor> getRealmTrustAnchor() {
-        this.auth.realm().requireViewRealm();
-        List<TrustAnchor> results = trustAnchorService.findTrustAnchorByRealm();
-        return results;
-    }
-
-    @POST
-    @Path("trust-anchor")
-    @Consumes(MediaType.TEXT_PLAIN)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createRealmTrustAnchor(String value) {
-        this.auth.realm().requireManageRealm();
-        try {
-            TrustAnchor anchor = trustAnchorService.create(value);
-            return Response.ok(anchor).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ErrorResponse.error(e.getMessage(), Response.Status.BAD_REQUEST);
-        }
-
-    }
-
-    @DELETE
-    @Path("trust-anchor/{id}")
-    public Response deleteTrustAnchor(@PathParam("id") String id) {
-        this.auth.realm().requireManageRealm();
-        try {
-            trustAnchorService.delete(id);
-        } catch (NotFoundException e) {
-            e.printStackTrace();
-            return ErrorResponse.error(e.getMessage(), Response.Status.NOT_FOUND);
-        }
-        return Response.ok("TrustAnchor  was deleted").build();
-    }
     
-    //DUMMY endpoint for start configuration
-    @POST
-    @Path("default")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response startConfiguration(FederationConf conf) {
-        this.auth.realm().requireManageRealm();
-        try {
-            conf.getAuthHints().stream().forEach(val -> authorityHintService.create(val));
-            conf.getTrustAnchors().stream().forEach(val -> trustAnchorService.create(val));
-            return Response.ok("Configuration success").build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ErrorResponse.error(e.getMessage(), Response.Status.BAD_REQUEST);
-        }
-
-    }
-    
-    public static class FederationConf {
-        private List<String> authHints;
-        private List<String> trustAnchors;
-                
-        public List<String> getAuthHints() {
-            return authHints;
-        }
-        public void setAuthHints(List<String> authHints) {
-            this.authHints = authHints;
-        }
-        public List<String> getTrustAnchors() {
-            return trustAnchors;
-        }
-        public void setTrustAnchors(List<String> trustAnchors) {
-            this.trustAnchors = trustAnchors;
-        }
-        
-        
-    }
-
 }

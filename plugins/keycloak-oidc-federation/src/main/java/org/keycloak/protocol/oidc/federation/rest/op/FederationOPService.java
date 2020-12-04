@@ -32,10 +32,7 @@ import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresent
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
-import org.keycloak.protocol.oidc.federation.model.AuthorityHint;
-import org.keycloak.protocol.oidc.federation.model.AuthorityHintService;
-import org.keycloak.protocol.oidc.federation.model.TrustAnchor;
-import org.keycloak.protocol.oidc.federation.model.TrustAnchorService;
+import org.keycloak.protocol.oidc.federation.model.ConfigurationService;
 import org.keycloak.protocol.oidc.federation.paths.TrustChain;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
@@ -71,8 +68,7 @@ public class FederationOPService implements ClientRegistrationProvider {
     private EventBuilder event;
     private ClientRegistrationAuth auth;
     private TrustChainProcessor trustChainProcessor;
-    private AuthorityHintService authorityHintService;
-    private TrustAnchorService trustAnchorService;
+    private ConfigurationService configurationService;
 
     public FederationOPService(KeycloakSession session) {
         this.session = session;
@@ -81,8 +77,7 @@ public class FederationOPService implements ClientRegistrationProvider {
         //endpoint = oidc for being oidc client
         setAuth(new ClientRegistrationAuth(session, this, event, "oidc"));
         trustChainProcessor = new TrustChainProcessor();
-        this.authorityHintService = new AuthorityHintService(session);
-        this.trustAnchorService = new TrustAnchorService(session);
+        this.configurationService = new ConfigurationService(session);
     }
 
 
@@ -94,7 +89,7 @@ public class FederationOPService implements ClientRegistrationProvider {
     @Produces("application/json; charset=utf-8")
     public Response getTrustChain() throws IOException {
       String leafNodeBaseUrl = "http://localhost:8081/auth/realms/master";
-      Set<String> trustAnchorIds = trustAnchorService.findTrustAnchorByRealm().stream().map(TrustAnchor::getValue).collect(Collectors.toSet());
+      Set<String> trustAnchorIds = configurationService.getEntity().getConfiguration().getTrustAnchors();
       TrustChainProcessor trustChainProcessor = new TrustChainProcessor();
       List<TrustChain> trustChain = trustChainProcessor.constructTrustChainsFromUrl(leafNodeBaseUrl, trustAnchorIds);
       return Response.ok(trustChain).build();
@@ -104,7 +99,7 @@ public class FederationOPService implements ClientRegistrationProvider {
     @Path("fedreg")
     public Response getFederationRegistration(String jwtStatement) throws UnparsableException {
 
-        List<AuthorityHint> authorityHints = authorityHintService.findAuthorityHintsByRealm();
+        Set<String> authorityHints = configurationService.getEntity().getConfiguration().getAuthorityHints();
         if (authorityHints.isEmpty()) {
             return Response.status(Response.Status.FORBIDDEN).entity("Explicit Registration is not supported in this realm").build();
         }
@@ -123,7 +118,7 @@ public class FederationOPService implements ClientRegistrationProvider {
             return Response.status(Response.Status.BAD_REQUEST).entity("The registration request issuer differs from the subject.").build();
         }
 
-        Set<String> trustAnchorIds = trustAnchorService.findTrustAnchorByRealm().stream().map(TrustAnchor::getValue).collect(Collectors.toSet());
+        Set<String> trustAnchorIds = configurationService.getEntity().getConfiguration().getTrustAnchors();
 
         logger.info("starting validating trust chains");
 
@@ -151,7 +146,7 @@ public class FederationOPService implements ClientRegistrationProvider {
                 // add one or more authority_hints, from its collection
                 final String pickedTrustAnchorId = validChain.getTrustAnchorId();
                 ConcurrentHashMap<String, List<TrustChain>> opAuthHintsPaths = new ConcurrentHashMap<String, List<TrustChain>>();
-                authorityHints.parallelStream().map(AuthorityHint::getValue).forEach(authorityHint -> {
+                authorityHints.parallelStream().forEach(authorityHint -> {
                     try {
                         List<TrustChain> paths = trustChainProcessor.constructTrustChainsFromUrl(authorityHint, Stream.of(pickedTrustAnchorId).collect(Collectors.toSet()));
                         if(paths!=null && !paths.isEmpty()) {

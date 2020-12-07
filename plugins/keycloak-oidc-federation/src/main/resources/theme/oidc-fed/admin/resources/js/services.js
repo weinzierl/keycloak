@@ -2153,8 +2153,8 @@ module.factory('ClientRegistrationPolicyProviders', function($resource) {
 });
 
 ///////////////////////////////////////////////plugin extension///////////////////////////////////////////
-module.factory('AuthorityHints', function($resource) {
-    return $resource(authUrl + '/realms/:realm/oidc-federation/conf/authority-hint', {
+module.factory('Configuration', function($resource) {
+    return $resource(authUrl + '/realms/:realm/oidc-federation/configuration', {
         realm : '@realm',
     });
 });

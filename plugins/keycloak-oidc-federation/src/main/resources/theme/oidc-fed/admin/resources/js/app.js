@@ -307,10 +307,10 @@ module.config([ '$routeProvider', function($routeProvider) {
                 realm : function(RealmLoader) {
                     return RealmLoader();
                 }
-//        ,
-//                authorityHints : function(AuthorityHintsLoader) {
-//                    return AuthorityHintsLoader();
-//                }
+        ,
+                configuration : function(ConfigurationLoader) {
+                    return ConfigurationLoader();
+                }
             },
             controller : 'RealmOidcFedSettingsCtrl'
         })

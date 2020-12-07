@@ -7,30 +7,58 @@
         <li><a href="#/realms/{{realm.realm}}/client-registration/client-reg-policies">{{:: 'client-reg-policies' | translate}}</a></li>
         <li class="active"><a href="#/realms/{{realm.realm}}/client-registration/oidc-federation-settings">{{:: 'realm-tab-oidc-federation' | translate}}</a></li>
     </ul>
-   
-    <table class="table table-striped table-bordered">
-        <thead>
-        <tr>
-            <th class="kc-table-actions" colspan="5">
-                <div class="form-inline"> 
-                    <div class="pull-right" >
-                        <a class="btn btn-default" >{{:: 'add-authority-hint' | translate}}</a>
+         <form class="form-horizontal" name="realmConfigurationForm" novalidate kc-read-only="!access.manageRealm">
+    
+             <div class="form-group" >
+                 <label class="col-md-2 control-label" for="newAuthorityHint">{{:: 'authority.hints' | translate}}</label>
+                 <div class="col-sm-6">
+                    <div class="input-group" ng-repeat="(i, hint) in realm.configuration.authorityHints track by $index">
+                        <input class="form-control" ng-model="realm.configuration.authorityHints[i]">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="button" data-ng-click="deleteAuthorityHint($index)"><span class="fa fa-minus"></span></button>
+                        </div>
                     </div>
-                </div>
-            </th>
-        </tr>
-        <tr data-ng-hide="!authorityHints || authorityHints.length == 0">
-            <th>{{:: 'authority.hints' | translate}}</th>
-            <th colspan="2">{{:: 'actions' | translate}}</th>
-        </tr>
-        </thead>
-        <tbody>
-            <tr ng-repeat="hint in authorityHints">
-                <td>{{hint.value}}</td>
-                <td class="kc-action-cell"  data-ng-click="removeAuthorityHint(hint)">{{:: 'delete' | translate}}</td>
-            </tr>
-        </tbody>       
-    </table>
+
+                    <div class="input-group">
+                        <input class="form-control" ng-model="newAuthorityHint" id="newAuthorityHint">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="button" data-ng-click="newAuthorityHint.length > 0 && addAuthorityHint()"><span class="fa fa-plus"></span></button>
+                        </div>
+                    </div>
+                 </div>
+
+                 <kc-tooltip>{{:: 'authority.hints.tooltip' | translate}}</kc-tooltip>
+             </div>
+             
+             <div class="form-group" >
+                 <label class="col-md-2 control-label" for="newTrustAnchor">{{:: 'trust.anchors' | translate}}</label>
+                 <div class="col-sm-6">
+                    <div class="input-group" ng-repeat="(i,anchor) in realm.configuration.trustAnchors track by $index">
+                        <input class="form-control" ng-model="realm.configuration.trustAnchors[i]">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="button" data-ng-click="deleteTrustAnchor($index)"><span class="fa fa-minus"></span></button>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <input class="form-control" ng-model="newTrustAnchor" id="newTrustAnchor">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="button" data-ng-click="newTrustAnchor.length > 0 && addTrustAnchor()"><span class="fa fa-plus"></span></button>
+                        </div>
+                    </div>
+                 </div>
+
+                 <kc-tooltip>{{:: 'trust.anchors.tooltip' | translate}}</kc-tooltip>
+             </div>
+                
+             <div class="form-group">
+                 <div class="col-md-10 col-md-offset-2" data-ng-show="access.manageRealm">
+                     <button kc-save  data-ng-disabled="!changed">{{:: 'save' | translate}}</button>
+                     <button kc-reset data-ng-disabled="!changed">{{:: 'cancel' | translate}}</button>
+                 </div>
+            </div>
+         </form>
+  
 </div>
 
 <kc-menu></kc-menu>

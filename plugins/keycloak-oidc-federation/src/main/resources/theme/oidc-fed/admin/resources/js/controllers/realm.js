@@ -2807,22 +2807,50 @@ module.controller('ClientRegPolicyDetailCtrl', function ($scope, realm, clientRe
 });
 
 ///////////////////////////////////////////////plugin extension///////////////////////////////////////////
-module.controller('RealmOidcFedSettingsCtrl', function($scope, Realm, realm) {
-//module.controller('RealmOidcFedSettingsCtrl', function($scope, Realm, realm, authorityHints) {
+module.controller('RealmOidcFedSettingsCtrl', function($scope, Realm, realm, configuration) {
     $scope.realm = realm;
-   // $scope.authorityHints = authorityHints;
+    $scope.realm.configuration = configuration;
+    if ($scope.realm.configuration.authorityHints === undefined) {
+    	$scope.realm.configuration.authorityHints = [];    
+    }
+    if ($scope.realm.configuration.trustAnchors === undefined) {
+    	$scope.realm.configuration.trustAnchors = [];    
+    }
+    var oldCopy = angular.copy($scope.realm.configuration);
+    $scope.newAuthorityHint = "";
+    $scope.newTrustAnchor= "";
+    $scope.changed=false;
     
-    $scope.removeAuthorityHint = function(hint) {
-//        Dialog.confirmDelete(hint.value, 'Realm authority hint', function() {
-//        	AuthorityHintsRemove.remove({
-//                realm : realm.realm,
-//                id : hint.id
-//            }, function() {
-//                Notifications.success("The authority hint has been deleted.");
-//            });
-//        });
+    $scope.$watch('realm', function() {
+        if (!angular.equals($scope.realm.configuration, oldCopy)) {
+            $scope.changed = true;
+        }
+    }, true);
+    
+    $scope.addAuthorityHint = function() {
+    	$scope.realm.configuration.authorityHints.push($scope.newAuthorityHint);
+        $scope.newAuthorityHint = "";
+    }
+    $scope.deleteAuthorityHint = function(index) {
+    	$scope.realm.configuration.authorityHints.splice(index, 1);
+    }
+    
+    $scope.addTrustAnchor = function() {
+    	$scope.realm.configuration.trustAnchors.push($scope.newTrustAnchor);
+        $scope.newTrustAnchor = "";
+    }
+    $scope.deleteTrustAnchor = function(index) {
+    	$scope.realm.configuration.trustAnchors.splice(index, 1);
+    }    
+    
+    $scope.save = function() {
+    	alert('save');
+    }
+    
+    $scope.reset = function() {
+    	$scope.realm.configuration = angular.copy(oldCopy);
+        $scope.changed = false;
     };
-
 });
 
 ///////////////////////////////////////////////plugin extension///////////////////////////////////////////

@@ -546,8 +546,8 @@ module.factory('ClientRegistrationPolicyProvidersLoader', function(Loader, Clien
 });
 
 ///////////////////////////////////////////////plugin extension///////////////////////////////////////////
-module.factory('AuthorityHintsLoader', function(Loader, AuthorityHints, $route) {
-    return Loader.query(AuthorityHints, function() {
+module.factory('ConfigurationLoader', function(Loader, Configuration, $route) {
+    return Loader.get(Configuration, function() {
         return {
             realm: $route.current.params.realm
         }

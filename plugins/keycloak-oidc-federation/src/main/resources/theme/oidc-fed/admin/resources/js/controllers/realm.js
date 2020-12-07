@@ -2807,7 +2807,7 @@ module.controller('ClientRegPolicyDetailCtrl', function ($scope, realm, clientRe
 });
 
 ///////////////////////////////////////////////plugin extension///////////////////////////////////////////
-module.controller('RealmOidcFedSettingsCtrl', function($scope, Realm, realm, configuration) {
+module.controller('RealmOidcFedSettingsCtrl', function($scope, Realm, realm, configuration,Configuration) {
     $scope.realm = realm;
     $scope.realm.configuration = configuration;
     if ($scope.realm.configuration.authorityHints === undefined) {
@@ -2844,7 +2844,15 @@ module.controller('RealmOidcFedSettingsCtrl', function($scope, Realm, realm, con
     }    
     
     $scope.save = function() {
-    	alert('save');
+    	Configuration.save({
+            realm : realm.realm
+        }, $scope.realm.configuration, function(data, headers) {
+        	 $scope.changed = false;
+        	 $scope.newAuthorityHint = "";
+        	 $scope.newTrustAnchor= "";
+        	 oldCopy = angular.copy($scope.realm.configuration);
+             Notifications.success("Your changes have been saved.");
+        });
     }
     
     $scope.reset = function() {

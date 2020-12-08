@@ -37,6 +37,8 @@ import org.keycloak.protocol.oidc.federation.beans.Metadata;
 import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentation;
 import org.keycloak.protocol.oidc.federation.exceptions.InternalServerErrorException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
+import org.keycloak.protocol.oidc.federation.model.Configuration;
+import org.keycloak.protocol.oidc.federation.model.ConfigurationEntity;
 import org.keycloak.protocol.oidc.federation.model.ConfigurationService;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProviderFactory;
@@ -50,7 +52,6 @@ import org.keycloak.util.JsonSerialization;
 
 public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
 
-	public static final Long ENTITY_EXPIRES_AFTER_SEC = 86400L; //24 hours
 	public static final List<String> CLIENT_REGISTRATION_TYPES_SUPPORTED = Arrays.asList("automatic", "explicit");
 
     private KeycloakSession session;
@@ -65,10 +66,10 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
     @Override
     public Object getConfig() {
         
-        Set<String> authorityHints = configurationService.getEntity().getConfiguration().getAuthorityHints();
+        ConfigurationEntity conf =configurationService.getEntity();
         //realm without authority hints must not expose this web service
-        if ( authorityHints.isEmpty())
-            throw new NotFoundException("No authority hints exists for this realm");
+        if (conf == null || conf.getConfiguration() == null || conf.getConfiguration().getAuthorityHints().isEmpty())
+            throw new NotFoundException("This realm is not a OIDC Federation member");
         
         UriInfo frontendUriInfo = session.getContext().getUri(UrlType.FRONTEND);
         UriInfo backendUriInfo = session.getContext().getUri(UrlType.BACKEND);
@@ -88,7 +89,7 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
         //additional federation-specific configuration
         config.setFederationRegistrationEndpoint(backendUriBuilder.clone().path(OIDCFederationResourceProviderFactory.ID).path(OIDCFederationResourceProvider.class, "getFederationOPService").path(FederationOPService.class, "getFederationRegistration").build(realm.getName()).toString());
         config.setPushedAuthorizationRequestEndpoint(backendUriBuilder.clone().path(OIDCFederationResourceProviderFactory.ID).path(OIDCFederationResourceProvider.class, "getFederationOPService").path(FederationOPService.class, "postPushedAuthorization").build(realm.getName()).toString());
-        config.setClientRegistrationTypesSupported(CLIENT_REGISTRATION_TYPES_SUPPORTED);
+        config.setClientRegistrationTypesSupported("both".equals(conf.getConfiguration().getRegistrationType()) ? CLIENT_REGISTRATION_TYPES_SUPPORTED : Arrays.asList(conf.getConfiguration().getRegistrationType()));
 //        config.setClientRegistrationAuthnMethodsSupported(clientRegistrationAuthnMethodsSupported);
 
 		Metadata metadata = new Metadata();
@@ -96,12 +97,12 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
 
         EntityStatement entityStatement = new EntityStatement();
         entityStatement.setMetadata(metadata);
-        entityStatement.setAuthorityHints(authorityHints.stream().collect(Collectors.toList()));
+        entityStatement.setAuthorityHints(conf.getConfiguration().getAuthorityHints().stream().collect(Collectors.toList()));
         entityStatement.setJwks(FedUtils.getKeySet(session));
         entityStatement.issuer(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
         entityStatement.subject(Urls.realmIssuer(frontendUriInfo.getBaseUri(), realm.getName()));
         entityStatement.issuedNow();
-        entityStatement.exp(Long.valueOf(Time.currentTime()) + ENTITY_EXPIRES_AFTER_SEC);
+        entityStatement.exp(Long.valueOf(Time.currentTime()) + Long.valueOf(conf.getConfiguration().getExpirationTime()));
 
         //sign and encode entity statement
         String encodedToken = session.tokens().encode(entityStatement);

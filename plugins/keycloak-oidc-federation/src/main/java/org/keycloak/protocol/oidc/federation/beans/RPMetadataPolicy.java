@@ -1,6 +1,6 @@
 package org.keycloak.protocol.oidc.federation.beans;
 
-public class OIDCFederationClientRepresentationPolicy {
+public class RPMetadataPolicy {
     
     private PolicyList<ClientRegistrationEnum> client_registration_types;
 

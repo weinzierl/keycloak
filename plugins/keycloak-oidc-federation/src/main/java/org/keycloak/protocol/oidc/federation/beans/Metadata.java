@@ -5,19 +5,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Metadata {
     
     @JsonProperty("openid_provider")
-    private OIDCFederationConfigurationRepresentation op;
+    private OPMetadata op;
     
     @JsonProperty("federation_entity")
     private FederationEntity federationEntity;
     
     @JsonProperty("openid_relying_party")
-    private OIDCFederationClientRepresentation rp;
+    private RPMetadata rp;
 
-    public OIDCFederationConfigurationRepresentation getOp() {
+    public OPMetadata getOp() {
         return op;
     }
 
-    public void setOp(OIDCFederationConfigurationRepresentation op) {
+    public void setOp(OPMetadata op) {
         this.op = op;
     }
 
@@ -29,11 +29,11 @@ public class Metadata {
         this.federationEntity = federationEntity;
     }
 
-    public OIDCFederationClientRepresentation getRp() {
+    public RPMetadata getRp() {
         return rp;
     }
 
-    public void setRp(OIDCFederationClientRepresentation rp) {
+    public void setRp(RPMetadata rp) {
         this.rp = rp;
     }
 

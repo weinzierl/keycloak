@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class OIDCFederationConfigurationRepresentationPolicy {
+public class OPMetadataPolicy {
     
     @JsonProperty("federation_registration_endpoint")
     private Policy<String> federationRegistrationEndpoint;

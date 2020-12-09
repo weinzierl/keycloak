@@ -34,10 +34,10 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.OIDCWellKnownProvider;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.Metadata;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentation;
+import org.keycloak.protocol.oidc.federation.beans.OPMetadata;
 import org.keycloak.protocol.oidc.federation.exceptions.InternalServerErrorException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
-import org.keycloak.protocol.oidc.federation.model.ConfigurationService;
+import org.keycloak.protocol.oidc.federation.model.OIDCFedConfigService;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProviderFactory;
 import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
@@ -48,18 +48,18 @@ import org.keycloak.urls.UrlType;
 import org.keycloak.util.JsonSerialization;
 
 
-public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
+public class OIDCFedOPWellKnownProvider extends OIDCWellKnownProvider {
 
 	public static final Long ENTITY_EXPIRES_AFTER_SEC = 86400L; //24 hours
 	public static final List<String> CLIENT_REGISTRATION_TYPES_SUPPORTED = Arrays.asList("automatic", "explicit");
 
     private KeycloakSession session;
-    private ConfigurationService configurationService;
+    private OIDCFedConfigService configurationService;
 
-    public OIDCFederationWellKnownProvider(KeycloakSession session) {
+    public OIDCFedOPWellKnownProvider(KeycloakSession session) {
     	super(session);
         this.session = session;
-        this.configurationService = new ConfigurationService(session);
+        this.configurationService = new OIDCFedConfigService(session);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
         UriBuilder frontendUriBuilder = RealmsResource.realmBaseUrl(frontendUriInfo);
         UriBuilder backendUriBuilder = RealmsResource.realmBaseUrl(backendUriInfo);
 
-    	OIDCFederationConfigurationRepresentation config;
+    	OPMetadata config;
 		try {
 			config = from(((OIDCConfigurationRepresentation) super.getConfig()));
 		} catch (IOException e) {
@@ -113,8 +113,8 @@ public class OIDCFederationWellKnownProvider extends OIDCWellKnownProvider {
     public void close() {
     }
 
-    public static OIDCFederationConfigurationRepresentation from(OIDCConfigurationRepresentation representation) throws IOException {
-    	return JsonSerialization.readValue(JsonSerialization.writeValueAsString(representation), OIDCFederationConfigurationRepresentation.class);
+    public static OPMetadata from(OIDCConfigurationRepresentation representation) throws IOException {
+    	return JsonSerialization.readValue(JsonSerialization.writeValueAsString(representation), OPMetadata.class);
     }
 
 }

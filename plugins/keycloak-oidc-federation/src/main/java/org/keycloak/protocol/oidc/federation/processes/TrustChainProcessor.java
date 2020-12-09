@@ -21,7 +21,7 @@ import org.keycloak.jose.jwk.JSONWebKeySet;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
+import org.keycloak.protocol.oidc.federation.beans.RPMetadataPolicy;
 import org.keycloak.protocol.oidc.federation.beans.PolicyList;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.InvalidTrustChainException;
@@ -122,7 +122,7 @@ public class TrustChainProcessor {
             //combine policies if valid till now
             if(trustChain != null && parsedChain.size()>1) {
                 MetadataPolicy metadataPolicy = parsedChain.get(parsedChain.size()-1).getMetadataPolicy();
-                OIDCFederationClientRepresentationPolicy combinedPolicy = parsedChain.get(parsedChain.size()-1).getMetadataPolicy().getRpPolicy();
+                RPMetadataPolicy combinedPolicy = parsedChain.get(parsedChain.size()-1).getMetadataPolicy().getRpPolicy();
                 for(int i=parsedChain.size()-2; i>0; i--) {
                     try {
                         combinedPolicy = MetadataPolicyUtils.combineClientPOlicies(combinedPolicy, parsedChain.get(i).getMetadataPolicy().getRpPolicy());
@@ -349,10 +349,10 @@ public class TrustChainProcessor {
 
     public TrustChain findAcceptableMetadataPolicyChain(List<TrustChain> trustChains, EntityStatement statement) {
         TrustChain validChain = null;
-        OIDCFederationClientRepresentationPolicy rpPolicy = createMetadataPolicies();
+        RPMetadataPolicy rpPolicy = createMetadataPolicies();
         for (TrustChain chain : trustChains) {
             try {
-                OIDCFederationClientRepresentationPolicy finalPolicy = MetadataPolicyUtils
+                RPMetadataPolicy finalPolicy = MetadataPolicyUtils
                     .combineClientPOlicies(chain.getCombinedPolicy(), rpPolicy);
                 statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, finalPolicy);
                 validChain = chain;
@@ -370,10 +370,10 @@ public class TrustChainProcessor {
      * Keycloak implementation raise validation error if an invalid Response_types exists
      * @return
      */
-    private OIDCFederationClientRepresentationPolicy createMetadataPolicies() {
+    private RPMetadataPolicy createMetadataPolicies() {
         PolicyList<String> policy = new PolicyList<String>();
         policy.setSubset_of(ALLOWED_RESPONSE_TYPES);
-        OIDCFederationClientRepresentationPolicy rpPolicy = new OIDCFederationClientRepresentationPolicy();
+        RPMetadataPolicy rpPolicy = new RPMetadataPolicy();
         rpPolicy.setResponse_types(policy);
         return rpPolicy;
 

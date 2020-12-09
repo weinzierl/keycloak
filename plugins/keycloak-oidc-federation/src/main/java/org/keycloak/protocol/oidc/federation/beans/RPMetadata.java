@@ -5,7 +5,7 @@ import java.util.List;
 import org.keycloak.common.util.Time;
 import org.keycloak.representations.oidc.OIDCClientRepresentation;
 
-public class OIDCFederationClientRepresentation extends OIDCClientRepresentation {
+public class RPMetadata extends OIDCClientRepresentation {
     
     private List<ClientRegistrationEnum> client_registration_types;
 
@@ -13,11 +13,11 @@ public class OIDCFederationClientRepresentation extends OIDCClientRepresentation
 
     private String trust_anchor_id;
     
-    public OIDCFederationClientRepresentation() {
+    public RPMetadata() {
         
     }
     
-    public OIDCFederationClientRepresentation(OIDCClientRepresentation oidcClient,List<ClientRegistrationEnum> client_registration_types,String organization_name) {
+    public RPMetadata(OIDCClientRepresentation oidcClient,List<ClientRegistrationEnum> client_registration_types,String organization_name) {
         this.setContacts(oidcClient.getContacts()); 
         this.setDefaultAcrValues(oidcClient.getDefaultAcrValues()); 
         this.setGrantTypes(oidcClient.getGrantTypes()); 

@@ -7,7 +7,7 @@ import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentatio
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class OIDCFederationConfigurationRepresentation extends OIDCConfigurationRepresentation {
+public class OPMetadata extends OIDCConfigurationRepresentation {
 	
 	
     @JsonProperty("federation_registration_endpoint")

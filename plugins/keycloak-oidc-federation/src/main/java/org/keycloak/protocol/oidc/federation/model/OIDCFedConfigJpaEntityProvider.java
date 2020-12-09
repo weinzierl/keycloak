@@ -5,12 +5,12 @@ import java.util.List;
 
 import org.keycloak.connections.jpa.entityprovider.JpaEntityProvider;
 
-public class ConfigurationJpaEntityProvider  implements JpaEntityProvider {
+public class OIDCFedConfigJpaEntityProvider  implements JpaEntityProvider {
 
     // List of your JPA entities.
     @Override
     public List<Class<?>> getEntities() {
-        return Collections.<Class<?>>singletonList(ConfigurationEntity.class);
+        return Collections.<Class<?>>singletonList(OIDCFedConfigEntity.class);
     }
 
     // This is used to return the location of the Liquibase changelog file.

@@ -4,14 +4,12 @@ var keycloak_module = angular.module('keycloak');
 keycloak_module.config(function($routeProvider) {
 
     $routeProvider
-
         .when('/realms/:realm/client-registration/oidc-federation-settings', {
             templateUrl : resourceUrl + '/partials/realm-oidc-federation-settings.html',
             resolve : {
                 realm : function(RealmLoader) {
                     return RealmLoader();
-                }
-        ,
+                },
                 configuration : function(ConfigurationLoader) {
                     return ConfigurationLoader();
                 }
@@ -81,22 +79,21 @@ keycloak_module.controller('RealmOidcFedSettingsCtrl', function($scope, $compile
 
 
 keycloak_module.controller('ClientRegPoliciesCtrl', function($scope, $compile, realm) {
-    
+
     $scope.realm = realm;
-    
     var divElement = angular.element(document.querySelector(".nav.nav-tabs.nav-tabs-pf"));
     var appendHtml = $compile("<li><a href='#/realms/{{realm.realm}}/client-registration/oidc-federation-settings'>{{:: 'realm-tab-oidc-federation' | translate}}</a></li>")($scope);
     divElement.append(appendHtml);
-
+    
 });
 
 keycloak_module.controller('ClientInitialAccessCtrl', function($scope, $compile, realm) {
 
 	$scope.realm = realm;
-
     var divElement = angular.element(document.querySelector(".nav.nav-tabs.nav-tabs-pf"));
     var appendHtml = $compile("<li><a href='#/realms/{{realm.realm}}/client-registration/oidc-federation-settings'>{{:: 'realm-tab-oidc-federation' | translate}}</a></li>")($scope);
     divElement.append(appendHtml);
+    
 });
 
 

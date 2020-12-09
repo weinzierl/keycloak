@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
+import org.keycloak.protocol.oidc.federation.beans.RPMetadataPolicy;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -12,14 +12,14 @@ public class TrustChain {
 
     private List<String> chain;
     private List<EntityStatement> parsedChain;
-    private OIDCFederationClientRepresentationPolicy combinedPolicy;
+    private RPMetadataPolicy combinedPolicy;
     private String trustAnchorId;
     private String leafId;
     
     public TrustChain() {
         chain = new ArrayList<String>();
         parsedChain = new ArrayList<EntityStatement>();
-        combinedPolicy = new OIDCFederationClientRepresentationPolicy();
+        combinedPolicy = new RPMetadataPolicy();
     }
     
     public List<String> getChain() {
@@ -36,10 +36,10 @@ public class TrustChain {
         this.parsedChain = parsedChain;
     }
 
-    public OIDCFederationClientRepresentationPolicy getCombinedPolicy() {
+    public RPMetadataPolicy getCombinedPolicy() {
         return combinedPolicy;
     }
-    public void setCombinedPolicy(OIDCFederationClientRepresentationPolicy combinedPolicy) {
+    public void setCombinedPolicy(RPMetadataPolicy combinedPolicy) {
         this.combinedPolicy = combinedPolicy;
     }
 

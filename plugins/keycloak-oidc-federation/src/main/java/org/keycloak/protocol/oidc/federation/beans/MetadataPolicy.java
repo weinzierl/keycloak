@@ -5,36 +5,36 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MetadataPolicy {
 
     @JsonProperty("openid_relying_party")
-    private OIDCFederationClientRepresentationPolicy rpPolicy;
+    private RPMetadataPolicy rpPolicy;
     
     @JsonProperty("openid_provider")
-    private OIDCFederationConfigurationRepresentationPolicy opPolicy;
+    private OPMetadataPolicy opPolicy;
     
     public MetadataPolicy() {
         
     }
 
-    public MetadataPolicy(OIDCFederationClientRepresentationPolicy rpPolicy) {
+    public MetadataPolicy(RPMetadataPolicy rpPolicy) {
         this.rpPolicy =rpPolicy;
     }
     
-    public MetadataPolicy(OIDCFederationConfigurationRepresentationPolicy opPolicy) {
+    public MetadataPolicy(OPMetadataPolicy opPolicy) {
         this.opPolicy =opPolicy;
     }
 
-    public OIDCFederationClientRepresentationPolicy getRpPolicy() {
+    public RPMetadataPolicy getRpPolicy() {
         return rpPolicy;
     }
 
-    public void setRpPolicy(OIDCFederationClientRepresentationPolicy rpPolicy) {
+    public void setRpPolicy(RPMetadataPolicy rpPolicy) {
         this.rpPolicy = rpPolicy;
     }
 
-	public OIDCFederationConfigurationRepresentationPolicy getOpPolicy() {
+	public OPMetadataPolicy getOpPolicy() {
 		return opPolicy;
 	}
 
-	public void setOpPolicy(OIDCFederationConfigurationRepresentationPolicy opPolicy) {
+	public void setOpPolicy(OPMetadataPolicy opPolicy) {
 		this.opPolicy = opPolicy;
 	}
     

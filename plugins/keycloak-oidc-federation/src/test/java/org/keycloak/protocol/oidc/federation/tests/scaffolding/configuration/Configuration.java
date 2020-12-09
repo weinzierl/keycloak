@@ -3,7 +3,7 @@ package org.keycloak.protocol.oidc.federation.tests.scaffolding.configuration;
 import java.util.List;
 import java.util.Map;
 
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
+import org.keycloak.protocol.oidc.federation.beans.RPMetadataPolicy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +33,7 @@ public class Configuration {
     public static class IntermediateEntity {
 	    private final ObjectMapper mapper = new ObjectMapper();
 	    private List<String> authorityHints;
-	    private OIDCFederationClientRepresentationPolicy metadataPolicies;
+	    private RPMetadataPolicy metadataPolicies;
 	    
         public List<String> getAuthorityHints() {
             return authorityHints;
@@ -41,12 +41,12 @@ public class Configuration {
         public void setAuthorityHints(List<String> authorityHints) {
             this.authorityHints = authorityHints;
         }
-        public OIDCFederationClientRepresentationPolicy getMetadataPolicies() {
+        public RPMetadataPolicy getMetadataPolicies() {
             return metadataPolicies;
         }
         public void setMetadataPolicies(String metadataPolicies) {
             try {
-                this.metadataPolicies = mapper.readValue(metadataPolicies, OIDCFederationClientRepresentationPolicy.class);
+                this.metadataPolicies = mapper.readValue(metadataPolicies, RPMetadataPolicy.class);
             } catch (JsonProcessingException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

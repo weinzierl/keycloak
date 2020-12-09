@@ -19,9 +19,9 @@ import org.keycloak.jose.jws.JWSInputException;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
-import org.keycloak.protocol.oidc.federation.model.Configuration;
-import org.keycloak.protocol.oidc.federation.model.ConfigurationEntity;
-import org.keycloak.protocol.oidc.federation.model.ConfigurationService;
+import org.keycloak.protocol.oidc.federation.model.OIDCFedConfig;
+import org.keycloak.protocol.oidc.federation.model.OIDCFedConfigEntity;
+import org.keycloak.protocol.oidc.federation.model.OIDCFedConfigService;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.services.ErrorResponse;
 import org.keycloak.services.managers.AppAuthManager;
@@ -37,12 +37,12 @@ public class FederationConfigurationEndpoint {
 
     private KeycloakSession session;
     private AdminPermissionEvaluator auth;
-    private ConfigurationService configurationService;
+    private OIDCFedConfigService configurationService;
 
     public FederationConfigurationEndpoint(KeycloakSession session) {
         this.session = session;
         this.auth = authenticateRealmAdminRequest();
-        this.configurationService = new ConfigurationService(session);
+        this.configurationService = new OIDCFedConfigService(session);
         
     }
 
@@ -87,22 +87,22 @@ public class FederationConfigurationEndpoint {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Configuration getConfiguration() {
+    public OIDCFedConfig getConfiguration() {
         this.auth.realm().requireViewRealm();
-        ConfigurationEntity entity = configurationService.getEntity();
+        OIDCFedConfigEntity entity = configurationService.getEntity();
         return entity != null ? entity.getConfiguration() : null;
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response saveConfiguration(Configuration configuration) {
+    public Response saveConfiguration(OIDCFedConfig configuration) {
         this.auth.realm().requireManageRealm();
         RealmModel realmModel = session.getContext().getRealm();
         try {
-            ConfigurationEntity entity = configurationService.getEntity();
+            OIDCFedConfigEntity entity = configurationService.getEntity();
             if(entity == null)
-                entity = new ConfigurationEntity(realmModel.getId(), configuration);
+                entity = new OIDCFedConfigEntity(realmModel.getId(), configuration);
             else
                 entity.setConfiguration(configuration);
             configurationService.saveEntity(entity);

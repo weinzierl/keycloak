@@ -8,21 +8,21 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "OIDC_FEDERATION_CONFIG")
-public class ConfigurationEntity {
+public class OIDCFedConfigEntity {
 
     @Id
     @Column(name = "REALM_ID", nullable = false)
     private String realmId;
     
     @Column(name = "CONFIGURATION", nullable = false)
-    @Convert(converter = ConfigurationJsonConverter.class)
-    private Configuration configuration;
+    @Convert(converter = OIDCFedConfigJsonConverter.class)
+    private OIDCFedConfig configuration;
 
-    public ConfigurationEntity() {
+    public OIDCFedConfigEntity() {
         
     }
     
-    public ConfigurationEntity(String realmId, Configuration configuration) {
+    public OIDCFedConfigEntity(String realmId, OIDCFedConfig configuration) {
         this.realmId = realmId;
         this.configuration = configuration;
     }
@@ -35,11 +35,11 @@ public class ConfigurationEntity {
         this.realmId = realmId;
     }
 
-    public Configuration getConfiguration() {
+    public OIDCFedConfig getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(Configuration configuration) {
+    public void setConfiguration(OIDCFedConfig configuration) {
         this.configuration = configuration;
     }
 

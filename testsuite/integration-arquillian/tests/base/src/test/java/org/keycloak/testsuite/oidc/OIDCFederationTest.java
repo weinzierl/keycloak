@@ -34,17 +34,17 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolFactory;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolService;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentation;
+import org.keycloak.protocol.oidc.federation.beans.RPMetadata;
+import org.keycloak.protocol.oidc.federation.beans.RPMetadataPolicy;
+import org.keycloak.protocol.oidc.federation.beans.OPMetadata;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyCombinationException;
 import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.helpers.MetadataPolicyUtils;
-import org.keycloak.protocol.oidc.federation.op.OIDCFederationWellKnownProvider;
-import org.keycloak.protocol.oidc.federation.op.OIDCFederationWellKnownProviderFactory;
+import org.keycloak.protocol.oidc.federation.op.OIDCFedOPWellKnownProvider;
+import org.keycloak.protocol.oidc.federation.op.OIDCFedOPWellKnownProviderFactory;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
@@ -91,14 +91,14 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
             Assert.assertNotNull(statement.getMetadata());
             Assert.assertNotNull(statement.getMetadata().getOp());
             // check federation open id provider configuration
-            OIDCFederationConfigurationRepresentation op = statement.getMetadata().getOp();
+            OPMetadata op = statement.getMetadata().getOp();
             assertEquals(op.getFederationRegistrationEndpoint(), OIDCFederationResourceProvider
                 .federationExplicitRegistration(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT)).build("test").toString());
             Assert.assertNotNull(op.getClientRegistrationTypesSupported());
             assertEquals("ClientRegistrationTypesSupporte.size", 2, op.getClientRegistrationTypesSupported().size());
             assertContains(op.getClientRegistrationTypesSupported(),
-                OIDCFederationWellKnownProvider.CLIENT_REGISTRATION_TYPES_SUPPORTED.get(0),
-                OIDCFederationWellKnownProvider.CLIENT_REGISTRATION_TYPES_SUPPORTED.get(1));
+                OIDCFedOPWellKnownProvider.CLIENT_REGISTRATION_TYPES_SUPPORTED.get(0),
+                OIDCFedOPWellKnownProvider.CLIENT_REGISTRATION_TYPES_SUPPORTED.get(1));
             // client_registration_authn_methods_supported and pushed_authorization_request_endpoint may be added in future
             // same as oidc configuration
             assertEquals(op.getAuthorizationEndpoint(),
@@ -217,10 +217,10 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         EntityStatement statement = JsonSerialization.readValue(content, EntityStatement.class);
         URL policyTA = getClass().getClassLoader().getResource("oidc/policyTrustAnchor.json");
         byte [] contentpolicyTA = Files.readAllBytes(Paths.get(policyTA.toURI()));
-        OIDCFederationClientRepresentationPolicy superiorPolicy = JsonSerialization.readValue(contentpolicyTA, OIDCFederationClientRepresentationPolicy.class);
+        RPMetadataPolicy superiorPolicy = JsonSerialization.readValue(contentpolicyTA, RPMetadataPolicy.class);
         URL policyInter = getClass().getClassLoader().getResource("oidc/policyInter.json");
         byte [] contentpolicyInter  = Files.readAllBytes(Paths.get(policyInter.toURI()));
-        OIDCFederationClientRepresentationPolicy inferiorPolicy = JsonSerialization.readValue(contentpolicyInter, OIDCFederationClientRepresentationPolicy.class);
+        RPMetadataPolicy inferiorPolicy = JsonSerialization.readValue(contentpolicyInter, RPMetadataPolicy.class);
         superiorPolicy = MetadataPolicyUtils.combineClientPOlicies(superiorPolicy, inferiorPolicy);
         statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, superiorPolicy);
         
@@ -245,7 +245,7 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         //check statement for proper rp data
         Assert.assertNotNull(statement.getMetadata());
         Assert.assertNotNull(statement.getMetadata().getRp());
-        OIDCFederationClientRepresentation rp =statement.getMetadata().getRp();
+        RPMetadata rp =statement.getMetadata().getRp();
         Assert.assertNotNull(rp.getRedirectUris());
         assertEquals("client RedirectUris size", 1, rp.getRedirectUris().size());
         assertEquals("https://127.0.0.1:4000/authz_cb/local", rp.getRedirectUris().get(0));
@@ -271,10 +271,10 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         statement.getMetadata().getRp().setScope("address");
         URL policyTA = getClass().getClassLoader().getResource("oidc/policyTrustAnchor.json");
         byte [] contentpolicyTA = Files.readAllBytes(Paths.get(policyTA.toURI()));
-        OIDCFederationClientRepresentationPolicy superiorPolicy = JsonSerialization.readValue(contentpolicyTA, OIDCFederationClientRepresentationPolicy.class);
+        RPMetadataPolicy superiorPolicy = JsonSerialization.readValue(contentpolicyTA, RPMetadataPolicy.class);
         URL policyInter = getClass().getClassLoader().getResource("oidc/policyInter.json");
         byte [] contentpolicyInter  = Files.readAllBytes(Paths.get(policyInter.toURI()));
-        OIDCFederationClientRepresentationPolicy inferiorPolicy = JsonSerialization.readValue(contentpolicyInter, OIDCFederationClientRepresentationPolicy.class);
+        RPMetadataPolicy inferiorPolicy = JsonSerialization.readValue(contentpolicyInter, RPMetadataPolicy.class);
         superiorPolicy = MetadataPolicyUtils.combineClientPOlicies(superiorPolicy, inferiorPolicy);
         
         //check that rp metadata is invalid due to policies
@@ -292,7 +292,7 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
 
     private String getOIDCDiscoveryConfiguration(Client client) {
         URI oidcDiscoveryUri = RealmsResource.wellKnownProviderUrl(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT))
-            .build("test", OIDCFederationWellKnownProviderFactory.PROVIDER_ID);
+            .build("test", OIDCFedOPWellKnownProviderFactory.PROVIDER_ID);
         WebTarget oidcDiscoveryTarget = client.target(oidcDiscoveryUri);
 
         Response response = oidcDiscoveryTarget.request().get();

@@ -28,11 +28,11 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
+import org.keycloak.protocol.oidc.federation.beans.RPMetadata;
 import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
-import org.keycloak.protocol.oidc.federation.model.ConfigurationService;
+import org.keycloak.protocol.oidc.federation.model.OIDCFedConfigService;
 import org.keycloak.protocol.oidc.federation.paths.TrustChain;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
@@ -68,7 +68,7 @@ public class FederationOPService implements ClientRegistrationProvider {
     private EventBuilder event;
     private ClientRegistrationAuth auth;
     private TrustChainProcessor trustChainProcessor;
-    private ConfigurationService configurationService;
+    private OIDCFedConfigService configurationService;
 
     public FederationOPService(KeycloakSession session) {
         this.session = session;
@@ -77,7 +77,7 @@ public class FederationOPService implements ClientRegistrationProvider {
         //endpoint = oidc for being oidc client
         setAuth(new ClientRegistrationAuth(session, this, event, "oidc"));
         trustChainProcessor = new TrustChainProcessor();
-        this.configurationService = new ConfigurationService(session);
+        this.configurationService = new OIDCFedConfigService(session);
     }
 
     
@@ -121,7 +121,7 @@ public class FederationOPService implements ClientRegistrationProvider {
                 ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer());
                 URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
                 OIDCClientRepresentation clientOIDC = DescriptionConverter.toExternalResponse(session, clientSaved, uri);
-                OIDCFederationClientRepresentation fedClient = new OIDCFederationClientRepresentation(clientOIDC,
+                RPMetadata fedClient = new RPMetadata(clientOIDC,
                     statement.getMetadata().getRp().getClient_registration_types(),
                     statement.getMetadata().getRp().getOrganization_name());
 
@@ -161,7 +161,7 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     }
 
-    private ClientRepresentation createClient(OIDCFederationClientRepresentation clientRepresentastion, String identifier) {
+    private ClientRepresentation createClient(RPMetadata clientRepresentastion, String identifier) {
         // 9.2.1.2.1. 3 check. How? -> extend client for having entity identifier??
         if (clientRepresentastion.getClientId() != null) {
             throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client Identifier included",

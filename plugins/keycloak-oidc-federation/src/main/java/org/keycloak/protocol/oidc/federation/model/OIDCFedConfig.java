@@ -3,7 +3,7 @@ package org.keycloak.protocol.oidc.federation.model;
 import java.io.Serializable;
 import java.util.Set;
 
-public class Configuration implements Serializable {
+public class OIDCFedConfig implements Serializable {
 
     private static final long serialVersionUID = -189202639856637693L;
 

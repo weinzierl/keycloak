@@ -26,7 +26,7 @@ import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.FederationEntity;
 import org.keycloak.protocol.oidc.federation.beans.Metadata;
 import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationConfigurationRepresentationPolicy;
+import org.keycloak.protocol.oidc.federation.beans.OPMetadataPolicy;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
@@ -113,7 +113,7 @@ public class EntityStatementsREST {
 		JSONWebKeySet jwks = getSigningKeyOf(subject);
 		es.setJwks(jwks);
 		
-		OIDCFederationConfigurationRepresentationPolicy policy = new OIDCFederationConfigurationRepresentationPolicy();
+		OPMetadataPolicy policy = new OPMetadataPolicy();
 //		policy.setIssuer(new PolicyBuilder<String>().add(issuer).build());
 		
         MetadataPolicy metadataPolicy = new MetadataPolicy();

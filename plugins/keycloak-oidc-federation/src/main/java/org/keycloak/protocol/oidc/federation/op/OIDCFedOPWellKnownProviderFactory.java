@@ -23,13 +23,13 @@ import org.keycloak.wellknown.WellKnownProvider;
 import org.keycloak.wellknown.WellKnownProviderFactory;
 
 
-public class OIDCFederationWellKnownProviderFactory implements WellKnownProviderFactory {
+public class OIDCFedOPWellKnownProviderFactory implements WellKnownProviderFactory {
 
     public static final String PROVIDER_ID = "openid-federation";
 
     @Override
     public WellKnownProvider create(KeycloakSession session) {
-        return new OIDCFederationWellKnownProvider(session);
+        return new OIDCFedOPWellKnownProvider(session);
     }
 
     @Override

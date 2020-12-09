@@ -2,15 +2,15 @@ package org.keycloak.protocol.oidc.federation.helpers;
 
 import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.beans.MetadataPolicy;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentation;
-import org.keycloak.protocol.oidc.federation.beans.OIDCFederationClientRepresentationPolicy;
+import org.keycloak.protocol.oidc.federation.beans.RPMetadata;
+import org.keycloak.protocol.oidc.federation.beans.RPMetadataPolicy;
 import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyCombinationException;
 import org.keycloak.protocol.oidc.federation.exceptions.MetadataPolicyException;
 
 public class MetadataPolicyUtils {
 
-    public static OIDCFederationClientRepresentationPolicy combineClientPOlicies(
-        OIDCFederationClientRepresentationPolicy superior, OIDCFederationClientRepresentationPolicy inferior)
+    public static RPMetadataPolicy combineClientPOlicies(
+        RPMetadataPolicy superior, RPMetadataPolicy inferior)
         throws MetadataPolicyCombinationException {
         if (inferior == null)
             return superior;
@@ -285,7 +285,7 @@ public class MetadataPolicyUtils {
         return superior;
     }
 
-    public static EntityStatement applyPoliciesToRPStatement(EntityStatement entity ,OIDCFederationClientRepresentationPolicy policy ) throws MetadataPolicyException,MetadataPolicyCombinationException {
+    public static EntityStatement applyPoliciesToRPStatement(EntityStatement entity ,RPMetadataPolicy policy ) throws MetadataPolicyException,MetadataPolicyCombinationException {
         
         if (entity.getMetadata().getRp() == null)
             throw new MetadataPolicyException("Try to enforce metapolicy for RP to an entity statement withoup RP");
@@ -293,7 +293,7 @@ public class MetadataPolicyUtils {
         if (policy == null)
             return entity;
         
-        OIDCFederationClientRepresentation rp = entity.getMetadata().getRp();
+        RPMetadata rp = entity.getMetadata().getRp();
         
         if (policy.getApplication_type() != null) {
             rp.setApplicationType(policy.getApplication_type().enforcePolicy(rp.getApplicationType(),"ApplicationType"));

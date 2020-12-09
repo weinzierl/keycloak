@@ -1,1 +1,1 @@
-org.keycloak.protocol.oidc.federation.op.OIDCFederationWellKnownProviderFactory
+org.keycloak.protocol.oidc.federation.op.OIDCFedOPWellKnownProviderFactory

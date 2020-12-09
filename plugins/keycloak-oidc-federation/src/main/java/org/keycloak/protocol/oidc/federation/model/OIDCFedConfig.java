@@ -9,6 +9,8 @@ public class OIDCFedConfig implements Serializable {
 
     private Set<String> authorityHints;
     private Set<String> trustAnchors;
+    private String registrationType;
+    private Integer expirationTime;
     
     
     public Set<String> getAuthorityHints() {
@@ -23,6 +25,18 @@ public class OIDCFedConfig implements Serializable {
     }
     public void setTrustAnchors(Set<String> trustAnchors) {
         this.trustAnchors = trustAnchors;
+    }
+    public String getRegistrationType() {
+        return registrationType;
+    }
+    public void setRegistrationType(String registrationType) {
+        this.registrationType = registrationType;
+    }
+    public Integer getExpirationTime() {
+        return expirationTime;
+    }
+    public void setExpirationTime(Integer expirationTime) {
+        this.expirationTime = expirationTime;
     }
     
 }

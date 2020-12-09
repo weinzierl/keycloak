@@ -114,7 +114,6 @@ public class FederationConfigurationEndpoint {
     }
 
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteConfiguration() {
         this.auth.realm().requireManageRealm();
         try {
@@ -123,7 +122,7 @@ public class FederationConfigurationEndpoint {
             e.printStackTrace();
             return ErrorResponse.error(e.getMessage(), Response.Status.NOT_FOUND);
         }
-        return Response.ok("Authority hint was deleted").build();
+        return Response.noContent().build();
     }
 
     

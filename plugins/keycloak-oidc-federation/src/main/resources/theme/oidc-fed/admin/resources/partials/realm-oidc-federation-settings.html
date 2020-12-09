@@ -9,8 +9,33 @@
     </ul>
          <form class="form-horizontal" name="realmConfigurationForm" novalidate kc-read-only="!access.manageRealm">
     
+             <div class="form-group">
+                <label class="col-md-2 control-label" for="registrationType"><span class="required">*</span> {{:: 'registration.type' | translate}}</label>
+                <div class="col-sm-6">
+                    <select class="form-control" id="registrationType" required
+                            ng-model="realm.configuration.registrationType"
+                            ng-options="reg for reg in registrationTypeList">
+                    </select>
+                </div>
+                <kc-tooltip>{{:: 'registration.type.tooltip' | translate}}</kc-tooltip>
+             </div>
+             
              <div class="form-group" >
-                 <label class="col-md-2 control-label" for="newAuthorityHint">{{:: 'authority.hints' | translate}}</label>
+                <label class="col-md-2 control-label" for="expirationTime"><span class="required">*</span>{{:: 'credential-reset-actions-timeout' | translate}} </label>
+                <div class="col-md-6 time-selector">
+                <input class="form-control" type="number" required min="1" max="31536000" data-ng-model="realm.configuration.expirationTime.time" id="expirationTime"
+                       name="expirationTime"/>
+                <select class="form-control" name="expirationUnit" data-ng-model="realm.configuration.expirationTime.unit">
+                    <option value="Minutes">{{:: 'minutes' | translate}}</option>
+                    <option value="Hours">{{:: 'hours' | translate}}</option>
+                    <option value="Days">{{:: 'days' | translate}}</option>
+                </select>
+            </div>
+                <kc-tooltip>{{:: 'expiration.time.tooltip' | translate}}</kc-tooltip>
+            </div>
+             
+             <div class="form-group" >
+                 <label class="col-md-2 control-label" for="newAuthorityHint"><span class="required">*</span>{{:: 'authority.hints' | translate}}</label>
                  <div class="col-sm-6">
                     <div class="input-group" ng-repeat="(i, hint) in realm.configuration.authorityHints track by $index">
                         <input class="form-control" ng-model="realm.configuration.authorityHints[i]">
@@ -31,7 +56,7 @@
              </div>
              
              <div class="form-group" >
-                 <label class="col-md-2 control-label" for="newTrustAnchor">{{:: 'trust.anchors' | translate}}</label>
+                 <label class="col-md-2 control-label" for="newTrustAnchor"><span class="required">*</span>{{:: 'trust.anchors' | translate}}</label>
                  <div class="col-sm-6">
                     <div class="input-group" ng-repeat="(i,anchor) in realm.configuration.trustAnchors track by $index">
                         <input class="form-control" ng-model="realm.configuration.trustAnchors[i]">
@@ -55,6 +80,7 @@
                  <div class="col-md-10 col-md-offset-2" data-ng-show="access.manageRealm">
                      <button kc-save  data-ng-disabled="!changed">{{:: 'save' | translate}}</button>
                      <button kc-reset data-ng-disabled="!changed">{{:: 'cancel' | translate}}</button>
+                     <button data-ng-disabled="!saved" data-ng-click="deleteConfiguration()" >{{:: 'delete.configuration' | translate}}</button>
                  </div>
             </div>
          </form>

@@ -20,7 +20,9 @@ package org.keycloak.protocol.oidc.federation.op;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -86,10 +88,17 @@ public class OIDCFedOPWellKnownProvider extends OIDCWellKnownProvider {
         }
 
         //additional federation-specific configuration
-        config.setFederationRegistrationEndpoint(backendUriBuilder.clone().path(OIDCFederationResourceProviderFactory.ID).path(OIDCFederationResourceProvider.class, "getFederationOPService").path(FederationOPService.class, "getFederationRegistration").build(realm.getName()).toString());
-        config.setPushedAuthorizationRequestEndpoint(backendUriBuilder.clone().path(OIDCFederationResourceProviderFactory.ID).path(OIDCFederationResourceProvider.class, "getFederationOPService").path(FederationOPService.class, "postPushedAuthorization").build(realm.getName()).toString());
-        config.setClientRegistrationTypesSupported("both".equals(conf.getConfiguration().getRegistrationType()) ? CLIENT_REGISTRATION_TYPES_SUPPORTED : Arrays.asList(conf.getConfiguration().getRegistrationType()));
-//        config.setClientRegistrationAuthnMethodsSupported(clientRegistrationAuthnMethodsSupported);
+        if (!"automatic".equals(conf.getConfiguration().getRegistrationType()))
+            config.setFederationRegistrationEndpoint(backendUriBuilder.clone().path(OIDCFederationResourceProviderFactory.ID)
+                .path(OIDCFederationResourceProvider.class, "getFederationOPService")
+                .path(FederationOPService.class, "getFederationRegistration").build(realm.getName()).toString());
+        Map<String, List<String>> clientRegMap = new HashMap<>();
+        clientRegMap.put("ar", Arrays.asList("request_object"));
+        config.setClientRegistrationAuthnMethodsSupported(clientRegMap);
+        config.setClientRegistrationTypesSupported(
+            "both".equals(conf.getConfiguration().getRegistrationType()) ? CLIENT_REGISTRATION_TYPES_SUPPORTED
+                : Arrays.asList(conf.getConfiguration().getRegistrationType()));
+
 
         Metadata metadata = new Metadata();
         metadata.setOp(config);

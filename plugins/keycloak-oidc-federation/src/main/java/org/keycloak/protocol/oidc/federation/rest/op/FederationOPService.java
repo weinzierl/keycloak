@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response;
 
 import org.jboss.logging.Logger;
 import org.keycloak.OAuth2Constants;
+import org.keycloak.authentication.authenticators.client.ClientIdAndSecretAuthenticator;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
 import org.keycloak.models.ClientModel;
@@ -64,6 +65,7 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     private static final Logger logger = Logger.getLogger(FederationOPService.class);
 
+    private static final String SECRET_EXPIRES_AT="ClientSecretExpiresAt";
     private KeycloakSession session;
     private EventBuilder event;
     private ClientRegistrationAuth auth;
@@ -118,9 +120,12 @@ public class FederationOPService implements ClientRegistrationProvider {
             //just pick one with valid metadata policies randomly
             TrustChain validChain =trustChainProcessor.findAcceptableMetadataPolicyChain(trustChains, statement) ;
             if ( validChain != null) {
-                ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer());
+                ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer(),statement.getExp());
                 URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
                 OIDCClientRepresentation clientOIDC = DescriptionConverter.toExternalResponse(session, clientSaved, uri);
+                //set secret expires at at response
+                if ( clientSaved.getAttributes().containsKey(SECRET_EXPIRES_AT))
+                        clientOIDC.setClientSecretExpiresAt(Integer.valueOf(clientSaved.getAttributes().get(SECRET_EXPIRES_AT)));
                 RPMetadata fedClient = new RPMetadata(clientOIDC,
                     statement.getMetadata().getRp().getClient_registration_types(),
                     statement.getMetadata().getRp().getOrganization_name());
@@ -161,7 +166,7 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     }
 
-    private ClientRepresentation createClient(RPMetadata clientRepresentastion, String identifier) {
+    private ClientRepresentation createClient(RPMetadata clientRepresentastion, String identifier,Long exp) {
         // 9.2.1.2.1. 3 check. How? -> extend client for having entity identifier??
         if (clientRepresentastion.getClientId() != null) {
             throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client Identifier included",
@@ -179,6 +184,11 @@ public class FederationOPService implements ClientRegistrationProvider {
 
             if (grantTypes != null && grantTypes.contains(OAuth2Constants.UMA_GRANT_TYPE)) {
                 client.setAuthorizationServicesEnabled(true);
+            }
+            
+            //add attribute secret expires at
+            if (client.getClientAuthenticatorType().equals(ClientIdAndSecretAuthenticator.PROVIDER_ID)) {
+                 client.getAttributes().put(SECRET_EXPIRES_AT,exp.toString()); 
             }
 
             OIDCClientRegistrationContext oidcContext = new OIDCClientRegistrationContext(session, client, this,

@@ -23,6 +23,8 @@ import org.keycloak.models.KeycloakSession;
 public class FedUtils {
 
     private static String WELL_KNOWN_SUBPATH = ".well-known/openid-federation";
+    public static final String SECRET_EXPIRES_AT="ClientSecretExpiresAt";
+    public static final String CLIENT_TASK_NAME="DeleteExpiredClient";
     
     
     public static String getSelfSignedToken(String issuer) throws MalformedURLException, IOException {

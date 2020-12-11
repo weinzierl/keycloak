@@ -36,6 +36,7 @@ import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.model.OIDCFedConfigService;
 import org.keycloak.protocol.oidc.federation.paths.TrustChain;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
+import org.keycloak.protocol.oidc.federation.tasks.ClientExpiryTasksI;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
 import org.keycloak.protocol.oidc.mappers.PairwiseSubMapperHelper;
 import org.keycloak.protocol.oidc.mappers.SHA256PairwiseSubMapper;
@@ -58,6 +59,7 @@ import org.keycloak.services.clientregistration.policy.RegistrationAuth;
 import org.keycloak.services.managers.ClientManager;
 import org.keycloak.services.managers.RealmManager;
 import org.keycloak.services.validation.ValidationMessages;
+import org.keycloak.timer.TimerProvider;
 import org.keycloak.urls.UrlType;
 import org.keycloak.validation.ClientValidationUtil;
 
@@ -65,7 +67,6 @@ public class FederationOPService implements ClientRegistrationProvider {
 
     private static final Logger logger = Logger.getLogger(FederationOPService.class);
 
-    private static final String SECRET_EXPIRES_AT="ClientSecretExpiresAt";
     private KeycloakSession session;
     private EventBuilder event;
     private ClientRegistrationAuth auth;
@@ -124,8 +125,8 @@ public class FederationOPService implements ClientRegistrationProvider {
                 URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
                 OIDCClientRepresentation clientOIDC = DescriptionConverter.toExternalResponse(session, clientSaved, uri);
                 //set secret expires at at response
-                if ( clientSaved.getAttributes().containsKey(SECRET_EXPIRES_AT))
-                        clientOIDC.setClientSecretExpiresAt(Integer.valueOf(clientSaved.getAttributes().get(SECRET_EXPIRES_AT)));
+                if ( clientSaved.getAttributes().containsKey(FedUtils.SECRET_EXPIRES_AT))
+                        clientOIDC.setClientSecretExpiresAt(Integer.valueOf(clientSaved.getAttributes().get(FedUtils.SECRET_EXPIRES_AT)));
                 RPMetadata fedClient = new RPMetadata(clientOIDC,
                     statement.getMetadata().getRp().getClient_registration_types(),
                     statement.getMetadata().getRp().getOrganization_name());
@@ -188,7 +189,10 @@ public class FederationOPService implements ClientRegistrationProvider {
             
             //add attribute secret expires at
             if (client.getClientAuthenticatorType().equals(ClientIdAndSecretAuthenticator.PROVIDER_ID)) {
-                 client.getAttributes().put(SECRET_EXPIRES_AT,exp.toString()); 
+                 client.getAttributes().put(FedUtils.SECRET_EXPIRES_AT,exp.toString()); 
+                 //start schedule tassk for delete client when expired
+                 ClientExpiryTasksI clientExpTask = session.getProvider(ClientExpiryTasksI.class);
+                 clientExpTask.scheduleTask(client.getId(), session.getContext().getRealm().getId(), exp);
             }
 
             OIDCClientRegistrationContext oidcContext = new OIDCClientRegistrationContext(session, client, this,

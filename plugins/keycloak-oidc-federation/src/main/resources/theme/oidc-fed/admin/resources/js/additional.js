@@ -112,14 +112,14 @@ keycloak_module.controller('RealmOidcFedSettingsCtrl', function($scope, $route, 
     };
 });
 
-
+/*
 keycloak_module.controller('ClientRegPoliciesCtrl', function($scope, $compile, realm) {
 
     $scope.realm = realm;
     var divElement = angular.element(document.querySelector(".nav.nav-tabs.nav-tabs-pf"));
     var appendHtml = $compile("<li><a href='#/realms/{{realm.realm}}/client-registration/oidc-federation-settings'>{{:: 'realm-tab-oidc-federation' | translate}}</a></li>")($scope);
     divElement.append(appendHtml);
-    
+
 });
 
 keycloak_module.controller('ClientInitialAccessCtrl', function($scope, $compile, realm) {
@@ -130,6 +130,82 @@ keycloak_module.controller('ClientInitialAccessCtrl', function($scope, $compile,
     divElement.append(appendHtml);
     
 });
+
+*/
+
+
+
+keycloak_module.controller('ClientRegPoliciesCtrl', function($scope, realm, clientRegistrationPolicyProviders, policies, Dialog, Notifications, Components, $route, $location, $compile) {
+    $scope.realm = realm;
+    $scope.providers = clientRegistrationPolicyProviders;
+    $scope.anonPolicies = [];
+    $scope.authPolicies = [];
+    for (var i=0 ; i<policies.length ; i++) {
+        var policy = policies[i];
+        if (policy.subType === 'anonymous') {
+            $scope.anonPolicies.push(policy);
+        } else if (policy.subType === 'authenticated') {
+            $scope.authPolicies.push(policy);
+        } else {
+            throw 'subType is required for clientRegistration policy component!';
+        }
+    }
+
+    $scope.addProvider = function(authType, provider) {
+        console.log('Add provider: authType ' + authType + ', providerId: ' + provider.id);
+        $location.url("/realms/" + realm.realm + "/client-registration/client-reg-policies/create/" + authType + '/' + provider.id);
+    };
+
+    $scope.getInstanceLink = function(instance) {
+        return "/realms/" + realm.realm + "/client-registration/client-reg-policies/" + instance.providerId + "/" + instance.id;
+    }
+
+    $scope.removeInstance = function(instance) {
+        Dialog.confirmDelete(instance.name, 'client registration policy', function() {
+            Components.remove({
+                realm : realm.realm,
+                componentId : instance.id
+            }, function() {
+                $route.reload();
+                Notifications.success("The policy has been deleted.");
+            });
+        });
+    };
+    
+    $scope.realm = realm;
+    var divElement = angular.element(document.querySelector(".nav.nav-tabs.nav-tabs-pf"));
+    var appendHtml = $compile("<li><a href='#/realms/{{realm.realm}}/client-registration/oidc-federation-settings'>{{:: 'realm-tab-oidc-federation' | translate}}</a></li>")($scope);
+    divElement.append(appendHtml);
+
+});
+
+
+
+
+
+keycloak_module.controller('ClientInitialAccessCtrl', function($scope, realm, clientInitialAccess, ClientInitialAccess, Dialog, Notifications, $route, $location, $compile) {
+    $scope.realm = realm;
+    $scope.clientInitialAccess = clientInitialAccess;
+
+    $scope.remove = function(id) {
+        Dialog.confirmDelete(id, 'initial access token', function() {
+            ClientInitialAccess.remove({ realm: realm.realm, id: id }, function() {
+                Notifications.success("The initial access token was deleted.");
+                $route.reload();
+            });
+        });
+    }
+    
+    $scope.realm = realm;
+    var divElement = angular.element(document.querySelector(".nav.nav-tabs.nav-tabs-pf"));
+    var appendHtml = $compile("<li><a href='#/realms/{{realm.realm}}/client-registration/oidc-federation-settings'>{{:: 'realm-tab-oidc-federation' | translate}}</a></li>")($scope);
+    divElement.append(appendHtml);
+    
+    
+});
+
+
+
 
 
 

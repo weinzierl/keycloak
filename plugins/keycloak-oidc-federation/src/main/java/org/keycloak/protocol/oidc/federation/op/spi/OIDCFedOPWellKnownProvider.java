@@ -1,4 +1,4 @@
-package org.keycloak.protocol.oidc.federation.op;
+package org.keycloak.protocol.oidc.federation.op.spi;
 /*
  * Copyright 2016 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
@@ -41,9 +41,9 @@ import org.keycloak.protocol.oidc.federation.exceptions.InternalServerErrorExcep
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.model.OIDCFedConfigEntity;
 import org.keycloak.protocol.oidc.federation.model.OIDCFedConfigService;
-import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProvider;
-import org.keycloak.protocol.oidc.federation.rest.OIDCFederationResourceProviderFactory;
-import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
+import org.keycloak.protocol.oidc.federation.op.rest.FederationOPService;
+import org.keycloak.protocol.oidc.federation.op.rest.OIDCFederationResourceProvider;
+import org.keycloak.protocol.oidc.federation.op.rest.OIDCFederationResourceProviderFactory;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.services.Urls;
 import org.keycloak.services.resources.RealmsResource;

@@ -31,8 +31,8 @@ import org.keycloak.protocol.oidc.federation.exceptions.RemoteFetchingException;
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.helpers.MetadataPolicyUtils;
+import org.keycloak.protocol.oidc.federation.op.rest.FederationOPService;
 import org.keycloak.protocol.oidc.federation.paths.TrustChain;
-import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 
 import com.fasterxml.jackson.core.JsonParseException;

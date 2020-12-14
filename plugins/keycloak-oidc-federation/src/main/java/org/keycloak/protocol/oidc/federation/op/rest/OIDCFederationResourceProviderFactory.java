@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.keycloak.protocol.oidc.federation.rest;
+package org.keycloak.protocol.oidc.federation.op.rest;
 
 import org.keycloak.Config.Scope;
 import org.keycloak.models.KeycloakSession;

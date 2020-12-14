@@ -1,11 +1,11 @@
-package org.keycloak.protocol.oidc.federation.tasks;
+package org.keycloak.protocol.oidc.federation.op.tasks;
 
 import org.jboss.logging.Logger;
 import org.keycloak.common.util.Time;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
-import org.keycloak.protocol.oidc.federation.schedule.DeleteExpiredClientScheduledTaskRunner;
-import org.keycloak.protocol.oidc.federation.schedule.OIDCFedScheduledTaskRunner;
+import org.keycloak.protocol.oidc.federation.op.schedule.DeleteExpiredClientScheduledTaskRunner;
+import org.keycloak.protocol.oidc.federation.op.schedule.OIDCFedScheduledTaskRunner;
 import org.keycloak.timer.TimerProvider;
 
 public class ClientExpiryTasks implements ClientExpiryTasksI {

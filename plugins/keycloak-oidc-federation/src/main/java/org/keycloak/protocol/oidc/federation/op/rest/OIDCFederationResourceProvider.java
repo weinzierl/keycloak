@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-package org.keycloak.protocol.oidc.federation.rest;
+package org.keycloak.protocol.oidc.federation.op.rest;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.core.UriBuilder;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.protocol.oidc.federation.rest.op.FederationOPService;
 import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.services.resources.RealmsResource;
 

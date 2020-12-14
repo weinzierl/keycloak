@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import org.keycloak.protocol.oidc.federation.beans.EntityStatement;
+import org.keycloak.protocol.oidc.federation.common.beans.EntityStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

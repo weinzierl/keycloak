@@ -1,4 +1,4 @@
-package org.keycloak.protocol.oidc.federation.rest;
+package org.keycloak.protocol.oidc.federation.op.rest;
 
 
 import javax.ws.rs.Consumes;

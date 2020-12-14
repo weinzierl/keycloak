@@ -1,4 +1,4 @@
-package org.keycloak.protocol.oidc.federation.rest.op;
+package org.keycloak.protocol.oidc.federation.op.rest;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,9 +34,9 @@ import org.keycloak.protocol.oidc.federation.exceptions.BadSigningOrEncryptionEx
 import org.keycloak.protocol.oidc.federation.exceptions.UnparsableException;
 import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.model.OIDCFedConfigService;
+import org.keycloak.protocol.oidc.federation.op.tasks.ClientExpiryTasksI;
 import org.keycloak.protocol.oidc.federation.paths.TrustChain;
 import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
-import org.keycloak.protocol.oidc.federation.tasks.ClientExpiryTasksI;
 import org.keycloak.protocol.oidc.mappers.AbstractPairwiseSubMapper;
 import org.keycloak.protocol.oidc.mappers.PairwiseSubMapperHelper;
 import org.keycloak.protocol.oidc.mappers.SHA256PairwiseSubMapper;

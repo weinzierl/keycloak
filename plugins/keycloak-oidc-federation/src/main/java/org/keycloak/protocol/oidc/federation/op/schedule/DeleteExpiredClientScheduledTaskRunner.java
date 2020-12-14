@@ -1,4 +1,4 @@
-package org.keycloak.protocol.oidc.federation.schedule;
+package org.keycloak.protocol.oidc.federation.op.schedule;
 
 import org.jboss.logging.Logger;
 import org.keycloak.models.KeycloakSession;

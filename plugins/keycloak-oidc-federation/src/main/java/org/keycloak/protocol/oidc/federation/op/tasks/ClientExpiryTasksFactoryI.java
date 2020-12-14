@@ -1,4 +1,4 @@
-package org.keycloak.protocol.oidc.federation.tasks;
+package org.keycloak.protocol.oidc.federation.op.tasks;
 
 import org.keycloak.provider.ProviderFactory;
 

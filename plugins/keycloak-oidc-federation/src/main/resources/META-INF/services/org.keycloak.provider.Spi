@@ -1,1 +1,1 @@
-org.keycloak.protocol.oidc.federation.tasks.ClientExpiryTasksSpi
+org.keycloak.protocol.oidc.federation.op.tasks.ClientExpiryTasksSpi

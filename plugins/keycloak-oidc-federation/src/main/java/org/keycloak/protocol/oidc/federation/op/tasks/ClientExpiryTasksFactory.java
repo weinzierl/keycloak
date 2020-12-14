@@ -3,7 +3,7 @@ package org.keycloak.protocol.oidc.federation.op.tasks;
 import org.keycloak.Config.Scope;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
-import org.keycloak.protocol.oidc.federation.helpers.FedUtils;
+import org.keycloak.protocol.oidc.federation.common.helpers.FedUtils;
 
 public class ClientExpiryTasksFactory implements ClientExpiryTasksFactoryI {
 

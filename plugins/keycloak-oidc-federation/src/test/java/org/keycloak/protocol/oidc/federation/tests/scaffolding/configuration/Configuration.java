@@ -3,7 +3,7 @@ package org.keycloak.protocol.oidc.federation.tests.scaffolding.configuration;
 import java.util.List;
 import java.util.Map;
 
-import org.keycloak.protocol.oidc.federation.beans.RPMetadataPolicy;
+import org.keycloak.protocol.oidc.federation.common.beans.RPMetadataPolicy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

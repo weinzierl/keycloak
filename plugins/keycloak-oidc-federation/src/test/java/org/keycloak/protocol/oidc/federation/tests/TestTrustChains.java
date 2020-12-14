@@ -10,8 +10,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Test;
-import org.keycloak.protocol.oidc.federation.paths.TrustChain;
-import org.keycloak.protocol.oidc.federation.processes.TrustChainProcessor;
+import org.keycloak.protocol.oidc.federation.common.TrustChain;
+import org.keycloak.protocol.oidc.federation.common.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.federation.tests.scaffolding.configuration.YamlConfiguration;
 
 public class TestTrustChains extends TestBase {

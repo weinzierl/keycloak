@@ -77,7 +77,6 @@ public class OIDCFedOPWellKnownProvider extends OIDCWellKnownProvider {
 
         RealmModel realm = session.getContext().getRealm();
 
-        UriBuilder frontendUriBuilder = RealmsResource.realmBaseUrl(frontendUriInfo);
         UriBuilder backendUriBuilder = RealmsResource.realmBaseUrl(backendUriInfo);
 
         OPMetadata config;

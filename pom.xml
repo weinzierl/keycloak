@@ -88,6 +88,20 @@
     </license>
   </licenses>
 
+  <scm>
+    <connection>scm:git:git://github.com/keycloak/keycloak.git</connection>
+    <developerConnection>scm:git:git@github.com:keycloak/keycloak.git</developerConnection>
+    <url>https://github.com/keycloak/keycloak/tree/master/</url>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>jboss-releases-repository</id>
+      <name>JBoss Releases Repository</name>
+      <url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
   <!-- TODO: probably not needed? -->
   <!--<repositories>
     <repository>

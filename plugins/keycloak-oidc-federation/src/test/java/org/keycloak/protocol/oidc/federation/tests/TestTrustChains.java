@@ -30,7 +30,7 @@ public class TestTrustChains extends TestBase {
         
         List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromUrl(
             host + "intermediate1", 
-            new HashSet<>(trustAnchors));
+            new HashSet<>(trustAnchors), true);
         
         assertNotNull(trustChains);
         assertTrue(trustChains.size()==3);
@@ -58,7 +58,7 @@ public class TestTrustChains extends TestBase {
         
         List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromUrl(
             host + "intermediate2", 
-            new HashSet<>(trustAnchors));
+            new HashSet<>(trustAnchors), true);
         
         assertNotNull(trustChains);
         assertTrue(trustChains.size()==1);

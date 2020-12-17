@@ -72,9 +72,9 @@ public class TrustChainProcessor {
      * @return any valid trust chains from the leaf node to the trust anchor.
      * @throws IOException 
      */
-    public List<TrustChain> constructTrustChainsFromUrl(String leafNodeBaseUrl, Set<String> trustAnchorIds) throws IOException {      
+    public List<TrustChain> constructTrustChainsFromUrl(String leafNodeBaseUrl, Set<String> trustAnchorIds, boolean policyRequired) throws IOException {      
         String encodedLeafES = FedUtils.getSelfSignedToken(leafNodeBaseUrl);
-        return constructTrustChainsFromJWT(encodedLeafES, trustAnchorIds);
+        return constructTrustChainsFromJWT(encodedLeafES, trustAnchorIds, policyRequired);
     }
 	
 	
@@ -84,7 +84,7 @@ public class TrustChainProcessor {
      * @param trustAnchorId this should hold the trust anchor ids
      * @return any valid trust chains from the leaf node JWT to the trust anchor.
      */
-	public List<TrustChain> constructTrustChainsFromJWT(String leafJWT, Set<String> trustAnchorIds) {
+	public List<TrustChain> constructTrustChainsFromJWT(String leafJWT, Set<String> trustAnchorIds, boolean policyRequired) {
 	    
 	    trustAnchorIds = trustAnchorIds.stream().map(s -> s.trim()).collect(Collectors.toCollection(HashSet::new));
 	    
@@ -120,7 +120,7 @@ public class TrustChainProcessor {
                 trustChain = null;
 
             //combine policies if valid till now
-            if(trustChain != null && parsedChain.size()>1) {
+            if(trustChain != null && parsedChain.size()>1 && policyRequired) {
                 MetadataPolicy metadataPolicy = parsedChain.get(parsedChain.size()-1).getMetadataPolicy();
                 RPMetadataPolicy combinedPolicy = parsedChain.get(parsedChain.size()-1).getMetadataPolicy().getRpPolicy();
                 for(int i=parsedChain.size()-2; i>0; i--) {

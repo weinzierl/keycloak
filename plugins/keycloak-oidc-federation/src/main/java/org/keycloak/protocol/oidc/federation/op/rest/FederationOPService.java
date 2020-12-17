@@ -112,7 +112,7 @@ public class FederationOPService implements ClientRegistrationProvider {
 
         logger.info("starting validating trust chains");
 
-        List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromJWT(jwtStatement, trustAnchorIds);
+        List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromJWT(jwtStatement, trustAnchorIds, true);
 
 
 
@@ -141,7 +141,7 @@ public class FederationOPService implements ClientRegistrationProvider {
                 ConcurrentHashMap<String, List<TrustChain>> opAuthHintsPaths = new ConcurrentHashMap<String, List<TrustChain>>();
                 authorityHints.parallelStream().forEach(authorityHint -> {
                     try {
-                        List<TrustChain> paths = trustChainProcessor.constructTrustChainsFromUrl(authorityHint, Stream.of(pickedTrustAnchorId).collect(Collectors.toSet()));
+                        List<TrustChain> paths = trustChainProcessor.constructTrustChainsFromUrl(authorityHint, Stream.of(pickedTrustAnchorId).collect(Collectors.toSet()),false);
                         if(paths!=null && !paths.isEmpty()) {
                             opAuthHintsPaths.put(authorityHint, paths);
                         }

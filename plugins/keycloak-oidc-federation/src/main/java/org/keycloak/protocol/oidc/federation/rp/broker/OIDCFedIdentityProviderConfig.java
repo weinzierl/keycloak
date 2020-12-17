@@ -17,7 +17,8 @@ public class OIDCFedIdentityProviderConfig extends OIDCIdentityProviderConfig {
     public static final String ORGANIZATION_NAME = "organizationName";
     public static final String AUTHORITY_HINTS = "authorityHints";
     public static final String EXPIRED = "expired";
-    public static final String TRUST_ANCHOR_ID = "trustAnchorId";
+    public static final String TRUST_ANCHOR_IDS = "trustAnchorIds";
+    public static final String OP_ENTITY_IDENTIFIER = "opEntityIdentifier";
 
     public OIDCFedIdentityProviderConfig() {
         super();
@@ -60,18 +61,32 @@ public class OIDCFedIdentityProviderConfig extends OIDCIdentityProviderConfig {
         getConfig().put(EXPIRED, expired.toString());
     }
     
-    public String getTrustAnchorId() {
-        return getConfig().get(TRUST_ANCHOR_ID);
+    public List<String> getTrustAnchorIds() throws IOException {
+        return JsonSerialization.readValue(getConfig().get(TRUST_ANCHOR_IDS), List.class) ;
     }
-    public void setTrustAnchorId(String trustAnchorId) {
-        getConfig().put(TRUST_ANCHOR_ID, trustAnchorId);
+    public void setTrustAnchorIds(List<String> trustAnchorIds) {
+        try {
+            getConfig().put(TRUST_ANCHOR_IDS, JsonSerialization.writeValueAsString(trustAnchorIds) );
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     
+    public String getOpEntityIdentifier() {
+        return getConfig().get(ORGANIZATION_NAME);
+    }
+    public void setOpEntityIdentifier(String opEntityIdentifier) {
+        getConfig().put(ORGANIZATION_NAME, opEntityIdentifier);
+    }
+
     @Override
     public void validate(RealmModel realm) {
         super.validate(realm);
         try {
             getAuthorityHints().stream().forEach(auth->  checkUrl(SslRequired.NONE, auth, "Authority hints"));
+            getTrustAnchorIds().stream().forEach(auth->  checkUrl(SslRequired.NONE, auth, "Trust anchors ids"));
+            checkUrl(SslRequired.NONE, getOpEntityIdentifier(), "OP entity Identifier");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

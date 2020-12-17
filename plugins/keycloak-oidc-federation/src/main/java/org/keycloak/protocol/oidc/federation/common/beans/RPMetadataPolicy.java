@@ -2,7 +2,7 @@ package org.keycloak.protocol.oidc.federation.common.beans;
 
 public class RPMetadataPolicy {
     
-    private PolicyList<ClientRegistrationEnum> client_registration_types;
+    private PolicyList<String> client_registration_types;
 
     private Policy<String> organization_name;
 
@@ -93,11 +93,11 @@ public class RPMetadataPolicy {
     
    
 
-    public PolicyList<ClientRegistrationEnum> getClient_registration_types() {
+    public PolicyList<String> getClient_registration_types() {
         return client_registration_types;
     }
 
-    public void setClient_registration_types(PolicyList<ClientRegistrationEnum> client_registration_types) {
+    public void setClient_registration_types(PolicyList<String> client_registration_types) {
         this.client_registration_types = client_registration_types;
     }
 

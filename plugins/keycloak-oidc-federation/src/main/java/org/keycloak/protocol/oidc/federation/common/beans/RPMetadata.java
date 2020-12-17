@@ -7,7 +7,7 @@ import org.keycloak.representations.oidc.OIDCClientRepresentation;
 
 public class RPMetadata extends OIDCClientRepresentation {
     
-    private List<ClientRegistrationEnum> client_registration_types;
+    private List<String> client_registration_types;
 
     private String organization_name;
 
@@ -17,7 +17,7 @@ public class RPMetadata extends OIDCClientRepresentation {
         
     }
     
-    public RPMetadata(OIDCClientRepresentation oidcClient,List<ClientRegistrationEnum> client_registration_types,String organization_name) {
+    public RPMetadata(OIDCClientRepresentation oidcClient,List<String> client_registration_types,String organization_name) {
         this.setContacts(oidcClient.getContacts()); 
         this.setDefaultAcrValues(oidcClient.getDefaultAcrValues()); 
         this.setGrantTypes(oidcClient.getGrantTypes()); 
@@ -65,11 +65,11 @@ public class RPMetadata extends OIDCClientRepresentation {
             
     }
     
-    public List<ClientRegistrationEnum> getClient_registration_types() {
+    public List<String> getClient_registration_types() {
         return client_registration_types;
     }
 
-    public void setClient_registration_types(List<ClientRegistrationEnum> client_registration_types) {
+    public void setClient_registration_types(List<String> client_registration_types) {
         this.client_registration_types = client_registration_types;
     }
 

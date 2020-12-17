@@ -1,5 +1,7 @@
 package org.keycloak.protocol.oidc.federation.common.beans;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -7,6 +9,8 @@ import org.keycloak.protocol.oidc.federation.common.exceptions.MetadataPolicyCom
 import org.keycloak.protocol.oidc.federation.common.exceptions.MetadataPolicyException;
 import org.keycloak.protocol.oidc.federation.common.helpers.AddDeserializer;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 public abstract class AbstractPolicy<T> {
@@ -17,6 +21,7 @@ public abstract class AbstractPolicy<T> {
     @JsonDeserialize(using = AddDeserializer.class)
     protected Set<T> add;
     protected Boolean essential;
+    protected Map<String, T> otherClaims = new HashMap<>();
 
     protected AbstractPolicy() {
 
@@ -110,6 +115,16 @@ public abstract class AbstractPolicy<T> {
 
     public void setEssential(Boolean essential) {
         this.essential = essential;
+    }
+
+    @JsonAnyGetter
+    public Map<String, T> getOtherClaims() {
+        return otherClaims;
+    }
+
+    @JsonAnySetter
+    public void setOtherClaims(Map<String, T> otherClaims) {
+        this.otherClaims = otherClaims;
     }
 
 }

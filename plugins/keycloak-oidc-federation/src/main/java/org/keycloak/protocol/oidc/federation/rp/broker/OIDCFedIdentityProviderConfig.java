@@ -4,6 +4,7 @@ import static org.keycloak.common.util.UriUtils.checkUrl;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import org.keycloak.broker.oidc.OIDCIdentityProviderConfig;
 import org.keycloak.common.enums.SslRequired;
@@ -61,10 +62,10 @@ public class OIDCFedIdentityProviderConfig extends OIDCIdentityProviderConfig {
         getConfig().put(EXPIRED, expired.toString());
     }
     
-    public List<String> getTrustAnchorIds() throws IOException {
-        return JsonSerialization.readValue(getConfig().get(TRUST_ANCHOR_IDS), List.class) ;
+    public Set<String> getTrustAnchorIds() throws IOException {
+        return JsonSerialization.readValue(getConfig().get(TRUST_ANCHOR_IDS), Set.class) ;
     }
-    public void setTrustAnchorIds(List<String> trustAnchorIds) {
+    public void setTrustAnchorIds(Set<String> trustAnchorIds) {
         try {
             getConfig().put(TRUST_ANCHOR_IDS, JsonSerialization.writeValueAsString(trustAnchorIds) );
         } catch (IOException e) {
@@ -74,10 +75,10 @@ public class OIDCFedIdentityProviderConfig extends OIDCIdentityProviderConfig {
     }
     
     public String getOpEntityIdentifier() {
-        return getConfig().get(ORGANIZATION_NAME);
+        return getConfig().get(OP_ENTITY_IDENTIFIER);
     }
     public void setOpEntityIdentifier(String opEntityIdentifier) {
-        getConfig().put(ORGANIZATION_NAME, opEntityIdentifier);
+        getConfig().put(OP_ENTITY_IDENTIFIER, opEntityIdentifier);
     }
 
     @Override

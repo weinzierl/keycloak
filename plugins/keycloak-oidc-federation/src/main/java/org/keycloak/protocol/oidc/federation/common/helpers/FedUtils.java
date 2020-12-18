@@ -3,14 +3,18 @@ package org.keycloak.protocol.oidc.federation.common.helpers;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.keycloak.crypto.KeyType;
 import org.keycloak.crypto.KeyUse;
@@ -19,6 +23,8 @@ import org.keycloak.jose.jwk.JSONWebKeySet;
 import org.keycloak.jose.jwk.JWK;
 import org.keycloak.jose.jwk.JWKBuilder;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.protocol.oidc.federation.common.beans.EntityStatement;
+import org.keycloak.protocol.oidc.federation.common.exceptions.InternalServerErrorException;
 
 public class FedUtils {
 
@@ -47,6 +53,29 @@ public class FedUtils {
         String inputLine;
         while ((inputLine = in.readLine()) != null)
             content.append(inputLine);
+        return content.toString();
+    }
+    
+    public static String getJoseContentFromPost(URL url,String body) throws IOException,InternalServerErrorException {
+        StringBuffer content = new StringBuffer();
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/jose");
+        OutputStream outStream = con.getOutputStream();
+        OutputStreamWriter outStreamWriter = new OutputStreamWriter(outStream, "UTF-8");
+        outStreamWriter.write(body);
+        outStreamWriter.flush();
+        outStreamWriter.close();
+        outStream.close();
+        //return null for error
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;   
+       
+        while ((inputLine = in.readLine()) != null)
+            content.append(inputLine);
+        //if an error occur
+        if (con.getResponseCode()>= 300)
+            throw new InternalServerErrorException(content.toString());
         return content.toString();
     }
     

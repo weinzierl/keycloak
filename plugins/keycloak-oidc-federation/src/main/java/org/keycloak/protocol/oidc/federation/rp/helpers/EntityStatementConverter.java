@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.keycloak.broker.oidc.OIDCIdentityProviderConfig;
 import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.common.util.Time;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -42,7 +43,7 @@ public class EntityStatementConverter {
         entityStatement.issuer(config.getClientId());
         entityStatement.subject(config.getClientId());
         entityStatement.issuedNow();
-        entityStatement.exp(entityStatement.getIat() + config.getExpired());
+        entityStatement.exp(Long.valueOf(Time.currentTime()) + config.getExpired());
         entityStatement.addAudience(config.getOpEntityIdentifier());
         return entityStatement;
     }

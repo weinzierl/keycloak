@@ -43,8 +43,14 @@ public class OIDCFedIdentityProviderConfig extends OIDCIdentityProviderConfig {
         getConfig().put(ORGANIZATION_NAME, organizationName);
     }
     
-    public List<String> getAuthorityHints() throws IOException {
-        return JsonSerialization.readValue(getConfig().get(AUTHORITY_HINTS), List.class) ;
+    public List<String> getAuthorityHints() {
+        try {
+            return JsonSerialization.readValue(getConfig().get(AUTHORITY_HINTS), List.class) ;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
     }
     public void setAuthorityHints(List<String> authorityHints) {
         try {
@@ -62,8 +68,14 @@ public class OIDCFedIdentityProviderConfig extends OIDCIdentityProviderConfig {
         getConfig().put(EXPIRED, expired.toString());
     }
     
-    public Set<String> getTrustAnchorIds() throws IOException {
-        return JsonSerialization.readValue(getConfig().get(TRUST_ANCHOR_IDS), Set.class) ;
+    public Set<String> getTrustAnchorIds() {
+        try {
+            return JsonSerialization.readValue(getConfig().get(TRUST_ANCHOR_IDS), Set.class) ;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
     }
     public void setTrustAnchorIds(Set<String> trustAnchorIds) {
         try {
@@ -84,14 +96,15 @@ public class OIDCFedIdentityProviderConfig extends OIDCIdentityProviderConfig {
     @Override
     public void validate(RealmModel realm) {
         super.validate(realm);
-        try {
-            getAuthorityHints().stream().forEach(auth->  checkUrl(SslRequired.NONE, auth, "Authority hints"));
-            getTrustAnchorIds().stream().forEach(auth->  checkUrl(SslRequired.NONE, auth, "Trust anchors ids"));
-            checkUrl(SslRequired.NONE, getOpEntityIdentifier(), "OP entity Identifier");
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        if (getAuthorityHints() == null || getAuthorityHints().isEmpty())
+            throw new IllegalArgumentException("Authority Hints are required");
+        if (getTrustAnchorIds() == null || getTrustAnchorIds().isEmpty())
+            throw new IllegalArgumentException("Trust anchors ids are required");
+        getAuthorityHints().stream().forEach(auth -> checkUrl(SslRequired.NONE, auth, "Authority hints"));
+        getTrustAnchorIds().stream().forEach(auth -> checkUrl(SslRequired.NONE, auth, "Trust anchors ids"));
+        checkUrl(SslRequired.NONE, getOpEntityIdentifier(), "OP entity Identifier");
+
+        
     }
 
 }

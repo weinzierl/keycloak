@@ -2,18 +2,11 @@ package org.keycloak.testsuite.oidc;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -21,28 +14,13 @@ import javax.ws.rs.core.UriBuilder;
 import org.junit.Test;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.crypto.Algorithm;
-import org.keycloak.crypto.KeyType;
-import org.keycloak.crypto.KeyUse;
-import org.keycloak.crypto.KeyWrapper;
 import org.keycloak.jose.jwe.JWEConstants;
-import org.keycloak.jose.jwk.JSONWebKeySet;
-import org.keycloak.jose.jwk.JWK;
-import org.keycloak.jose.jwk.JWKBuilder;
-import org.keycloak.models.ClientModel;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolFactory;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolService;
 import org.keycloak.protocol.oidc.federation.common.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.common.beans.OPMetadata;
-import org.keycloak.protocol.oidc.federation.common.beans.RPMetadata;
-import org.keycloak.protocol.oidc.federation.common.beans.RPMetadataPolicy;
 import org.keycloak.protocol.oidc.federation.common.exceptions.BadSigningOrEncryptionException;
-import org.keycloak.protocol.oidc.federation.common.exceptions.MetadataPolicyCombinationException;
-import org.keycloak.protocol.oidc.federation.common.exceptions.MetadataPolicyException;
 import org.keycloak.protocol.oidc.federation.common.exceptions.UnparsableException;
-import org.keycloak.protocol.oidc.federation.common.helpers.FedUtils;
-import org.keycloak.protocol.oidc.federation.common.helpers.MetadataPolicyUtils;
 import org.keycloak.protocol.oidc.federation.common.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.federation.op.rest.OIDCFederationResourceProvider;
 import org.keycloak.protocol.oidc.federation.op.spi.OIDCFedOPWellKnownProvider;
@@ -56,9 +34,7 @@ import org.keycloak.services.resources.RealmsResource;
 import org.keycloak.testsuite.AbstractKeycloakTest;
 import org.keycloak.testsuite.Assert;
 import org.keycloak.testsuite.admin.AbstractAdminTest;
-import org.keycloak.testsuite.arquillian.annotation.ModelTest;
 import org.keycloak.testsuite.util.OAuthClient;
-import org.keycloak.util.JsonSerialization;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -174,120 +150,8 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         }
     }
 
-    @Test
-    @ModelTest
-    public void testExplicitRegistration(KeycloakSession session)
-        throws IOException, URISyntaxException, UnparsableException, BadSigningOrEncryptionException {
-        Client client = ClientBuilder.newClient();
-        String clientId = null;
-        try {
-//            String st = federationRegistrationExecution(client, session);
-//            EntityStatement statement = TrustChainProcessor
-//                .parseAndValidateSelfSigned(st);
-//            // check entity statements enchancements
-//            Assert.assertNotNull(statement.getMetadataPolicy());
-//            Assert.assertNotNull(statement.getMetadataPolicy().getRpPolicy());
-//            Assert.assertNotNull(statement.getMetadata());
-//            Assert.assertNotNull(statement.getMetadata().getRp());
-//            clientId = statement.getMetadata().getRp().getClientId();
-//            Assert.assertNotNull(clientId);
-//
-//            // check client exist
-//            RealmModel realm = session.realms().getRealmByName("test");
-//            ClientModel cl = realm.getClientByClientId(clientId);
-//            Assert.assertNotNull(cl);
-//            Assert.assertNotNull(cl.getRedirectUris());
-//            assertEquals("client RedirectUris size", 1, cl.getRedirectUris().size());
-//            assertEquals("https://127.0.0.1:4000/authz_cb/local", cl.getRedirectUris().stream().findFirst().get());
-//            Assert.assertTrue(cl.isStandardFlowEnabled());
-//            Assert.assertFalse(cl.isImplicitFlowEnabled());
-//            Assert.assertFalse(cl.isPublicClient());
-//            assertEquals("client-secret", cl.getClientAuthenticatorType());
-//            Assert.assertNotNull(cl.getSecret());
-        } finally {
-            client.close();
 
-        }
-    }
-    
-    @Test 
-    public void combineMetadataPolicyInRPStatement() throws IOException, URISyntaxException, MetadataPolicyCombinationException, MetadataPolicyException {
-        URL rpEntityStatement = getClass().getClassLoader().getResource("oidc/rpEntityStatement.json");
-        byte [] content = Files.readAllBytes(Paths.get(rpEntityStatement.toURI()));
-        EntityStatement statement = JsonSerialization.readValue(content, EntityStatement.class);
-        URL policyTA = getClass().getClassLoader().getResource("oidc/policyTrustAnchor.json");
-        byte [] contentpolicyTA = Files.readAllBytes(Paths.get(policyTA.toURI()));
-        RPMetadataPolicy superiorPolicy = JsonSerialization.readValue(contentpolicyTA, RPMetadataPolicy.class);
-        URL policyInter = getClass().getClassLoader().getResource("oidc/policyInter.json");
-        byte [] contentpolicyInter  = Files.readAllBytes(Paths.get(policyInter.toURI()));
-        RPMetadataPolicy inferiorPolicy = JsonSerialization.readValue(contentpolicyInter, RPMetadataPolicy.class);
-        superiorPolicy = MetadataPolicyUtils.combineClientPOlicies(superiorPolicy, inferiorPolicy);
-        statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, superiorPolicy);
-        
-        //check statement for proper rp policy data
-        Assert.assertNotNull(superiorPolicy.getScope());
-        Assert.assertNotNull(superiorPolicy.getScope().getSubset_of());
-        Assert.assertNames(superiorPolicy.getScope().getSubset_of(), "openid","eduperson");
-        Assert.assertNotNull(superiorPolicy.getScope().getSuperset_of());
-        Assert.assertNames(superiorPolicy.getScope().getSuperset_of(), "openid");
-        assertEquals("openid",superiorPolicy.getScope().getDefaultValue());
-        Assert.assertNotNull(superiorPolicy.getApplication_type());
-        assertEquals("web",superiorPolicy.getApplication_type().getValue());
-        Assert.assertNotNull(superiorPolicy.getContacts());
-        Assert.assertNotNull(superiorPolicy.getContacts().getAdd());
-        Assert.assertNames(superiorPolicy.getContacts().getAdd(), "helpdesk@org.example.org","helpdesk@federation.example.org");
-        Assert.assertNotNull(superiorPolicy.getId_token_signed_response_alg());
-        Assert.assertNotNull(superiorPolicy.getId_token_signed_response_alg().getOne_of());
-        Assert.assertNames(superiorPolicy.getId_token_signed_response_alg().getOne_of(), "ES384","ES256");
-        assertEquals("ES256",superiorPolicy.getId_token_signed_response_alg().getDefaultValue());
-        Assert.assertTrue(superiorPolicy.getId_token_signed_response_alg().getEssential());
-        
-        //check statement for proper rp data
-        Assert.assertNotNull(statement.getMetadata());
-        Assert.assertNotNull(statement.getMetadata().getRp());
-        RPMetadata rp =statement.getMetadata().getRp();
-        Assert.assertNotNull(rp.getRedirectUris());
-        assertEquals("client RedirectUris size", 1, rp.getRedirectUris().size());
-        assertEquals("https://127.0.0.1:4000/authz_cb/local", rp.getRedirectUris().get(0));
-        assertEquals("web", rp.getApplicationType());
-        Assert.assertNotNull(rp.getResponseTypes());
-        assertEquals("ResponseTypes size", 1, rp.getResponseTypes().size());
-        assertEquals("code", rp.getResponseTypes().get(0));
-        Assert.assertNotNull(rp.getContacts());
-        assertEquals("Contacts size", 3, rp.getContacts().size());
-        assertContains( rp.getContacts(), "ops@example.com", "helpdesk@org.example.org" , "helpdesk@federation.example.org");
-        assertEquals("client_secret_basic", rp.getTokenEndpointAuthMethod());
-        assertEquals("ES384", rp.getIdTokenSignedResponseAlg());
-        assertEquals("openid", rp.getScope());
-        
-    }
-    
-    @Test 
-    public void incorrectRPStatement() throws IOException, URISyntaxException, MetadataPolicyCombinationException {
-        URL rpEntityStatement = getClass().getClassLoader().getResource("oidc/rpEntityStatement.json");
-        byte [] content = Files.readAllBytes(Paths.get(rpEntityStatement.toURI()));
-        EntityStatement statement = JsonSerialization.readValue(content, EntityStatement.class);
-        //add scope address for being invalid rp metadata
-        statement.getMetadata().getRp().setScope("address");
-        URL policyTA = getClass().getClassLoader().getResource("oidc/policyTrustAnchor.json");
-        byte [] contentpolicyTA = Files.readAllBytes(Paths.get(policyTA.toURI()));
-        RPMetadataPolicy superiorPolicy = JsonSerialization.readValue(contentpolicyTA, RPMetadataPolicy.class);
-        URL policyInter = getClass().getClassLoader().getResource("oidc/policyInter.json");
-        byte [] contentpolicyInter  = Files.readAllBytes(Paths.get(policyInter.toURI()));
-        RPMetadataPolicy inferiorPolicy = JsonSerialization.readValue(contentpolicyInter, RPMetadataPolicy.class);
-        superiorPolicy = MetadataPolicyUtils.combineClientPOlicies(superiorPolicy, inferiorPolicy);
-        
-        //check that rp metadata is invalid due to policies
-        boolean exceptionThrown = false;
-        try {
-            statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, superiorPolicy);
-        } catch (MetadataPolicyException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            exceptionThrown = true;
-        }
-        Assert.assertTrue("RP metadata must be invalid due to enforcing policies", exceptionThrown);
-    }
+
 
 
     private String getOIDCDiscoveryConfiguration(Client client) {
@@ -300,20 +164,6 @@ public class OIDCFederationTest extends AbstractKeycloakTest {
         return response.readEntity(String.class);
     }
 
-    private String federationRegistrationExecution(Client client,KeycloakSession session) throws IOException, URISyntaxException {
-        URI federationRegistrationUri = OIDCFederationResourceProvider
-            .federationExplicitRegistration(UriBuilder.fromUri(OAuthClient.AUTH_SERVER_ROOT)).build("test");
-        WebTarget oidcDiscoveryTarget = client.target(federationRegistrationUri);
-        URL rpEntityStatement = getClass().getClassLoader().getResource("oidc/rpEntityStatement.json");
-        byte [] content = Files.readAllBytes(Paths.get(rpEntityStatement.toURI()));
-        EntityStatement statement = JsonSerialization.readValue(content, EntityStatement.class);
-        statement.setJwks(FedUtils.getKeySet(session));
-        String token = session.tokens().encode(statement);
-
-        Response response = oidcDiscoveryTarget.request().post(Entity.text(token));
-
-        return response.readEntity(String.class);
-    }
 
     private void assertContains(List<String> actual, String... expected) {
         for (String exp : expected) {

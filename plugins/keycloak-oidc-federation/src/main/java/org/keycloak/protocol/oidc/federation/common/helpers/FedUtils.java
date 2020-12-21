@@ -61,6 +61,7 @@ public class FedUtils {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/jose");
+        con.setDoOutput(true);
         OutputStream outStream = con.getOutputStream();
         OutputStreamWriter outStreamWriter = new OutputStreamWriter(outStream, "UTF-8");
         outStreamWriter.write(body);

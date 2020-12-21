@@ -42,7 +42,7 @@ public class EntityStatementConverter {
         entityStatement.issuer(config.getClientId());
         entityStatement.subject(config.getClientId());
         entityStatement.issuedNow();
-        entityStatement.exp(config.getExpired());
+        entityStatement.exp(entityStatement.getIat() + config.getExpired());
         entityStatement.addAudience(config.getOpEntityIdentifier());
         return entityStatement;
     }

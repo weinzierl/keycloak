@@ -204,7 +204,7 @@
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.client-id.tooltip' | translate}}</kc-tooltip>
             </div>
-            <div class="form-group clearfix" data-ng-show="newIdentityProvider">
+            <div class="form-group clearfix" data-ng-show="! newIdentityProvider">
                 <label class="col-md-2 control-label" for="clientSecret"> {{:: 'client-secret' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="clientSecret" kc-password ng-model="identityProvider.config.clientSecret" readonly >
@@ -309,7 +309,7 @@
                 <label class="col-md-2 control-label" for="clientRegistrationTypes"><span class="required">*</span>{{:: 'registration.type' | translate}}</label>
                 <div class="col-md-6">
                     <div>
-                        <select class="form-control" id="clientRegistrationTypes" ng-model="identityProvider.config.clientRegistrationTypes">
+                        <select class="form-control" id="clientRegistrationTypes" ng-model="identityProvider.config.clientRegistrationTypes" required>
                             <option value="automatic">automatic</option>
                             <option value="explicit">explicit</option>
                         </select>

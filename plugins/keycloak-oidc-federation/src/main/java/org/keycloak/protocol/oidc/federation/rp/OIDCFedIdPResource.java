@@ -50,6 +50,7 @@ public class OIDCFedIdPResource {
     public OIDCFedIdPResource(KeycloakSession session, RealmModel realm, OIDCFedIdentityProviderConfig config) {
         this.session = session;
         this.config = config;
+        this.realm = realm;
     }
 
     @GET
@@ -112,7 +113,7 @@ public class OIDCFedIdPResource {
                 // do antything with policy and authority hint???
                 if (responseStatement.getMetadata() == null || responseStatement.getMetadata().getRp() == null
                     || responseStatement.getAuthorityHints() == null
-                    || config.getTrustAnchorIds().contains(responseStatement.getMetadata().getRp().getTrust_anchor_id()))
+                    || ! config.getTrustAnchorIds().contains(responseStatement.getMetadata().getRp().getTrust_anchor_id()))
                     return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Wrong OP Response entity statement")
                         .build();
 

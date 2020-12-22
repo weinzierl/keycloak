@@ -27,7 +27,8 @@ public class EntityStatementConverter {
         rp.setClientName(config.getDisplayName());
         rp.setJwksUri(config.getJwksUrl());
         rp.setPolicyUri(config.getIssuer());
-        rp.setPostLogoutRedirectUris(Arrays.asList(config.getLogoutUrl()));
+        if (config.getLogoutUrl() != null && !config.getLogoutUrl().isEmpty())
+            rp.setPostLogoutRedirectUris(Arrays.asList(config.getLogoutUrl()));
         rp.setScope(config.getDefaultScope());
         rp.setTokenEndpointAuthMethod(config.getClientAuthMethod());
         rp.setGrantTypes(Arrays.asList("authorization_code"));

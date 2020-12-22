@@ -349,11 +349,11 @@ public class TrustChainProcessor {
 
     public TrustChain findAcceptableMetadataPolicyChain(List<TrustChain> trustChains, EntityStatement statement) {
         TrustChain validChain = null;
-        RPMetadataPolicy rpPolicy = createMetadataPolicies();
+        RPMetadataPolicy opPolicy = createMetadataPolicies();
         for (TrustChain chain : trustChains) {
             try {
                 RPMetadataPolicy finalPolicy = MetadataPolicyUtils
-                    .combineClientPOlicies(chain.getCombinedPolicy(), rpPolicy);
+                    .combineClientPOlicies(chain.getCombinedPolicy(), opPolicy);
                 statement = MetadataPolicyUtils.applyPoliciesToRPStatement(statement, finalPolicy);
                 validChain = chain;
                 break;
@@ -373,6 +373,7 @@ public class TrustChainProcessor {
     private RPMetadataPolicy createMetadataPolicies() {
         PolicyList<String> policy = new PolicyList<String>();
         policy.setSubset_of(ALLOWED_RESPONSE_TYPES);
+        policy.setEssential(false);
         RPMetadataPolicy rpPolicy = new RPMetadataPolicy();
         rpPolicy.setResponse_types(policy);
         return rpPolicy;

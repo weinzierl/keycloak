@@ -189,15 +189,21 @@ public class SAMLIdpDescriptor {
     }
 
     private void initDisplayName() {
-      if (!isNull(descriptor.getExtensions().getUIInfo())) {
-        displayName = descriptor.getExtensions()
-          .getUIInfo()
-          .getDisplayName()
-          .stream()
-          .filter(l -> l.getLang().equals("en"))
-          .map(LocalizedNameType::getValue)
-          .findFirst()
-          .orElse(null);
+      if (!isNull(descriptor.getExtensions())) {
+        if (!isNull(descriptor.getExtensions().getUIInfo())) {
+          displayName = descriptor.getExtensions()
+            .getUIInfo()
+            .getDisplayName()
+            .stream()
+            .filter(l -> l.getLang().equals("en"))
+            .map(LocalizedNameType::getValue)
+            .findFirst()
+            .orElse(null);
+        } else {
+          System.out.println("null ui info");
+        }
+      } else {
+        System.out.println("null extensions");
       }
     }
 

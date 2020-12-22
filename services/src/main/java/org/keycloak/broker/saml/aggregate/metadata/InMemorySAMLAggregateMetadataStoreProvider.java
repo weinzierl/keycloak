@@ -14,13 +14,17 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.compress.utils.Lists;
+import org.infinispan.Cache;
+import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.configuration.global.GlobalConfigurationBuilder;
+import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.manager.EmbeddedCacheManager;
 import org.jboss.logging.Logger;
 import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.saml.common.exceptions.ParsingException;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class InMemorySAMLAggregateMetadataStoreProvider
@@ -34,7 +38,9 @@ public class InMemorySAMLAggregateMetadataStoreProvider
 
   private final KeycloakSession session;
 
-  private final Map<String, Map<String, SAMLIdpDescriptor>> metadataStore = Maps.newConcurrentMap();
+  private static final String CACHE_NAME = "metadataStore";
+  private final EmbeddedCacheManager cacheManager;
+  private final Cache<String, Map<String, SAMLIdpDescriptor>> metadataStore;
 
   private final Set<RegisteredProvider> registeredProviders = Sets.newHashSet();
 
@@ -42,11 +48,17 @@ public class InMemorySAMLAggregateMetadataStoreProvider
 
   public InMemorySAMLAggregateMetadataStoreProvider(KeycloakSession session) {
     this.session = session;
+
+    GlobalConfigurationBuilder global = GlobalConfigurationBuilder.defaultClusteredBuilder();
+    cacheManager = new DefaultCacheManager(global.build());
+    ConfigurationBuilder builder = new ConfigurationBuilder().simpleCache(true);
+    cacheManager.defineConfiguration(CACHE_NAME, builder.build());
+    metadataStore = cacheManager.getCache(CACHE_NAME);
   }
 
   @Override
   public void close() {
-    metadataStore.clear();
+
   }
 
   private String providerKey(RealmModel realm, String providerAlias) {

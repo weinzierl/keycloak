@@ -208,7 +208,7 @@ public class FederationOPService implements ClientRegistrationProvider {
             return client;
         } catch (ClientRegistrationException cre) {
             ServicesLogger.LOGGER.clientRegistrationException(cre.getMessage());
-            throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Client metadata invalid",
+            throw new ErrorResponseException(ErrorCodes.INVALID_CLIENT_METADATA, "Not accepted rp metadata",
                 Response.Status.BAD_REQUEST);
         }
     }

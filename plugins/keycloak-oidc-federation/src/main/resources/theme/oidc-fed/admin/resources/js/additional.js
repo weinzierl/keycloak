@@ -435,7 +435,7 @@ keycloak_module.controller('RealmIdentityProviderCtrl', function($scope, $filter
         $scope.identityProvider = {};
         $scope.configuredProviders = angular.copy($scope.realm.identityProviders);
     };
-
+    
     $scope.showPassword = function(flag) {
         $scope.hidePassword = flag;
     };
@@ -469,6 +469,18 @@ keycloak_module.controller('RealmIdentityProviderCtrl', function($scope, $filter
     };
     
     //////////////////////////////////////////////////oidc federation//////////////////////////////////////////////////
+    $scope.register = function() {
+        var url = authServerUrl + "/realms/" + realm.realm + "/relying-party/" + $scope.identityProvider.alias +"/explicit-registration" ;
+    	$http.get(url).then(function(response) {
+    		$scope.identityProvider = angular.fromJson(response.data);
+    		$scope.authorityHintsList =  angular.fromJson($scope.identityProvider.config.authorityHints);
+            $scope.trustAnchorIdsList =  angular.fromJson($scope.identityProvider.config.trustAnchorIds);
+            Notifications.success("Successful explicit registration to Federation OP");
+    	}).catch(function(response) {
+            Notifications.error("Something went wrong in explicit registration");
+        });
+    };
+    
     $scope.addAuthorityHint = function() {
     	$scope.authorityHintsList.push($scope.newAuthorityHint);
         $scope.newAuthorityHint = "";

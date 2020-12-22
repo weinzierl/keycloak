@@ -309,7 +309,7 @@
                 <label class="col-md-2 control-label" for="clientRegistrationTypes"><span class="required">*</span>{{:: 'registration.type' | translate}}</label>
                 <div class="col-md-6">
                     <div>
-                        <select class="form-control" id="clientRegistrationTypes" ng-model="identityProvider.config.clientRegistrationTypes" required>
+                        <select class="form-control" id="clientRegistrationTypes" ng-model="identityProvider.config.clientRegistrationTypes" required data-ng-readonly="!newIdentityProvider">
                             <option value="automatic">automatic</option>
                             <option value="explicit">explicit</option>
                         </select>
@@ -385,6 +385,7 @@
             <div class="col-md-10 col-md-offset-2">
                 <button kc-save data-ng-disabled="!changed">{{:: 'save' | translate}}</button>
                 <button kc-cancel data-ng-click="cancel()" data-ng-disabled="!changed">{{:: 'cancel' | translate}}</button>
+                <button  data-ng-click="register()" data-ng-show="!newIdentityProvider && identityProvider.config.clientRegistrationTypes === 'explicit' " >{{:: 'register' | translate}}</button>
             </div>
         </div>
     </form>

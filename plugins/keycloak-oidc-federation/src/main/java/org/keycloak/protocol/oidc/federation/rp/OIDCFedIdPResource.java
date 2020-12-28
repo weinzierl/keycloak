@@ -26,6 +26,7 @@ import org.keycloak.protocol.oidc.federation.common.TrustChain;
 import org.keycloak.protocol.oidc.federation.common.beans.EntityStatement;
 import org.keycloak.protocol.oidc.federation.common.exceptions.BadSigningOrEncryptionException;
 import org.keycloak.protocol.oidc.federation.common.exceptions.UnparsableException;
+import org.keycloak.protocol.oidc.federation.common.exceptions.serializers.ExceptionMessage;
 import org.keycloak.protocol.oidc.federation.common.helpers.FedUtils;
 import org.keycloak.protocol.oidc.federation.common.processes.TrustChainProcessor;
 import org.keycloak.protocol.oidc.federation.rp.broker.OIDCFedIdentityProviderConfig;
@@ -69,7 +70,7 @@ public class OIDCFedIdPResource {
         AdminPermissionEvaluator auth = authenticateRealmAdminRequest();
         if (!"explicit".equals(config.getClientRegistrationTypes()))
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity("This OIDC Federation RP does not support excplicit registration").build();
+                .entity(new ExceptionMessage("This OIDC Federation RP does not support excplicit registration")).build();
 
         TrustChainProcessor trustChainProcessor = new TrustChainProcessor();
         String federationRegistrationUrl;
@@ -81,26 +82,26 @@ public class OIDCFedIdPResource {
                 || opStatement.getMetadata().getOp().getClientRegistrationTypesSupported() == null
                 || !opStatement.getMetadata().getOp().getClientRegistrationTypesSupported().contains("explicit"))
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("This is not a OIDC Federation OP or it does not support excplicit registration").build();
+                    .entity(new ExceptionMessage("This is not a OIDC Federation OP or it does not support excplicit registration")).build();
 
             List<TrustChain> trustChains = trustChainProcessor.constructTrustChainsFromJWT(jwtStatement,
                 config.getTrustAnchorIds(), false);
             if (trustChains.size() > 0) {
                 federationRegistrationUrl = opStatement.getMetadata().getOp().getFederationRegistrationEndpoint();
             } else {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Exception in fetching .well-known")
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new ExceptionMessage("Exception in fetching .well-known"))
                     .build();
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Exception in fetching .well-known").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new ExceptionMessage("Exception in fetching .well-known")).build();
         } catch (UnparsableException e) {
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity("Exception in parsing entity statement of .well-known").build();
+                .entity(new ExceptionMessage("Exception in parsing entity statement of .well-known")).build();
         } catch (BadSigningOrEncryptionException e) {
             e.printStackTrace();
-            return Response.status(Response.Status.UNAUTHORIZED).entity("No valid token for .well-known").build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity(new ExceptionMessage("No valid token for .well-known")).build();
         }
 
         try {
@@ -114,7 +115,7 @@ public class OIDCFedIdPResource {
                 if (responseStatement.getMetadata() == null || responseStatement.getMetadata().getRp() == null
                     || responseStatement.getAuthorityHints() == null
                     || ! config.getTrustAnchorIds().contains(responseStatement.getMetadata().getRp().getTrust_anchor_id()))
-                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Wrong OP Response entity statement")
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new ExceptionMessage("Wrong OP Response entity statement"))
                         .build();
 
                 IdentityProviderModel model = EntityStatementConverter
@@ -124,17 +125,17 @@ public class OIDCFedIdPResource {
             } catch (UnparsableException e) {
                 e.printStackTrace();
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Exception in parsing OP Response entity statement").build();
+                    .entity(new ExceptionMessage("Exception in parsing OP Response entity statement")).build();
             } catch (BadSigningOrEncryptionException e) {
                 e.printStackTrace();
-                return Response.status(Response.Status.UNAUTHORIZED).entity("No valid token for OP Response entity statement")
+                return Response.status(Response.Status.UNAUTHORIZED).entity(new ExceptionMessage("No valid token for OP Response entity statement"))
                     .build();
             }
             // entityResponse parse and save
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Exception in registration process").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new ExceptionMessage("Exception in registration process")).build();
         }
        
     }

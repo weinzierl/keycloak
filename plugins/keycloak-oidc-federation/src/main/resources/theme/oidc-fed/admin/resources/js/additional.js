@@ -477,7 +477,7 @@ keycloak_module.controller('RealmIdentityProviderCtrl', function($scope, $filter
             $scope.trustAnchorIdsList =  angular.fromJson($scope.identityProvider.config.trustAnchorIds);
             Notifications.success("Successful explicit registration to Federation OP");
     	}).catch(function(response) {
-            Notifications.error("Something went wrong in explicit registration");
+            Notifications.error(response.data.message);
         });
     };
     

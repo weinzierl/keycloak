@@ -124,6 +124,9 @@ public class FederationOPService implements ClientRegistrationProvider {
             //just pick one with valid metadata policies randomly
             TrustChain validChain =trustChainProcessor.findAcceptableMetadataPolicyChain(trustChains, statement) ;
             if ( validChain != null) {
+                //set rpMetadata jwks equal to entity statement jkws if jkws and jkws uri do not exist
+                if (statement.getMetadata().getRp().getJwks() == null && statement.getMetadata().getRp().getJwksUri()==null) 
+                    statement.getMetadata().getRp().setJwks(statement.getJwks());
                 ClientRepresentation clientSaved = createClient(statement.getMetadata().getRp(), statement.getIssuer(),statement.getExp());
                 URI uri = session.getContext().getUri().getAbsolutePathBuilder().path(clientSaved.getClientId()).build();
                 OIDCClientRepresentation clientOIDC = DescriptionConverter.toExternalResponse(session, clientSaved, uri);

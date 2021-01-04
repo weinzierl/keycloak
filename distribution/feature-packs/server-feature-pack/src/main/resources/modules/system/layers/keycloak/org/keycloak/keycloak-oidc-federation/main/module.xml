@@ -31,6 +31,6 @@
         <module name="org.jboss.resteasy.resteasy-jaxrs"/>
         <module name="org.jboss.logging"/>
         <module name="javax.api"/>
-        <module name="org.keycloak.keycloak-model-jpa" services="import"/>
+        <module name="org.keycloak.keycloak-model-jpa"/>
     </dependencies>
 </module>

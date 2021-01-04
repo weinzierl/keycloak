@@ -23,7 +23,7 @@ public class OIDCFedConfigJpaEntityProvider  implements JpaEntityProvider {
     // Helper method, which will be used internally by Liquibase.
     @Override
     public String getFactoryId() {
-        return "sample";
+        return OIDCFedConfigJpaEntityProviderFactory.ID;
     }
 
     @Override

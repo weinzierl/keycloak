@@ -104,9 +104,9 @@
                 <local-cache name="users">
                     <heap-memory size="10000"/>
                 </local-cache>
-                <local-cache name="idps">
+                <distributed-cache name="idps">
                     <object-memory size="10000"/>
-                </local-cache>
+                </distributed-cache>
                 <!-- 
                 <local-cache name="idpMappers">
                     <object-memory size="10000"/>

@@ -24,6 +24,7 @@ import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.saml.SamlPrincipalType;
+import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 
 /**
@@ -341,5 +342,9 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
 
         checkUrl(sslRequired, getSingleLogoutServiceUrl(), SINGLE_LOGOUT_SERVICE_URL);
         checkUrl(sslRequired, getSingleSignOnServiceUrl(), SINGLE_SIGN_ON_SERVICE_URL);
+        //transient name id format is not accepted together with principaltype SubjectnameId
+        if ( JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT.get().equals(getConfig().get(NAME_ID_POLICY_FORMAT)) && SamlPrincipalType.SUBJECT.name().equals(getConfig().get(PRINCIPAL_TYPE))) 
+            throw new IllegalArgumentException("Can not have Transient NameID Policy Format together with SUBJECT Principal Type");
+        
     }
 }

@@ -194,7 +194,7 @@ public class IdentityProviderResource {
 
     // return ID of IdentityProvider from realm based on internalId of this provider
     private static String getProviderIdByInternalId(RealmModel realm, String providerInternalId, KeycloakSession session) {
-        IdentityProviderModel identityProviderModel = session.identityProviderStorage().getIdentityProviderById(providerInternalId);
+        IdentityProviderModel identityProviderModel = session.identityProviderStorage().getIdentityProviderById(realm, providerInternalId);
         if(identityProviderModel != null)
         	return identityProviderModel.getAlias();
         return null;

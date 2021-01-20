@@ -249,7 +249,7 @@ public class IdentityProvidersResource {
 
         IdentityProviderModel identityProviderModel = this.session.identityProviderStorage().getIdentityProviderByAlias(realm, alias);
         if(identityProviderModel==null)
-        	identityProviderModel = this.session.identityProviderStorage().getIdentityProviderById(alias);
+        	identityProviderModel = this.session.identityProviderStorage().getIdentityProviderById(realm, alias);
         
         IdentityProviderResource identityProviderResource = new IdentityProviderResource(this.auth, realm, session, identityProviderModel, adminEvent);
         ResteasyProviderFactory.getInstance().injectProperties(identityProviderResource);

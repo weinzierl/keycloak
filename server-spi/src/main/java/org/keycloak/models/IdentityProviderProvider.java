@@ -16,7 +16,7 @@ public interface IdentityProviderProvider extends Provider {
 	List<IdentityProviderModel> getIdentityProviders(RealmModel realm);
 	List<IdentityProviderModel> searchIdentityProviders(RealmModel realm, String keyword, Integer firstResult, Integer maxResults);
 	
-	IdentityProviderModel getIdentityProviderById(String internalId);
+	IdentityProviderModel getIdentityProviderById(RealmModel realm, String internalId);
 	IdentityProviderModel getIdentityProviderByAlias(RealmModel realm, String alias);
 	void addIdentityProvider(RealmModel realm, IdentityProviderModel identityProvider);
 	void removeIdentityProviderByAlias(RealmModel realm, String alias);
@@ -31,7 +31,7 @@ public interface IdentityProviderProvider extends Provider {
 	IdentityProviderMapperModel getIdentityProviderMapperById(RealmModel realmModel, String id);
 	IdentityProviderMapperModel getIdentityProviderMapperByName(RealmModel realmModel, String alias, String name);
 	
-	boolean addFederationIdp(RealmModel realmModel, IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel);
+	void saveFederationIdp(RealmModel realmModel, IdentityProviderModel idpModel);
     boolean removeFederationIdp(RealmModel realmModel, IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias);
 	
 }

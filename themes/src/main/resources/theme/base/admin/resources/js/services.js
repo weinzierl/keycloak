@@ -1765,13 +1765,10 @@ module.factory('IdentityProviderMapper', function($resource) {
 
 
 module.factory('IdentityProvidersFederation', function($resource) {
-    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id', {
+    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id?idps=:idps', {
         realm : '@realm',
-        id : '@id'
-    }, {
-        update: {
-            method : 'PUT'
-        }
+        id : '@id',
+        idps : '@idps'
     });
 });
 

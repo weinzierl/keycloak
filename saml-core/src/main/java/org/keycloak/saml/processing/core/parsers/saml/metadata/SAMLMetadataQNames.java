@@ -63,6 +63,9 @@ public enum SAMLMetadataQNames implements HasQName {
     LOGO(JBossSAMLURIConstants.METADATA_UI_NSURI, "Logo"),
     INFORMATION_URL(JBossSAMLURIConstants.METADATA_UI_NSURI, "InformationURL"),
     PRIVACY_STATEMENT_URL(JBossSAMLURIConstants.METADATA_UI_NSURI, "PrivacyStatementURL"),
+    //mdrpi elemetns METADATA_RPI
+    REGISTRATION_INFO(JBossSAMLURIConstants.METADATA_RPI, "RegistrationInfo"),
+    REGISTRATION_POLICY(JBossSAMLURIConstants.METADATA_RPI, "RegistrationPolicy"),
     
     
     // Attribute names
@@ -88,6 +91,8 @@ public enum SAMLMetadataQNames implements HasQName {
     ATTR_NAME(null, "Name"),
     ATTR_NAME_FORMAT(null, "NameFormat"),
     ATTR_REGEXP(null, "regexp"),
+    ATTR_REGISTRATION_AUTHORITY(null, "registrationAuthority"),
+    ATTR_REGISTRATION_INSTANT(null, "registrationInstant"),
     
     // Elements from other namespaces that can be direct subelements of this namespace's elements
     SIGNATURE(XmlDSigQNames.SIGNATURE),

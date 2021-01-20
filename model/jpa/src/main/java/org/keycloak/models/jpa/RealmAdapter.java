@@ -1215,9 +1215,18 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     	federationModel.setProviderId(entity.getProviderId());
     	federationModel.setUpdateFrequencyInMins(entity.getUpdateFrequencyInMins());
     	federationModel.setValidUntilTimestamp(entity.getValidUntilTimestamp());
-    	Set<String> skipIdps = new HashSet<>();
-    	skipIdps.addAll(entity.getSkipEntities());
-    	federationModel.setSkipIdps(skipIdps);
+    	Set<String> blackList = new HashSet<>();
+    	blackList.addAll(entity.getEntityIdBlackList());
+    	federationModel.setEntityIdBlackList(blackList);
+    	Set<String> whiteList = new HashSet<>();
+    	whiteList.addAll(entity.getEntityIdWhiteList());
+        federationModel.setEntityIdWhiteList(whiteList);
+        Set<String> registrationAuthorityBlackList = new HashSet<>();
+        registrationAuthorityBlackList.addAll(entity.getRegistrationAuthorityBlackList());
+        federationModel.setRegistrationAuthorityBlackList(registrationAuthorityBlackList);
+        Set<String> registrationAuthorityWhiteList = new HashSet<>();
+        registrationAuthorityWhiteList.addAll(entity.getRegistrationAuthorityWhiteList());
+        federationModel.setRegistrationAuthorityWhiteList(registrationAuthorityWhiteList);
     	federationModel.setUrl(entity.getUrl());
     	Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
     	federationModel.setIdentityprovidersAlias(identityprovidersAlias);
@@ -1267,11 +1276,14 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		federationEntity.setAlias(identityProvidersFederationModel.getAlias());
 		federationEntity.setProviderId(identityProvidersFederationModel.getProviderId());
 		
-		federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
+		//federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
 		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
-		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
-		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
-		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
+        federationEntity.setEntityIdBlackList(identityProvidersFederationModel.getEntityIdBlackList());
+        federationEntity.setEntityIdWhiteList(identityProvidersFederationModel.getEntityIdWhiteList());
+        federationEntity.setRegistrationAuthorityBlackList(identityProvidersFederationModel.getRegistrationAuthorityBlackList());
+        federationEntity.setRegistrationAuthorityWhiteList(identityProvidersFederationModel.getRegistrationAuthorityWhiteList());
+        federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
+        federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
 		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
 		
 		realm.addIdentityProvidersFederation(federationEntity);
@@ -1307,7 +1319,10 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		//and not if user change some federation fields
 		federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
 		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
-		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
+		federationEntity.setEntityIdBlackList(identityProvidersFederationModel.getEntityIdBlackList());
+		federationEntity.setEntityIdWhiteList(identityProvidersFederationModel.getEntityIdWhiteList());
+		federationEntity.setRegistrationAuthorityBlackList(identityProvidersFederationModel.getRegistrationAuthorityBlackList());
+        federationEntity.setRegistrationAuthorityWhiteList(identityProvidersFederationModel.getRegistrationAuthorityWhiteList());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
 		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
 		federationEntity.setConfig(identityProvidersFederationModel.getConfig());

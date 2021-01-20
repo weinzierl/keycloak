@@ -105,7 +105,7 @@
                     <heap-memory size="10000"/>
                 </local-cache>
                 <distributed-cache name="idps">
-                    <object-memory size="10000"/>
+                    <heap-memory size="10000"/>
                 </distributed-cache>
                 <!-- 
                 <local-cache name="idpMappers">

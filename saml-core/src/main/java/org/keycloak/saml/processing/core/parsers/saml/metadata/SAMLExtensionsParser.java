@@ -23,7 +23,7 @@ import org.keycloak.saml.common.util.StaxParserUtil;
 
 import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetadataQNames.ATTR_REGEXP;
 import org.keycloak.saml.processing.core.parsers.saml.mdattr.SAMLEntityAttributesParser;
-
+import org.keycloak.saml.processing.core.parsers.saml.mdrpi.SAMLRegistrationInfoParser;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.events.StartElement;
@@ -65,6 +65,9 @@ public class SAMLExtensionsParser extends AbstractStaxSamlMetadataParser<Extensi
                 break;
             case UIINFO:
                 target.setUiInfo(SAMLUIInfoParser.getInstance().parse(xmlEventReader));
+                break;
+            case REGISTRATION_INFO:
+                target.addExtension(SAMLRegistrationInfoParser.getInstance().parse(xmlEventReader));
                 break;
             default:
                 target.addExtension(StaxParserUtil.getDOMElement(xmlEventReader));

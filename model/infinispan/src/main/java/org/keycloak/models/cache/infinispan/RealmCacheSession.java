@@ -104,7 +104,6 @@ public class RealmCacheSession implements CacheRealmProvider {
     protected ClientProvider clientDelegate;
     protected GroupProvider groupDelegate;
     protected RoleProvider roleDelegate;
-    protected IdentityProviderProvider identityProviderDelegate;
     protected boolean transactionActive;
     protected boolean setRollbackOnly;
 
@@ -125,7 +124,8 @@ public class RealmCacheSession implements CacheRealmProvider {
         this.session = session;
         this.startupRevision = cache.getCurrentCounter();
         session.getTransactionManager().enlistPrepare(getPrepareTransaction());
-        session.getTransactionManager().enlistAfterCompletion(getAfterTransaction());
+        session.getTransactionManager().
+                enlistAfterCompletion(getAfterTransaction());
     }
 
     public long getStartupRevision() {
@@ -599,7 +599,6 @@ public class RealmCacheSession implements CacheRealmProvider {
         if (realmDelegate != null) realmDelegate.close();
         if (clientDelegate != null) clientDelegate.close();
         if (roleDelegate != null) roleDelegate.close();
-        if (identityProviderDelegate != null) identityProviderDelegate.close();
     }
 
     @Override

@@ -17,12 +17,6 @@ import org.keycloak.representations.idm.IdentityProvidersFederationRepresentatio
 public interface IdentityProvidersFederationResource {
 
 	@POST
-	@Path("import-config")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	Set<String> importFrom(Map<String, Object> data);
-
-	@POST
 	@Path("instances")
 	@Consumes(MediaType.APPLICATION_JSON)
 	Response create(IdentityProvidersFederationRepresentation identityProviderFederationRepresentation);

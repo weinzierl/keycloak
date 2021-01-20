@@ -1047,16 +1047,16 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
 
     $scope.initSamlProvider = function() {
         $scope.nameIdFormats = [
-            /*
-            {
-                format: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
-                name: "Transient"
-            },
-            */
+           
+           
             {
                 format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
                 name: "Persistent"
 
+            },
+           {
+                format: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+                name: "Transient"
             },
             {
                 format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
@@ -1436,25 +1436,15 @@ module.controller('IdentityProvidersFederationsListCtrl', function(realm, server
 
 module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialog, $scope, providerId, identityProvidersFederation, IdentityProvidersFederation, Current, Notifications, $location, $http) {
 	
-	
-	$scope.realm = realm;
-	$scope.identityProvidersFederation = identityProvidersFederation;
-	
-	$scope.newIdpFederation = $scope.identityProvidersFederation == null ? true : false;
-
-	
-		
 	$scope.nameIdFormats = [
-        /*
-        {
-            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
-            name: "Transient"
-        },
-        */
         {
             format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
             name: "Persistent"
 
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+            name: "Transient"
         },
         {
             format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
@@ -1479,38 +1469,74 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
         {
             format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
             name: "Unspecified"
-
         }
     ];
 	
+	 $scope.principalTypes = [
+         {
+             type: "ATTRIBUTE",
+             name: "Attribute [Name]"
+
+         },
+         {
+             type: "FRIENDLY_ATTRIBUTE",
+             name: "Attribute [Friendly Name]"
+
+         }
+     ];	
+
+	$scope.realm = realm;
+	$scope.identityProvidersFederation = identityProvidersFederation;
 	
+	if ($scope.identityProvidersFederation == null) {
+		 $scope.identityProvidersFederation = {};
+		 $scope.identityProvidersFederation.providerId = providerId;
+		 $scope.identityProvidersFederation.entityIdBlackList = [];
+		 $scope.identityProvidersFederation.entityIdWhiteList = [];
+		 $scope.identityProvidersFederation.registrationAuthorityBlackList = [];
+		 $scope.identityProvidersFederation.registrationAuthorityWhiteList = [];
+		 $scope.identityProvidersFederation.config = {};
+		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
+         $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+	}
+
 	
-	$scope.importFrom = function() {
-        
-        var input = {
-            fromUrl: $scope.identityProvidersFederation.url,
-            providerId: providerId
-        }
-        $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/import-config', input)
-            .then(function(response) {
-            	$scope.allIdps = response.data;
-            	$scope.identityProvidersFederation.skipIdps = [];
-            	$scope.identityProvidersFederation.providerId = providerId;
-                Notifications.success("Loaded federation configuration from the url.");
-            }).catch(function() {
-                Notifications.error("Config can not be loaded. Please verify the url.");
-            });
-    };
+//	$scope.importFrom = function() {
+//        
+//        var input = {
+//            fromUrl: $scope.identityProvidersFederation.url,
+//            providerId: providerId
+//        }
+//        $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/import-config', input)
+//            .then(function(response) {
+//            	$scope.allIdps = response.data;
+//            	$scope.identityProvidersFederation.providerId = providerId;
+//                Notifications.success("Loaded federation configuration from the url.");
+//            }).catch(function() {
+//                Notifications.error("Config can not be loaded. Please verify the url.");
+//            });
+//    };
 	
-    
-    
-    
+       
     $scope.cancel = function() {
         $location.url("/realms/" + realm.realm + "/identity-providers-federations");
     };
     
     $scope.save = function(){
+    	if ($scope.newEntityIdWhiteList && $scope.newEntityIdWhiteList.length > 0) {
+            $scope.addEntityIdWhiteList();
+        }
+    	if ($scope.newEntityIdBlackList && $scope.newEntityIdBlackList.length > 0) {
+            $scope.addEntityIdBlackList();
+        }
     	
+    	if ($scope.newRegistrationAuthorityWhiteList && $scope.newRegistrationAuthorityWhiteList.length > 0) {
+            $scope.addRegistrationAuthorityWhiteList();
+        }
+    	if ($scope.newRegistrationAuthorityBlackList && $scope.newRegistrationAuthorityBlackList.length > 0) {
+            $scope.addRegistrationAuthorityBlackList();
+        }
+
     	IdentityProvidersFederation.save({
             realm: $scope.realm.realm
         }, 
@@ -1523,8 +1549,6 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     
     
     $scope.changed = false;
-	
-	$scope.changedUrl = false;
     
     var initValues = angular.copy($scope.identityProvidersFederation);
     
@@ -1535,11 +1559,9 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     	function (newValue, oldValue, scope) {
     		if(newValue != initValues.url) {
     			$scope.changed = true;
-    			$scope.changedUrl = true;
     		}
     		else {
     			$scope.changed = false;
-    			$scope.changedUrl = false;
     		}
     	}, 
     true);
@@ -1611,7 +1633,82 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		}, 
 	true);
     
+    $scope.$watch('newEntityIdBlackList', 
+    		function (newValue, oldValue, scope) {
+    			if(newValue != initValues.blackList) 
+    				$scope.changed = true;
+    			else 
+    				$scope.changed = false;
+    		}, 
+    	true);
+        
+    $scope.$watch('newEntityIdWhiteList', 
+    		function (newValue, oldValue, scope) {
+    			if(newValue != initValues.whiteList) 
+    				$scope.changed = true;
+    			else 
+    				$scope.changed = false;
+    		}, 
+    	true);
     
+    
+    $scope.$watch('newRegistrationAuthorityBlackList', 
+    		function (newValue, oldValue, scope) {
+    			if(newValue != initValues.blackList) 
+    				$scope.changed = true;
+    			else 
+    				$scope.changed = false;
+    		}, 
+    	true);
+        
+    $scope.$watch('newRegistrationAuthorityWhiteList', 
+    		function (newValue, oldValue, scope) {
+    			if(newValue != initValues.whiteList) 
+    				$scope.changed = true;
+    			else 
+    				$scope.changed = false;
+    		}, 
+    	true);
+    
+        $scope.deleteEntityIdWhiteList = function(index) {
+            $scope.identityProvidersFederation.entityIdWhiteList.splice(index, 1);
+            $scope.changed = true;
+        }
+
+        $scope.addEntityIdWhiteList = function() {
+            $scope.identityProvidersFederation.entityIdWhiteList.push($scope.newEntityIdWhiteList);
+            $scope.newEntityIdWhiteList = "";
+        }
+        
+        $scope.deleteEntityIdBlackList = function(index) {
+            $scope.identityProvidersFederation.entityIdBlackList.splice(index, 1);
+            $scope.changed = true;
+        }
+
+        $scope.addEntityIdBlackList = function() {
+            $scope.identityProvidersFederation.entityIdBlackList.push($scope.newEntityIdBlackList);
+            $scope.newEntityIdBlackList = "";
+        }
+        
+        $scope.deleteRegistrationAuthorityWhiteList = function(index) {
+            $scope.identityProvidersFederation.registrationAuthorityWhiteList.splice(index, 1);
+            $scope.changed = true;
+        }
+
+        $scope.addRegistrationAuthorityWhiteList = function() {
+            $scope.identityProvidersFederation.registrationAuthorityWhiteList.push($scope.newRegistrationAuthorityWhiteList);
+            $scope.newRegistrationAuthorityWhiteList = "";
+        }
+        
+        $scope.deleteRegistrationAuthorityBlackList = function(index) {
+            $scope.identityProvidersFederation.registrationAuthorityBlackList.splice(index, 1);
+            $scope.changed = true;
+        }
+
+        $scope.addRegistrationAuthorityBlackList = function() {
+            $scope.identityProvidersFederation.registrationAuthorityBlackList.push($scope.newRegistrationAuthorityBlackList);
+            $scope.newRegistrationAuthorityBlackList = "";
+        }
     
 });
 

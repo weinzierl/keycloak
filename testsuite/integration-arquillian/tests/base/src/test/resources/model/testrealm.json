@@ -27,7 +27,6 @@
       		"updateFrequencyInMins": 300,
       		"validUntilTimestamp": 1670647735000,
       		"lastMetadataRefreshTimestamp": 1589265940790,
-      		"skipIdps": [],
       		"identityprovidersAlias": [
         		"6b6b716bef3c495083e31e1a71e8622e07d69b955cc3d9764fe28be5d0e8fb02",
         		"00092d0295bee88b7b381b7c662cb0cc5919fe2d37b29896fa59923e107afda1"

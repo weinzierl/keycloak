@@ -47,7 +47,13 @@ public class IdentityProvidersFederationModel implements Serializable {
     
     private Long lastMetadataRefreshTimestamp;
 
-    private Set<String> skipIdps;
+    private Set<String> entityIdBlackList;
+    
+    private Set<String> entityIdWhiteList;
+    
+    private Set<String> registrationAuthorityBlackList;
+    
+    private Set<String> registrationAuthorityWhiteList;
     
     private Set<String> identityprovidersAlias;
     
@@ -56,7 +62,7 @@ public class IdentityProvidersFederationModel implements Serializable {
 
     public IdentityProvidersFederationModel() {
 		super();
-		this.skipIdps = new HashSet<String>();
+		this.entityIdBlackList = new HashSet<String>();
 		this.identityprovidersAlias = new HashSet<String>();
 	}
 
@@ -68,14 +74,17 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.setUrl(model.getUrl());
 		this.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
 		this.setDisplayName(model.getDisplayName());
-		this.setSkipIdps(model.getSkipIdps() != null ? model.getSkipIdps() : new HashSet<String>());
+		this.setEntityIdBlackList(model.getEntityIdBlackList() != null ? model.getEntityIdBlackList() : new HashSet<String>());
+		this.setEntityIdWhiteList(model.getEntityIdWhiteList() != null ? model.getEntityIdWhiteList() : new HashSet<String>());
+		this.setRegistrationAuthorityBlackList(model.getRegistrationAuthorityBlackList() != null ? model.getRegistrationAuthorityBlackList() : new HashSet<String>());
+        this.setRegistrationAuthorityWhiteList(model.getRegistrationAuthorityWhiteList() != null ? model.getRegistrationAuthorityWhiteList() : new HashSet<String>());
 		this.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
 		this.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
 		this.setConfig(model.getConfig());
 	}
 
 	public IdentityProvidersFederationModel(String internalId, String alias, String providerId, String url,
-			Integer refreshEveryMinutes, String displayName, Long lastMetadataRefreshTimestamp,Set<String> skipIdps,Set<String> identityprovidersAlias) {
+			Integer refreshEveryMinutes, String displayName, Long lastMetadataRefreshTimestamp,Set<String> blackList,Set<String> whiteList,Set<String> identityprovidersAlias) {
 		super();
 		this.internalId = internalId;
 		this.alias = alias;
@@ -83,7 +92,8 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.url = url;
 		this.updateFrequencyInMins = refreshEveryMinutes;
 		this.displayName = displayName;
-		this.skipIdps = (skipIdps != null) ? skipIdps : new HashSet<String>();
+		this.entityIdBlackList = (blackList != null) ? blackList : new HashSet<String>();
+		this.entityIdWhiteList = (whiteList != null) ? whiteList : new HashSet<String>();
 		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp;
 		this.identityprovidersAlias = identityprovidersAlias;
 	}
@@ -147,15 +157,39 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp;
 	}
 
-	public Set<String> getSkipIdps() {
-		return skipIdps;
+	public Set<String> getEntityIdBlackList() {
+		return entityIdBlackList;
 	}
 
-	public void setSkipIdps(Set<String> skipIdps) {
-		this.skipIdps = skipIdps;
+	public void setEntityIdBlackList(Set<String> entityIdBlackList) {
+		this.entityIdBlackList = entityIdBlackList;
 	}
 
-	public Set<String> getIdentityprovidersAlias() {
+	public Set<String> getEntityIdWhiteList() {
+        return entityIdWhiteList;
+    }
+
+    public void setEntityIdWhiteList(Set<String> entityIdWhiteList) {
+        this.entityIdWhiteList = entityIdWhiteList;
+    }
+
+    public Set<String> getRegistrationAuthorityBlackList() {
+        return registrationAuthorityBlackList;
+    }
+
+    public void setRegistrationAuthorityBlackList(Set<String> registrationAuthorityBlackList) {
+        this.registrationAuthorityBlackList = registrationAuthorityBlackList;
+    }
+
+    public Set<String> getRegistrationAuthorityWhiteList() {
+        return registrationAuthorityWhiteList;
+    }
+
+    public void setRegistrationAuthorityWhiteList(Set<String> registrationAuthorityWhiteList) {
+        this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
+    }
+
+    public Set<String> getIdentityprovidersAlias() {
 		return identityprovidersAlias;
 	}
 

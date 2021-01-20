@@ -23,14 +23,20 @@ public class IdentityProvidersFederationRepresentation {
     
     private Long lastMetadataRefreshTimestamp;
 
-    private Set<String> skipIdps;
+    private Set<String> entityIdBlackList;
+    
+    private Set<String> entityIdWhiteList;
+    
+    private Set<String> registrationAuthorityBlackList;
+    
+    private Set<String> registrationAuthorityWhiteList;
     
     private Set<String> identityprovidersAlias;
     
     private Map<String, String> config;
     
     public IdentityProvidersFederationRepresentation() {
-    	this.skipIdps = new HashSet<String>();
+    	this.entityIdBlackList = new HashSet<String>();
     	this.identityprovidersAlias = new HashSet<String>();
     }
 
@@ -90,15 +96,39 @@ public class IdentityProvidersFederationRepresentation {
 		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp;
 	}
 
-	public Set<String> getSkipIdps() {
-		return skipIdps;
+	public Set<String> getEntityIdBlackList() {
+		return entityIdBlackList;
 	}
 
-	public void setSkipIdps(Set<String> skipIdps) {
-		this.skipIdps = skipIdps;
-	}
+	public void setEntityIdBlackList(Set<String> entityIdBlackList) {
+		this.entityIdBlackList = entityIdBlackList;
+	}	
 	
-	public Set<String> getIdentityprovidersAlias() {
+	public Set<String> getEntityIdWhiteList() {
+        return entityIdWhiteList;
+    }
+
+    public void setEntityIdWhiteList(Set<String> entityIdWhiteList) {
+        this.entityIdWhiteList = entityIdWhiteList;
+    }
+
+    public Set<String> getRegistrationAuthorityBlackList() {
+        return registrationAuthorityBlackList;
+    }
+
+    public void setRegistrationAuthorityBlackList(Set<String> registrationAuthorityBlackList) {
+        this.registrationAuthorityBlackList = registrationAuthorityBlackList;
+    }
+
+    public Set<String> getRegistrationAuthorityWhiteList() {
+        return registrationAuthorityWhiteList;
+    }
+
+    public void setRegistrationAuthorityWhiteList(Set<String> registrationAuthorityWhiteList) {
+        this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
+    }
+
+    public Set<String> getIdentityprovidersAlias() {
 		return identityprovidersAlias;
 	}
 
@@ -121,5 +151,8 @@ public class IdentityProvidersFederationRepresentation {
 	public void setConfig(Map<String, String> config) {
 		this.config = config;
 	}
+
+
+	
 
 }

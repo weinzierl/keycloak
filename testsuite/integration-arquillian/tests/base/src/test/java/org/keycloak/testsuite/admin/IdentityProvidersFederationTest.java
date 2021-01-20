@@ -1,21 +1,19 @@
 package org.keycloak.testsuite.admin;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.Logger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -24,20 +22,17 @@ import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
-import org.keycloak.models.sessions.infinispan.changes.sessions.CrossDCLastSessionRefreshStoreFactory;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
 import org.keycloak.testsuite.Assert;
 import org.keycloak.testsuite.util.AdminEventPaths;
-import org.keycloak.timer.TimerProvider;
-import org.keycloak.timer.TimerProvider.TimerTaskContext;
 
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 
 public class IdentityProvidersFederationTest extends AbstractAdminTest {
-	
+
 	private static Undertow SERVER;
 
 	private static final Logger log = Logger.getLogger(IdentityProvidersFederationTest.class);
@@ -46,8 +41,9 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 			Arrays.asList(new String[] { "6b6b716bef3c495083e31e1a71e8622e07d69b955cc3d9764fe28be5d0e8fb02",
 					"00092d0295bee88b7b381b7c662cb0cc5919fe2d37b29896fa59923e107afda1" }));
 	private static final String excludeIdp = "https://idp.rash.al/simplesaml/saml2/idp/metadata.php";
+	private static final String whiteListIdp = "https://idp.admin.grnet.gr/idp/shibboleth";
 	private static final String aliasIdp = "6b6b716bef3c495083e31e1a71e8622e07d69b955cc3d9764fe28be5d0e8fb02";
-	
+
 	@BeforeClass
 	public static void onBeforeClass() {
 		SERVER = Undertow.builder().addHttpListener(8880, "localhost", new HttpHandler() {
@@ -71,46 +67,71 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 			SERVER.stop();
 		}
 	}
+
+
 	@Test
-	public void testCreateAndRemove() {
+    public void testCreateUpdateAndRemove() {
 
-		String internalId = createFederation("edugain-sample",
-				"http://localhost:8880/edugain-sample-test.xml", new HashSet<>());
+        String internalId = createFederation("edugain-sample",
+                "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),new HashSet<>());
 
-		sleep(90000);
-		// first execute trigger update idps and then get identity providers federation
-		IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
-				.getIdentityProviderFederation(internalId);
-		assertNotNull(representation);
+        sleep(90000);
+        // first execute trigger update idps and then get identity providers federation
+        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
+                .getIdentityProviderFederation(internalId);
+        assertNotNull(representation);
 
-		assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
-		assertEquals("not saml federation", "saml", representation.getProviderId());
-		assertEquals("wrong url", "http://localhost:8880/edugain-sample-test.xml",
-				representation.getUrl());
+        assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
+        assertEquals("not saml federation", "saml", representation.getProviderId());
+        assertEquals("wrong url", "http://localhost:8880/edugain-sample-test.xml",
+                representation.getUrl());
 
-		// must be two saml idps with alias1 and alias2
-		assertEquals(2, representation.getIdentityprovidersAlias().size());
-		representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
-			assertTrue("wrong IdPs", aliasSet.contains(idpAlias));
-			// find idp and check parameters
-			IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
-			IdentityProviderRepresentation idp = provider.toRepresentation();
-			assertEquals("not saml IdP", "saml", idp.getProviderId());
-			assertNotNull("empty IdP config", idp.getConfig());
-			assertTrue("IdP singleSignOnServiceUrl not exist", idp.getConfig().containsKey("singleSignOnServiceUrl"));
-		});
+        // must be two saml idps with alias1 and alias2
+        assertEquals(2, representation.getIdentityprovidersAlias().size());
+        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+            assertTrue("wrong IdPs", aliasSet.contains(idpAlias));
+            // find idp and check parameters
+            IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
+            IdentityProviderRepresentation idp = provider.toRepresentation();
+            assertEquals("not saml IdP", "saml", idp.getProviderId());
+            assertNotNull("empty IdP config", idp.getConfig());
+            assertTrue("IdP singleSignOnServiceUrl not exist", idp.getConfig().containsKey("singleSignOnServiceUrl"));
+            assertTrue("IdP postBindingResponse not exist", idp.getConfig().containsKey("postBindingResponse"));
+            assertTrue( Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
+            //change postBindingResponse to false
+            idp.getConfig().put("postBindingResponse", "false");
+            IdentityProviderResource identityProviderResource = realm.identityProviders().get(idp.getAlias());
+            identityProviderResource.update(idp);
+            idp = identityProviderResource.toRepresentation();
+            assertFalse( Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
+        });
 
-		removeFederation(representation.getInternalId());
-	}
-	
+        //update federation in order to update idps based on xml
+        representation.setUpdateFrequencyInMins(1);
+        Response response = realm.identityProvidersFederation().create(representation);
+        sleep(90000);
+         //postBindingResponse must be true again
+        representation = realm.identityProvidersFederation()
+            .getIdentityProviderFederation(internalId);
+        assertNotNull(representation);
+        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+            IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
+            IdentityProviderRepresentation idp = provider.toRepresentation();
+            assertTrue("IdP postBindingResponse not exist", idp.getConfig().containsKey("postBindingResponse"));
+            assertTrue( Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
+        });
+
+        removeFederation(representation.getInternalId());
+    }
+
 	@Test
-	public void testCreateWithExcludeListandRemove() {
+	public void testCreateWithBlackListandRemove() {
 
 		//create with excluding one idp
-		Set<String> skipIdPs = new HashSet<>();
-		skipIdPs.add(excludeIdp);
+		Set<String> entityIdBlackList = new HashSet<>();
+		entityIdBlackList.add(excludeIdp);
 		String internalId = createFederation("edugain-sample",
-				"http://localhost:8880/edugain-sample-test.xml",skipIdPs);
+				"http://localhost:8880/edugain-sample-test.xml",entityIdBlackList,new HashSet<>());
 
 		sleep(90000);
 		// first execute trigger update idps and then get identity providers federation
@@ -137,15 +158,52 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
 		removeFederation(representation.getInternalId());
 	}
+	
+	@Test
+    public void testCreateWithWhiteListandRemove() {
+
+        //create with excluding one idp
+        Set<String> entityIdWhiteList = new HashSet<>();
+        entityIdWhiteList.add(whiteListIdp);
+        String internalId = createFederation("edugain-sample",
+                "http://localhost:8880/edugain-sample-test.xml",new HashSet<>(),entityIdWhiteList);
+
+        sleep(90000);
+        // first execute trigger update idps and then get identity providers federation
+        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
+                .getIdentityProviderFederation(internalId);
+        assertNotNull(representation);
+
+        assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
+        assertEquals("not saml federation", "saml", representation.getProviderId());
+        assertEquals("wrong url", "http://localhost:8880/edugain-sample-test.xml",
+                representation.getUrl());
+
+        // must be two saml idps with alias1 and alias2
+        assertEquals(1, representation.getIdentityprovidersAlias().size());
+        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+            assertEquals("wrong IdP", aliasIdp, idpAlias);
+            // find idp and check parameters
+            IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
+            IdentityProviderRepresentation idp = provider.toRepresentation();
+            assertEquals("not saml IdP", "saml", idp.getProviderId());
+            assertNotNull("empty IdP config", idp.getConfig());
+            assertTrue("IdP singleSignOnServiceUrl not exist", idp.getConfig().containsKey("singleSignOnServiceUrl"));
+        });
+
+        removeFederation(representation.getInternalId());
+    }
 
 
-	private String createFederation(String alias, String url,Set<String> skipIdps) {
+
+	private String createFederation(String alias, String url,Set<String> blackList,Set<String> whitelist) {
 		IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
 		representation.setAlias(alias);
 		representation.setProviderId("saml");
 		representation.setUpdateFrequencyInMins(60);
 		representation.setUrl(url);
-		representation.setSkipIdps(skipIdps);
+		representation.setEntityIdBlackList(blackList);
+		representation.setEntityIdWhiteList(whitelist);
 
 		Response response = realm.identityProvidersFederation().create(representation);
 		String id = ApiUtil.getCreatedId(response);

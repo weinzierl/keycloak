@@ -125,7 +125,8 @@ public class RealmCacheSession implements CacheRealmProvider {
         this.session = session;
         this.startupRevision = cache.getCurrentCounter();
         session.getTransactionManager().enlistPrepare(getPrepareTransaction());
-        session.getTransactionManager().enlistAfterCompletion(getAfterTransaction());
+        session.getTransactionManager().
+                enlistAfterCompletion(getAfterTransaction());
     }
 
     public long getStartupRevision() {

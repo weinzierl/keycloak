@@ -607,8 +607,8 @@ module.config([ '$routeProvider', function($routeProvider) {
             	realm : function(RealmLoader) {
                     return RealmLoader();
                 },
-                identityProvidersFederation : function(IdentityProvidersFederationLoader) {
-                    return IdentityProvidersFederationLoader();
+                identityProvidersFederation : function(IdentityProvidersFederationExportLoader) {
+                    return IdentityProvidersFederationExportLoader();
                 }
             },
             controller : 'IdentityProvidersFederationsExportCtrl'

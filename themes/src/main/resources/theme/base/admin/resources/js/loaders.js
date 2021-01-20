@@ -458,7 +458,18 @@ module.factory('IdentityProvidersFederationLoader', function(Loader, IdentityPro
     return Loader.get(IdentityProvidersFederation, function () {
         return {
             realm: $route.current.params.realm,
-            id: $route.current.params.internalId
+            id: $route.current.params.internalId,
+            idps: true
+        }
+    });
+});
+
+module.factory('IdentityProvidersFederationExportLoader', function(Loader, IdentityProvidersFederation, $route, $q) {
+    return Loader.get(IdentityProvidersFederation, function () {
+        return {
+            realm: $route.current.params.realm,
+            id: $route.current.params.internalId,
+            idps: false
         }
     });
 });

@@ -1333,9 +1333,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         federationModel.setProviderId(entity.getProviderId());
         federationModel.setUpdateFrequencyInMins(entity.getUpdateFrequencyInMins());
         federationModel.setValidUntilTimestamp(entity.getValidUntilTimestamp());
-        Set<String> skipIdps = new HashSet<>();
-        skipIdps.addAll(entity.getSkipEntities());
-        federationModel.setSkipIdps(skipIdps);
         federationModel.setUrl(entity.getUrl());
         Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
         federationModel.setIdentityprovidersAlias(identityprovidersAlias);
@@ -1382,7 +1379,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
         federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
         federationEntity.setUrl(identityProvidersFederationModel.getUrl());
-        federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
         federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
         federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
         federationEntity.setConfig(identityProvidersFederationModel.getConfig());
@@ -1420,7 +1416,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         //and not if user change some federation fields
         federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
         federationEntity.setUrl(identityProvidersFederationModel.getUrl());
-        federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
         federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
         federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
         federationEntity.setConfig(identityProvidersFederationModel.getConfig());

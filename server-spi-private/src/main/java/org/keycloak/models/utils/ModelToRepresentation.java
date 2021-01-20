@@ -697,7 +697,10 @@ public class ModelToRepresentation {
     	representation.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
     	representation.setProviderId(model.getProviderId());
     	representation.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
-    	representation.setSkipIdps(model.getSkipIdps());
+    	representation.setEntityIdBlackList(model.getEntityIdBlackList());
+    	representation.setEntityIdWhiteList(model.getEntityIdWhiteList());
+    	representation.setRegistrationAuthorityBlackList(model.getRegistrationAuthorityBlackList());
+        representation.setRegistrationAuthorityWhiteList(model.getRegistrationAuthorityWhiteList());
     	representation.setUrl(model.getUrl());
     	representation.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
     	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());

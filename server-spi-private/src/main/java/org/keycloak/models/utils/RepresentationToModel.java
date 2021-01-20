@@ -2002,7 +2002,7 @@ public class RepresentationToModel {
         identityProviderModel.setStoreToken(representation.isStoreToken());
         identityProviderModel.setAddReadTokenRoleOnCreate(representation.isAddReadTokenRoleOnCreate());
         identityProviderModel.setConfig(removeEmptyString(representation.getConfig()));
-identityProviderModel.setFederations(representation.getFederations());
+        identityProviderModel.setFederations(representation.getFederations());
 
         String flowAlias = representation.getFirstBrokerLoginFlowAlias();
         if (flowAlias == null) {
@@ -2039,7 +2039,10 @@ identityProviderModel.setFederations(representation.getFederations());
     	model.setLastMetadataRefreshTimestamp(representation.getLastMetadataRefreshTimestamp());
     	model.setProviderId(representation.getProviderId());
     	model.setUpdateFrequencyInMins(representation.getUpdateFrequencyInMins());
-    	model.setSkipIdps(representation.getSkipIdps());
+    	model.setEntityIdBlackList(representation.getEntityIdBlackList());
+    	model.setEntityIdWhiteList(representation.getEntityIdWhiteList());
+    	model.setRegistrationAuthorityBlackList(representation.getRegistrationAuthorityBlackList());
+        model.setRegistrationAuthorityWhiteList(representation.getRegistrationAuthorityWhiteList());
     	model.setUrl(representation.getUrl());
     	model.setValidUntilTimestamp(representation.getValidUntilTimestamp());
     	model.setIdentityprovidersAlias(representation.getIdentityprovidersAlias());

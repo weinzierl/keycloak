@@ -17,6 +17,7 @@
 package org.keycloak.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -251,4 +252,82 @@ public class IdentityProviderModel implements Serializable {
     public void setFederations(Set<String> federations) {
 		this.federations = federations;
    }
+    
+    public void addFederation (String federation) {
+        if ( federations == null)
+            federations = new HashSet<>();
+        federations.add(federation);
+    }
+
+    public boolean equalsPreviousVersion(IdentityProviderModel other) {
+        if (this == other)
+            return true;
+        if (other == null)
+            return false;
+        if (addReadTokenRoleOnCreate != other.addReadTokenRoleOnCreate)
+            return false;
+        if (authenticateByDefault != other.authenticateByDefault)
+            return false;
+        if (config == null) {
+            if (other.config != null)
+                return false;
+        } else if (!config.equals(other.config))
+            return false;
+        if (displayName == null) {
+            if (other.displayName != null)
+                return false;
+        } else if (!displayName.equals(other.displayName))
+            return false;
+        if (enabled != other.enabled)
+            return false;
+        if (federations == null) {
+            if (other.federations != null)
+                return false;
+        } else if (!federations.equals(other.federations))
+            return false;
+        if (firstBrokerLoginFlowId == null) {
+            if (other.firstBrokerLoginFlowId != null)
+                return false;
+        } else if (!firstBrokerLoginFlowId.equals(other.firstBrokerLoginFlowId))
+            return false;
+        if (linkOnly != other.linkOnly)
+            return false;
+        if (postBrokerLoginFlowId == null) {
+            if (other.postBrokerLoginFlowId != null)
+                return false;
+        } else if (!postBrokerLoginFlowId.equals(other.postBrokerLoginFlowId))
+            return false;
+        if (providerId == null) {
+            if (other.providerId != null)
+                return false;
+        } else if (!providerId.equals(other.providerId))
+            return false;
+        if (storeToken != other.storeToken)
+            return false;
+        if (syncMode != other.syncMode)
+            return false;
+        if (trustEmail != other.trustEmail)
+            return false;
+        return true;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj != null && obj instanceof IdentityProviderModel) {
+            IdentityProviderModel s = (IdentityProviderModel)obj;
+            return internalId.equals(s.internalId);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + (internalId == null ? 0 : internalId.hashCode());
+        return hash;
+    }
+
+
+
 }

@@ -39,7 +39,6 @@ public class MapIdpFederationEntity implements UpdatableEntity {
     private Long validUntilTimestamp;
     private Long lastMetadataRefreshTimestamp;
     private Map<String, String> config;
-    private Set<String> skipEntities = new HashSet<String>();
 
     private boolean updated;
 
@@ -59,7 +58,6 @@ public class MapIdpFederationEntity implements UpdatableEntity {
         entity.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
         entity.setValidUntilTimestamp(model.getValidUntilTimestamp());
         entity.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
-        entity.setSkipEntities(model.getSkipIdps());
         entity.setConfig(model.getConfig() == null ? null : new HashMap<>(model.getConfig()));
         return entity;
     }
@@ -75,7 +73,6 @@ public class MapIdpFederationEntity implements UpdatableEntity {
         model.setUpdateFrequencyInMins(entity.getUpdateFrequencyInMins());
         model.setValidUntilTimestamp(entity.getValidUntilTimestamp());
         model.setLastMetadataRefreshTimestamp(entity.getLastMetadataRefreshTimestamp());
-        model.setSkipIdps(entity.getSkipEntities());
         model.setConfig(entity.getConfig() == null ? null : new HashMap<>(entity.getConfig()));
         return model;
     }
@@ -166,32 +163,23 @@ public class MapIdpFederationEntity implements UpdatableEntity {
         this.config = config;
     }
 
-    public Set<String> getSkipEntities() {
-        return skipEntities;
-    }
-
-    public void setSkipEntities(Set<String> skipEntities) {
-        this.updated = !Objects.equals(this.skipEntities, skipEntities);
-        this.skipEntities = skipEntities;
-    }
-
 
     public void setUpdated(boolean updated) {
         this.updated = updated;
     }
 
 
-//
-//    @Override
-//    public int hashCode() {
-//        return getId().hashCode();
-//    }
-//
-//    @Override
-//    public boolean equals(Object obj) {
-//        if (this == obj) return true;
-//        if (!(obj instanceof MapIdpFederationEntity)) return false;
-//        final MapIdpFederationEntity other = (MapIdpFederationEntity) obj;
-//        return Objects.equals(other.getId(), getId());
-//    }
+    @Override
+    public int hashCode() {
+        return getInternalId().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof MapIdpFederationEntity)) return false;
+        final MapIdpFederationEntity other = (MapIdpFederationEntity) obj;
+        return Objects.equals(other.getInternalId(), getInternalId());
+    }
+
 }

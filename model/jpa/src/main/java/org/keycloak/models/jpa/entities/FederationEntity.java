@@ -65,8 +65,23 @@ public class FederationEntity {
 	
 	@ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
-    @CollectionTable(name="FEDERATION_SKIP_ENTITIES", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
-    private Set<String> skipEntities = new HashSet<String>();
+    @CollectionTable(name="ENTITYID_BLACKLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    private Set<String> entityIdBlackList = new HashSet<String>();
+	
+	@ElementCollection
+    @Column(name="VALUE", columnDefinition = "TEXT")
+    @CollectionTable(name="ENTITYID_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    private Set<String> entityIdWhiteList = new HashSet<String>();
+	
+	@ElementCollection
+    @Column(name="VALUE", columnDefinition = "TEXT")
+    @CollectionTable(name="REGISTRATION_AUTHORITY_BLACKLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    private Set<String> registrationAuthorityBlackList = new HashSet<String>();
+    
+    @ElementCollection
+    @Column(name="VALUE", columnDefinition = "TEXT")
+    @CollectionTable(name="REGISTRATION_AUTHORITY_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    private Set<String> registrationAuthorityWhiteList = new HashSet<String>();
 	
 	@ManyToMany(mappedBy = "federations")
 	private Set<IdentityProviderEntity> identityproviders = new HashSet<IdentityProviderEntity>();
@@ -135,15 +150,39 @@ public class FederationEntity {
 		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp ;
 	}
 
-	public Set<String> getSkipEntities() {
-		return skipEntities;
+	public Set<String> getEntityIdBlackList() {
+		return entityIdBlackList;
 	}
 
-	public void setSkipEntities(Set<String> skipEntities) {
-		this.skipEntities = skipEntities;
+	public void setEntityIdBlackList(Set<String> entityIdBlackList) {
+		this.entityIdBlackList = entityIdBlackList;
 	}
 
-	public Set<IdentityProviderEntity> getIdentityproviders() {
+	public Set<String> getEntityIdWhiteList() {
+        return entityIdWhiteList;
+    }
+
+    public void setEntityIdWhiteList(Set<String> entityIdWhiteList) {
+        this.entityIdWhiteList = entityIdWhiteList;
+    }
+
+    public Set<String> getRegistrationAuthorityBlackList() {
+        return registrationAuthorityBlackList;
+    }
+
+    public void setRegistrationAuthorityBlackList(Set<String> registrationAuthorityBlackList) {
+        this.registrationAuthorityBlackList = registrationAuthorityBlackList;
+    }
+
+    public Set<String> getRegistrationAuthorityWhiteList() {
+        return registrationAuthorityWhiteList;
+    }
+
+    public void setRegistrationAuthorityWhiteList(Set<String> registrationAuthorityWhiteList) {
+        this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
+    }
+
+    public Set<IdentityProviderEntity> getIdentityproviders() {
 		return identityproviders;
 	}
 

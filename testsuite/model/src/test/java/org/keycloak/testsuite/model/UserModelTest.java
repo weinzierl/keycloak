@@ -23,6 +23,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RealmProvider;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserProvider;
+import org.keycloak.models.IdentityProviderProvider;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.UserStorageProviderFactory;
 import org.keycloak.storage.UserStorageProviderModel;
@@ -51,6 +52,7 @@ import static org.junit.Assume.assumeThat;
  *
  * @author hmlnarik
  */
+@RequireProvider(IdentityProviderProvider.class)
 @RequireProvider(UserProvider.class)
 @RequireProvider(RealmProvider.class)
 public class UserModelTest extends KeycloakModelTest {

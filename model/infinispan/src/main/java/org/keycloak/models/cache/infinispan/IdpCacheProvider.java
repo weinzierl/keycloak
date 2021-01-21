@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.infinispan.Cache;
@@ -20,6 +21,7 @@ import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.cache.CacheIdpProviderI;
+import org.keycloak.models.cache.infinispan.entities.CachedIdentityProviderMappers;
 import org.keycloak.models.cache.infinispan.entities.CachedIdentityProviders;
 import org.keycloak.models.cache.infinispan.events.InvalidationEvent;
 
@@ -29,7 +31,8 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	protected static final Logger logger = Logger.getLogger(IdpCacheProvider.class);
 	
 	
-    protected Cache<String, CachedIdentityProviders> cache;
+    protected Cache<String, CachedIdentityProviders> cacheIdp;
+    protected Cache<String, CachedIdentityProviderMappers> cacheIdpMappers;
     protected KeycloakSession session;
     protected IdentityProviderProvider identityProviderDelegate;
     
@@ -40,20 +43,20 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 //    protected Set<InvalidationEvent> invalidationEvents = new HashSet<>(); // Events to be sent across cluster
     
     
-    public IdpCacheProvider(Cache<String, CachedIdentityProviders> cache, KeycloakSession session) {
-        this.cache = cache;
+    public IdpCacheProvider(Cache<String, CachedIdentityProviders> identityProvidersCache, KeycloakSession session) {
+        this.cacheIdp = identityProvidersCache;
         this.session = session;
     }
     
     
     public Cache<String, CachedIdentityProviders> getCache(){
-    	return cache;
+    	return cacheIdp;
     }
     
     
     @Override
     public void clear() {
-    	cache.clear();
+        cacheIdp.clear();
     	ClusterProvider cluster = session.getProvider(ClusterProvider.class);
     	cluster.notify(InfinispanCacheIdpProviderFactory.IDP_CLEAR_CACHE_EVENTS, new ClearCacheEvent(), true, ClusterProvider.DCNotify.ALL_DCS);
     }
@@ -68,10 +71,10 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	
 	@Override
     public void evict(RealmModel realm, IdentityProviderModel identityProvider) {
-		CachedIdentityProviders cachedIdps = (CachedIdentityProviders) cache.get(realm.getId());
+		CachedIdentityProviders cachedIdps = (CachedIdentityProviders) cacheIdp.get(realm.getId());
 		cachedIdps.getIdentityProviders().remove(identityProvider.getInternalId());
 		cachedIdps = new CachedIdentityProviders(realm.getId(), cachedIdps.getIdentityProviders());
-		cache.put(realm.getId(), cachedIdps);
+		cacheIdp.put(realm.getId(), cachedIdps);
 		//TODO: inform cluster about this eviction
     }
 	
@@ -105,7 +108,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	
 	@Override
 	public List<IdentityProviderModel> getIdentityProviders(RealmModel realm) {
-		CachedIdentityProviders cachedIdps = cache.get(realm.getId());
+		CachedIdentityProviders cachedIdps = cacheIdp.get(realm.getId());
 		if(cachedIdps != null) {
 			return new ArrayList<IdentityProviderModel>(cachedIdps.getIdentityProviders().values());
 		}
@@ -113,7 +116,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 			List<IdentityProviderModel> identityProviders = getIdentityProviderDelegate().getIdentityProviders(realm);
 			Map<String, IdentityProviderModel> identityProvidersMap = identityProviders.stream().collect(Collectors.toMap(idp -> idp.getInternalId(), idp -> idp ));
 			CachedIdentityProviders cachedIdentityProviders = new CachedIdentityProviders(realm.getId(), identityProvidersMap);
-			cache.put(realm.getId(), cachedIdentityProviders);
+			cacheIdp.put(realm.getId(), cachedIdentityProviders);
 			return identityProviders;
 		}
 
@@ -137,7 +140,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	@Override
 	public IdentityProviderModel getIdentityProviderById(String internalId) {
 		IdentityProviderModel identityProviderModel = null;
-		for(CachedIdentityProviders cidp : cache.values()) {
+		for(CachedIdentityProviders cidp : cacheIdp.values()) {
 			IdentityProviderModel temp = cidp.getIdentityProviders().get(internalId);
 			if(temp != null) identityProviderModel = temp;
 		}
@@ -156,12 +159,11 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	public void addIdentityProvider(RealmModel realm, IdentityProviderModel identityProvider) {
 		getIdentityProviderDelegate().addIdentityProvider(realm, identityProvider);
 		
-		CachedIdentityProviders cached = cache.get(realm.getId());
+		CachedIdentityProviders cached = cacheIdp.get(realm.getId());
 		if(cached == null)
 			cached = new CachedIdentityProviders(realm.getId(), new HashMap<String, IdentityProviderModel>());
 		cached.getIdentityProviders().put(identityProvider.getInternalId(), identityProvider);
-		cache.put(realm.getId(), cached);
-		//TODO: notify the other cluster nodes
+		cacheIdp.put(realm.getId(), cached);
 	}
 
 
@@ -169,11 +171,9 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	public void removeIdentityProviderByAlias(RealmModel realm, String alias) {
 		getIdentityProviderDelegate().removeIdentityProviderByAlias(realm, alias);
 		
-		CachedIdentityProviders cachedIdps = cache.get(realm.getId());
+		CachedIdentityProviders cachedIdps = cacheIdp.get(realm.getId());
 		cachedIdps.getIdentityProviders().values().removeIf(idp -> idp.getAlias().equals(alias));
-		cache.put(realm.getId(), cachedIdps);
-		//TODO: inform cluster about this removal
-		
+		cacheIdp.put(realm.getId(), cachedIdps);
 	}
 	
 	
@@ -185,32 +185,31 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 		
 		getIdentityProviderDelegate().updateIdentityProvider(realm, identityProvider);
 		
-		CachedIdentityProviders cachedIdps = cache.get(realm.getId());
+		CachedIdentityProviders cachedIdps = cacheIdp.get(realm.getId());
 		cachedIdps.getIdentityProviders().put(identityProvider.getInternalId(), identityProvider);
-		cache.put(realm.getId(), cachedIdps);
-		//TODO: inform cluster about this change
+		cacheIdp.put(realm.getId(), cachedIdps);
 		
 	}
-	
+
 	@Override
-    public void saveFederationIdp(RealmModel realmModel, IdentityProviderModel idpModel) {
-        getIdentityProviderDelegate().saveFederationIdp(realmModel, idpModel);
+	public void saveFederationIdp(RealmModel realmModel, IdentityProviderModel idpModel) {
+		getIdentityProviderDelegate().saveFederationIdp(realmModel, idpModel);
 
-        CachedIdentityProviders cachedIdps = cache.get(realmModel.getId());
-        if (cachedIdps == null)
-            cachedIdps = new CachedIdentityProviders(realmModel.getId(), new HashMap<String, IdentityProviderModel>());
-        cachedIdps.getIdentityProviders().put(idpModel.getInternalId(), idpModel);
-        cache.put(realmModel.getId(), cachedIdps);
-        // TODO: inform cluster about the addition
+		CachedIdentityProviders cachedIdps = cacheIdp.get(realmModel.getId());
+		if (cachedIdps == null)
+			cachedIdps = new CachedIdentityProviders(realmModel.getId(), new HashMap<String, IdentityProviderModel>());
+		cachedIdps.getIdentityProviders().put(idpModel.getInternalId(), idpModel);
+		cacheIdp.put(realmModel.getId(), cachedIdps);
+		// TODO: inform cluster about the addition
 
-    }
+	}
 	
 	@Override
 	public boolean removeFederationIdp(RealmModel realmModel, IdentityProvidersFederationModel idpfModel, String idpAlias) {
 		
 		boolean result = getIdentityProviderDelegate().removeFederationIdp(realmModel, idpfModel, idpAlias);
 		if(result) {
-			CachedIdentityProviders cachedIdps = cache.get(realmModel.getId());
+			CachedIdentityProviders cachedIdps = cacheIdp.get(realmModel.getId());
 			Entry<String, IdentityProviderModel> idpEntry = cachedIdps.getIdentityProviders().entrySet().stream().filter(entry -> entry.getValue().getAlias().equals(idpAlias)).findAny().orElse(null);
 			if(idpEntry != null) {
 				if(idpEntry.getValue().getFederations().size() == 1) //belongs to only one federation, this one, so remove it entirely from cache
@@ -222,9 +221,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 			}
 			else 
 				logger.errorf("Cache inconsistency! Could not locate within the federation (alias = %s) the identity provider (alias = %s) to delete", idpfModel.getAlias(), idpAlias);
-			cache.put(realmModel.getId(), cachedIdps);
-			
-			//TODO: inform all nodes about this change.
+			cacheIdp.put(realmModel.getId(), cachedIdps);
 			
 		}
 		return result;
@@ -240,37 +237,73 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 	@Override
 	public Set<IdentityProviderMapperModel> getIdentityProviderMappers(RealmModel realmModel) {
-		return getIdentityProviderDelegate().getIdentityProviderMappers(realmModel);
+
+	    CachedIdentityProviderMappers cachedIdpMappers = cacheIdpMappers.get(realmModel.getId());
+        if(cachedIdpMappers != null) {
+            return new TreeSet<IdentityProviderMapperModel>(cachedIdpMappers.getIdentityProviderMappers().values());
+        }
+        else {
+            Set<IdentityProviderMapperModel> identityProviderMappers = getIdentityProviderDelegate().getIdentityProviderMappers(realmModel);
+            Map<String, IdentityProviderMapperModel> identityProviderMappersMap = identityProviderMappers.stream().collect(Collectors.toMap(idpM -> idpM.getId(), idpM -> idpM ));
+            CachedIdentityProviderMappers cachedIdentityProviderMappers = new CachedIdentityProviderMappers(realmModel.getId(), identityProviderMappersMap);
+            cacheIdpMappers.put(realmModel.getId(), cachedIdentityProviderMappers);
+            return identityProviderMappers;
+        }
 	}
 
 	@Override
 	public Set<IdentityProviderMapperModel> getIdentityProviderMappersByAlias(RealmModel realmModel, String brokerAlias) {
-		return getIdentityProviderDelegate().getIdentityProviderMappersByAlias(realmModel, brokerAlias);
+	    return getIdentityProviderMappers(realmModel).stream().filter(idpM -> idpM.getIdentityProviderAlias().equals(brokerAlias)).collect(Collectors.toSet());
 	}
 
 	@Override
 	public IdentityProviderMapperModel addIdentityProviderMapper(RealmModel realmModel, IdentityProviderMapperModel model) {
-		return getIdentityProviderDelegate().addIdentityProviderMapper(realmModel, model);
+	    IdentityProviderMapperModel idpModel = getIdentityProviderDelegate().addIdentityProviderMapper(realmModel, model);
+
+	    CachedIdentityProviderMappers cached = cacheIdpMappers.get(realmModel.getId());
+	    if(cached == null)
+	        cached = new CachedIdentityProviderMappers(realmModel.getId(), new HashMap<String, IdentityProviderMapperModel>());
+	    cached.getIdentityProviderMappers().put(idpModel.getId(), idpModel);
+	    cacheIdpMappers.put(realmModel.getId(), cached);
+	    return idpModel;
 	}
 
 	@Override
-	public void removeIdentityProviderMapper(RealmModel realmModel, IdentityProviderMapperModel mapping) {
-		getIdentityProviderDelegate().removeIdentityProviderMapper(realmModel, mapping);
+	public void removeIdentityProviderMapper(RealmModel realmModel, IdentityProviderMapperModel mapper) {
+	    getIdentityProviderDelegate().removeIdentityProviderMapper(realmModel, mapper);
+
+	    CachedIdentityProviderMappers cached = cacheIdpMappers.get(realmModel.getId());
+	    cached.getIdentityProviderMappers().values().removeIf(m -> m.getId().equals(mapper.getId()));
+	    cacheIdpMappers.put(realmModel.getId(), cached);
 	}
 
 	@Override
-	public void updateIdentityProviderMapper(RealmModel realmModel, IdentityProviderMapperModel mapping) {
-		getIdentityProviderDelegate().updateIdentityProviderMapper(realmModel, mapping);
+	public void updateIdentityProviderMapper(RealmModel realmModel, IdentityProviderMapperModel mapper) {
+	    if(mapper == null) return;
+        getIdentityProviderDelegate().updateIdentityProviderMapper(realmModel, mapper);
+
+        CachedIdentityProviderMappers cachedIdpMappers = cacheIdpMappers.get(realmModel.getId());
+        cachedIdpMappers.getIdentityProviderMappers().put(mapper.getId(), mapper);
+        cacheIdpMappers.put(realmModel.getId(), cachedIdpMappers);
 	}
 
 	@Override
 	public IdentityProviderMapperModel getIdentityProviderMapperById(RealmModel realmModel, String id) {
-		return getIdentityProviderDelegate().getIdentityProviderMapperById(realmModel, id);
+	    CachedIdentityProviderMappers cachedIdpMappers = cacheIdpMappers.get(realmModel.getId());
+	    if(cachedIdpMappers != null)
+	        return cachedIdpMappers.getIdentityProviderMappers().get(id);
+	    else
+	        return getIdentityProviderDelegate().getIdentityProviderMapperById(realmModel, id);
 	}
 
 	@Override
 	public IdentityProviderMapperModel getIdentityProviderMapperByName(RealmModel realmModel, String alias, String name) {
-		return getIdentityProviderDelegate().getIdentityProviderMapperByName(realmModel, alias, name);
+	    CachedIdentityProviderMappers cachedIdpMappers = cacheIdpMappers.get(realmModel.getId());
+	    if(cachedIdpMappers != null)
+	        return cachedIdpMappers.getIdentityProviderMappers().values().stream().filter(idpMapper -> idpMapper.getIdentityProviderAlias().equals(alias) && idpMapper.getIdentityProviderAlias().equals(alias)).findAny().orElse(null);
+	    else
+	        return getIdentityProviderDelegate().getIdentityProviderMapperByName(realmModel, alias, name);
+
 	}
 
 }

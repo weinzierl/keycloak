@@ -43,8 +43,9 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 //    protected Set<InvalidationEvent> invalidationEvents = new HashSet<>(); // Events to be sent across cluster
     
     
-    public IdpCacheProvider(Cache<String, CachedIdentityProviders> identityProvidersCache, KeycloakSession session) {
+    public IdpCacheProvider(Cache<String, CachedIdentityProviders> identityProvidersCache, Cache<String, CachedIdentityProviderMappers> identityProviderMappersCache, KeycloakSession session) {
         this.cacheIdp = identityProvidersCache;
+        this.cacheIdpMappers = identityProviderMappersCache;
         this.session = session;
     }
     

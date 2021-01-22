@@ -10,6 +10,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.cache.CacheIdpProviderFactoryI;
 import org.keycloak.models.cache.CacheIdpProviderI;
+import org.keycloak.models.cache.infinispan.entities.CachedIdentityProviderMappers;
 import org.keycloak.models.cache.infinispan.entities.CachedIdentityProviders;
 import org.keycloak.models.cache.infinispan.entities.Revisioned;
 import org.keycloak.models.cache.infinispan.events.InvalidationEvent;
@@ -22,6 +23,7 @@ public class InfinispanCacheIdpProviderFactory implements CacheIdpProviderFactor
     public static final String IDP_INVALIDATION_EVENTS = "IDP_INVALIDATION_EVENTS";
 	
     protected Cache<String, CachedIdentityProviders> idpCache;
+    protected Cache<String, CachedIdentityProviderMappers> idpMappersCache;
     
 	protected volatile IdpCacheProvider idpCacheProvider;
 	
@@ -29,7 +31,7 @@ public class InfinispanCacheIdpProviderFactory implements CacheIdpProviderFactor
 	@Override
 	public CacheIdpProviderI create(KeycloakSession session) {
 		lazyInit(session);
-		idpCacheProvider = new IdpCacheProvider(idpCache, session);
+		idpCacheProvider = new IdpCacheProvider(idpCache, idpMappersCache, session);
 		return idpCacheProvider;
 	}
 
@@ -37,29 +39,14 @@ public class InfinispanCacheIdpProviderFactory implements CacheIdpProviderFactor
         if (idpCache == null) {
             synchronized (this) {
                 if (idpCache == null) {
-//                    Cache<String, Revisioned> cache = session.getProvider(InfinispanConnectionProvider.class).getCache(InfinispanConnectionProvider.IDP_CACHE_NAME);
-//                    Cache<String, Long> revisions = session.getProvider(InfinispanConnectionProvider.class).getCache(InfinispanConnectionProvider.IDP_REVISIONS_CACHE_NAME);
-                    
                 	idpCache = session.getProvider(InfinispanConnectionProvider.class).getCache(InfinispanConnectionProvider.IDP_CACHE_NAME);
-                	
-                	
-                	
-//                    ClusterProvider cluster = session.getProvider(ClusterProvider.class);
-//
-//                    cluster.registerListener(IDP_INVALIDATION_EVENTS, (ClusterEvent event) -> {
-//
-//                        InvalidationEvent invalidationEvent = (InvalidationEvent) event;
-//                        idpCacheProvider.invalidationEventReceived(invalidationEvent);
-//
-//                    });
-//
-//                    cluster.registerListener(IDP_CLEAR_CACHE_EVENTS, (ClusterEvent event) -> {
-//
-//                        idpCache.clear();
-//
-//                    });
-//                    log.debug("Registered cluster listeners for IdentityProviders Cache");
-                    
+                }
+            }
+        }
+        if (idpMappersCache == null) {
+            synchronized (this) {
+                if (idpMappersCache == null) {
+                    idpMappersCache = session.getProvider(InfinispanConnectionProvider.class).getCache(InfinispanConnectionProvider.IDP_MAPPERS_CACHE_NAME);
                 }
             }
         }

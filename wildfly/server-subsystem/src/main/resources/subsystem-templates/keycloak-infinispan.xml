@@ -33,11 +33,9 @@
                 <local-cache name="idps">
                     <heap-memory size="10000"/>
                 </local-cache>
-                <!-- 
                 <local-cache name="idpMappers">
-                    <object-memory size="10000"/>
+                    <heap-memory size="10000"/>
                 </local-cache>
-                 -->
                 <local-cache name="sessions"/>
                 <local-cache name="authenticationSessions"/>
                 <local-cache name="offlineSessions"/>
@@ -104,14 +102,8 @@
                 <local-cache name="users">
                     <heap-memory size="10000"/>
                 </local-cache>
-                <distributed-cache name="idps">
-                    <heap-memory size="10000"/>
-                </distributed-cache>
-                <!-- 
-                <local-cache name="idpMappers">
-                    <object-memory size="10000"/>
-                </local-cache>
-                 -->
+                <distributed-cache name="idps" owners="1"/>
+                <distributed-cache name="idpMappers" owners="1"/>
                 <distributed-cache name="sessions" owners="1"/>
                 <distributed-cache name="authenticationSessions" owners="1"/>
                 <distributed-cache name="offlineSessions" owners="1"/>

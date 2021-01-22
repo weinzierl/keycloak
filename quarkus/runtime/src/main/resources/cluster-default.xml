@@ -37,11 +37,8 @@
             </encoding>
             <memory storage="HEAP" max-count="10000"/>
         </local-cache>
-        <distributed-cache name="idps">
-            <memory>
-                <object size="10000"/>
-            </memory>
-        </distributed-cache>
+        <distributed-cache name="idps" owners="1"/>
+        <distributed-cache name="idpMappers" owners="1"/>
         <distributed-cache name="sessions" owners="1"/>
         <distributed-cache name="authenticationSessions" owners="1"/>
         <distributed-cache name="offlineSessions" owners="1"/>

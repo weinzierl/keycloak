@@ -35,11 +35,8 @@
                 <object size="10000"/>
             </memory>
         </local-cache>
-        <local-cache name="idps">
-            <memory>
-                <object size="10000"/>
-            </memory>
-        </local-cache>
+        <local-cache name="idps"/>
+        <local-cache name="idpMappers"/>
         <local-cache name="sessions"/>
         <local-cache name="authenticationSessions"/>
         <local-cache name="offlineSessions"/>

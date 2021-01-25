@@ -241,7 +241,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 	    CachedIdentityProviderMappers cachedIdpMappers = cacheIdpMappers.get(realmModel.getId());
         if(cachedIdpMappers != null) {
-            return new TreeSet<IdentityProviderMapperModel>(cachedIdpMappers.getIdentityProviderMappers().values());
+			return cachedIdpMappers.getIdentityProviderMappers().values().stream().collect(Collectors.toSet());
         }
         else {
             Set<IdentityProviderMapperModel> identityProviderMappers = getIdentityProviderDelegate().getIdentityProviderMappers(realmModel);

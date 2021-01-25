@@ -213,6 +213,7 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
         cacheManager.defineConfiguration(InfinispanConnectionProvider.AUTHORIZATION_CACHE_NAME, modelCacheConfiguration);
         cacheManager.defineConfiguration(InfinispanConnectionProvider.USER_CACHE_NAME, modelCacheConfiguration);
         cacheManager.defineConfiguration(InfinispanConnectionProvider.IDP_CACHE_NAME, modelCacheConfiguration);
+        cacheManager.defineConfiguration(InfinispanConnectionProvider.IDP_MAPPERS_CACHE_NAME, modelCacheConfiguration);
 
         ConfigurationBuilder sessionConfigBuilder = new ConfigurationBuilder();
         if (clustered) {

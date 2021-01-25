@@ -193,19 +193,17 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	}
 	
 	@Override
-    public boolean addFederationIdp(RealmModel realmModel, IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel) {
-		boolean result = getIdentityProviderDelegate().addFederationIdp(realmModel, idpfModel, idpModel);
-		if(result) {
-			idpModel.getFederations().add(idpfModel.getInternalId());
-			CachedIdentityProviders cachedIdps = cache.get(realmModel.getId());
-			if(cachedIdps==null) 
-				cachedIdps = new CachedIdentityProviders(realmModel.getId(), new HashMap<String, IdentityProviderModel>());
-			cachedIdps.getIdentityProviders().put(idpModel.getInternalId(), idpModel);
-			cache.put(realmModel.getId(), cachedIdps);
-			//TODO: inform cluster about the addition
-		}
-		return result;
-	}
+    public void addFederationIdp(RealmModel realmModel, IdentityProviderModel idpModel) {
+        getIdentityProviderDelegate().addFederationIdp(realmModel, idpModel);
+
+        CachedIdentityProviders cachedIdps = cache.get(realmModel.getId());
+        if (cachedIdps == null)
+            cachedIdps = new CachedIdentityProviders(realmModel.getId(), new HashMap<String, IdentityProviderModel>());
+        cachedIdps.getIdentityProviders().put(idpModel.getInternalId(), idpModel);
+        cache.put(realmModel.getId(), cachedIdps);
+        // TODO: inform cluster about the addition
+
+    }
 	
 	@Override
 	public boolean removeFederationIdp(RealmModel realmModel, IdentityProvidersFederationModel idpfModel, String idpAlias) {

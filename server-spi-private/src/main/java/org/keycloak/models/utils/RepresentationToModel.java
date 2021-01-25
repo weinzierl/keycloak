@@ -1950,7 +1950,7 @@ public class RepresentationToModel {
         identityProviderModel.setStoreToken(representation.isStoreToken());
         identityProviderModel.setAddReadTokenRoleOnCreate(representation.isAddReadTokenRoleOnCreate());
         identityProviderModel.setConfig(removeEmptyString(representation.getConfig()));
-identityProviderModel.setFederations(representation.getFederations());
+        identityProviderModel.setFederations(representation.getFederations());
 
         String flowAlias = representation.getFirstBrokerLoginFlowAlias();
         if (flowAlias == null) {

@@ -17,6 +17,7 @@
 package org.keycloak.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -251,4 +252,10 @@ public class IdentityProviderModel implements Serializable {
     public void setFederations(Set<String> federations) {
 		this.federations = federations;
    }
+    
+    public void addFederation (String federation) {
+        if ( federations == null)
+            federations = new HashSet<>();
+        federations.add(federation);
+    }
 }

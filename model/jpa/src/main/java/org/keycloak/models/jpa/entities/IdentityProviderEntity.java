@@ -110,10 +110,7 @@ public class IdentityProviderEntity {
     @CollectionTable(name="IDENTITY_PROVIDER_CONFIG", joinColumns={ @JoinColumn(name="IDENTITY_PROVIDER_ID") })
     private Map<String, String> config;
     
-    @ManyToMany(cascade = {
-            CascadeType.PERSIST,
-            CascadeType.MERGE
-        })
+    @ManyToMany 
     @JoinTable(
     	name = "federation_idps", 
 		joinColumns = @JoinColumn(name = "identityprovider_id"), 

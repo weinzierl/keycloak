@@ -44,6 +44,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.jboss.logging.Logger;
 import org.keycloak.broker.federation.AbstractIdPFederationProvider;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.crypto.Algorithm;
@@ -59,10 +60,13 @@ import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
 import org.keycloak.keys.RsaKeyMetadata;
+import org.keycloak.models.AuthenticationFlowModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.ModelException;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.utils.DefaultAuthenticationFlows;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.protocol.saml.SamlService;
@@ -154,21 +158,22 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		if(validUntil == null || entities.isEmpty())
 			return; //add a log entry for the failure reason and/or write it in the database, so you can alert later on the admins through the UI
 		
+		//default language
+		//should be changed to default realm???
 		final String preferredLang = "en";
+		
+		//default authedication flow model
+		AuthenticationFlowModel flowModel = realm.getFlowByAlias(DefaultAuthenticationFlows.FIRST_BROKER_LOGIN_FLOW);
+        if (flowModel == null) {
+            throw new ModelException("No available authentication flow with alias: " + DefaultAuthenticationFlows.FIRST_BROKER_LOGIN_FLOW);
+        }
 
 		for(EntityDescriptorType entity: entities) {
 			
 			//conditional add (if it's in the skiplist)
 			if(model.getSkipIdps().contains(entity.getEntityID()))
 				continue;
-			
-			String alias = getHash(entity.getEntityID());
-			
-			if(model.getIdentityprovidersAlias().remove(alias)) {
-				//TODO: idp already exists, so you might want to perform an update on the existing idp
-				continue;
-			}
-			
+						
 			IDPSSODescriptorType idpDescriptor = null;
 
 			// Metadata documents can contain multiple Descriptors (See ADFS metadata
@@ -187,73 +192,109 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 				logger.infof("The entity %s is not an Identity provider!", entity.getEntityID());
 				continue;
 			}
-					
-			IdentityProviderRepresentation representation = new IdentityProviderRepresentation();
-			representation.setProviderId(model.getProviderId());
-			representation.setAlias(alias);
 			
-			if(validUntil.before(new Date()))
-				representation.setEnabled(false);
-		
-			
-			LocalizedNameType displayName = idpDescriptor.getExtensions() != null
-					&& idpDescriptor.getExtensions().getUIInfo() != null
-							? idpDescriptor.getExtensions().getUIInfo().getDisplayName().stream()
-									.filter(dn -> preferredLang.equals(dn.getLang())).findAny().orElse(null)
-							: null;
-			if (displayName != null) {
-				representation.setDisplayName(displayName.getValue());
-			} else {
-				displayName = entity.getOrganization().getOrganizationDisplayName().stream()
-						.filter(dn -> preferredLang.equals(dn.getLang())).findAny()
-						.orElse(entity.getOrganization().getOrganizationDisplayName().stream()
-								.filter(dn -> preferredLang.equals(dn.getLang())).findAny().orElse(null));
-				if (displayName != null)
-					representation.setDisplayName(displayName.getValue());
-				else
-					representation.setDisplayName(entity.getEntityID()); 
-			
-			}
-			
-			representation.setConfig(parseIDPSSODescriptorType(idpDescriptor));			
 
-			//check for hide on login attibute
-			if ( entity.getExtensions() != null && entity.getExtensions().getEntityAttributes() != null ) {
-				for (AttributeType attribute :  entity.getExtensions().getEntityAttributes().getAttribute()) {
-					if (GeneralConstants.MACEDIR.equals(attribute.getName()) && attribute.getAttributeValue().contains(GeneralConstants.HIDE_FOR_DISCOVERY) )
-						representation.getConfig().put("hideOnLoginPage","true");
-				}
+            String alias = getHash(entity.getEntityID());
+            IdentityProviderModel identityProviderModel = null;
+            
+            //check if this federation has already included this IdP
+            if (model.getIdentityprovidersAlias().contains(alias)) {
+                identityProviderModel = new SAMLIdentityProviderConfig(
+                    session.identityProviderStorage().getIdentityProviderByAlias(realm, alias));
+                model.getIdentityprovidersAlias().remove(alias);
+            } else {
 
-			}
-			
-			
-			IdentityProviderModel identityProviderModel = RepresentationToModel.toModel(realm, representation,session);
-	        boolean successful = false;
+                // check if Idp exists in database
+                IdentityProviderModel previous = session.identityProviderStorage().getIdentityProviderByAlias(realm, alias);
+                if (previous != null) {
+                    identityProviderModel = new SAMLIdentityProviderConfig(
+                        session.identityProviderStorage().getIdentityProviderByAlias(realm, alias));
+                } else {
+
+                    // initialize idp values
+                    // set alias and default values
+                    identityProviderModel = new SAMLIdentityProviderConfig();
+                    identityProviderModel.setProviderId(model.getProviderId());
+                    identityProviderModel.setAlias(alias);
+                    // put default parameters
+                    Map<String, String> config = new HashMap<>();
+                    config.put("addExtensionsElementWithKeyInfo", "false");
+                    config.put("signatureAlgorithm", "RSA_SHA256");
+                    config.put("samlXmlKeyNameTranformer", "KEY_ID");
+                    config.put("principalType", "SUBJECT");
+                    config.put(IdentityProviderModel.SYNC_MODE, "IMPORT");
+                    config.put("loginHint", "false");
+                    identityProviderModel.setConfig(config);
+
+                    identityProviderModel.setFirstBrokerLoginFlowId(flowModel.getId());
+                }
+                identityProviderModel.addFederation(model.getInternalId());
+            }
+            parseIdP(identityProviderModel, validUntil, entity, idpDescriptor, preferredLang);
+            
 			try {
-				successful = session.identityProviderStorage().addFederationIdp(realm, model, identityProviderModel);
+			    identityProviderModel.validate(realm);
+				session.identityProviderStorage().addFederationIdp(realm, identityProviderModel);
 			}
 			catch(Exception ex) {
 				ex.printStackTrace();
-				successful = false;
-			}
-			if(!successful)
 				logger.infof("Federation: %s -> Could not insert the identity provider with entityId: %s", model.getDisplayName(), entity.getEntityID());
+			}
+				
 			
 		}
 		
 		model.getIdentityprovidersAlias().stream().forEach(idpAlias ->  session.identityProviderStorage().removeFederationIdp(realm, model, idpAlias));
 		
-        //update also the federation entity with totals and failed entities
-		updateFederation();
+		model.setLastMetadataRefreshTimestamp(new Date().getTime());
+		realm.updateIdentityProvidersFederation(model);
 
 		logger.info("Finished updating IdPs of federation (id): " + model.getInternalId());
 	}
 	
-	private Map<String,String> parseIDPSSODescriptorType (IDPSSODescriptorType idpDescriptor) {
+    private void parseIdP(IdentityProviderModel identityProviderModel, Date validUntil, EntityDescriptorType entity,
+        IDPSSODescriptorType idpDescriptor, String preferredLang) {
+        if (validUntil.before(new Date())) {
+            identityProviderModel.setEnabled(false);
+        } else {
+            identityProviderModel.setEnabled(true);
+        }
+
+        LocalizedNameType displayName = idpDescriptor.getExtensions() != null
+            && idpDescriptor.getExtensions().getUIInfo() != null
+                ? idpDescriptor.getExtensions().getUIInfo().getDisplayName().stream()
+                    .filter(dn -> preferredLang.equals(dn.getLang())).findAny().orElse(null)
+                : null;
+        if (displayName != null) {
+            identityProviderModel.setDisplayName(displayName.getValue());
+        } else {
+            displayName = entity.getOrganization().getOrganizationDisplayName().stream()
+                .filter(dn -> preferredLang.equals(dn.getLang())).findAny()
+                .orElse(entity.getOrganization().getOrganizationDisplayName().stream()
+                    .filter(dn -> preferredLang.equals(dn.getLang())).findAny().orElse(null));
+            if (displayName != null)
+                identityProviderModel.setDisplayName(displayName.getValue());
+            else
+                identityProviderModel.setDisplayName(entity.getEntityID());
+
+        }
+
+        parseIDPSSODescriptorType(identityProviderModel, idpDescriptor);
+
+        // check for hide on login attibute - for update if condition is false set value to false
+        identityProviderModel.getConfig().put("hideOnLoginPage", "false");
+        if (entity.getExtensions() != null && entity.getExtensions().getEntityAttributes() != null) {
+            for (AttributeType attribute : entity.getExtensions().getEntityAttributes().getAttribute()) {
+                if (GeneralConstants.MACEDIR.equals(attribute.getName())
+                    && attribute.getAttributeValue().contains(GeneralConstants.HIDE_FOR_DISCOVERY))
+                    identityProviderModel.getConfig().put("hideOnLoginPage", "true");
+            }
+
+        }
+    }
 	
-		//same as saml idp parsing
-		Map<String,String> config = new HashMap<>();
-		
+	private void parseIDPSSODescriptorType (IdentityProviderModel identityProviderModel, IDPSSODescriptorType idpDescriptor) {
+	
 		String singleSignOnServiceUrl = null;
 		Boolean postBindingResponse = Boolean.FALSE;
 		Boolean postBindingLogout = Boolean.FALSE;
@@ -282,13 +323,13 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
 		}
 		
-		config.put("singleLogoutServiceUrl", singleLogoutServiceUrl);
-		config.put("singleSignOnServiceUrl", singleSignOnServiceUrl);
-		config.put("wantAuthnRequestsSigned", idpDescriptor.isWantAuthnRequestsSigned().toString());
-		config.put("validateSignature", idpDescriptor.isWantAuthnRequestsSigned().toString());
-		config.put("postBindingResponse", postBindingResponse.toString());
-		config.put("postBindingAuthnRequest", postBindingResponse.toString());
-		config.put("postBindingLogout", postBindingLogout.toString());
+		identityProviderModel.getConfig().put("singleLogoutServiceUrl", singleLogoutServiceUrl);
+		identityProviderModel.getConfig().put("singleSignOnServiceUrl", singleSignOnServiceUrl);
+		identityProviderModel.getConfig().put("wantAuthnRequestsSigned", idpDescriptor.isWantAuthnRequestsSigned().toString());
+		identityProviderModel.getConfig().put("validateSignature", idpDescriptor.isWantAuthnRequestsSigned().toString());
+		identityProviderModel.getConfig().put("postBindingResponse", postBindingResponse.toString());
+		identityProviderModel.getConfig().put("postBindingAuthnRequest", postBindingResponse.toString());
+		identityProviderModel.getConfig().put("postBindingLogout", postBindingLogout.toString());
 		
 
 		List<KeyDescriptorType> keyDescriptor = idpDescriptor.getKeyDescriptor();
@@ -301,9 +342,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 						new QName("dsig", "X509Certificate"));
 
 				if (KeyTypes.SIGNING.equals(keyDescriptorType.getUse())) {
-					config.put("signingCertificate", x509KeyInfo.getTextContent());
+				    identityProviderModel.getConfig().put("signingCertificate", x509KeyInfo.getTextContent());
 				} else if (KeyTypes.ENCRYPTION.equals(keyDescriptorType.getUse())) {
-					config.put("encryptionPublicKey", x509KeyInfo.getTextContent());
+				    identityProviderModel.getConfig().put("encryptionPublicKey", x509KeyInfo.getTextContent());
 				} else if (keyDescriptorType.getUse() == null) {
 					defaultCertificate = x509KeyInfo.getTextContent();
 				}
@@ -313,40 +354,31 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		if (defaultCertificate != null) {
 			
 			//array certificate
-			if (config.get("signingCertificate")== null) {
-				config.put("signingCertificate", defaultCertificate);
+			if (identityProviderModel.getConfig().get("signingCertificate")== null) {
+			    identityProviderModel.getConfig().put("signingCertificate", defaultCertificate);
 			}
 
-			if (config.get("encryptionPublicKey")== null) {
-				config.put("encryptionPublicKey", defaultCertificate);
+			if (identityProviderModel.getConfig().get("encryptionPublicKey")== null) {
+			    identityProviderModel.getConfig().put("encryptionPublicKey", defaultCertificate);
 			}
 		}
 		
 		//saml aggregate metadata config parameters
 		if ( model.getConfig().get("wantAssertionsEncrypted") != null )
-			config.put("wantAssertionsEncrypted", model.getConfig().get("wantAssertionsEncrypted"));
+		    identityProviderModel.getConfig().put("wantAssertionsEncrypted", model.getConfig().get("wantAssertionsEncrypted"));
 		
 		if ( model.getConfig().get("wantAssertionsSigned") != null )
-			config.put("wantAssertionsSigned", model.getConfig().get("wantAssertionsSigned"));
+		    identityProviderModel.getConfig().put("wantAssertionsSigned", model.getConfig().get("wantAssertionsSigned"));
 		
         List<String> nameIdFormatList = idpDescriptor.getNameIDFormat();
         if (nameIdFormatList != null && !nameIdFormatList.isEmpty()) {
-            config.put("nameIDPolicyFormat", nameIdFormatList.get(0));
-        } else {
-            config.put("nameIDPolicyFormat",
+            identityProviderModel.getConfig().put("nameIDPolicyFormat", nameIdFormatList.get(0));
+        } else if ( identityProviderModel.getConfig().get("nameIDPolicyFormat") == null) {
+            //for creation only set default nameIDPolicyFormat
+            identityProviderModel.getConfig().put("nameIDPolicyFormat",
                 model.getConfig().get("nameIDPolicyFormat") != null ? model.getConfig().get("nameIDPolicyFormat")
                     : JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
         }
-
-		//put default parameters
-        config.put("addExtensionsElementWithKeyInfo", "false");
-		config.put("signatureAlgorithm","RSA_SHA256");
-		config.put("samlXmlKeyNameTranformer", "KEY_ID");
-		config.put("principalType", "SUBJECT");
-		config.put(IdentityProviderModel.SYNC_MODE, "IMPORT");
-		config.put("loginHint", "false");
-		
-		return config;
 	}
 	
 	

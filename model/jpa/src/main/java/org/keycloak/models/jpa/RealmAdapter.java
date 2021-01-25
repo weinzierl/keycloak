@@ -1267,7 +1267,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		federationEntity.setAlias(identityProvidersFederationModel.getAlias());
 		federationEntity.setProviderId(identityProvidersFederationModel.getProviderId());
 		
-		federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
+		//federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
 		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
 		federationEntity.setSkipEntities(identityProvidersFederationModel.getSkipIdps());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());

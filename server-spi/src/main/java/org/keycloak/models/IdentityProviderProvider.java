@@ -31,7 +31,7 @@ public interface IdentityProviderProvider extends Provider {
 	IdentityProviderMapperModel getIdentityProviderMapperById(RealmModel realmModel, String id);
 	IdentityProviderMapperModel getIdentityProviderMapperByName(RealmModel realmModel, String alias, String name);
 	
-	boolean addFederationIdp(RealmModel realmModel, IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel);
+	void addFederationIdp(RealmModel realmModel, IdentityProviderModel idpModel);
     boolean removeFederationIdp(RealmModel realmModel, IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias);
 	
 }

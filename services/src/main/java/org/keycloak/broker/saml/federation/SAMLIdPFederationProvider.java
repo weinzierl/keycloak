@@ -234,7 +234,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             
 			try {
 			    identityProviderModel.validate(realm);
-				session.identityProviderStorage().addFederationIdp(realm, identityProviderModel);
+				session.identityProviderStorage().saveFederationIdp(realm, identityProviderModel);
 			}
 			catch(Exception ex) {
 				ex.printStackTrace();

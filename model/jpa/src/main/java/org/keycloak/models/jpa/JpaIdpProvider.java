@@ -379,7 +379,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 	
 	
     @Override
-    public void addFederationIdp(RealmModel realmModel, IdentityProviderModel idpModel) {
+    public void saveFederationIdp(RealmModel realmModel, IdentityProviderModel idpModel) {
 
         RealmEntity realm = new RealmEntity();
         realm.setId(realmModel.getId());

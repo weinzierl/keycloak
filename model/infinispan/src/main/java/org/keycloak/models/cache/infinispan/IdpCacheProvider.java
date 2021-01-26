@@ -1,14 +1,7 @@
 package org.keycloak.models.cache.infinispan;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.infinispan.Cache;
@@ -171,7 +164,18 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	@Override
 	public void removeIdentityProviderByAlias(RealmModel realm, String alias) {
 		getIdentityProviderDelegate().removeIdentityProviderByAlias(realm, alias);
-		
+
+		//remove idp mappers from the cache
+		Set<String> idpMapperIds = getIdentityProviderMappersByAlias(realm, alias).stream().map(mapper -> mapper.getId()).collect(Collectors.toSet());
+		CachedIdentityProviderMappers cachedIdpMappers = cacheIdpMappers.get(realm.getId());
+		for(Iterator<String> iterator = cachedIdpMappers.getIdentityProviderMappers().keySet().iterator(); iterator.hasNext(); ) {
+			String key = iterator.next();
+			if(idpMapperIds.contains(key))
+				iterator.remove();
+		}
+		cacheIdpMappers.put(realm.getId(), cachedIdpMappers);
+
+		//remove the identity provider from the cache
 		CachedIdentityProviders cachedIdps = cacheIdp.get(realm.getId());
 		cachedIdps.getIdentityProviders().values().removeIf(idp -> idp.getAlias().equals(alias));
 		cacheIdp.put(realm.getId(), cachedIdps);
@@ -213,8 +217,18 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 			CachedIdentityProviders cachedIdps = cacheIdp.get(realmModel.getId());
 			Entry<String, IdentityProviderModel> idpEntry = cachedIdps.getIdentityProviders().entrySet().stream().filter(entry -> entry.getValue().getAlias().equals(idpAlias)).findAny().orElse(null);
 			if(idpEntry != null) {
-				if(idpEntry.getValue().getFederations().size() == 1) //belongs to only one federation, this one, so remove it entirely from cache
+				if(idpEntry.getValue().getFederations().size() == 1) { //belongs to only one federation, this one, so remove it entirely from cache
 					cachedIdps.getIdentityProviders().remove(idpEntry.getKey());
+					//remove also its mappers
+					Set<String> idpMapperIds = getIdentityProviderMappersByAlias(realmModel, idpAlias).stream().map(mapper -> mapper.getId()).collect(Collectors.toSet());
+					CachedIdentityProviderMappers cachedIdpMappers = cacheIdpMappers.get(realmModel.getId());
+					for(Iterator<String> iterator = cachedIdpMappers.getIdentityProviderMappers().keySet().iterator(); iterator.hasNext(); ) {
+						String key = iterator.next();
+						if(idpMapperIds.contains(key))
+							iterator.remove();
+					}
+					cacheIdpMappers.put(realmModel.getId(), cachedIdpMappers);
+				}
 				else if(idpEntry.getValue().getFederations().size() > 1)
 					idpEntry.getValue().getFederations().remove(idpfModel.getInternalId());
 				else //means it's zero. should never happen normally
@@ -301,7 +315,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 	public IdentityProviderMapperModel getIdentityProviderMapperByName(RealmModel realmModel, String alias, String name) {
 	    CachedIdentityProviderMappers cachedIdpMappers = cacheIdpMappers.get(realmModel.getId());
 	    if(cachedIdpMappers != null)
-	        return cachedIdpMappers.getIdentityProviderMappers().values().stream().filter(idpMapper -> idpMapper.getIdentityProviderAlias().equals(alias) && idpMapper.getIdentityProviderAlias().equals(alias)).findAny().orElse(null);
+	        return cachedIdpMappers.getIdentityProviderMappers().values().stream().filter(idpMapper -> idpMapper.getIdentityProviderAlias().equals(alias) && idpMapper.getName().equals(name)).findAny().orElse(null);
 	    else
 	        return getIdentityProviderDelegate().getIdentityProviderMapperByName(realmModel, alias, name);
 

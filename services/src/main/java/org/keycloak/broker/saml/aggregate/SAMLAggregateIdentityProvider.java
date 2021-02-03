@@ -1,5 +1,6 @@
 package org.keycloak.broker.saml.aggregate;
 
+import java.net.URI;
 import java.util.Iterator;
 import java.util.Optional;
 
@@ -20,10 +21,7 @@ import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.events.EventBuilder;
-import org.keycloak.models.FederatedIdentityModel;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserSessionModel;
+import org.keycloak.models.*;
 import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
 import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
@@ -53,6 +51,23 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
       return Response.ok(identity.getToken()).build();
     }
 
+
+    protected Response redirectToWayf(AuthenticationRequest request) {
+
+        final String providerAlias = getConfig().getAlias();
+        final String realmName = request.getRealm().getName();
+
+        KeycloakUriInfo uriInfo = session.getContext().getUri();
+
+        String realmPath = String.format("realms/%s/saml-wayf-page", request.getRealm().getName());
+
+        URI wayfURI = uriInfo.getBaseUriBuilder().path(realmPath).queryParam("provider", providerAlias)
+                .build();
+
+        return Response.temporaryRedirect(wayfURI).build();
+    }
+
+
     @Override
     public Response performLogin(AuthenticationRequest request) {
 
@@ -61,13 +76,15 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
             UriInfo uriInfo = request.getUriInfo();
             RealmModel realm = request.getRealm();
 
-            // compute which IDP has to be used
+
             String providerAlias = getConfig().getAlias();
+
             if (!uriInfo.getQueryParameters().containsKey("entity_id")) {
-                throw new IdentityBrokerException(
-                    "Could not create authentication request. Missing entity_id.");
+                return redirectToWayf(request);
             }
+
             String entityId = uriInfo.getQueryParameters().get("entity_id").get(0);
+
 
             SAMLIdpDescriptor idp = getIdentityProviderFromEntityId(realm, providerAlias, entityId);
 

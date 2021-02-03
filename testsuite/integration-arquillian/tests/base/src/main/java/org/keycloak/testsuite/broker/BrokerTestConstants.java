@@ -10,6 +10,7 @@ class BrokerTestConstants {
 
     final static String IDP_SAML_ALIAS = "kc-saml-idp";
     final static String IDP_SAML_PROVIDER_ID = "saml";
+    final static String IDP_SAML_AGGREGATE_PROVIDER_ID = "saml-aggregate";
 
     final static String CLIENT_ID = "brokerapp";
     final static String CLIENT_SECRET = "secret";

@@ -1,6 +1,10 @@
 package org.keycloak.services.resources;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.GET;
@@ -19,6 +23,7 @@ import org.keycloak.broker.saml.aggregate.SAMLAggregateIdentityProviderFactory;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLAggregateMetadataStoreProvider;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLIdpDescriptor;
 import org.keycloak.common.ClientConnection;
+import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -28,6 +33,11 @@ import org.keycloak.services.ErrorResponseException;
 import org.keycloak.services.managers.RealmManager;
 
 import com.google.common.base.Strings;
+import org.keycloak.services.util.CacheControlUtil;
+import org.keycloak.theme.FreeMarkerException;
+import org.keycloak.theme.FreeMarkerUtil;
+import org.keycloak.theme.Theme;
+import org.keycloak.theme.ThemeProvider;
 
 
 @Path("/realms")
@@ -52,6 +62,42 @@ public class SAMLAggregateWayfResource {
     }
     session.getContext().setRealm(realm);
     return realm;
+  }
+
+  @GET
+  @Path("{realm}/saml-wayf-page")
+  @Produces(MediaType.TEXT_HTML)
+  public Response getWayfPage(final @PathParam("realm") String name,
+                              @QueryParam("provider") String providerAlias) throws IOException, FreeMarkerException {
+    if (Strings.isNullOrEmpty(providerAlias)) {
+      throw new ErrorResponseException("Bad request", "Please specify a provider",
+              Response.Status.BAD_REQUEST);
+    }
+
+    RealmModel realm = init(name);
+
+    IdentityProviderModel idpConfig = realm.getIdentityProviderByAlias(providerAlias);
+
+    if (Objects.isNull(idpConfig) || !SAMLAggregateIdentityProviderFactory.PROVIDER_ID.equals(idpConfig.getProviderId())) {
+      throw new ErrorResponseException("Invalid WAYF provider",
+              "Provider " + providerAlias + " does not exist or is not a SAMLAggregateProvider",
+              Response.Status.BAD_REQUEST);
+    }
+
+    Map<String, String> attributes = new HashMap<>();
+    attributes.put("realm", name);
+    attributes.put("provider", providerAlias);
+
+
+    Theme theme = session.theme().getTheme(Theme.Type.LOGIN);
+    FreeMarkerUtil freemarker = new FreeMarkerUtil();
+    String wayfHtml = freemarker.processTemplate(attributes, "saml-wayf.ftl", theme);
+
+    Response.ResponseBuilder rb = Response.status( Response.Status.OK)
+            .entity(wayfHtml)
+            .cacheControl(CacheControlUtil.noCache());
+
+    return rb.build();
   }
 
   @GET

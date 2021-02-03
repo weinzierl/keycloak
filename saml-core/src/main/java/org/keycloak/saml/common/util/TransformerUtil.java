@@ -117,7 +117,6 @@ public class TransformerUtil {
                 }
                 try {
                     transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-
                     transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
                 } catch (Exception ignored) {
                     // some platforms don't support this.   For example our testsuite pulls Selenium which requires Xalan 2.7.1

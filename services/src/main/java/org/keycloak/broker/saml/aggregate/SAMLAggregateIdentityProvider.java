@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.Optional;
 
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -32,6 +33,8 @@ import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder.NodeGenerator;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
+import org.keycloak.services.resources.LoginActionsService;
+import org.keycloak.utils.MediaType;
 
 public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAMLAggregateIdentityProviderConfig> {
 
@@ -61,10 +64,16 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
 
         String realmPath = String.format("realms/%s/saml-wayf-page", request.getRealm().getName());
 
+        String sessionCode = uriInfo.getQueryParameters().get(LoginActionsService.SESSION_CODE).get(0);
+        String tabId = uriInfo.getQueryParameters().get(Constants.TAB_ID).get(0);
+        String clientId = uriInfo.getQueryParameters().get("client_id").get(0);
         URI wayfURI = uriInfo.getBaseUriBuilder().path(realmPath).queryParam("provider", providerAlias)
+                .queryParam("tabId", tabId)
+                .queryParam("clientId", clientId)
+                .queryParam("sessionCode", sessionCode)
                 .build();
 
-        return Response.temporaryRedirect(wayfURI).build();
+        return Response.temporaryRedirect(wayfURI).type(MediaType.TEXT_HTML_UTF_8_TYPE).build();
     }
 
 

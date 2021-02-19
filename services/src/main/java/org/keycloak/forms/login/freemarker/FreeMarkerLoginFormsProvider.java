@@ -231,6 +231,9 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
             case SAML_POST_FORM:
                 attributes.put("samlPost", new SAMLPostFormBean(formData));
                 break;
+            case SAML_WAYF:
+                attributes.put("test", "dragons");
+                break;
         }
 
         return processTemplate(theme, Templates.getTemplate(page), locale);
@@ -575,6 +578,10 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
         return createResponse(LoginFormsPages.SAML_POST_FORM);
     }
 
+    @Override
+    public Response createSamlWayf() {
+        return createResponse(LoginFormsPages.SAML_WAYF);
+    }
     protected void setMessage(MessageType type, String message, Object... parameters) {
         messageType = type;
         messages = new ArrayList<>();

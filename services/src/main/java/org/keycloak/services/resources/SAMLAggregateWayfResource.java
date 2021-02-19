@@ -1,10 +1,7 @@
 package org.keycloak.services.resources;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.GET;
@@ -23,6 +20,7 @@ import org.keycloak.broker.saml.aggregate.SAMLAggregateIdentityProviderFactory;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLAggregateMetadataStoreProvider;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLIdpDescriptor;
 import org.keycloak.common.ClientConnection;
+import org.keycloak.forms.login.LoginFormsPages;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
@@ -68,7 +66,10 @@ public class SAMLAggregateWayfResource {
   @Path("{realm}/saml-wayf-page")
   @Produces(MediaType.TEXT_HTML)
   public Response getWayfPage(final @PathParam("realm") String name,
-                              @QueryParam("provider") String providerAlias) throws IOException, FreeMarkerException {
+                              @QueryParam("provider") String providerAlias,
+                              @QueryParam("sessionCode") String sessionCode,
+                              @QueryParam("tabId") String tabId,
+                              @QueryParam("clientId") String clientId) throws IOException, FreeMarkerException {
     if (Strings.isNullOrEmpty(providerAlias)) {
       throw new ErrorResponseException("Bad request", "Please specify a provider",
               Response.Status.BAD_REQUEST);
@@ -90,14 +91,24 @@ public class SAMLAggregateWayfResource {
 
 
     Theme theme = session.theme().getTheme(Theme.Type.LOGIN);
+
+    /**
     FreeMarkerUtil freemarker = new FreeMarkerUtil();
     String wayfHtml = freemarker.processTemplate(attributes, "saml-wayf.ftl", theme);
-
+     */
+    LoginFormsProvider loginFormsProvider = session.getProvider(LoginFormsProvider.class);
+    loginFormsProvider.setAttribute("provider", providerAlias);
+    loginFormsProvider.setAttribute("tabId", tabId);
+    loginFormsProvider.setAttribute("clientId", clientId);
+    loginFormsProvider.setAttribute("sessionCode", sessionCode);
+    return loginFormsProvider.createSamlWayf();
+    /**
     Response.ResponseBuilder rb = Response.status( Response.Status.OK)
             .entity(wayfHtml)
             .cacheControl(CacheControlUtil.noCache());
 
     return rb.build();
+     */
   }
 
   @GET

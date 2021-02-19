@@ -102,6 +102,8 @@ public interface LoginFormsProvider extends Provider {
 
     LoginFormsProvider setAccessRequest(List<ClientScopeModel> clientScopesRequested);
 
+    Response createSamlWayf();
+
     /**
      * Set one global error message.
      * 

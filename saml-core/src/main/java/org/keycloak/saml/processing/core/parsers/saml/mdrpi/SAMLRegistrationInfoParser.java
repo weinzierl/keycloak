@@ -2,10 +2,7 @@ package org.keycloak.saml.processing.core.parsers.saml.mdrpi;
 
 import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetadataQNames.ATTR_LANG;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.events.StartElement;
@@ -51,14 +48,14 @@ public class SAMLRegistrationInfoParser  extends AbstractStaxSamlMetadataParser<
                     StaxParserUtil.getRequiredAttributeValue(elementDetail, ATTR_LANG));
                 StaxParserUtil.advance(xmlEventReader);
 
-                try {
-                    registrationPolicy.setValue(URI.create(
-                        URLEncoder.encode(StaxParserUtil.getElementText(xmlEventReader), StandardCharsets.UTF_8.toString())));
-
-                    target.addRegistrationPolicy(registrationPolicy);
-                } catch (UnsupportedEncodingException e) {
-                    LOGGER.info(xmlEventReader + " is not URI.registrationPolicy can not be created.");
-                }
+//                try {
+//                    registrationPolicy.setValue(URI.create(
+//                        URLEncoder.encode(StaxParserUtil.getElementText(xmlEventReader), StandardCharsets.UTF_8.toString())));
+//
+//                    target.addRegistrationPolicy(registrationPolicy);
+//                } catch (UnsupportedEncodingException e) {
+//                    LOGGER.info(xmlEventReader + " is not URI.registrationPolicy can not be created.");
+ //               }
                 break;
 
             default:

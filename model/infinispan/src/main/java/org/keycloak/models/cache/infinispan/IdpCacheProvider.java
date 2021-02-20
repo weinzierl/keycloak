@@ -101,10 +101,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 		}
 		else {
 			List<IdentityProviderModel> identityProviders = getIdentityProviderDelegate().getIdentityProviders(realm);
-			synchronized(cacheIdp) {
-				identityProviders = getIdentityProviderDelegate().getIdentityProviders(realm);
-				cacheIdp.put(realm.getId(), identityProviders.stream().collect(Collectors.toCollection(HashSet::new)));
-			}
+			cacheIdp.put(realm.getId(), identityProviders.stream().collect(Collectors.toCollection(HashSet::new)));
 			return identityProviders;
 		}
 	}

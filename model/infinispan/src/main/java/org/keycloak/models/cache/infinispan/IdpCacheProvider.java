@@ -193,7 +193,13 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 	@Override
 	public void saveFederationIdp(RealmModel realmModel, IdentityProviderModel idpModel) {
-		getIdentityProviderDelegate().saveFederationIdp(realmModel, idpModel);
+        if (idpModel.getInternalId() != null) {
+            IdentityProviderModel existingModel = getIdentityProviderById(realmModel, idpModel.getInternalId());
+            if (existingModel.equalsPreviousVersion(idpModel))
+                return;
+        }
+	    
+	    getIdentityProviderDelegate().saveFederationIdp(realmModel, idpModel);
 
 		ensureIdpsLoaded(realmModel);
 		synchronized (cacheIdp) {

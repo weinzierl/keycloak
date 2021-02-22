@@ -636,12 +636,18 @@ module.controller('RealmLocalizationDetailCtrl', function($scope, Current, $loca
 
 });
 
-module.controller('RealmCacheCtrl', function($scope, realm, RealmClearUserCache, RealmClearRealmCache, RealmClearKeysCache, Notifications) {
+module.controller('RealmCacheCtrl', function($scope, realm, RealmClearUserCache, RealmClearRealmCache, RealmClearIdentityProvidersCache, RealmClearKeysCache, Notifications) {
     $scope.realm = angular.copy(realm);
 
     $scope.clearUserCache = function() {
         RealmClearUserCache.save({ realm: realm.realm}, function () {
             Notifications.success("User cache cleared");
+        });
+    }
+
+    $scope.clearIdentityProvidersCache = function() {
+        RealmClearIdentityProvidersCache.save({ realm: realm.realm}, function () {
+           Notifications.success("Identity Providers cache cleared");
         });
     }
 

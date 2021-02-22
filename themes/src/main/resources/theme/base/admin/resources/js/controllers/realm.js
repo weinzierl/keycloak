@@ -1606,6 +1606,24 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     	},
     true);
 
+    $scope.$watch('identityProvidersFederation.config.principalType',
+        	function (newValue, oldValue, scope) {
+        		if(newValue != initValues.config.principalType)
+        			$scope.changed = true;
+        		else
+        			$scope.changed = false;
+        	},
+        true);
+
+    $scope.$watch('identityProvidersFederation.config.principalAttribute',
+        	function (newValue, oldValue, scope) {
+        		if(newValue != initValues.config.principalAttribute)
+        			$scope.changed = true;
+        		else
+        			$scope.changed = false;
+        	},
+        true);
+
     $scope.$watch('identityProvidersFederation.config.postBindingAuthnRequest',
     	function (newValue, oldValue, scope) {
     		if(newValue != initValues.config.postBindingAuthnRequest)
@@ -1641,11 +1659,8 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 				$scope.changed = false;
 		},
 	true);
-
-
-
-
-    $scope.$watch('newEntityIdBlackList',
+    
+    $scope.$watch('newEntityIdBlackList', 
     		function (newValue, oldValue, scope) {
     			if(newValue != initValues.blackList)
     				$scope.changed = true;

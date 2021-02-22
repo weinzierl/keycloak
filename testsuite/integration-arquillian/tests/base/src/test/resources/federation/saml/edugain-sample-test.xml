@@ -68,6 +68,56 @@ NAtA3PK9jAvanOasyEcf64oXQeOJolpG1Hg/YJkzCCEcrP0eZmR8FRERdiDcEXFT
       <md:EmailAddress>mailto: kmali@rash.al</md:EmailAddress>
     </md:ContactPerson>
   </md:EntityDescriptor>
+  <md:EntityDescriptor entityID="https://huc.idp.knaw.nl/simplesaml/saml2/idp/metadata.php">
+    <md:Extensions>
+      <mdrpi:RegistrationInfo registrationAuthority="http://www.surfconext.nl/" registrationInstant="2016-09-20T16:33:00Z">
+        <mdrpi:RegistrationPolicy xml:lang="en">https://wiki.surfnet.nl/display/eduGAIN/EduGAIN</mdrpi:RegistrationPolicy>
+      </mdrpi:RegistrationInfo>
+      <mdattr:EntityAttributes>
+        <saml:Attribute Name="urn:oasis:names:tc:SAML:attribute:assurance-certification" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+          <saml:AttributeValue>https://refeds.org/sirtfi</saml:AttributeValue>
+        </saml:Attribute>
+        <saml:Attribute Name="http://macedir.org/entity-category-support" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+          <saml:AttributeValue>http://clarin.eu/category/clarin-member</saml:AttributeValue>
+        </saml:Attribute>
+      </mdattr:EntityAttributes>
+    </md:Extensions>
+    <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <md:Extensions>
+        <mdui:UIInfo>
+          <mdui:DisplayName xml:lang="nl">Bedrijfsbureau Humanitiescluster KNAW</mdui:DisplayName>
+          <mdui:DisplayName xml:lang="en">Bedrijfsbureau Humanitiescluster KNAW</mdui:DisplayName>
+        </mdui:UIInfo>
+      </md:Extensions>
+      <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://saml.idp/?service=name&amp;serviceType=prod"/>
+      <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>
+      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://saml.idp/?service=name&amp;serviceType=prod"/>
+    </md:IDPSSODescriptor>
+    <md:Organization>
+      <md:OrganizationName xml:lang="nl">KNAW Humanities Cluster</md:OrganizationName>
+      <md:OrganizationName xml:lang="en">KNAW Humanities Cluster</md:OrganizationName>
+      <md:OrganizationDisplayName xml:lang="nl">Bedrijfsbureau Humanitiescluster KNAW</md:OrganizationDisplayName>
+      <md:OrganizationDisplayName xml:lang="en">Bedrijfsbureau Humanitiescluster KNAW</md:OrganizationDisplayName>
+      <md:OrganizationURL xml:lang="nl">http://huc.knaw.nl</md:OrganizationURL>
+      <md:OrganizationURL xml:lang="en">http://huc.knaw.nl</md:OrganizationURL>
+    </md:Organization>
+    <md:ContactPerson contactType="administrative">
+      <md:GivenName>SURFconext support</md:GivenName>
+      <md:EmailAddress>mailto:support@surfconext.nl</md:EmailAddress>
+    </md:ContactPerson>
+    <md:ContactPerson contactType="technical">
+      <md:GivenName>SURFconext support</md:GivenName>
+      <md:EmailAddress>mailto:support@surfconext.nl</md:EmailAddress>
+    </md:ContactPerson>
+    <md:ContactPerson contactType="support">
+      <md:GivenName>SURFconext support</md:GivenName>
+      <md:EmailAddress>mailto:help@surfconext.nl</md:EmailAddress>
+    </md:ContactPerson>
+    <md:ContactPerson xmlns:remd="http://refeds.org/metadata" contactType="other" remd:contactType="http://refeds.org/metadata/contactType/security">
+      <md:GivenName>SURFcert</md:GivenName>
+      <md:EmailAddress>mailto:cert@surfnet.nl</md:EmailAddress>
+    </md:ContactPerson>
+  </md:EntityDescriptor>
    <md:EntityDescriptor entityID="https://idp.admin.grnet.gr/idp/shibboleth">
     <md:Extensions>
       <mdattr:EntityAttributes>

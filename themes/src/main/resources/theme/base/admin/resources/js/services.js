@@ -915,6 +915,12 @@ module.factory('RealmClearUserCache', function($resource) {
     });
 });
 
+module.factory('RealmClearIdentityProvidersCache', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/clear-identity-providers-cache', {
+        realm : '@realm'
+    });
+});
+
 module.factory('RealmClearRealmCache', function($resource) {
     return $resource(authUrl + '/admin/realms/:realm/clear-realm-cache', {
         realm : '@realm'

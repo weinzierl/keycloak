@@ -20,8 +20,9 @@ public class InfinispanCacheIdpProviderFactory implements CacheIdpProviderFactor
 
     private static final Logger log = Logger.getLogger(InfinispanCacheIdpProviderFactory.class);
     
-    public static final String IDP_CLEAR_CACHE_EVENTS = "IDP_CLEAR_CACHE_EVENTS";
-    public static final String IDP_INVALIDATION_EVENTS = "IDP_INVALIDATION_EVENTS";
+    public static final String IDP_CLEAR_CACHE_EVENT = "IDP_CLEAR_CACHE_EVENT";
+	public static final String IDP_MAPPERS_CLEAR_CACHE_EVENT = "IDP_MAPPERS_CLEAR_CACHE_EVENT";
+
 	
     protected Cache<String, Set<IdentityProviderModel>> idpCache;
     protected Cache<String, Set<IdentityProviderMapperModel>> idpMappersCache;
@@ -77,6 +78,9 @@ public class InfinispanCacheIdpProviderFactory implements CacheIdpProviderFactor
 						idpCache.put(idpRemovedEvent.getRealmId(), idps);
 					});
 
+					cluster.registerListener(InfinispanCacheIdpProviderFactory.IDP_CLEAR_CACHE_EVENT, (ClusterEvent event) -> {
+						idpCache.clear();
+					});
                 }
             }
         }
@@ -118,6 +122,10 @@ public class InfinispanCacheIdpProviderFactory implements CacheIdpProviderFactor
 						}
 						idpMappers.remove(idpMapperRemovedEvent.getIdentityProviderMapper());
 						idpMappersCache.put(idpMapperRemovedEvent.getRealmId(), idpMappers);
+					});
+
+					cluster.registerListener(InfinispanCacheIdpProviderFactory.IDP_MAPPERS_CLEAR_CACHE_EVENT, (ClusterEvent event) -> {
+						idpMappersCache.clear();
 					});
 
                 }

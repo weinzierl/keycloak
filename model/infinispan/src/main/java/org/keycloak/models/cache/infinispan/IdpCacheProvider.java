@@ -50,7 +50,9 @@ public class IdpCacheProvider implements CacheIdpProviderI {
     @Override
     public void clear() {
         cacheIdp.clear();
-    	cluster.notify(InfinispanCacheIdpProviderFactory.IDP_CLEAR_CACHE_EVENTS, new ClearCacheEvent(), true, ClusterProvider.DCNotify.ALL_DCS);
+        cacheIdpMappers.clear();
+    	cluster.notify(InfinispanCacheIdpProviderFactory.IDP_CLEAR_CACHE_EVENT, new ClearCacheEvent(), true, ClusterProvider.DCNotify.ALL_DCS);
+		cluster.notify(InfinispanCacheIdpProviderFactory.IDP_MAPPERS_CLEAR_CACHE_EVENT, new ClearCacheEvent(), true, ClusterProvider.DCNotify.ALL_DCS);
     }
 
 	@Override

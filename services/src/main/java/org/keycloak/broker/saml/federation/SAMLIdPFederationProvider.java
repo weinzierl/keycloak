@@ -23,7 +23,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
@@ -53,13 +51,11 @@ import org.keycloak.crypto.KeyUse;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntitiesDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.EntityAttributes;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
-import org.keycloak.keys.RsaKeyMetadata;
 import org.keycloak.models.AuthenticationFlowModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProvidersFederationModel;
@@ -68,10 +64,8 @@ import org.keycloak.models.ModelException;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.DefaultAuthenticationFlows;
 import org.keycloak.models.utils.KeycloakModelUtils;
-import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlService;
-import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.saml.SPMetadataDescriptor;
 import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
@@ -79,7 +73,6 @@ import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
-import org.keycloak.services.scheduled.ScheduledTaskRunner;
 import org.keycloak.services.scheduled.UpdateFederationIdentityProviders;
 import org.keycloak.timer.TimerProvider;
 import org.w3c.dom.Element;
@@ -127,7 +120,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 	
 	@Override
 	public void enableUpdateTask() {
-		if(model.getLastMetadataRefreshTimestamp()==null) model.setLastMetadataRefreshTimestamp(0L);
+		if(model.getLastMetadataRefreshTimestamp()==null) {
+            model.setLastMetadataRefreshTimestamp(0L);
+        }
 		// remove previous task and add new with new RefreshEveryHours
 		TimerProvider timer = session.getProvider(TimerProvider.class);
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
@@ -163,7 +158,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		//default language
 		//should be changed to default realm???
 		final String preferredLang = "en";
-
+		
 		//default authedication flow model
 		AuthenticationFlowModel flowModel = realm.getFlowByAlias(DefaultAuthenticationFlows.FIRST_BROKER_LOGIN_FLOW);
         if (flowModel == null) {
@@ -171,10 +166,10 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
         }
 
 		for(EntityDescriptorType entity: entities) {
-
+		
             if (!parseIdP(entity))
                 continue;
-
+						
 			IDPSSODescriptorType idpDescriptor = null;
 
 			// Metadata documents can contain multiple Descriptors (See ADFS metadata
@@ -187,7 +182,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 					idpDescriptor = descriptors.get(0).getIdpDescriptor();
 				}
 			}
-			
+
 			if (idpDescriptor == null) {
 				//temporary code - we parse only IdPs
 				logger.infof("The entity %s is not an Identity provider!", entity.getEntityID());
@@ -208,8 +203,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                 // check if Idp exists in database
                 IdentityProviderModel previous = realm.getIdentityProviderByAlias(alias);
                 if (previous != null) {
-                    identityProviderModel = new SAMLIdentityProviderConfig(
-							realm.getIdentityProviderByAlias(alias));
+                    identityProviderModel = new SAMLIdentityProviderConfig(previous);
                 } else {
 
                     // initialize idp values
@@ -308,7 +302,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
         }
     }
-	
+
 	private void parseIDPSSODescriptorType (IdentityProviderModel identityProviderModel, IDPSSODescriptorType idpDescriptor) {
 
 		String singleSignOnServiceUrl = null;
@@ -338,7 +332,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			}
 
 		}
-		
+
 		identityProviderModel.getConfig().put("singleLogoutServiceUrl", singleLogoutServiceUrl);
 		identityProviderModel.getConfig().put("singleSignOnServiceUrl", singleSignOnServiceUrl);
 		identityProviderModel.getConfig().put("wantAuthnRequestsSigned", idpDescriptor.isWantAuthnRequestsSigned().toString());
@@ -346,7 +340,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		identityProviderModel.getConfig().put("postBindingResponse", postBindingResponse.toString());
 		identityProviderModel.getConfig().put("postBindingAuthnRequest", postBindingResponse.toString());
 		identityProviderModel.getConfig().put("postBindingLogout", postBindingLogout.toString());
-		
+
 
 		List<KeyDescriptorType> keyDescriptor = idpDescriptor.getKeyDescriptor();
 		String defaultCertificate = null;
@@ -368,7 +362,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		}
 
 		if (defaultCertificate != null) {
-			
+
 			//array certificate
 			if (identityProviderModel.getConfig().get("signingCertificate")== null) {
 			    identityProviderModel.getConfig().put("signingCertificate", defaultCertificate);
@@ -378,7 +372,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			    identityProviderModel.getConfig().put("encryptionPublicKey", defaultCertificate);
 			}
 		}
-		
+
 		//saml aggregate metadata config parameters
 		if ( model.getConfig().get("wantAssertionsEncrypted") != null )
 		    identityProviderModel.getConfig().put("wantAssertionsEncrypted", model.getConfig().get("wantAssertionsEncrypted"));
@@ -402,8 +396,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             identityProviderModel.getConfig().put("principalAttribute", model.getConfig().get("principalAttribute"));
         }
 	}
-	
-	
+
+
 	@Override
 	public void removeFederation() {
 		
@@ -412,23 +406,23 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		//cancel federation update task
 		TimerProvider timer = session.getProvider(TimerProvider.class);
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
-		
+
 		RealmModel realm = session.realms().getRealm(realmId);
 		
 		List<Boolean> results = model.getIdentityprovidersAlias().stream().map(idpAlias -> realm.removeFederationIdp(model, idpAlias)).collect(Collectors.toList());
 		
 		realm.removeIdentityProvidersFederation(model.getInternalId());
 	}
-	
-	
+
+
 	@Override
 	public void close() {
 		// TODO Auto-generated method stub
 	}
 
-    
-	
-	
+
+
+
 	public static String getHash(String str) {
 		byte[] hashBytes;
 		try {
@@ -443,8 +437,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
         return sb.toString();
 	}
 
-	
-	
+
+
 	@Override
     public Response export(UriInfo uriInfo, RealmModel realm) {
 
@@ -491,9 +485,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             throw new RuntimeException(e);
         }
     }
-	
+
 	private String getEntityId(UriInfo uriInfo, RealmModel realm) {
         return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
     }
-	
+
 }

@@ -14,5 +14,5 @@ from the keycloak's base folder, as described [here](https://github.com/keycloak
 
 If keycloak-oidc-federation.jar is not already built, then you can build it alone with a `mvn clean install`. 
 
-It should be installed as a keycloak extension, meaning that it should be deployed as a wildfly module, and also added as a dependency in `keycloak-services` module xml, by adding the entry 
+It should be installed as a keycloak extension on a existing keycloak instance, meaning that it should be deployed as a wildfly module (use the provided module.xml file), and also be added as a dependency in `keycloak-services` module xml, by adding the entry 
 `<module name="org.keycloak.keycloak-oidc-federation" services="import"/>` 

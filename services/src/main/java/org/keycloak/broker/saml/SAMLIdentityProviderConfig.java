@@ -59,6 +59,7 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
     public static final String AUTHN_CONTEXT_CLASS_REFS = "authnContextClassRefs";
     public static final String AUTHN_CONTEXT_DECL_REFS = "authnContextDeclRefs";
     public static final String SIGN_SP_METADATA = "signSpMetadata";
+    public static final String ALLOW_CREATE = "allowCreate";
 
     public SAMLIdentityProviderConfig() {
     }
@@ -334,6 +335,14 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
 
     public void setSignSpMetadata(boolean signSpMetadata) {
         getConfig().put(SIGN_SP_METADATA, String.valueOf(signSpMetadata));
+    }
+    
+    public boolean isAllowCreate() {
+        return Boolean.valueOf(getConfig().get(ALLOW_CREATE));
+    }
+
+    public void setAllowCreated(boolean allowCreate) {
+        getConfig().put(ALLOW_CREATE, String.valueOf(allowCreate));
     }
 
     @Override

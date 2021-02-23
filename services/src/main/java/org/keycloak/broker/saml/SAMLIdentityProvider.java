@@ -138,7 +138,7 @@ public class SAMLIdentityProvider extends AbstractIdentityProvider<SAMLIdentityP
                     .protocolBinding(protocolBinding)
                     .nameIdPolicy(SAML2NameIDPolicyBuilder
                         .format(nameIDPolicyFormat)
-                        .setAllowCreate(Boolean.TRUE))
+                        .setAllowCreate(getConfig().getConfig().get("allowCreate")!= null ?  getConfig().isAllowCreate() : Boolean.TRUE))
                     .requestedAuthnContext(requestedAuthnContext)
                     .subject(loginHint);
 

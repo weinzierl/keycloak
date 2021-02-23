@@ -17,6 +17,14 @@ public class SAMLIdPFederationModel extends IdentityProvidersFederationModel {
     public String getNameIDPolicyFormat() {
         return getConfig().get(NAME_ID_POLICY_FORMAT);
     }
+    
+    public String getPrincipalType() {
+        return getConfig().get(PRINCIPAL_TYPE);
+    }
+    
+    public String getPrincipalAttribute() {
+        return getConfig().get(PRINCIPAL_ATTRIBUTE);
+    }
 
     public boolean isWantAuthnRequestsSigned() {
         return Boolean.valueOf(getConfig().get(WANT_AUTHN_REQUESTS_SIGNED));

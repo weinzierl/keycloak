@@ -5,7 +5,7 @@ import org.infinispan.commons.marshall.MarshallUtil;
 import org.infinispan.commons.marshall.SerializeWith;
 import org.keycloak.cluster.ClusterEvent;
 import org.keycloak.models.IdentityProviderModel;
-import org.keycloak.util.JsonSerialization;
+import org.keycloak.models.cache.infinispan.events.serialization.EventSerializer;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -46,13 +46,14 @@ public class IdpAddedEvent implements ClusterEvent {
         @Override
         public void writeObject(ObjectOutput output, IdpAddedEvent obj) throws IOException {
             MarshallUtil.marshallString(obj.getRealmId(), output);
-            MarshallUtil.marshallByteArray(JsonSerialization.writeValueAsBytes(obj.getIdentityProvider()), output);
+            MarshallUtil.marshallByteArray(EventSerializer.writeValueAsBytes((IdentityProviderModel)obj.getIdentityProvider()), output);
         }
 
         @Override
         public IdpAddedEvent readObject(ObjectInput input) throws IOException, ClassNotFoundException {
             String realmId = MarshallUtil.unmarshallString(input);
-            IdentityProviderModel idpModel = JsonSerialization.readValue(MarshallUtil.unmarshallByteArray(input), IdentityProviderModel.class);
+            byte [] idpModelBytes = MarshallUtil.unmarshallByteArray(input);
+            IdentityProviderModel idpModel = EventSerializer.readValue(idpModelBytes, IdentityProviderModel.class);
             return new IdpAddedEvent(realmId, idpModel);
         }
 

@@ -39,7 +39,6 @@ public class JsonSerialization {
     public static final ObjectMapper sysPropertiesAwareMapper = new ObjectMapper(new SystemPropertiesJsonParserFactory());
 
     static {
-        
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         prettyMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);

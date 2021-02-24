@@ -5,7 +5,7 @@ import org.infinispan.commons.marshall.MarshallUtil;
 import org.infinispan.commons.marshall.SerializeWith;
 import org.keycloak.cluster.ClusterEvent;
 import org.keycloak.models.IdentityProviderMapperModel;
-import org.keycloak.util.JsonSerialization;
+import org.keycloak.models.cache.infinispan.events.serialization.EventSerializer;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -45,12 +45,12 @@ public class IdpMapperAddedEvent implements ClusterEvent {
 
         @Override
         public void writeObject(ObjectOutput output, IdpMapperAddedEvent obj) throws IOException {
-            MarshallUtil.marshallByteArray(JsonSerialization.writeValueAsBytes(obj), output);
+            MarshallUtil.marshallByteArray(EventSerializer.writeValueAsBytes(obj), output);
         }
 
         @Override
         public IdpMapperAddedEvent readObject(ObjectInput input) throws IOException, ClassNotFoundException {
-            return JsonSerialization.readValue(MarshallUtil.unmarshallByteArray(input), IdpMapperAddedEvent.class);
+            return EventSerializer.readValue(MarshallUtil.unmarshallByteArray(input), IdpMapperAddedEvent.class);
         }
     }
 

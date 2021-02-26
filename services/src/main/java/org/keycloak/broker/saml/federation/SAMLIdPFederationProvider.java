@@ -260,12 +260,28 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
         if (entity.getExtensions().getRegistrationInfo() != null) {
             authority = entity.getExtensions().getRegistrationInfo().getRegistrationAuthority().toString();
         }
+
         return model.getEntityIdWhiteList().contains(entity.getEntityID())
             || (authority != null && model.getRegistrationAuthorityWhiteList().contains(authority))
+            || (model.getCategoryWhiteList() != null && entity.getExtensions().getEntityAttributes() != null
+                && containsAttribute(model.getCategoryWhiteList(), entity.getExtensions().getEntityAttributes().getAttribute()))
             || (model.getEntityIdWhiteList().isEmpty() && model.getRegistrationAuthorityWhiteList().isEmpty()
+                && model.getCategoryWhiteList().isEmpty()
                 && (model.getEntityIdBlackList().isEmpty() || !model.getEntityIdBlackList().contains(entity.getEntityID()))
+                && (model.getCategoryBlackList().isEmpty() || entity.getExtensions().getEntityAttributes() == null
+                    || !containsAttribute(model.getCategoryBlackList(),
+                        entity.getExtensions().getEntityAttributes().getAttribute()))
                 && (model.getRegistrationAuthorityBlackList().isEmpty()
                     || !model.getRegistrationAuthorityBlackList().contains(authority)));
+    }
+
+    private boolean containsAttribute(Map<String, List<String>> map, List<AttributeType> attributes) {
+        return attributes.stream()
+            .filter(attr -> map.containsKey(attr.getName()) && attr.getAttributeValue().size() == map.get(attr.getName()).size()
+                && attr.getAttributeValue().stream().map(Object::toString).collect(Collectors.toList())
+                    .containsAll(map.get(attr.getName())))
+            .count() > 0;
+
     }
 
     private void parseIdP(IdentityProviderModel identityProviderModel, Date validUntil, EntityDescriptorType entity,

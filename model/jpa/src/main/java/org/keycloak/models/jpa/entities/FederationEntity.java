@@ -1,6 +1,7 @@
 package org.keycloak.models.jpa.entities;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -8,6 +9,7 @@ import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -19,6 +21,8 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+
+import org.keycloak.models.jpa.converter.ListJsonConverter;
 
 @Entity
 @Table(name = "FEDERATION")
@@ -85,6 +89,20 @@ public class FederationEntity {
 	
 	@ManyToMany(mappedBy = "federations")
 	private Set<IdentityProviderEntity> identityproviders = new HashSet<IdentityProviderEntity>();
+	
+	@ElementCollection
+    @MapKeyColumn(name="NAME")
+    @Column(name="VALUE", columnDefinition = "TEXT")
+    @CollectionTable(name="ENTITY_CATEGORY_BLACKLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+	@Convert(converter = ListJsonConverter.class, attributeName = "value")
+    private Map<String, List<String>> categoryBlackList;
+	
+	@ElementCollection
+    @MapKeyColumn(name="NAME")
+    @Column(name="VALUE", columnDefinition = "TEXT")
+    @CollectionTable(name="ENTITY_CATEGORY_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    @Convert(converter = ListJsonConverter.class, attributeName = "value")
+    private Map<String, List<String>> categoryWhiteList;
 
 	public String getInternalId() {
 		return internalId;
@@ -206,7 +224,23 @@ public class FederationEntity {
 		this.validUntilTimestamp = validUntilTimestamp;
 	}
 
-	@Override
+	public Map<String, List<String>> getCategoryBlackList() {
+        return categoryBlackList;
+    }
+
+    public void setCategoryBlackList(Map<String, List<String>> categoryBlackList) {
+        this.categoryBlackList = categoryBlackList;
+    }
+    
+    public Map<String, List<String>> getCategoryWhiteList() {
+        return categoryWhiteList;
+    }
+
+    public void setCategoryWhiteList(Map<String, List<String>> categoryWhiteList) {
+        this.categoryWhiteList = categoryWhiteList;
+    }
+
+    @Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;

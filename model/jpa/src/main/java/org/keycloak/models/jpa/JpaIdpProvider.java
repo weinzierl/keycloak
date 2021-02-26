@@ -161,6 +161,8 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 		federationEntity.setEntityIdWhiteList(identityProvidersFederationModel.getEntityIdWhiteList());
 		federationEntity.setRegistrationAuthorityBlackList(identityProvidersFederationModel.getRegistrationAuthorityBlackList());
         federationEntity.setRegistrationAuthorityWhiteList(identityProvidersFederationModel.getRegistrationAuthorityWhiteList());
+        federationEntity.setCategoryBlackList(identityProvidersFederationModel.getCategoryBlackList());
+        federationEntity.setCategoryWhiteList(identityProvidersFederationModel.getCategoryWhiteList());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
 		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
 		return federationEntity;

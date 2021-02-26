@@ -59,6 +59,10 @@ public class IdentityProvidersFederationModel implements Serializable {
     
     private Map<String, String> config;
     
+    private Map<String, List<String>> categoryBlackList;
+    
+    private Map<String, List<String>> categoryWhiteList;
+    
 
     public IdentityProvidersFederationModel() {
 		super();
@@ -78,6 +82,8 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.setEntityIdWhiteList(model.getEntityIdWhiteList() != null ? model.getEntityIdWhiteList() : new HashSet<String>());
 		this.setRegistrationAuthorityBlackList(model.getRegistrationAuthorityBlackList() != null ? model.getRegistrationAuthorityBlackList() : new HashSet<String>());
         this.setRegistrationAuthorityWhiteList(model.getRegistrationAuthorityWhiteList() != null ? model.getRegistrationAuthorityWhiteList() : new HashSet<String>());
+        this.setCategoryBlackList(model.getRegistrationAuthorityBlackList() != null ? model.getCategoryBlackList() : new HashMap<String,List<String>>());
+        this.setCategoryWhiteList(model.getRegistrationAuthorityWhiteList() != null ? model.getCategoryWhiteList() : new HashMap<String,List<String>>());
 		this.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
 		this.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
 		this.setConfig(model.getConfig());
@@ -212,5 +218,22 @@ public class IdentityProvidersFederationModel implements Serializable {
 	public void setConfig(Map<String, String> config) {
 		this.config = config;
 	}
-	
+
+    public Map<String, List<String>> getCategoryBlackList() {
+        return categoryBlackList;
+    }
+
+    public void setCategoryBlackList(Map<String, List<String>> categoryBlackList) {
+        this.categoryBlackList = categoryBlackList;
+    }
+
+    public Map<String, List<String>> getCategoryWhiteList() {
+        return categoryWhiteList;
+    }
+
+    public void setCategoryWhiteList(Map<String, List<String>> categoryWhiteList) {
+        this.categoryWhiteList = categoryWhiteList;
+    }
+
+ 
 }

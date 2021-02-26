@@ -1227,6 +1227,12 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         Set<String> registrationAuthorityWhiteList = new HashSet<>();
         registrationAuthorityWhiteList.addAll(entity.getRegistrationAuthorityWhiteList());
         federationModel.setRegistrationAuthorityWhiteList(registrationAuthorityWhiteList);
+        Map<String,List<String>> categoryBlackList = new HashMap<>();
+        categoryBlackList.putAll(entity.getCategoryBlackList());
+        federationModel.setCategoryBlackList(categoryBlackList);
+        Map<String,List<String>> categoryWhiteList = new HashMap<>();
+        categoryWhiteList.putAll(entity.getCategoryWhiteList());
+        federationModel.setCategoryWhiteList(categoryWhiteList);
     	federationModel.setUrl(entity.getUrl());
     	Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
     	federationModel.setIdentityprovidersAlias(identityprovidersAlias);
@@ -1282,6 +1288,8 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         federationEntity.setEntityIdWhiteList(identityProvidersFederationModel.getEntityIdWhiteList());
         federationEntity.setRegistrationAuthorityBlackList(identityProvidersFederationModel.getRegistrationAuthorityBlackList());
         federationEntity.setRegistrationAuthorityWhiteList(identityProvidersFederationModel.getRegistrationAuthorityWhiteList());
+        federationEntity.setCategoryBlackList(identityProvidersFederationModel.getCategoryBlackList());
+        federationEntity.setCategoryWhiteList(identityProvidersFederationModel.getCategoryWhiteList());
         federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
         federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
 		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
@@ -1323,6 +1331,8 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		federationEntity.setEntityIdWhiteList(identityProvidersFederationModel.getEntityIdWhiteList());
 		federationEntity.setRegistrationAuthorityBlackList(identityProvidersFederationModel.getRegistrationAuthorityBlackList());
         federationEntity.setRegistrationAuthorityWhiteList(identityProvidersFederationModel.getRegistrationAuthorityWhiteList());
+        federationEntity.setCategoryBlackList(identityProvidersFederationModel.getCategoryBlackList());
+        federationEntity.setCategoryWhiteList(identityProvidersFederationModel.getCategoryWhiteList());
 		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
 		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
 		federationEntity.setConfig(identityProvidersFederationModel.getConfig());

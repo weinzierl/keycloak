@@ -689,6 +689,8 @@ public class ModelToRepresentation {
     	representation.setEntityIdWhiteList(model.getEntityIdWhiteList());
     	representation.setRegistrationAuthorityBlackList(model.getRegistrationAuthorityBlackList());
         representation.setRegistrationAuthorityWhiteList(model.getRegistrationAuthorityWhiteList());
+        representation.setCategoryBlackList(model.getCategoryBlackList());
+        representation.setCategoryWhiteList(model.getCategoryWhiteList());
     	representation.setUrl(model.getUrl());
     	representation.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
     	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());

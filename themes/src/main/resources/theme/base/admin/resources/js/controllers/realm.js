@@ -1501,9 +1501,24 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.entityIdWhiteList = [];
 		 $scope.identityProvidersFederation.registrationAuthorityBlackList = [];
 		 $scope.identityProvidersFederation.registrationAuthorityWhiteList = [];
+		 $scope.identityProvidersFederation.categoryWhiteList = {};
+		 $scope.newCategoryWhiteList = {};
+		 $scope.newCategoryWhiteList.key='';
+		 $scope.newCategoryWhiteList.value = [];
+		 $scope.identityProvidersFederation.categoryBlackList = {};
+		 $scope.newCategoryBlackList = {};
+		 $scope.newCategoryBlackList.key='';
+		 $scope.newCategoryBlackList.value = [];
 		 $scope.identityProvidersFederation.config = {};
 		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
          $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+	} else {
+		 $scope.newCategoryWhiteList = {};
+		 $scope.newCategoryWhiteList.key='';
+		 $scope.newCategoryWhiteList.value = [];
+		 $scope.newCategoryBlackList = {};
+		 $scope.newCategoryBlackList.key='';
+		 $scope.newCategoryBlackList.value = [];
 	}
 
 	
@@ -1732,6 +1747,74 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
         $scope.addRegistrationAuthorityBlackList = function() {
             $scope.identityProvidersFederation.registrationAuthorityBlackList.push($scope.newRegistrationAuthorityBlackList);
             $scope.newRegistrationAuthorityBlackList = "";
+        }
+        
+        //entity category whitelist / blacklist functions
+        $scope.addCategoryBlackList = function() {
+        	if ($scope.newCategoryBlackListValue.length > 0) 
+        		$scope.newCategoryBlackList.value.push($scope.newCategoryBlackListValue);
+            $scope.identityProvidersFederation.categoryBlackList[$scope.newCategoryBlackList.key] = $scope.newCategoryBlackList.value;
+            $scope.newCategoryBlackList.key='';
+            $scope.newCategoryBlackList.value =[];
+            $scope.newCategoryBlackListValue='';
+            $scope.changed = true;
+            
+        }
+
+        $scope.removeCategoryBlackList = function(key) {
+        	delete $scope.identityProvidersFederation.categoryBlackList[key];
+            $scope.changed = true;
+        }
+        
+        $scope.addCategoryBlackListValue = function() {
+            $scope.newCategoryBlackList.value.push($scope.newCategoryBlackListValue);
+            $scope.newCategoryBlackListValue = "";
+        }
+        
+        $scope.deleteNewValueCategoryBlackList = function(index) {
+            $scope.newCategoryBlackList.value.splice(index, 1);
+        }
+        
+        $scope.deleteOldValueCategoryBlackList = function(index,key) {
+        	if ( $scope.identityProvidersFederation.categoryBlackList[key].length > 1) {
+        		 $scope.identityProvidersFederation.categoryBlackList[key].splice(index, 1);
+                 $scope.changed = true;
+        	} else {
+        		 Notifications.error('Attribute value can not be empty');
+        	}
+        }
+        
+        $scope.addCategoryWhiteList = function() {
+        	if ($scope.newCategoryWhiteListValue.length > 0) 
+        		$scope.newCategoryWhiteList.value.push($scope.newCategoryWhiteListValue);
+            $scope.identityProvidersFederation.categoryWhiteList[$scope.newCategoryWhiteList.key] = $scope.newCategoryWhiteList.value;
+            $scope.newCategoryWhiteList.key='';
+            $scope.newCategoryWhiteList.value =[];
+            $scope.newCategoryWhiteListValue='';
+            $scope.changed = true;
+        }
+
+        $scope.removeCategoryWhiteList = function(key) {
+        	delete $scope.identityProvidersFederation.categoryWhiteList[key];
+            $scope.changed = true;
+        }
+        
+        $scope.addCategoryWhiteListValue = function() {
+            $scope.newCategoryWhiteList.value.push($scope.newCategoryWhiteListValue);
+            $scope.newCategoryWhiteListValue = "";
+        }
+        
+        $scope.deleteNewValueCategoryWhiteList = function(index) {
+            $scope.newCategoryWhiteList.value.splice(index, 1);
+        }
+        
+        $scope.deleteOldValueCategoryWhiteList = function(index,key) {
+        	if ( $scope.identityProvidersFederation.categoryWhiteList[key].length > 1) {
+        		 $scope.identityProvidersFederation.categoryWhiteList[key].splice(index, 1);
+                 $scope.changed = true;
+        	} else {
+        		 Notifications.error('Attribute value can not be empty');
+        	}
         }
     
 });

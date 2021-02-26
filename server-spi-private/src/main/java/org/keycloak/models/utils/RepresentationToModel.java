@@ -1991,6 +1991,8 @@ public class RepresentationToModel {
     	model.setEntityIdWhiteList(representation.getEntityIdWhiteList());
     	model.setRegistrationAuthorityBlackList(representation.getRegistrationAuthorityBlackList());
         model.setRegistrationAuthorityWhiteList(representation.getRegistrationAuthorityWhiteList());
+        model.setCategoryBlackList(representation.getCategoryBlackList());
+        model.setCategoryWhiteList(representation.getCategoryWhiteList());
     	model.setUrl(representation.getUrl());
     	model.setValidUntilTimestamp(representation.getValidUntilTimestamp());
     	model.setIdentityprovidersAlias(representation.getIdentityprovidersAlias());

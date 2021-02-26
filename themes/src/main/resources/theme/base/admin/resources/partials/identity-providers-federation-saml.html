@@ -195,6 +195,72 @@
 
 				<kc-tooltip>{{:: 'whitelist.registrationAuthority.tooltip'| translate}}</kc-tooltip>
 			</div>
+			<div class="form-group">
+			<label class="col-md-2 control-label" for="categoryWhiteList">{{::'entity.category' | translate}}</label>
+			<div class="col-sm-6"  id="categoryWhiteList">
+			<table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>{{:: 'attribute.name' | translate}}</th>
+                        <th>{{:: 'attribute.value' | translate}}</th>
+                        <th>{{:: 'actions' | translate}}</th>
+                   </tr>
+                </thead>
+                <tbody>
+                     <tr ng-repeat="(key, value) in identityProvidersFederation.categoryWhiteList | toOrderedMapSortedByKey">
+                         <td>{{key}}</td>
+					     <td>
+								<div class="input-group"
+									ng-repeat="(i, item) in identityProvidersFederation.categoryWhiteList[key] track by $index">
+									<input class="form-control"
+										ng-model="identityProvidersFederation.categoryWhiteList[key][i]">
+									<div class="input-group-btn">
+										<button class="btn btn-default" type="button"
+											data-ng-click="deleteOldValueCategoryWhiteList($index, key)">
+											<span class="fa fa-minus"></span>
+										</button>
+									</div>
+								</div>
+							</td>
+							<td> 
+                                 <button class="btn btn-primary" data-ng-click="removeCategoryWhiteList(key)">{{:: 'delete' | translate}}</button>
+                            </td>
+                    </tr>
+                    <tr>
+                         <td><input ng-model="newCategoryWhiteList.key" class="form-control" type="text" id="newCategoryWhiteListKey" /></td>
+							<td>
+								<div class="input-group"
+									ng-repeat="(i, item) in newCategoryWhiteList.value track by $index">
+									<input class="form-control"
+										ng-model="newCategoryWhiteList.value[i]">
+									<div class="input-group-btn">
+										<button class="btn btn-default" type="button"
+											data-ng-click="deleteNewValueCategoryWhiteList($index)">
+											<span class="fa fa-minus"></span>
+										</button>
+									</div>
+								</div>
+								<div class="input-group">
+									<input class="form-control"
+										ng-model="newCategoryWhiteListValue"
+										id="newCategoryWhiteListValue">
+									<div class="input-group-btn">
+										<button class="btn btn-default" type="button" 
+											data-ng-click="newCategoryWhiteListValue.length > 0 && addCategoryWhiteListValue()">
+											<span class="fa fa-plus"></span>
+										</button>
+									</div>
+								</div>
+							</td>
+							<td>
+							    <button class="btn btn-primary"class="kc-action-cell" data-ng-click="addCategoryWhiteList()" data-ng-disabled="!newCategoryWhiteList.key.length || !newCategoryWhiteList.value.length">{{:: 'add' | translate}}</button>
+							</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <kc-tooltip>{{:: 'whitelist.entityIds.tooltip'| translate}}</kc-tooltip>
+            </div>
 			
 
 
@@ -263,6 +329,73 @@
 
 				<kc-tooltip>{{:: 'blacklist.registrationAuthority.tooltip.tooltip'| translate}}</kc-tooltip>
 			</div>
+			
+			<div class="form-group">
+			<label class="col-md-2 control-label" for="categoryBlackList">{{::'entity.category' | translate}}</label>
+			<div class="col-sm-6"  id="categoryBlackList">
+			<table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>{{:: 'attribute.name' | translate}}</th>
+                        <th>{{:: 'attribute.value' | translate}}</th>
+                        <th>{{:: 'actions' | translate}}</th>
+                   </tr>
+                </thead>
+                <tbody>
+                     <tr ng-repeat="(key, value) in identityProvidersFederation.categoryBlackList | toOrderedMapSortedByKey">
+                         <td>{{key}}</td>
+					     <td>
+								<div class="input-group"
+									ng-repeat="(i, item) in identityProvidersFederation.categoryBlackList[key] track by $index">
+									<input class="form-control"
+										ng-model="identityProvidersFederation.categoryBlackList[key][i]">
+									<div class="input-group-btn">
+										<button class="btn btn-default" type="button"
+											data-ng-click="deleteOldValueCategoryBlackList($index, key)">
+											<span class="fa fa-minus"></span>
+										</button>
+									</div>
+								</div>
+							</td>
+							<td> 
+                                 <button class="btn btn-primary" data-ng-click="removeCategoryBlackList(key)">{{:: 'delete' | translate}}</button>
+                            </td>
+                    </tr>
+                    <tr>
+                         <td><input ng-model="newCategoryBlackList.key" class="form-control" type="text" id="newCategoryBlackListKey" /></td>
+							<td>
+								<div class="input-group"
+									ng-repeat="(i, item) in newCategoryBlackList.value track by $index">
+									<input class="form-control"
+										ng-model="newCategoryBlackList.value[i]">
+									<div class="input-group-btn">
+										<button class="btn btn-default" type="button"
+											data-ng-click="deleteNewValueCategoryBlackList($index)">
+											<span class="fa fa-minus"></span>
+										</button>
+									</div>
+								</div>
+								<div class="input-group">
+									<input class="form-control"
+										ng-model="newCategoryBlackListValue"
+										id="newCategoryBlackListValue">
+									<div class="input-group-btn">
+										<button class="btn btn-default" type="button" 
+											data-ng-click="newCategoryBlackListValue.length > 0 && addCategoryBlackListValue()">
+											<span class="fa fa-plus"></span>
+										</button>
+									</div>
+								</div>
+							</td>
+							<td>
+							    <button class="btn btn-primary"class="kc-action-cell" data-ng-click="addCategoryBlackList()" data-ng-disabled="!newCategoryBlackList.key.length || !newCategoryBlackList.value.length">{{:: 'add' | translate}}</button>
+							</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <kc-tooltip>{{:: 'blacklist.entityIds.tooltip'| translate}}</kc-tooltip>   
+            </div>         
 		</fieldset>
 		
 

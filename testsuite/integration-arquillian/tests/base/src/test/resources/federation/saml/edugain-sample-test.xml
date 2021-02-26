@@ -123,7 +123,6 @@ NAtA3PK9jAvanOasyEcf64oXQeOJolpG1Hg/YJkzCCEcrP0eZmR8FRERdiDcEXFT
       <mdattr:EntityAttributes>
         <saml:Attribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="http://macedir.org/entity-category-support">
           <saml:AttributeValue>http://refeds.org/category/research-and-scholarship</saml:AttributeValue>
-          <saml:AttributeValue>http://www.geant.net/uri/dataprotection-code-of-conduct/v1</saml:AttributeValue>
         </saml:Attribute>
         <saml:Attribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="urn:oasis:names:tc:SAML:attribute:assurance-certification">
           <saml:AttributeValue>https://refeds.org/sirtfi</saml:AttributeValue>

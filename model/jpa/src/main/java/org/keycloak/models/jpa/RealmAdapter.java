@@ -190,6 +190,21 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     }
 
     @Override
+    public void setAttribute(String name, Boolean value) {
+        setAttribute(name, value.toString());
+    }
+
+    @Override
+    public void setAttribute(String name, Integer value) {
+        setAttribute(name, value.toString());
+    }
+
+    @Override
+    public void setAttribute(String name, Long value) {
+        setAttribute(name, value.toString());
+    }
+
+    @Override
     public void removeAttribute(String name) {
         Iterator<RealmAttributeEntity> it = realm.getAttributes().iterator();
         while (it.hasNext()) {
@@ -209,6 +224,27 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             }
         }
         return null;
+    }
+
+    @Override
+    public Integer getAttribute(String name, Integer defaultValue) {
+        String v = getAttribute(name);
+        return v != null ? Integer.parseInt(v) : defaultValue;
+
+    }
+
+    @Override
+    public Long getAttribute(String name, Long defaultValue) {
+        String v = getAttribute(name);
+        return v != null ? Long.parseLong(v) : defaultValue;
+
+    }
+
+    @Override
+    public Boolean getAttribute(String name, Boolean defaultValue) {
+        String v = getAttribute(name);
+        return v != null ? Boolean.parseBoolean(v) : defaultValue;
+
     }
 
     @Override
@@ -1325,23 +1361,46 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     }
 
     private IdentityProvidersFederationModel entityToModel(FederationEntity entity) {
-        IdentityProvidersFederationModel federationModel = new IdentityProvidersFederationModel();
-        federationModel.setInternalId(entity.getInternalId());
-        federationModel.setAlias(entity.getAlias());
-        federationModel.setDisplayName(entity.getDisplayName());
-        federationModel.setLastMetadataRefreshTimestamp(entity.getLastMetadataRefreshTimestamp());
-        federationModel.setProviderId(entity.getProviderId());
-        federationModel.setUpdateFrequencyInMins(entity.getUpdateFrequencyInMins());
-        federationModel.setValidUntilTimestamp(entity.getValidUntilTimestamp());
-        federationModel.setUrl(entity.getUrl());
-        Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
-        federationModel.setIdentityprovidersAlias(identityprovidersAlias);
-        Map<String, String> copy = new HashMap<>();
+    	IdentityProvidersFederationModel federationModel = new IdentityProvidersFederationModel();
+    	federationModel.setInternalId(entity.getInternalId());
+    	federationModel.setAlias(entity.getAlias());
+    	federationModel.setDisplayName(entity.getDisplayName());
+    	federationModel.setLastMetadataRefreshTimestamp(entity.getLastMetadataRefreshTimestamp());
+    	federationModel.setProviderId(entity.getProviderId());
+    	federationModel.setUpdateFrequencyInMins(entity.getUpdateFrequencyInMins());
+    	federationModel.setValidUntilTimestamp(entity.getValidUntilTimestamp());
+    	Set<String> blackList = new HashSet<>();
+    	blackList.addAll(entity.getEntityIdBlackList());
+    	federationModel.setEntityIdBlackList(blackList);
+    	Set<String> whiteList = new HashSet<>();
+    	whiteList.addAll(entity.getEntityIdWhiteList());
+        federationModel.setEntityIdWhiteList(whiteList);
+        Set<String> registrationAuthorityBlackList = new HashSet<>();
+        registrationAuthorityBlackList.addAll(entity.getRegistrationAuthorityBlackList());
+        federationModel.setRegistrationAuthorityBlackList(registrationAuthorityBlackList);
+        Set<String> registrationAuthorityWhiteList = new HashSet<>();
+        registrationAuthorityWhiteList.addAll(entity.getRegistrationAuthorityWhiteList());
+        federationModel.setRegistrationAuthorityWhiteList(registrationAuthorityWhiteList);
+        Map<String,List<String>> categoryBlackList = new HashMap<>();
+        categoryBlackList.putAll(entity.getCategoryBlackList());
+        federationModel.setCategoryBlackList(categoryBlackList);
+        Map<String,List<String>> categoryWhiteList = new HashMap<>();
+        categoryWhiteList.putAll(entity.getCategoryWhiteList());
+        federationModel.setCategoryWhiteList(categoryWhiteList);
+    	federationModel.setUrl(entity.getUrl());
+    	Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
+    	federationModel.setIdentityprovidersAlias(identityprovidersAlias);
+    	Map<String, String> copy = new HashMap<>();
         copy.putAll(entity.getConfig());
-        federationModel.setConfig(copy);
-        return federationModel;
+    	federationModel.setConfig(copy);
+    	return federationModel;
     }
 
+
+    @Override
+    public boolean isIdentityFederationEnabled() {
+        return !this.realm.getIdentityProviders().isEmpty();
+    }
 
     @Override
     public List<IdentityProvidersFederationModel> getIdentityProviderFederations() {
@@ -1373,12 +1432,18 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
         FederationEntity federationEntity = new FederationEntity();
 
-        federationEntity.setInternalId(identityProvidersFederationModel.getInternalId());
-        federationEntity.setAlias(identityProvidersFederationModel.getAlias());
-        federationEntity.setProviderId(identityProvidersFederationModel.getProviderId());
-
-        federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
-        federationEntity.setUrl(identityProvidersFederationModel.getUrl());
+		federationEntity.setInternalId(identityProvidersFederationModel.getInternalId());
+		federationEntity.setAlias(identityProvidersFederationModel.getAlias());
+		federationEntity.setProviderId(identityProvidersFederationModel.getProviderId());
+		
+		//federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
+		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
+        federationEntity.setEntityIdBlackList(identityProvidersFederationModel.getEntityIdBlackList());
+        federationEntity.setEntityIdWhiteList(identityProvidersFederationModel.getEntityIdWhiteList());
+        federationEntity.setRegistrationAuthorityBlackList(identityProvidersFederationModel.getRegistrationAuthorityBlackList());
+        federationEntity.setRegistrationAuthorityWhiteList(identityProvidersFederationModel.getRegistrationAuthorityWhiteList());
+        federationEntity.setCategoryBlackList(identityProvidersFederationModel.getCategoryBlackList());
+        federationEntity.setCategoryWhiteList(identityProvidersFederationModel.getCategoryWhiteList());
         federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
         federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
         federationEntity.setConfig(identityProvidersFederationModel.getConfig());
@@ -1394,7 +1459,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     /**
      * This should be used for updating an existing idp federation
      */
-    @Override
+	@Override
     public void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
 
         logger.info("Updating the IdP federation with id: "+ identityProvidersFederationModel.getInternalId());
@@ -1416,6 +1481,12 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         //and not if user change some federation fields
         federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
         federationEntity.setUrl(identityProvidersFederationModel.getUrl());
+        federationEntity.setEntityIdBlackList(identityProvidersFederationModel.getEntityIdBlackList());
+        federationEntity.setEntityIdWhiteList(identityProvidersFederationModel.getEntityIdWhiteList());
+        federationEntity.setRegistrationAuthorityBlackList(identityProvidersFederationModel.getRegistrationAuthorityBlackList());
+        federationEntity.setRegistrationAuthorityWhiteList(identityProvidersFederationModel.getRegistrationAuthorityWhiteList());
+        federationEntity.setCategoryBlackList(identityProvidersFederationModel.getCategoryBlackList());
+        federationEntity.setCategoryWhiteList(identityProvidersFederationModel.getCategoryWhiteList());
         federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
         federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
         federationEntity.setConfig(identityProvidersFederationModel.getConfig());
@@ -1431,7 +1502,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         em.remove(federationEntity);
         em.flush();
     }
-
 
     @Override
     public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel) {
@@ -1582,12 +1652,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         return entity;
     }
 
-
-
-    @Override
-    public boolean isIdentityFederationEnabled() {
-        return !this.realm.getIdentityProviders().isEmpty();
-    }
 
     @Override
     public boolean isInternationalizationEnabled() {

@@ -79,11 +79,11 @@ import org.w3c.dom.Element;
 
 
 public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SAMLIdPFederationModel> {
-    
+
 	protected static final Logger logger = Logger.getLogger(SAMLIdPFederationProvider.class);
-	
-	
-	
+
+
+
 	public SAMLIdPFederationProvider(KeycloakSession session, SAMLIdPFederationModel model,String realmId) {
 		super(session, model,realmId);
 	}
@@ -95,14 +95,15 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             EntitiesDescriptorType entitiesDescriptorType = (EntitiesDescriptorType) parsedObject;
             List<EntityDescriptorType> entities = (List<EntityDescriptorType>) (Object) entitiesDescriptorType.getEntityDescriptor();
             Set<String> idpIDs = new HashSet<String>();
-            for(EntityDescriptorType entity : entities) 
-            	idpIDs.add(entity.getEntityID());
+            for(EntityDescriptorType entity : entities) {
+                idpIDs.add(entity.getEntityID());
+            }
             return idpIDs;
         } catch (ParsingException pe) {
             throw new RuntimeException("Could not parse IdP SAML Metadata", pe);
         }
     }
-	
+
 	@Override
 	public String updateFederation() {
 		RealmModel realm = session.realms().getRealm(realmId);
@@ -112,12 +113,13 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			realm.addIdentityProvidersFederation(model);
 		} else {
 			realm.updateIdentityProvidersFederation(model);
-			if (!model.getUpdateFrequencyInMins().equals(oldModel.getUpdateFrequencyInMins()))
-				enableUpdateTask();
+			if (!model.getUpdateFrequencyInMins().equals(oldModel.getUpdateFrequencyInMins())) {
+                enableUpdateTask();
+            }
 		}
 		return model.getInternalId();
 	}
-	
+
 	@Override
 	public void enableUpdateTask() {
 		if(model.getLastMetadataRefreshTimestamp()==null) {
@@ -131,14 +133,14 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		long delay = (model.getUpdateFrequencyInMins() * 60 * 1000) - Instant.now().toEpochMilli() + model.getLastMetadataRefreshTimestamp();
 		timer.schedule(taskRunner, delay > 60 * 1000 ? delay : 60 * 1000, model.getUpdateFrequencyInMins() * 60 * 1000, "UpdateFederation" + model.getInternalId());
 	}
-	
+
 	@Override
 	public synchronized void updateIdentityProviders() {
-		
+
 		logger.info("Started updating IdPs of federation (id): " + model.getInternalId());
-		
+
 		RealmModel realm = session.realms().getRealm(realmId);
-		
+
 		List<EntityDescriptorType> entities = new ArrayList<EntityDescriptorType>();
 		Date validUntil = null;
 		try {
@@ -151,14 +153,16 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		} catch (ParsingException | IOException e) {
 			e.printStackTrace();
 		}
-        
+
 		if(validUntil == null || entities.isEmpty())
-			return; //add a log entry for the failure reason and/or write it in the database, so you can alert later on the admins through the UI
-		
+         {
+            return; //add a log entry for the failure reason and/or write it in the database, so you can alert later on the admins through the UI
+        }
+
 		//default language
 		//should be changed to default realm???
 		final String preferredLang = "en";
-		
+
 		//default authedication flow model
 		AuthenticationFlowModel flowModel = realm.getFlowByAlias(DefaultAuthenticationFlows.FIRST_BROKER_LOGIN_FLOW);
         if (flowModel == null) {
@@ -166,10 +170,11 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
         }
 
 		for(EntityDescriptorType entity: entities) {
-		
-            if (!parseIdP(entity))
+
+            if (!parseIdP(entity)) {
                 continue;
-						
+            }
+
 			IDPSSODescriptorType idpDescriptor = null;
 
 			// Metadata documents can contain multiple Descriptors (See ADFS metadata
@@ -252,14 +257,30 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
         // blacklist for entityId and registrationAuthority
         // whitelist is superior in all cases than blacklist
         String authority = null;
-        if (entity.getExtensions().getRegistrationInfo() != null)
+        if (entity.getExtensions().getRegistrationInfo() != null) {
             authority = entity.getExtensions().getRegistrationInfo().getRegistrationAuthority().toString();
+        }
         return model.getEntityIdWhiteList().contains(entity.getEntityID())
             || (authority != null && model.getRegistrationAuthorityWhiteList().contains(authority))
+            || (model.getCategoryWhiteList() != null && entity.getExtensions().getEntityAttributes() != null
+                && containsAttribute(model.getCategoryWhiteList(), entity.getExtensions().getEntityAttributes().getAttribute()))
             || (model.getEntityIdWhiteList().isEmpty() && model.getRegistrationAuthorityWhiteList().isEmpty()
+                && model.getCategoryWhiteList().isEmpty()
                 && (model.getEntityIdBlackList().isEmpty() || !model.getEntityIdBlackList().contains(entity.getEntityID()))
+                && (model.getCategoryBlackList().isEmpty() || entity.getExtensions().getEntityAttributes() == null
+                    || !containsAttribute(model.getCategoryBlackList(),
+                        entity.getExtensions().getEntityAttributes().getAttribute()))
                 && (model.getRegistrationAuthorityBlackList().isEmpty()
                     || !model.getRegistrationAuthorityBlackList().contains(authority)));
+    }
+
+    private boolean containsAttribute(Map<String, List<String>> map, List<AttributeType> attributes) {
+        return attributes.stream()
+            .filter(attr -> map.containsKey(attr.getName()) && attr.getAttributeValue().size() == map.get(attr.getName()).size()
+                && attr.getAttributeValue().stream().map(Object::toString).collect(Collectors.toList())
+                    .containsAll(map.get(attr.getName())))
+            .count() > 0;
+
     }
 
     private void parseIdP(IdentityProviderModel identityProviderModel, Date validUntil, EntityDescriptorType entity,
@@ -296,8 +317,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
         if (entity.getExtensions() != null && entity.getExtensions().getEntityAttributes() != null) {
             for (AttributeType attribute : entity.getExtensions().getEntityAttributes().getAttribute()) {
                 if (GeneralConstants.MACEDIR.equals(attribute.getName())
-                    && attribute.getAttributeValue().contains(GeneralConstants.HIDE_FOR_DISCOVERY))
+                    && attribute.getAttributeValue().contains(GeneralConstants.HIDE_FOR_DISCOVERY)) {
                     identityProviderModel.getConfig().put("hideOnLoginPage", "true");
+                }
             }
 
         }
@@ -376,10 +398,10 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		//saml aggregate metadata config parameters
 		if ( model.getConfig().get("wantAssertionsEncrypted") != null )
 		    identityProviderModel.getConfig().put("wantAssertionsEncrypted", model.getConfig().get("wantAssertionsEncrypted"));
-		
+
 		if ( model.getConfig().get("wantAssertionsSigned") != null )
 		    identityProviderModel.getConfig().put("wantAssertionsSigned", model.getConfig().get("wantAssertionsSigned"));
-		
+
         List<String> nameIdFormatList = idpDescriptor.getNameIDFormat();
         if (nameIdFormatList != null && !nameIdFormatList.isEmpty()) {
             identityProviderModel.getConfig().put("nameIDPolicyFormat", nameIdFormatList.get(0));
@@ -400,17 +422,17 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
 	@Override
 	public void removeFederation() {
-		
+
 		logger.info("Removing federation " + model.getInternalId() + " and all its IdPs");
-		
+
 		//cancel federation update task
 		TimerProvider timer = session.getProvider(TimerProvider.class);
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
 
 		RealmModel realm = session.realms().getRealm(realmId);
-		
+
 		List<Boolean> results = model.getIdentityprovidersAlias().stream().map(idpAlias -> realm.removeFederationIdp(model, idpAlias)).collect(Collectors.toList());
-		
+
 		realm.removeIdentityProvidersFederation(model.getInternalId());
 	}
 
@@ -432,8 +454,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             throw new RuntimeException(e);
         }
 		StringBuilder sb = new StringBuilder();
-        for(byte b : hashBytes)
+        for(byte b : hashBytes) {
             sb.append(String.format("%02x", b));
+        }
         return sb.toString();
 	}
 
@@ -445,8 +468,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
         try {
             URI authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
 
-            if (model.isPostBindingAuthnRequest())
+            if (model.isPostBindingAuthnRequest()) {
                 authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
+            }
 
             URI endpoint = uriInfo.getBaseUriBuilder().path("realms").path(realm.getName()).path("broker").path("endpoint")
                 .build();

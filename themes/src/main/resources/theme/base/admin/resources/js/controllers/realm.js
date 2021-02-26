@@ -1437,14 +1437,6 @@ module.controller('IdentityProvidersFederationsListCtrl', function(realm, server
 
 module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialog, $scope, providerId, identityProvidersFederation, IdentityProvidersFederation, Current, Notifications, $location, $http) {
 
-
-	$scope.realm = realm;
-	$scope.identityProvidersFederation = identityProvidersFederation;
-
-	$scope.newIdpFederation = $scope.identityProvidersFederation == null ? true : false;
-
-
-
 	$scope.nameIdFormats = [
         {
             format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
@@ -1504,14 +1496,29 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.entityIdWhiteList = [];
 		 $scope.identityProvidersFederation.registrationAuthorityBlackList = [];
 		 $scope.identityProvidersFederation.registrationAuthorityWhiteList = [];
+		 $scope.identityProvidersFederation.categoryWhiteList = {};
+		 $scope.newCategoryWhiteList = {};
+		 $scope.newCategoryWhiteList.key='';
+		 $scope.newCategoryWhiteList.value = [];
+		 $scope.identityProvidersFederation.categoryBlackList = {};
+		 $scope.newCategoryBlackList = {};
+		 $scope.newCategoryBlackList.key='';
+		 $scope.newCategoryBlackList.value = [];
 		 $scope.identityProvidersFederation.config = {};
 		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
          $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+	} else {
+		 $scope.newCategoryWhiteList = {};
+		 $scope.newCategoryWhiteList.key='';
+		 $scope.newCategoryWhiteList.value = [];
+		 $scope.newCategoryBlackList = {};
+		 $scope.newCategoryBlackList.key='';
+		 $scope.newCategoryBlackList.value = [];
 	}
 
-
+	
 //	$scope.importFrom = function() {
-//
+//        
 //        var input = {
 //            fromUrl: $scope.identityProvidersFederation.url,
 //            providerId: providerId
@@ -1525,12 +1532,12 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 //                Notifications.error("Config can not be loaded. Please verify the url.");
 //            });
 //    };
-
-
+	
+       
     $scope.cancel = function() {
         $location.url("/realms/" + realm.realm + "/identity-providers-federations");
     };
-
+    
     $scope.save = function(){
     	if ($scope.newEntityIdWhiteList && $scope.newEntityIdWhiteList.length > 0) {
             $scope.addEntityIdWhiteList();
@@ -1538,7 +1545,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     	if ($scope.newEntityIdBlackList && $scope.newEntityIdBlackList.length > 0) {
             $scope.addEntityIdBlackList();
         }
-
+    	
     	if ($scope.newRegistrationAuthorityWhiteList && $scope.newRegistrationAuthorityWhiteList.length > 0) {
             $scope.addRegistrationAuthorityWhiteList();
         }
@@ -1548,23 +1555,23 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 
     	IdentityProvidersFederation.save({
             realm: $scope.realm.realm
-        },
-        $scope.identityProvidersFederation,
+        }, 
+        $scope.identityProvidersFederation, 
         function () {
         	$location.url("/realms/" + realm.realm + "/identity-providers-federations");
             Notifications.success("The " + $scope.identityProvidersFederation.alias + " provider has been created.");
         });
     }
-
-
+    
+    
     $scope.changed = false;
-
+    
     var initValues = angular.copy($scope.identityProvidersFederation);
-
-    if(initValues==null)
+    
+    if(initValues==null) 
     	initValues = {};
-
-    $scope.$watch('identityProvidersFederation.url',
+    
+    $scope.$watch('identityProvidersFederation.url', 
     	function (newValue, oldValue, scope) {
     		if(newValue != initValues.url) {
     			$scope.changed = true;
@@ -1572,131 +1579,131 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     		else {
     			$scope.changed = false;
     		}
-    	},
+    	}, 
     true);
-
-    $scope.$watch('identityProvidersFederation.alias',
+    
+    $scope.$watch('identityProvidersFederation.alias', 
     	function (newValue, oldValue, scope) {
-    		if(newValue != initValues.alias)
+    		if(newValue != initValues.alias) 
     			$scope.changed = true;
-    		else
+    		else 
     			$scope.changed = false;
-    	},
+    	}, 
     true);
-
-    $scope.$watch('identityProvidersFederation.updateFrequencyInMins',
+    
+    $scope.$watch('identityProvidersFederation.updateFrequencyInMins', 
     	function (newValue, oldValue, scope) {
-    		if(newValue != initValues.updateFrequencyInMins)
+    		if(newValue != initValues.updateFrequencyInMins) 
     			$scope.changed = true;
-    		else
+    		else 
     			$scope.changed = false;
-    	},
+    	}, 
     true);
-
-
-    if(initValues.config == null)
-    	initValues.config = {};
-
-    $scope.$watch('identityProvidersFederation.config.nameIDPolicyFormat',
+	
+    
+    if(initValues.config == null) 
+    	initValues.config = {};	
+    
+    $scope.$watch('identityProvidersFederation.config.nameIDPolicyFormat', 
     	function (newValue, oldValue, scope) {
-    		if(newValue != initValues.config.nameIDPolicyFormat)
+    		if(newValue != initValues.config.nameIDPolicyFormat) 
     			$scope.changed = true;
-    		else
+    		else 
     			$scope.changed = false;
-    	},
+    	}, 
     true);
-
-    $scope.$watch('identityProvidersFederation.config.principalType',
+    
+    $scope.$watch('identityProvidersFederation.config.principalType', 
         	function (newValue, oldValue, scope) {
-        		if(newValue != initValues.config.principalType)
+        		if(newValue != initValues.config.principalType) 
         			$scope.changed = true;
-        		else
+        		else 
         			$scope.changed = false;
-        	},
+        	}, 
         true);
-
-    $scope.$watch('identityProvidersFederation.config.principalAttribute',
+    
+    $scope.$watch('identityProvidersFederation.config.principalAttribute', 
         	function (newValue, oldValue, scope) {
-        		if(newValue != initValues.config.principalAttribute)
+        		if(newValue != initValues.config.principalAttribute) 
         			$scope.changed = true;
-        		else
+        		else 
         			$scope.changed = false;
-        	},
+        	}, 
         true);
-
-    $scope.$watch('identityProvidersFederation.config.postBindingAuthnRequest',
+    
+    $scope.$watch('identityProvidersFederation.config.postBindingAuthnRequest', 
     	function (newValue, oldValue, scope) {
-    		if(newValue != initValues.config.postBindingAuthnRequest)
+    		if(newValue != initValues.config.postBindingAuthnRequest) 
     			$scope.changed = true;
-    		else
+    		else 
     			$scope.changed = false;
-    	},
+    	}, 
     true);
-
-    $scope.$watch('identityProvidersFederation.config.wantAuthnRequestsSigned',
+    
+    $scope.$watch('identityProvidersFederation.config.wantAuthnRequestsSigned', 
 		function (newValue, oldValue, scope) {
-			if(newValue != initValues.config.wantAuthnRequestsSigned)
+			if(newValue != initValues.config.wantAuthnRequestsSigned) 
 				$scope.changed = true;
-			else
+			else 
 				$scope.changed = false;
-		},
+		}, 
 	true);
-
-    $scope.$watch('identityProvidersFederation.config.wantAssertionsSigned',
+    
+    $scope.$watch('identityProvidersFederation.config.wantAssertionsSigned', 
 		function (newValue, oldValue, scope) {
-			if(newValue != initValues.config.wantAssertionsSigned)
+			if(newValue != initValues.config.wantAssertionsSigned) 
 				$scope.changed = true;
-			else
+			else 
 				$scope.changed = false;
-		},
+		}, 
 	true);
-
-    $scope.$watch('identityProvidersFederation.config.wantAssertionsEncrypted',
+    
+    $scope.$watch('identityProvidersFederation.config.wantAssertionsEncrypted', 
 		function (newValue, oldValue, scope) {
-			if(newValue != initValues.config.wantAssertionsEncrypted)
+			if(newValue != initValues.config.wantAssertionsEncrypted) 
 				$scope.changed = true;
-			else
+			else 
 				$scope.changed = false;
-		},
+		}, 
 	true);
     
     $scope.$watch('newEntityIdBlackList', 
     		function (newValue, oldValue, scope) {
-    			if(newValue != initValues.blackList)
+    			if(newValue != initValues.blackList) 
     				$scope.changed = true;
-    			else
+    			else 
     				$scope.changed = false;
-    		},
+    		}, 
     	true);
-
-    $scope.$watch('newEntityIdWhiteList',
+        
+    $scope.$watch('newEntityIdWhiteList', 
     		function (newValue, oldValue, scope) {
-    			if(newValue != initValues.whiteList)
+    			if(newValue != initValues.whiteList) 
     				$scope.changed = true;
-    			else
+    			else 
     				$scope.changed = false;
-    		},
+    		}, 
     	true);
-
-
-    $scope.$watch('newRegistrationAuthorityBlackList',
+    
+    
+    $scope.$watch('newRegistrationAuthorityBlackList', 
     		function (newValue, oldValue, scope) {
-    			if(newValue != initValues.blackList)
+    			if(newValue != initValues.blackList) 
     				$scope.changed = true;
-    			else
+    			else 
     				$scope.changed = false;
-    		},
+    		}, 
     	true);
-
-    $scope.$watch('newRegistrationAuthorityWhiteList',
+        
+    $scope.$watch('newRegistrationAuthorityWhiteList', 
     		function (newValue, oldValue, scope) {
-    			if(newValue != initValues.whiteList)
+    			if(newValue != initValues.whiteList) 
     				$scope.changed = true;
-    			else
+    			else 
     				$scope.changed = false;
-    		},
+    		}, 
     	true);
-
+    
         $scope.deleteEntityIdWhiteList = function(index) {
             $scope.identityProvidersFederation.entityIdWhiteList.splice(index, 1);
             $scope.changed = true;
@@ -1706,7 +1713,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
             $scope.identityProvidersFederation.entityIdWhiteList.push($scope.newEntityIdWhiteList);
             $scope.newEntityIdWhiteList = "";
         }
-
+        
         $scope.deleteEntityIdBlackList = function(index) {
             $scope.identityProvidersFederation.entityIdBlackList.splice(index, 1);
             $scope.changed = true;
@@ -1716,7 +1723,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
             $scope.identityProvidersFederation.entityIdBlackList.push($scope.newEntityIdBlackList);
             $scope.newEntityIdBlackList = "";
         }
-
+        
         $scope.deleteRegistrationAuthorityWhiteList = function(index) {
             $scope.identityProvidersFederation.registrationAuthorityWhiteList.splice(index, 1);
             $scope.changed = true;
@@ -1726,7 +1733,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
             $scope.identityProvidersFederation.registrationAuthorityWhiteList.push($scope.newRegistrationAuthorityWhiteList);
             $scope.newRegistrationAuthorityWhiteList = "";
         }
-
+        
         $scope.deleteRegistrationAuthorityBlackList = function(index) {
             $scope.identityProvidersFederation.registrationAuthorityBlackList.splice(index, 1);
             $scope.changed = true;
@@ -1735,6 +1742,74 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
         $scope.addRegistrationAuthorityBlackList = function() {
             $scope.identityProvidersFederation.registrationAuthorityBlackList.push($scope.newRegistrationAuthorityBlackList);
             $scope.newRegistrationAuthorityBlackList = "";
+        }
+
+        //entity category whitelist / blacklist functions
+        $scope.addCategoryBlackList = function() {
+        	if ($scope.newCategoryBlackListValue.length > 0)
+        		$scope.newCategoryBlackList.value.push($scope.newCategoryBlackListValue);
+            $scope.identityProvidersFederation.categoryBlackList[$scope.newCategoryBlackList.key] = $scope.newCategoryBlackList.value;
+            $scope.newCategoryBlackList.key='';
+            $scope.newCategoryBlackList.value =[];
+            $scope.newCategoryBlackListValue='';
+            $scope.changed = true;
+
+        }
+
+        $scope.removeCategoryBlackList = function(key) {
+        	delete $scope.identityProvidersFederation.categoryBlackList[key];
+            $scope.changed = true;
+        }
+
+        $scope.addCategoryBlackListValue = function() {
+            $scope.newCategoryBlackList.value.push($scope.newCategoryBlackListValue);
+            $scope.newCategoryBlackListValue = "";
+        }
+
+        $scope.deleteNewValueCategoryBlackList = function(index) {
+            $scope.newCategoryBlackList.value.splice(index, 1);
+        }
+
+        $scope.deleteOldValueCategoryBlackList = function(index,key) {
+        	if ( $scope.identityProvidersFederation.categoryBlackList[key].length > 1) {
+        		 $scope.identityProvidersFederation.categoryBlackList[key].splice(index, 1);
+                 $scope.changed = true;
+        	} else {
+        		 Notifications.error('Attribute value can not be empty');
+        	}
+        }
+
+        $scope.addCategoryWhiteList = function() {
+        	if ($scope.newCategoryWhiteListValue.length > 0)
+        		$scope.newCategoryWhiteList.value.push($scope.newCategoryWhiteListValue);
+            $scope.identityProvidersFederation.categoryWhiteList[$scope.newCategoryWhiteList.key] = $scope.newCategoryWhiteList.value;
+            $scope.newCategoryWhiteList.key='';
+            $scope.newCategoryWhiteList.value =[];
+            $scope.newCategoryWhiteListValue='';
+            $scope.changed = true;
+        }
+
+        $scope.removeCategoryWhiteList = function(key) {
+        	delete $scope.identityProvidersFederation.categoryWhiteList[key];
+            $scope.changed = true;
+        }
+
+        $scope.addCategoryWhiteListValue = function() {
+            $scope.newCategoryWhiteList.value.push($scope.newCategoryWhiteListValue);
+            $scope.newCategoryWhiteListValue = "";
+        }
+
+        $scope.deleteNewValueCategoryWhiteList = function(index) {
+            $scope.newCategoryWhiteList.value.splice(index, 1);
+        }
+
+        $scope.deleteOldValueCategoryWhiteList = function(index,key) {
+        	if ( $scope.identityProvidersFederation.categoryWhiteList[key].length > 1) {
+        		 $scope.identityProvidersFederation.categoryWhiteList[key].splice(index, 1);
+                 $scope.changed = true;
+        	} else {
+        		 Notifications.error('Attribute value can not be empty');
+        	}
         }
 
 });
@@ -1750,9 +1825,9 @@ module.controller('IdentityProvidersFederationsExportCtrl', function(realm, Dial
 	    $scope.exportedType = response.headers('Content-Type');
 	    $scope.exported = response.data;
 	});
-
+	
 	$scope.staticLink = window.location.origin + "/auth/realms/master/broker/federation/" + identityProvidersFederation.internalId + "/endpoint/descriptor";
-
+	
 });
 
 
@@ -2962,6 +3037,7 @@ module.controller('AuthenticationFlowsCtrl', function($scope, $route, realm, flo
 
         } else if (realm.dockerAuthenticationFlow == $scope.flow.alias) {
             Notifications.error("Cannot remove flow, it is currently being used as the docker authentication flow.");
+
         } else {
             AuthenticationFlows.remove({realm: realm.realm, flow: $scope.flow.id}, function () {
                 $location.url("/realms/" + realm.realm + '/authentication/flows/' + flows[0].alias);

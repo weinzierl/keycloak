@@ -201,6 +201,7 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
 
         switch (page) {
         	case LOGIN:
+        	case LOGIN_USERNAME:
         		try {
         			attributes.put("identityProvidersSummary", new ObjectMapper().writeValueAsString(((IdentityProviderBean)attributes.get("social")).getProviders()));
         		}

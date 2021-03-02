@@ -37,6 +37,7 @@ public class IdentityProviderModel implements Serializable {
     public static final String SYNC_MODE = "syncMode";
     
     public static final String HIDE_ON_LOGIN = "hideOnLoginPage";
+    public static final String SPECIAL_LOGIN_BUTTON = "specialLoginbutton";
 
     private String internalId;
 
@@ -244,6 +245,15 @@ public class IdentityProviderModel implements Serializable {
     public void setHideOnLogin(boolean hideOnLogin) {
         getConfig().put(HIDE_ON_LOGIN, String.valueOf(hideOnLogin));
     }
+    
+    
+    public boolean isSpecialLoginButton() {
+        return Boolean.valueOf(getConfig().get(SPECIAL_LOGIN_BUTTON));
+    }
+
+    public void setSpecialLoginButton(boolean specialLoginButton) {
+        getConfig().put(SPECIAL_LOGIN_BUTTON, String.valueOf(specialLoginButton));
+    }     
 
     public Set<String> getFederations() {
 		return federations;

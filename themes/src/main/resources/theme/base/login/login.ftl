@@ -114,13 +114,39 @@
         </div>
 
         <#if realm.password && social.providers??>
-            <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
-                <hr/>
-                <h4>${msg("identity-provider-login-label")}</h4>
-                <#if social.providers?size gt 8>
+            <#if social.providers?size gt 8>
+                <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
+                    <hr/>
+                    <h4>${msg("general-identity-providers")}</h4>
+                
+                	 <ul class="${properties.kcFormSocialAccountListClass!} ">
+                     <#list social.specialProviders as p>
+                        <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.specialProviders?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
+                                type="button" href="${p.loginUrl}">
+                            <#if p.iconClasses?has_content>
+                                <i class="${properties.kcCommonLogoIdP!} ${p.iconClasses!}" aria-hidden="true"></i>
+                                <span class="${properties.kcFormSocialAccountNameClass!} kc-social-icon-text">${p.displayName!}</span>
+                            <#else>
+                                <span class="${properties.kcFormSocialAccountNameClass!}">${p.displayName!}</span>
+                            </#if>
+                        </a>
+                     </#list>
+                     </ul>
+                    
+                </div>
+                <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
+                    <hr/>
+                    <h4>${msg("identity-provider-login-label")}</h4>
+                
             		<input id="kc-providers-filter" type="text" placeholder="Filter..." oninput="buildFiltered(this.value)">
             		<ul id="kc-providers-list" class="${properties.kcFormSocialAccountListClass!} login-pf-list-scrollable"></ul>
-            	<#else>
+                    
+                </div>
+            <#else>
+                  <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
+                    <hr/>
+                    <h4>${msg("identity-provider-login-label")}</h4>
+                
                 	 <ul class="${properties.kcFormSocialAccountListClass!} ">
                      <#list social.providers as p>
                         <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.providers?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
@@ -134,8 +160,9 @@
                         </a>
                      </#list>
                      </ul>
-                </#if>
-            </div>
+                    
+                </div>
+            </#if>
         </#if>
 
     </div>

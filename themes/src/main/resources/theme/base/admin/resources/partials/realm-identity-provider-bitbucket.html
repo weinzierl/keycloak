@@ -82,6 +82,13 @@
                 <kc-tooltip>{{:: 'hide-on-login-page.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
+                <label class="col-md-2 control-label" for="specialLoginbutton">{{:: 'special-login-button' | translate}}</label>
+                <div class="col-md-6">
+                    <input ng-model="identityProvider.config.specialLoginbutton" name="identityProvider.config.specialLoginbutton" id="specialLoginbutton" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+                </div>
+                <kc-tooltip>{{:: 'special-login-button.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
                 <label class="col-md-2 control-label" for="guiOrder">{{:: 'gui-order' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="guiOrder" type="text" ng-model="identityProvider.config.guiOrder">

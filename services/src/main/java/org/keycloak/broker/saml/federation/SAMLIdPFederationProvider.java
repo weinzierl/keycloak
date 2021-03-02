@@ -224,6 +224,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                     config.put("principalType", "SUBJECT");
                     config.put(IdentityProviderModel.SYNC_MODE, "IMPORT");
                     config.put("loginHint", "false");
+                    config.put("specialLoginbutton", "false");
                     identityProviderModel.setConfig(config);
 
                     identityProviderModel.setFirstBrokerLoginFlowId(flowModel.getId());

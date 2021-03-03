@@ -63,7 +63,7 @@
 						ng-options="nameFormat.format as nameFormat.name for nameFormat in nameIdFormats">
 					</select>
 				</div>
-				<kc-tooltip>{{:: 'nameid-policy-format.tooltip' |	translate}}</kc-tooltip>
+				<kc-tooltip>{{:: 'nameid-policy-format.federation.tooltip' |	translate}}</kc-tooltip>
 			</div>
 			<div class="form-group clearfix">
 				<label class="col-md-2 control-label" for="principalType">{{::	'saml.principal-type' | translate}}</label>
@@ -73,7 +73,7 @@
 						ng-options="pType.type as pType.name for pType in principalTypes">
 					</select>
 				</div>
-				<kc-tooltip>{{:: 'saml.principal-type.tooltip' |	translate}}</kc-tooltip>
+				<kc-tooltip>{{:: 'saml.principal-type.federation.tooltip' |	translate}}</kc-tooltip>
 			</div>
 			<div class="form-group clearfix">
 				<label class="col-md-2 control-label" for="principalAttribute">{{::'saml.principal-attribute' | translate}}</label>
@@ -82,7 +82,7 @@
 						ng-model="identityProvidersFederation.config.principalAttribute"
 						required>
 				</div>
-				<kc-tooltip>{{:: 'saml.principal-attribute.tooltip' |translate}}</kc-tooltip>
+				<kc-tooltip>{{:: 'saml.principal-attribute.federation.tooltip' |translate}}</kc-tooltip>
 			</div>
 
 			<div class="form-group">

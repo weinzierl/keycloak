@@ -1835,6 +1835,113 @@ module.controller('IdentityProvidersFederationsExportCtrl', function(realm, Dial
 	
 });
 
+module.controller('IdentityProvidersFederationsMappersCtrl', function(realm, $scope, providerId, internalId,alias, identityProvidersFederationMappers, mapperTypes, Current) {
+
+	$scope.realm = realm;
+	$scope.providerId=providerId;
+	$scope.internalId=internalId;
+	$scope.alias=alias;
+    $scope.identityProvidersFederationMappers = identityProvidersFederationMappers;
+	$scope.mapperTypes = mapperTypes;
+	
+});
+
+module.controller('IdentityProvidersFederationsMapperCreateCtrl', function(realm, $scope, internalId, alias, mapperTypes,IdentityProvidersFederationMapper, Current, Notifications, $location) {
+
+	$scope.realm = realm;
+	$scope.internalId=internalId;
+	$scope.alias=alias;
+	$scope.mapper = { config: {}};
+    $scope.mapperTypes = mapperTypes;
+    $scope.create = true;
+
+    // make first type the default
+    $scope.mapperType = mapperTypes[Object.keys(mapperTypes)[0]];
+    $scope.mapper.config.syncMode = 'INHERIT';
+
+    $scope.$watch(function() {
+        return $location.path();
+    }, function() {
+        $scope.path = $location.path().substring(1).split("/");
+    });
+
+    $scope.save = function() {
+        $scope.mapper.identityProviderMapper = $scope.mapperType.id;
+        IdentityProvidersFederationMapper.save({
+             realm : realm.realm, id: internalId
+       }, $scope.mapper, function(data, headers) {
+              var l = headers().location;
+              var id = l.substring(l.lastIndexOf("/") + 1);
+              $location.url("/realms/" + realm.realm + '/identity-providers-federation/' + internalId +"/"+alias+ "/mappers/" + id);
+              Notifications.success("Mapper has been created.");
+       });
+    };
+
+    $scope.cancel = function() {
+        //$location.url("/realms");
+        window.history.back();
+    };
+
+
+
+});
+
+module.controller('IdentityProvidersFederationsMapperEditCtrl', function(realm, Dialog, $scope, internalId, alias,mapper, mapperTypes, IdentityProvidersFederationMapper,Current, Notifications, $location) {
+
+	$scope.realm = realm;
+	$scope.internalId=internalId;
+	$scope.alias=alias;
+	$scope.create = false;
+    $scope.mapper = angular.copy(mapper);
+    $scope.changed = false;
+    $scope.mapperType = mapperTypes[mapper.identityProviderMapper];
+
+    $scope.$watch(function() {
+      return $location.path();
+    }, function() {
+      $scope.path = $location.path().substring(1).split("/");
+    });
+
+    $scope.$watch('mapper', function() {
+       if (!angular.equals($scope.mapper, mapper)) {
+           $scope.changed = true;
+       }
+    }, true);
+
+     $scope.save = function() {
+        IdentityProvidersFederationMapper.update({
+           realm : realm.realm,
+           id: internalId,
+           mapperId : mapper.id
+        }, $scope.mapper, function() {
+           $scope.changed = false;
+           mapper = angular.copy($scope.mapper);
+           $location.url("/realms/" + realm.realm + '/identity-providers-federation/' + internalId +"/" +alias+ "/mappers/" + mapper.id);
+           Notifications.success("Your changes have been saved.");
+        });
+     };
+
+     $scope.reset = function() {
+        $scope.mapper = angular.copy(mapper);
+        $scope.changed = false;
+     };
+
+     $scope.cancel = function() {
+       //$location.url("/realms");
+       window.history.back();
+     };
+
+     $scope.remove = function() {
+        Dialog.confirmDelete($scope.mapper.name, 'mapper', function() {
+           IdentityProvidersFederationMapper.remove({ realm: realm.realm, id: internalId, mapperId : $scope.mapper.id }, function() {
+               Notifications.success("The mapper has been deleted.");
+               $location.url("/realms/" + realm.realm + '/identity-providers-federation/saml/' + internalId +"/" + alias + "/mappers");
+           });
+        });
+      };
+
+    });
+
 
 
 

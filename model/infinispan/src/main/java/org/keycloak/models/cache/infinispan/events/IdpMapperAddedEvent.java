@@ -16,13 +16,17 @@ public class IdpMapperAddedEvent implements ClusterEvent {
     public static String EVENT_NAME = "IDP_MAPPER_ADDED_EVENT";
 
     private String realmId;
-    private IdentityProviderMapperModel identityProviderMapper;
+    private String mapperId;
+    private String idpAlias;
+    private String mapperName;
 
     public IdpMapperAddedEvent(){ }
 
-    public IdpMapperAddedEvent(String realmId, IdentityProviderMapperModel identityProviderMapper) {
+    public IdpMapperAddedEvent(String realmId, String mapperId, String idpAlias, String mapperName) {
         this.realmId = realmId;
-        this.identityProviderMapper = identityProviderMapper;
+        this.mapperId = mapperId;
+        this.idpAlias = idpAlias;
+        this.mapperName = mapperName;
     }
 
     public String getRealmId() {
@@ -33,24 +37,47 @@ public class IdpMapperAddedEvent implements ClusterEvent {
         this.realmId = realmId;
     }
 
-    public IdentityProviderMapperModel getIdentityProviderMapper() {
-        return identityProviderMapper;
+    public String getMapperId() {
+        return mapperId;
     }
 
-    public void setIdentityProviderMapper(IdentityProviderMapperModel identityProviderMapper) {
-        this.identityProviderMapper = identityProviderMapper;
+    public void setMapperId(String mapperId) {
+        this.mapperId = mapperId;
+    }
+
+    public String getIdpAlias() {
+        return idpAlias;
+    }
+
+    public void setIdpAlias(String idpAlias) {
+        this.idpAlias = idpAlias;
+    }
+
+    public String getMapperName() {
+        return mapperName;
+    }
+
+    public void setMapperName(String mapperName) {
+        this.mapperName = mapperName;
     }
 
     public static class ExternalizerImpl implements Externalizer<IdpMapperAddedEvent> {
 
         @Override
         public void writeObject(ObjectOutput output, IdpMapperAddedEvent obj) throws IOException {
-            MarshallUtil.marshallByteArray(EventSerializer.writeValueAsBytes(obj), output);
+            MarshallUtil.marshallString(obj.getRealmId(), output);
+            MarshallUtil.marshallString(obj.getMapperId(), output);
+            MarshallUtil.marshallString(obj.getIdpAlias(), output);
+            MarshallUtil.marshallString(obj.getMapperName(), output);
         }
 
         @Override
         public IdpMapperAddedEvent readObject(ObjectInput input) throws IOException, ClassNotFoundException {
-            return EventSerializer.readValue(MarshallUtil.unmarshallByteArray(input), IdpMapperAddedEvent.class);
+            String realmId = MarshallUtil.unmarshallString(input);
+            String mapperId = MarshallUtil.unmarshallString(input);
+            String idpAlias = MarshallUtil.unmarshallString(input);
+            String mapperName = MarshallUtil.unmarshallString(input);
+            return new IdpMapperAddedEvent(realmId, mapperId, idpAlias, mapperName);
         }
     }
 

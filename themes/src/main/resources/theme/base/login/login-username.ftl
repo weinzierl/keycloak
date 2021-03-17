@@ -6,7 +6,8 @@
 </#noautoesc>
 	<script>
 	
-		var aClass = '${properties.kcFormSocialAccountListButtonClass!}'.split(" ");
+	var aClass = '${properties.kcFormSocialAccountListButtonClass!}'.split(" ");
+		var iconClass = '${properties.kcCommonLogoIdP!}'.split(" ");
 		
 		function buildFiltered(value) {
 			
@@ -18,23 +19,32 @@
 			listElem.textContent = "";
 			for(var i=0; i<identityProvidersSummary.length; i++ ){
 				var idp = identityProvidersSummary[i];
-				
 				if(idp.displayName.toLowerCase().lastIndexOf(value.toLowerCase())>=0){
-					var span = document.createElement('span');
-					span.textContent = idp.displayName;
-					span.classList.add("kc-social-provider-name")
-					var a = document.createElement('a');
+				    var a = document.createElement('a');
 					a.href = idp.loginUrl;
 					a.id = "social-" + idp.alias;
 					for (var j = 0; j < aClass.length; j++) {
 					   a.classList.add(aClass[j]);
 					}
-					
-					//var li = document.createElement('li');
+					var span = document.createElement('span');
+					span.textContent = idp.displayName;
+					span.classList.add("kc-social-provider-name");	
+				    if (idp.iconClasses) {
+				        //idps with icons
+					    var idpIconClass = idp.iconClasses.split(" ");
+					    var icon = document.createElement('i');
+					    for (var j = 0; j < iconClass.length; j++) {
+					        icon.classList.add(iconClass[j]);
+					    }
+					    for (var j = 0; j < idpIconClass.length; j++) {
+					        icon.classList.add(idpIconClass[j]);
+					    }
+					    icon.setAttribute("aria-hidden", "true");
+					    a.appendChild(icon);
+					    span.classList.add("kc-social-icon-text");	
+					}
 					
 					a.appendChild(span);
-					//li.appendChild(a);
-					//listElem.appendChild(li);
 					listElem.appendChild(a);
 				}
 			}
@@ -45,7 +55,6 @@
 		};
 		
     </script>
-
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('username') displayInfo=(realm.password && realm.registrationAllowed && !registrationDisabled??); section>
     <#if section = "header">
         ${msg("loginAccountTitle")}

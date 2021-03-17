@@ -56,7 +56,6 @@ public class IdpCacheProvider implements CacheIdpProviderI {
         idpSummaries.clear();
         cacheIdpMappers.clear();
         idpMapperSummaries.clear();
-//        lazyInit();
     }
 
 
@@ -146,7 +145,8 @@ public class IdpCacheProvider implements CacheIdpProviderI {
         IdentityProviderModel idp = cacheIdp.get(realmId + internalId);
         if (idp == null) {
             idp = getIdentityProviderDelegate().getIdentityProviderById(realmId, internalId);
-            cacheIdp.put(realmId + internalId, idp);
+            if(idp!=null)
+                cacheIdp.put(realmId + internalId, idp);
         }
         return idp;
     }
@@ -205,7 +205,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 //		synchronized (cacheIdp) {
         cacheIdp.put(realm.getId() + identityProvider.getInternalId(), identityProvider);
-        //no need to alter the summary, since its fields never change after creation
+        updateIdpSummary(realm.getId(), new IdentityProviderModelSummary(identityProvider));
 //		}
 
         cluster.notify(IdpUpdatedEvent.EVENT_NAME, new IdpUpdatedEvent(realm.getId(), identityProvider.getInternalId(), identityProvider.getAlias(), identityProvider.getProviderId()), true, ClusterProvider.DCNotify.ALL_DCS);
@@ -224,7 +224,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 //		synchronized (cacheIdp) {
         cacheIdp.put(realmModel.getId() + idpModel.getInternalId(), idpModel);
-        addIdpSummary(realmModel.getId(), new IdentityProviderModelSummary(idpModel));
+        updateIdpSummary(realmModel.getId(), new IdentityProviderModelSummary(idpModel));
 //		}
 
         cluster.notify(IdpUpdatedEvent.EVENT_NAME, new IdpUpdatedEvent(realmModel.getId(), idpModel.getInternalId(), idpModel.getAlias(), idpModel.getProviderId()), true, ClusterProvider.DCNotify.ALL_DCS);
@@ -331,7 +331,7 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
 //        synchronized (cacheIdpMappers) {
             cacheIdpMappers.put(realmModel.getId()+mapper.getId(), mapper);
-            //no need to update the mapper summaries, since their attributes are defined upon creation and never change
+            updateIdpMapperSummary(realmModel.getId(), new IdentityProviderMapperModelSummary(mapper));
 //        }
 
         cluster.notify(IdpMapperUpdatedEvent.EVENT_NAME, new IdpMapperUpdatedEvent(realmModel.getId(), mapper.getId(), mapper.getIdentityProviderAlias(), mapper.getName()), true, ClusterProvider.DCNotify.ALL_DCS);
@@ -342,7 +342,8 @@ public class IdpCacheProvider implements CacheIdpProviderI {
         IdentityProviderMapperModel idpMapper = cacheIdpMappers.get(realmId + id);
         if (idpMapper == null) {
             idpMapper = getIdentityProviderDelegate().getIdentityProviderMapperById(realmId, id);
-            cacheIdpMappers.put(realmId + id, idpMapper);
+            if(idpMapper!=null)
+                cacheIdpMappers.put(realmId + id, idpMapper);
         }
         return idpMapper;
     }
@@ -364,6 +365,16 @@ public class IdpCacheProvider implements CacheIdpProviderI {
         summaries.add(summary);
     }
 
+    protected void updateIdpSummary(String realmId, IdentityProviderModelSummary summary) {
+        Set<IdentityProviderModelSummary> summaries = idpSummaries.get(realmId);
+        if (summaries == null) {
+            summaries = new HashSet<>();
+            idpSummaries.put(realmId, summaries);
+        }
+        summaries.remove(summary); //because Set.add() will not replace summary with same id
+        summaries.add(summary);
+    }
+
     protected void removeIdpSummary(String realmId, IdentityProviderModelSummary summary) {
         Set<IdentityProviderModelSummary> summaries = idpSummaries.get(realmId);
         if (summaries == null) return;
@@ -378,6 +389,17 @@ public class IdpCacheProvider implements CacheIdpProviderI {
         }
         summaries.add(summary);
     }
+
+    protected void updateIdpMapperSummary(String realmId, IdentityProviderMapperModelSummary summary) {
+        Set<IdentityProviderMapperModelSummary> summaries = idpMapperSummaries.get(realmId);
+        if (summaries == null) {
+            summaries = new HashSet<>();
+            idpMapperSummaries.put(realmId, summaries);
+        }
+        summaries.remove(summary); //because Set.add() will not replace summary with same id
+        summaries.add(summary);
+    }
+
 
     protected void removeIdpMapperSummary(String realmId, IdentityProviderMapperModelSummary summary) {
         Set<IdentityProviderMapperModelSummary> summaries = idpMapperSummaries.get(realmId);

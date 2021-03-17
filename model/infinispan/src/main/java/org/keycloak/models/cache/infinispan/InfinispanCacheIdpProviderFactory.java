@@ -55,7 +55,7 @@ public class InfinispanCacheIdpProviderFactory implements CacheIdpProviderFactor
 						String idpAlias = idpUpdatedEvent.getIdpAlias();
 						String idpProviderId = idpUpdatedEvent.getIdpProviderId();
 						idpCache.remove(realmId + idpId);
-						idpCacheProvider.addIdpSummary(realmId, new IdentityProviderModelSummary(idpId, idpAlias, idpProviderId));
+						idpCacheProvider.updateIdpSummary(realmId, new IdentityProviderModelSummary(idpId, idpAlias, idpProviderId));
 					});
 
 					cluster.registerListener(IdpRemovedEvent.EVENT_NAME, (ClusterEvent event) -> {
@@ -94,7 +94,7 @@ public class InfinispanCacheIdpProviderFactory implements CacheIdpProviderFactor
 						String idpAlias = idpMapperUpdatedEvent.getIdpAlias();
 						String mapperName = idpMapperUpdatedEvent.getMapperName();
 						idpMappersCache.remove(realmId + mapperId);
-						idpCacheProvider.addIdpMapperSummary(realmId, new IdentityProviderMapperModelSummary(mapperId, mapperName, idpAlias));
+						idpCacheProvider.updateIdpMapperSummary(realmId, new IdentityProviderMapperModelSummary(mapperId, mapperName, idpAlias));
 					});
 
 					cluster.registerListener(IdpMapperRemovedEvent.EVENT_NAME, (ClusterEvent event) -> {

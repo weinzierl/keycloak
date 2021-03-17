@@ -142,6 +142,8 @@ public class IdpCacheProvider implements CacheIdpProviderI {
 
     @Override
     public IdentityProviderModel getIdentityProviderById(String realmId, String internalId) {
+        if(internalId==null)
+            return null;
         IdentityProviderModel idp = cacheIdp.get(realmId + internalId);
         if (idp == null) {
             idp = getIdentityProviderDelegate().getIdentityProviderById(realmId, internalId);

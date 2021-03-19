@@ -2626,7 +2626,6 @@ module.controller('RequiredActionsCtrl', function($scope, realm, unregisteredReq
     }
 
     $scope.resetRequiredAction = function(action) {
-
         Dialog.confirm(
             "Reset required action",
             "This will reset this required action for all existing users. Are you sure?",
@@ -2637,8 +2636,18 @@ module.controller('RequiredActionsCtrl', function($scope, realm, unregisteredReq
              },
              function(){}
          );
-
     }
+
+    $scope.resetRequiredActionEvery = function(action) {
+        RequiredActions.update({realm: realm.realm, alias: action.alias}, action, function() {
+            if(parseInt(action.config.reset_every)>0)
+                Notifications.success(action.name + " will reset every " + action.config.reset_every + " days");
+            else
+                Notifications.success(action.name + " interval reset is disabled");
+            setupRequiredActionsForm();
+        });
+    }
+
 
     $scope.raisePriority = function(action) {
         RequiredActionRaisePriority.save({realm: realm.realm, alias: action.alias}, function() {

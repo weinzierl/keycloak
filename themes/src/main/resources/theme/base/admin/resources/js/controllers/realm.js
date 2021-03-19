@@ -365,7 +365,7 @@ function genericRealmUpdate($scope, Current, Realm, realm, serverInfo, $http, $r
             $scope.changed = true;
         }
     }, true);
-
+    
     $scope.save = function() {
         var realmCopy = angular.copy($scope.realm);
         console.log('updating realm...');
@@ -2520,7 +2520,7 @@ module.controller('RoleListCtrl', function($scope, $route, Dialog, Notifications
     };
 
     $scope.searchQuery();
-
+    
     $scope.determineEditLink = function(role) {
         return role.name === $scope.defaultRoleName ? "/realms/" + $scope.realm.realm + "/default-roles" : "/realms/" + $scope.realm.realm + "/roles/" + role.id;
     }
@@ -3396,7 +3396,7 @@ module.controller('AuthenticationFlowsCtrl', function($scope, $route, realm, flo
                 setupForm();
             });
         });
-
+        
     }
 
     $scope.raisePriority = function(execution) {
@@ -3460,6 +3460,26 @@ module.controller('RequiredActionsCtrl', function($scope, realm, unregisteredReq
          );
 
     }
+
+    $scope.resetRequiredActionEvery = function(action) {
+        var title = (action.config.reset_every==null || action.config.reset_every=="0") ? "Disable" : "Set";
+        var message = (action.config.reset_every==null || action.config.reset_every=="0") ? "Disable reset interval?" : "Set reset interval?";
+        Dialog.confirm(
+            title,
+            message,
+            function() {
+                 RequiredActions.update({realm: realm.realm, alias: action.alias}, action, function() {
+                     if(parseInt(action.config.reset_every)>0)
+                         Notifications.success(action.name + " will reset at the specified interval");
+                     else
+                         Notifications.success(action.name + " interval reset is disabled");
+                     setupRequiredActionsForm();
+                 });
+             },
+             function(){}
+         );
+    }
+
 
     $scope.raisePriority = function(action) {
         RequiredActionRaisePriority.save({realm: realm.realm, alias: action.alias}, function() {
@@ -3768,7 +3788,7 @@ module.controller('ClientRegPolicyDetailCtrl', function ($scope, realm, clientRe
             $scope.changed = true;
         }
     }, true);
-
+    
     $scope.reset = function() {
         $scope.create ? window.history.back() : $route.reload();
     };
@@ -3797,7 +3817,7 @@ module.controller('ClientRegPolicyDetailCtrl', function ($scope, realm, clientRe
 
 });
 
-module.controller('RealmImportCtrl', function($scope, realm, $route,
+module.controller('RealmImportCtrl', function($scope, realm, $route, 
                                               Notifications, $modal, $resource) {
     $scope.rawContent = {};
     $scope.fileContent = {

@@ -54,6 +54,7 @@ import org.keycloak.services.scheduled.ClearExpiredEvents;
 import org.keycloak.services.scheduled.ClearExpiredUserSessions;
 import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
 import org.keycloak.services.scheduled.ScheduledTaskRunner;
+import org.keycloak.services.scheduled.RequiredActionsResetTask;
 import org.keycloak.services.util.ObjectMapperResolver;
 import org.keycloak.timer.TimerProvider;
 import org.keycloak.transaction.JtaTransactionManagerLookup;
@@ -233,6 +234,7 @@ public class KeycloakApplication extends Application {
             timer.schedule(new ClusterAwareScheduledTaskRunner(sessionFactory, new ClearExpiredEvents(), interval), interval, "ClearExpiredEvents");
             timer.schedule(new ClusterAwareScheduledTaskRunner(sessionFactory, new ClearExpiredClientInitialAccessTokens(), interval), interval, "ClearExpiredClientInitialAccessTokens");
             timer.schedule(new ScheduledTaskRunner(sessionFactory, new ClearExpiredUserSessions()), interval, ClearExpiredUserSessions.TASK_NAME);
+            timer.schedule(new ClusterAwareScheduledTaskRunner(sessionFactory, new RequiredActionsResetTask(), interval), interval, "RequiredActionsResetTask");
             try {
             	session.getTransactionManager().begin();
             	for (RealmModel realm : session.realms().getRealms()) {

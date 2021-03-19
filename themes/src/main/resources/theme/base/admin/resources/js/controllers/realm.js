@@ -3925,6 +3925,26 @@ module.controller('RequiredActionsCtrl', function($scope, realm, unregisteredReq
 
     }
 
+    $scope.resetRequiredActionEvery = function(action) {
+        var title = (action.config.reset_every==null || action.config.reset_every=="0") ? "Disable" : "Set";
+        var message = (action.config.reset_every==null || action.config.reset_every=="0") ? "Disable reset interval?" : "Set reset interval?";
+        Dialog.confirm(
+            title,
+            message,
+            function() {
+                 RequiredActions.update({realm: realm.realm, alias: action.alias}, action, function() {
+                     if(parseInt(action.config.reset_every)>0)
+                         Notifications.success(action.name + " will reset at the specified interval");
+                     else
+                         Notifications.success(action.name + " interval reset is disabled");
+                     setupRequiredActionsForm();
+                 });
+             },
+             function(){}
+         );
+    }
+
+
     $scope.raisePriority = function(action) {
         RequiredActionRaisePriority.save({realm: realm.realm, alias: action.alias}, function() {
             Notifications.success("Required action's priority raised");

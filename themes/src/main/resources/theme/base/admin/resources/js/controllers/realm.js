@@ -2645,7 +2645,7 @@ module.controller('RequiredActionsCtrl', function($scope, realm, unregisteredReq
             function() {
                  RequiredActions.update({realm: realm.realm, alias: action.alias}, action, function() {
                      if(parseInt(action.config.reset_every)>0)
-                         Notifications.success(action.name + " will reset every " + action.config.reset_every + " days");
+                         Notifications.success(action.name + " will reset every " + action.config.reset_every + " " + action.config.reset_every_unit);
                      else
                          Notifications.success(action.name + " interval reset is disabled");
                      setupRequiredActionsForm();

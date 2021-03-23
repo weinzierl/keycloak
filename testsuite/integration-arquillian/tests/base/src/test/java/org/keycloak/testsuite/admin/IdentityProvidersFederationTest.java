@@ -140,14 +140,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         });
 
         removeFederation(representation.getInternalId());
-        //check that federation mapper have been deleted
-        try {
-            realm.identityProvidersFederation().getIdentityProviderFederationMappers(internalId);
-            Assert.fail("Not expected to found federation mapper");
-
-        } catch (Exception e) {
-            // Expected
-        }
+       
     }
 
 	@Test

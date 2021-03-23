@@ -20,7 +20,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name="FEDERATION_MAPPER")
 @NamedQueries({
-    @NamedQuery(name="findByFederation", query="select f from FederationMapperEntity f where f.federation.internalId = :federationId")
+        @NamedQuery(name = "findByFederation", query = "select f from FederationMapperEntity f where f.federation.internalId = :federationId"),
+        @NamedQuery(name = "countByFederationAndName", query = "select count(f) from FederationMapperEntity f where f.federation.internalId = :federationId and f.name = :name")
 })
 public class FederationMapperEntity {
     

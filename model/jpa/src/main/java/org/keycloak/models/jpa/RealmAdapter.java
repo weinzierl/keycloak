@@ -1501,21 +1501,21 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         federationEntity.setRegistrationAuthorityWhiteList(identityProvidersFederationModel.getRegistrationAuthorityWhiteList());
         federationEntity.setCategoryBlackList(identityProvidersFederationModel.getCategoryBlackList());
         federationEntity.setCategoryWhiteList(identityProvidersFederationModel.getCategoryWhiteList());
-        federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
-        federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
-        federationEntity.setConfig(identityProvidersFederationModel.getConfig());
+		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
+		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
+		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
 
-    }
+	}
 
-    @Override
-    public void removeIdentityProvidersFederation(String internalId) {
-        logger.info("Removing the IdP federation entry with id: "+ internalId);
+	@Override
+	public void removeIdentityProvidersFederation(String internalId) {
+		logger.info("Removing the IdP federation entry with id: "+ internalId);
 
-        FederationEntity federationEntity = em.find(FederationEntity.class, internalId);
+		FederationEntity federationEntity = realm.getIdentityProvidersFederations().stream().filter(idpf -> idpf.getInternalId().equals(internalId)).findAny().orElse(null);
 
-        em.remove(federationEntity);
-        em.flush();
-    }
+		em.remove(federationEntity);
+		em.flush();
+	}
 
     @Override
     public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel) {
@@ -1619,12 +1619,12 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
     @Override
     public List<FederationMapperModel> getIdentityProviderFederationMappers(String federationId){
-        TypedQuery<FederationMapperEntity> query = em.createNamedQuery("findByFederation", FederationMapperEntity.class);
+	    TypedQuery<FederationMapperEntity> query = em.createNamedQuery("findByFederation", FederationMapperEntity.class);
         query.setParameter("federationId", federationId);
         List<FederationMapperEntity> list = query.getResultList();
         return  list.stream().map(this::entityToModel).collect(Collectors.toList()) ;
     };
-
+    
     @Override
     public FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id) {
         FederationMapperEntity fe =em.find(FederationMapperEntity.class, id);
@@ -1632,8 +1632,18 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
     };
 
+    private boolean existsMapperWithSameName(String federationId, String name) {
+        TypedQuery<Long> query = em.createNamedQuery("countByFederationAndName", Long.class);
+        query.setParameter("federationId", federationId);
+        query.setParameter("name", name);
+        return query.getSingleResult() > 0;
+    }
+
     @Override
     public void addIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+        if (existsMapperWithSameName(federationMapperModel.getFederationId(), federationMapperModel.getName())) {
+            throw new RuntimeException("Federation mapper name must be unique per federation");
+        }
         FederationMapperEntity mapper = new  FederationMapperEntity();
         mapper.setId(KeycloakModelUtils.generateId());
         mapper.setConfig(federationMapperModel.getConfig());
@@ -1655,9 +1665,9 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             return; //cannot update a non-existent federation
         }
         mapper.setConfig(federationMapperModel.getConfig());
-
+        
     };
-
+    
     @Override
     public void removeIdentityProvidersFederationMapper(String id) {
         FederationMapperEntity mapper = em.find(FederationMapperEntity.class, id);
@@ -2389,7 +2399,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
     /**
      * This just exists for testing purposes
-     *
+     * 
      */
     public static final String COMPONENT_PROVIDER_EXISTS_DISABLED = "component.provider.exists.disabled";
 

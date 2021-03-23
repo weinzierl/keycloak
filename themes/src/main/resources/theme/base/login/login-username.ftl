@@ -118,25 +118,25 @@
 
             <#if realm.password && social.providers??>
               <#if social.providers?size gt 8>
-                <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
-                    <hr/>
-                    <h4>${msg("general-identity-providers")}</h4>
-                
-                	 <ul class="${properties.kcFormSocialAccountListClass!} ">
-                     <#list social.specialProviders as p>
-                        <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.specialProviders?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
-                                type="button" href="${p.loginUrl}">
-                            <#if p.iconClasses?has_content>
-                                <i class="${properties.kcCommonLogoIdP!} ${p.iconClasses!}" aria-hidden="true"></i>
-                                <span class="${properties.kcFormSocialAccountNameClass!} kc-social-icon-text">${p.displayName!}</span>
-                            <#else>
-                                <span class="${properties.kcFormSocialAccountNameClass!}">${p.displayName!}</span>
-                            </#if>
-                        </a>
-                     </#list>
-                     </ul>
-                    
-                </div>
+                 <#if social.promotedProviders??>
+                      <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
+
+                          <ul class="${properties.kcFormSocialAccountListClass!} ">
+                          <#list social.promotedProviders as p>
+                               <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.promotedProviders?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
+                                                type="button" href="${p.loginUrl}">
+                               <#if p.iconClasses?has_content>
+                                    <i class="${properties.kcCommonLogoIdP!} ${p.iconClasses!}" aria-hidden="true"></i>
+                                    <span class="${properties.kcFormSocialAccountNameClass!} kc-social-icon-text">${p.displayName!}</span>
+                               <#else>
+                                      <span class="${properties.kcFormSocialAccountNameClass!}">${p.displayName!}</span>
+                               </#if>
+                               </a>
+                          </#list>
+                          </ul>
+
+                      </div>
+                </#if>
                 <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
                     <hr/>
                     <h4>${msg("identity-provider-login-label")}</h4>

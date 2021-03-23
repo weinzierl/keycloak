@@ -125,13 +125,12 @@
 
         <#if realm.password && social.providers??>
             <#if social.providers?size gt 8>
+                <#if social.promotedProviders??>
                 <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
-                    <hr/>
-                    <h4>${msg("general-identity-providers")}</h4>
                 
                 	 <ul class="${properties.kcFormSocialAccountListClass!} ">
-                     <#list social.specialProviders as p>
-                        <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.specialProviders?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
+                     <#list social.promotedProviders as p>
+                        <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.promotedProviders?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
                                 type="button" href="${p.loginUrl}">
                             <#if p.iconClasses?has_content>
                                 <i class="${properties.kcCommonLogoIdP!} ${p.iconClasses!}" aria-hidden="true"></i>
@@ -144,6 +143,7 @@
                      </ul>
                     
                 </div>
+                </#if>
                 <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
                     <hr/>
                     <h4>${msg("identity-provider-login-label")}</h4>

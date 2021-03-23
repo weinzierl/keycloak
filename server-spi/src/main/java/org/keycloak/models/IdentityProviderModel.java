@@ -17,7 +17,6 @@
 package org.keycloak.models;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,7 +36,7 @@ public class IdentityProviderModel implements Serializable {
     public static final String SYNC_MODE = "syncMode";
     
     public static final String HIDE_ON_LOGIN = "hideOnLoginPage";
-    public static final String SPECIAL_LOGIN_BUTTON = "specialLoginbutton";
+    public static final String PROMOTED_LOGIN_BUTTON = "promotedLoginbutton";
 
     private String internalId;
 
@@ -247,12 +246,12 @@ public class IdentityProviderModel implements Serializable {
     }
     
     
-    public boolean isSpecialLoginButton() {
-        return Boolean.valueOf(getConfig().get(SPECIAL_LOGIN_BUTTON));
+    public boolean isPromotedLoginButton() {
+        return Boolean.valueOf(getConfig().get(PROMOTED_LOGIN_BUTTON));
     }
 
-    public void setSpecialLoginButton(boolean specialLoginButton) {
-        getConfig().put(SPECIAL_LOGIN_BUTTON, String.valueOf(specialLoginButton));
+    public void setPromotedLoginButton(boolean promotedLoginButton) {
+        getConfig().put(PROMOTED_LOGIN_BUTTON, String.valueOf(promotedLoginButton));
     }     
 
     public Set<String> getFederations() {

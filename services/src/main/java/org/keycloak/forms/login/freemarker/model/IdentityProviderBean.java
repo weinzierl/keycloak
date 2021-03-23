@@ -26,7 +26,6 @@ import org.keycloak.theme.Theme;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,14 +41,14 @@ public class IdentityProviderBean {
 
     private boolean displaySocial;
     private List<IdentityProvider> providers;
-    private List<IdentityProvider> specialProviders;
+    private List<IdentityProvider> promotedProviders;
     private RealmModel realm;
     private final KeycloakSession session;
 
     public IdentityProviderBean(RealmModel realm, KeycloakSession session, List<IdentityProviderModel> identityProviders, URI baseURI) {
         this.realm = realm;
         this.session = session;
-        this.specialProviders = new ArrayList<>();
+        this.promotedProviders = new ArrayList<>();
 
         if (!identityProviders.isEmpty()) {
             List<IdentityProvider> orderedList = new ArrayList<>();
@@ -77,8 +76,8 @@ public class IdentityProviderBean {
                 displayName, identityProvider.getProviderId(), loginUrl,
                 config != null ? config.get("guiOrder") : null, getLoginIconClasses(identityProvider.getAlias()));
             orderedSet.add(idp);
-            if (config != null && "true".equals(config.get("specialLoginbutton")))
-                specialProviders.add(idp);
+            if (config != null && "true".equals(config.get("promotedLoginbutton")))
+                promotedProviders.add(idp);
         }
     }
 
@@ -100,8 +99,8 @@ public class IdentityProviderBean {
         return providers;
     }
     
-    public List<IdentityProvider> getSpecialProviders() {
-        return specialProviders;
+    public List<IdentityProvider> getPromotedProviders() {
+        return promotedProviders;
     }
 
     public boolean isDisplayInfo() {

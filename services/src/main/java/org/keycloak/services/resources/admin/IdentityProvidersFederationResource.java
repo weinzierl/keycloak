@@ -213,12 +213,16 @@ public class IdentityProvidersFederationResource {
     @POST
     @Path("instances/{id}/mappers")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(@PathParam("id") String id, FederationMapperRepresentation representation) {
+    public Response createMapper(@PathParam("id") String id, FederationMapperRepresentation representation) {
         this.auth.realm().requireManageIdentityProviders();
 
         FederationMapperModel model = RepresentationToModel.toModel(representation);
         model.setFederationId(id);
-        realm.addIdentityProvidersFederationMapper(model);
+        try {
+            realm.addIdentityProvidersFederationMapper(model);
+        } catch (Exception e) {
+            return ErrorResponse.error("Failed to add federation mapper '" + model.getName() + "'", Response.Status.BAD_REQUEST);
+        }
 
         adminEvent.operation(OperationType.CREATE)
                 .resourcePath(session.getContext().getUri(), representation.getId())
@@ -231,7 +235,9 @@ public class IdentityProvidersFederationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public FederationMapperRepresentation getIdentityProviderFederationMapper(@PathParam("id") String id, @PathParam("mapperId") String mapperId) {
         this.auth.realm().requireViewIdentityProviders();
-        return ModelToRepresentation.toRepresentation(realm.getIdentityProviderFederationMapper(id, mapperId));
+        FederationMapperModel mapper = realm.getIdentityProviderFederationMapper(id, mapperId);
+        if (mapper == null) throw new NotFoundException("mapper not found");
+        return ModelToRepresentation.toRepresentation(mapper);
     }
 
     /**

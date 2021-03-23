@@ -1378,9 +1378,19 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         return  fe != null ? entityToModel(fe) : null ;
 
     };
+
+    private boolean existsMapperWithSameName(String federationId, String name) {
+        TypedQuery<Long> query = em.createNamedQuery("countByFederationAndName", Long.class);
+        query.setParameter("federationId", federationId);
+        query.setParameter("name", name);
+        return query.getSingleResult() > 0;
+    }
     
     @Override
     public void addIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+        if (existsMapperWithSameName(federationMapperModel.getFederationId(), federationMapperModel.getName())) {
+            throw new RuntimeException("Federation mapper name must be unique per federation");
+        }
         FederationMapperEntity mapper = new  FederationMapperEntity();
         mapper.setId(KeycloakModelUtils.generateId());
         mapper.setConfig(federationMapperModel.getConfig());

@@ -56,12 +56,7 @@ import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
-import org.keycloak.models.AuthenticationFlowModel;
-import org.keycloak.models.IdentityProviderModel;
-import org.keycloak.models.IdentityProvidersFederationModel;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.ModelException;
-import org.keycloak.models.RealmModel;
+import org.keycloak.models.*;
 import org.keycloak.models.utils.DefaultAuthenticationFlows;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.saml.SamlPrincipalType;
@@ -197,6 +192,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
             String alias = getHash(entity.getEntityID());
             IdentityProviderModel identityProviderModel = null;
+            boolean newIdp = false;
 
             //check if this federation has already included this IdP
             if (model.getIdentityprovidersAlias().contains(alias)) {
@@ -210,7 +206,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                 if (previous != null) {
                     identityProviderModel = new SAMLIdentityProviderConfig(previous);
                 } else {
-
+					newIdp = true;
                     // initialize idp values
                     // set alias and default values
                     identityProviderModel = new SAMLIdentityProviderConfig();
@@ -234,8 +230,11 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             parseIdP(identityProviderModel, validUntil, entity, idpDescriptor, preferredLang);
 
 			try {
-			    identityProviderModel.validate(realm);
+				identityProviderModel.validate(realm);
 				session.identityProviderStorage().saveFederationIdp(realm, identityProviderModel);
+				//add mappers from federation for new identity providers
+				if (newIdp)
+					model.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, alias)).forEach(fedMap -> session.identityProviderStorage().addIdentityProviderMapper(realm, fedMap));
 			}
 			catch(Exception ex) {
 				ex.printStackTrace();

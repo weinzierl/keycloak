@@ -27,6 +27,8 @@ import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
+import org.keycloak.representations.idm.FederationMapperRepresentation;
+import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
 import org.keycloak.testsuite.Assert;
@@ -81,8 +83,9 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
         String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
             new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
+        createMapper(internalId);
 
-        sleep(90000);
+        sleep(70000);
         // first execute trigger update idps and then get identity providers federation
         IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
                 .getIdentityProviderFederation(internalId);
@@ -93,7 +96,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         assertEquals("wrong url", "http://localhost:8880/edugain-sample-test.xml",
                 representation.getUrl());
 
-        // must be two saml idps with alias1 and alias2
+        // must be three saml idps
         assertEquals(3, representation.getIdentityprovidersAlias().size());
         representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
             assertTrue("wrong IdPs", aliasSet.contains(idpAlias));
@@ -111,6 +114,14 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
             identityProviderResource.update(idp);
             idp = identityProviderResource.toRepresentation();
             assertFalse( Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
+            //check that its idp has one attribute importer mapper
+            List<IdentityProviderMapperRepresentation> mappers = identityProviderResource.getMappers();
+            assertEquals(1, mappers.size());
+            IdentityProviderMapperRepresentation mapper = mappers.get(0);
+            assertEquals("my_mapper", mapper.getName());
+            assertEquals("saml-user-attribute-idp-mapper", mapper.getIdentityProviderMapper());
+            assertEquals("givenname",mapper.getConfig().get("attribute.name"));
+            assertEquals("firstname",mapper.getConfig().get("user.attribute"));
         });
 
         //update federation in order to update idps based on xml
@@ -129,6 +140,14 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         });
 
         removeFederation(representation.getInternalId());
+        //check that federation mapper have been deleted
+        try {
+            realm.identityProvidersFederation().getIdentityProviderFederationMappers(internalId);
+            Assert.fail("Not expected to found federation mapper");
+
+        } catch (Exception e) {
+            // Expected
+        }
     }
 
 	@Test
@@ -250,6 +269,38 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         removeFederation(representation.getInternalId());
     }
 
+    @Test
+    public void testFederationMappers() {
+
+        String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
+                new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
+        String mapperId = createMapper(internalId);
+        FederationMapperRepresentation mapper = realm.identityProvidersFederation().getIdentityProviderFederationMapper(internalId,mapperId);
+        assertEquals("my_mapper", mapper.getName());
+        assertEquals("saml-user-attribute-idp-mapper", mapper.getIdentityProviderMapper());
+        assertEquals("givenname",mapper.getConfig().get("attribute.name"));
+        assertEquals("firstname",mapper.getConfig().get("user.attribute"));
+
+        //update and remove mapper
+        mapper.getConfig().put("user.attribute","name");
+        realm.identityProvidersFederation().updateMapper(internalId,mapperId,mapper);
+        mapper = realm.identityProvidersFederation().getIdentityProviderFederationMapper(internalId,mapperId);
+        assertEquals("my_mapper", mapper.getName());
+        assertEquals("saml-user-attribute-idp-mapper", mapper.getIdentityProviderMapper());
+        assertEquals("givenname",mapper.getConfig().get("attribute.name"));
+        assertEquals("name",mapper.getConfig().get("user.attribute"));
+
+        realm.identityProvidersFederation().deleteMapper(internalId,mapperId);
+        try {
+            realm.identityProvidersFederation().getIdentityProviderFederationMapper(internalId,mapperId);
+            Assert.fail("Not expected to found federation");
+
+        } catch (NotFoundException nfe) {
+            // Expected
+        }
+        removeFederation(internalId);
+    }
+
 
 
     private String createFederation(String alias, String url, Set<String> blackList, Set<String> whitelist,
@@ -303,6 +354,22 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 		});
 
 	}
+
+	private String createMapper(String federatedId) {
+        FederationMapperRepresentation mapper = new FederationMapperRepresentation();
+        mapper.setName("my_mapper");
+        mapper.setIdentityProviderMapper("saml-user-attribute-idp-mapper");
+        Map<String,String> config = new HashMap<>();
+        config.put("attribute.name","givenname");
+        config.put("user.attribute","firstname");
+        mapper.setConfig(config);
+
+        Response response = realm.identityProvidersFederation().createMapper(federatedId,mapper);
+        String id = ApiUtil.getCreatedId(response);
+        Assert.assertNotNull(id);
+        response.close();
+        return id;
+    }
 
 	private static void sleep(long ms) {
 		try {

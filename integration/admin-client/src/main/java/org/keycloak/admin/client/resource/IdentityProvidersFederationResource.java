@@ -54,4 +54,8 @@ public interface IdentityProvidersFederationResource {
     @Path("instances/{id}/mappers/{mapperId}")
     public void deleteMapper(@PathParam("id") String id, @PathParam("mapperId") String mapperId);
 
+    @POST
+    @Path("instances/{id}/mappers/{mapperId}/idp/{action}")
+    public void massIdPMapperAction(@PathParam("id") String id, @PathParam("mapperId") String mapperId, @PathParam("action") String action);
+
 }

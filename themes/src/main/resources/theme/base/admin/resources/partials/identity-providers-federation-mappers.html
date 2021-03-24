@@ -16,7 +16,7 @@
     <table class="table table-striped table-bordered">
         <thead>
          <tr>
-             <th class="kc-table-actions" colspan="4">
+             <th class="kc-table-actions" colspan="6">
                  <div class="form-inline">
                      <div class="form-group">
                          <div class="input-group">
@@ -36,7 +36,7 @@
              <th>{{:: 'name' | translate}}</th>
              <th>{{:: 'sync-mode-override' | translate}}</th>
              <th>{{:: 'type' | translate}}</th>
-             <th>{{:: 'actions' | translate}}</th>
+             <th colspan="3">{{:: 'idp-actions' | translate}}</th>
          </tr>
          </thead>
          <tbody>
@@ -46,7 +46,9 @@
              <td>
            {{mapperTypes[mapper.identityProviderMapper].name}}
              </td>
-             <td></td>
+             <td class="kc-action-cell" data-ng-show="access.manageIdentityProviders" data-ng-click="addMapper(mapper.id)">{{:: 'add-mapper' | translate}}</td>
+             <td class="kc-action-cell" data-ng-show="access.manageIdentityProviders" data-ng-click="updateMapper(mapper.id)">{{:: 'update-mapper' | translate}}</td>
+             <td class="kc-action-cell" data-ng-show="access.manageIdentityProviders" data-ng-click="removeMapper(mapper.id)">{{:: 'remove-mapper' | translate}}</td>
          </tr>
         <tr  data-ng-show="identityProvidersFederationMappers.length == 0">
             <td>{{:: 'no-mappers-available' | translate}}</td>

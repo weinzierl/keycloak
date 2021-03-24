@@ -17,6 +17,7 @@
 
 package org.keycloak.services.resources.admin;
 
+import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.broker.federation.IdpFederationProvider;
 import org.keycloak.broker.federation.IdpFederationProviderFactory;
@@ -51,6 +52,8 @@ public class IdentityProvidersFederationResource {
     private AdminPermissionEvaluator auth;
     private AdminEventBuilder adminEvent;
 
+    protected static final Logger logger = Logger.getLogger(IdentityProvidersFederationResource.class);
+
     public IdentityProvidersFederationResource(RealmModel realm, KeycloakSession session, AdminPermissionEvaluator auth, AdminEventBuilder adminEvent) {
         this.realm = realm;
         this.session = session;
@@ -59,9 +62,8 @@ public class IdentityProvidersFederationResource {
     }
 
     /**
-     * Export public broker configuration for identity provider
-     *
-     * @param format Format to use
+     * Export public broker configuration for fedeartion
+     * @param alias federation alias
      * @return
      */
     @GET
@@ -259,6 +261,51 @@ public class IdentityProvidersFederationResource {
         realm.updateIdentityProvidersFederationMapper(model);
         adminEvent.operation(OperationType.UPDATE).resource(ResourceType.IDENTITY_PROVIDERS_FEDERATION).resourcePath(session.getContext().getUri()).representation(representation).success();
 
+    }
+
+    @POST
+    @Path("instances/{id}/mappers/{mapperId}/idp/{action}")
+    public void massIdPMapperAction(@PathParam("id") String id, @PathParam("mapperId") String mapperId, @PathParam("action") String action) {
+        this.auth.realm().requireManageIdentityProviders();
+
+        FederationMapperModel mapper = realm.getIdentityProviderFederationMapper(id, mapperId);
+        if (mapper == null) throw new NotFoundException("mapper not found");
+        List<IdentityProviderModel> idps = session.identityProviderStorage().getIdentityProvidersByFederation(realm, id);
+
+        if (action.equals("add")) {
+            idps.stream().forEach(idp -> {
+                try {
+                    session.identityProviderStorage().addIdentityProviderMapper(realm, new IdentityProviderMapperModel(mapper, idp.getAlias()));
+                } catch (Exception e) {
+                    logger.info("Mapper with id = " + mapperId + " failed to add to Idp with alias = " + idp.getAlias());
+                }
+            });
+        } else if (action.equals("update")) {
+            idps.stream().forEach(idp -> {
+                try {
+                    IdentityProviderMapperModel idpMapper = session.identityProviderStorage().getIdentityProviderMapperByName(realm, idp.getAlias(), mapper.getName());
+                    if (idpMapper != null) {
+                        idpMapper.setIdentityProviderMapper(mapper.getIdentityProviderMapper());
+                        idpMapper.setConfig(mapper.getConfig());
+                        session.identityProviderStorage().updateIdentityProviderMapper(realm, idpMapper);
+                    }
+                } catch (Exception e) {
+                    logger.info("Mapper with id = " + mapperId + " failed to update in the Idp with alias = " + idp.getAlias());
+                }
+            });
+        } else if (action.equals("remove")) {
+            idps.stream().forEach(idp -> {
+                try {
+                    IdentityProviderMapperModel idpMapper = session.identityProviderStorage().getIdentityProviderMapperByName(realm, idp.getAlias(), mapper.getName());
+                    if (idpMapper != null)
+                        session.identityProviderStorage().removeIdentityProviderMapper(realm, idpMapper);
+                } catch (Exception e) {
+                    logger.info("Mapper with id = " + mapperId + " failed to remove from Idp with alias = " + idp.getAlias());
+                }
+            });
+        } else {
+            throw new BadRequestException("This action to federation mapper does not exist!");
+        }
     }
 
     /**

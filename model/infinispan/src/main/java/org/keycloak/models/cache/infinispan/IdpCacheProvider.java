@@ -139,6 +139,12 @@ public class IdpCacheProvider implements CacheIdpProviderI {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<IdentityProviderModel> getIdentityProvidersByFederation(RealmModel realm, String federationId) {
+        Set<IdentityProviderModelSummary> summaries = idpSummaries.get(realm.getId());
+        return summaries.stream().map(idpSummary -> getIdentityProviderById(realm.getId(), idpSummary.getInternalId())).filter(idp -> idp.getFederations() != null && idp.getFederations().contains(federationId) ).collect(Collectors.toList());
+    }
+
 
     @Override
     public IdentityProviderModel getIdentityProviderById(String realmId, String internalId) {

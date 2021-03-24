@@ -16,6 +16,7 @@ public interface IdentityProviderProvider extends Provider {
 	List<IdentityProviderModel> getIdentityProviders(RealmModel realm);
 	Set<IdentityProviderModelSummary> getIdentityProvidersSummary(RealmModel realm);
 	List<IdentityProviderModel> searchIdentityProviders(RealmModel realm, String keyword, Integer firstResult, Integer maxResults);
+	List<IdentityProviderModel> getIdentityProvidersByFederation(RealmModel realm,String federationId);
 	
 	IdentityProviderModel getIdentityProviderById(String realmId, String internalId);
 	IdentityProviderModel getIdentityProviderByAlias(RealmModel realm, String alias);

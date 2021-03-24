@@ -60,7 +60,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 	public List<IdentityProviderModel> getIdentityProviders(RealmModel realm) {
 		TypedQuery<IdentityProviderEntity> query = em.createNamedQuery("findIdentityProviderByRealm", IdentityProviderEntity.class);
 		query.setParameter("realmId", realm.getId());
-		return query.getResultList().stream().map(entity -> entityToModel(entity, false)).collect(Collectors.toList());
+		return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toList());
 	}
   
   
@@ -79,12 +79,18 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 		if(keyword!=null && !keyword.isEmpty())
 			query.setParameter("keyword", "%"+keyword.toLowerCase()+"%");
 		
-		return query.getResultList().stream().map(entity -> entityToModel(entity, false)).collect(Collectors.toList());
+		return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toList());
 	}
-  
-  
-  
-	private IdentityProviderModel entityToModel(IdentityProviderEntity entity, boolean withFederations) {
+
+	@Override
+	public List<IdentityProviderModel> getIdentityProvidersByFederation(RealmModel realm, String federationId) {
+		TypedQuery<IdentityProviderEntity> query = em.createNamedQuery("findIdentityProviderByFederation", IdentityProviderEntity.class);
+		query.setParameter("federationId", federationId);
+		return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toList());
+	}
+
+
+	private IdentityProviderModel entityToModel(IdentityProviderEntity entity) {
 		IdentityProviderModel identityProviderModel = new IdentityProviderModel();
 		identityProviderModel.setProviderId(entity.getProviderId());
 		identityProviderModel.setAlias(entity.getAlias());
@@ -167,7 +173,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 	@Override
 	public IdentityProviderModel getIdentityProviderById(String realmId, String internalId) {
 		IdentityProviderEntity identityProvider = em.find(IdentityProviderEntity.class, internalId);
-		return identityProvider != null ? entityToModel(identityProvider, false) : null;
+		return identityProvider != null ? entityToModel(identityProvider) : null;
 	}
   
 	private IdentityProviderEntity getIdentityProviderEntityByAlias(RealmModel realmModel, String alias) {
@@ -185,7 +191,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 	@Override
 	public IdentityProviderModel getIdentityProviderByAlias(RealmModel realmModel, String alias) {
 		IdentityProviderEntity identityProvider = getIdentityProviderEntityByAlias(realmModel, alias);
-		return identityProvider != null ? entityToModel(identityProvider, false) : null;
+		return identityProvider != null ? entityToModel(identityProvider) : null;
 	}
 
 	@Override
@@ -214,7 +220,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 			.forEach(identityProviderMapper -> removeIdentityProviderMapper(realmModel, identityProviderMapper));
 		
 		
-		IdentityProviderModel model = entityToModel(identityProvider, false);
+		IdentityProviderModel model = entityToModel(identityProvider);
 		
 		em.remove(identityProvider);
 		em.flush();
@@ -411,7 +417,7 @@ public class JpaIdpProvider implements IdentityProviderProvider {
 			if(idpEntity == null) return false;
 			Set<FederationEntity> idpFeds = idpEntity.getFederations();
 			FederationEntity fedEntity = idpFeds.stream().filter(e -> e.getInternalId().equals(idpfModel.getInternalId())).findAny().orElse(null);
-			IdentityProviderModel idpModel = entityToModel(idpEntity, true);
+			IdentityProviderModel idpModel = entityToModel(idpEntity);
 			if(idpFeds.size() == 1) {
 				em.remove(idpEntity);
 				em.flush();

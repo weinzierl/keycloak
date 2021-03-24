@@ -555,6 +555,8 @@ public interface RealmModel extends RoleContainerModel {
     void removeIdentityProviderByAlias(String alias);
     void updateIdentityProvider(IdentityProviderModel identityProvider);
 
+    List<IdentityProviderModel> getIdentityProvidersByFederation(String federationId);
+
     /**
      * @deprecated Use {@link #getIdentityProviderMappersStream() getIdentityProviderMappersStream} instead.
      */

@@ -140,7 +140,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         });
 
         removeFederation(representation.getInternalId());
-       
+
     }
 
 	@Test
@@ -292,6 +292,95 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
             // Expected
         }
         removeFederation(internalId);
+    }
+
+    @Test
+    public void testFederationMappersActions() {
+
+        String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
+                new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
+
+        sleep(90000);
+        // first execute trigger update idps and then get identity providers federation
+        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
+                .getIdentityProviderFederation(internalId);
+        assertNotNull(representation);
+
+        assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
+        assertEquals("not saml federation", "saml", representation.getProviderId());
+        assertEquals("wrong url", "http://localhost:8880/edugain-sample-test.xml",
+                representation.getUrl());
+
+        // must be three saml idps
+        assertEquals(3, representation.getIdentityprovidersAlias().size());
+        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+            assertTrue("wrong IdPs", aliasSet.contains(idpAlias));
+            // find idp and check parameters
+            IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
+            IdentityProviderRepresentation idp = provider.toRepresentation();
+            assertEquals("not saml IdP", "saml", idp.getProviderId());
+            assertNotNull("empty IdP config", idp.getConfig());
+        });
+
+        //add mapper to Idp
+        String mapperId = createMapper(internalId);
+        realm.identityProvidersFederation().massIdPMapperAction(internalId,mapperId,"add");
+
+        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+            // find idp and check parameters
+            IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
+            IdentityProviderRepresentation idp = provider.toRepresentation();
+            assertEquals("not saml IdP", "saml", idp.getProviderId());
+            assertNotNull("empty IdP config", idp.getConfig());
+            IdentityProviderResource identityProviderResource = realm.identityProviders().get(idp.getAlias());
+            //check mapper
+            List<IdentityProviderMapperRepresentation> mappers = identityProviderResource.getMappers();
+            assertEquals(1, mappers.size());
+            IdentityProviderMapperRepresentation mapper = mappers.get(0);
+            assertEquals("my_mapper", mapper.getName());
+            assertEquals("saml-user-attribute-idp-mapper", mapper.getIdentityProviderMapper());
+            assertEquals("givenname",mapper.getConfig().get("attribute.name"));
+            assertEquals("firstname",mapper.getConfig().get("user.attribute"));
+        });
+
+        //update mapper to Idp
+        FederationMapperRepresentation fedMapper = realm.identityProvidersFederation().getIdentityProviderFederationMapper(internalId,mapperId);
+        fedMapper.getConfig().put("user.attribute","name");
+        realm.identityProvidersFederation().updateMapper(internalId,mapperId,fedMapper);
+        realm.identityProvidersFederation().massIdPMapperAction(internalId,mapperId,"update");
+        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+            // find idp and check parameters
+            IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
+            IdentityProviderRepresentation idp = provider.toRepresentation();
+            assertEquals("not saml IdP", "saml", idp.getProviderId());
+            assertNotNull("empty IdP config", idp.getConfig());
+            IdentityProviderResource identityProviderResource = realm.identityProviders().get(idp.getAlias());
+            //check mapper
+            List<IdentityProviderMapperRepresentation> mappers = identityProviderResource.getMappers();
+            assertEquals(1, mappers.size());
+            IdentityProviderMapperRepresentation mapper = mappers.get(0);
+            assertEquals("my_mapper", mapper.getName());
+            assertEquals("saml-user-attribute-idp-mapper", mapper.getIdentityProviderMapper());
+            assertEquals("givenname",mapper.getConfig().get("attribute.name"));
+            assertEquals("name",mapper.getConfig().get("user.attribute"));
+        });
+
+        //remove mapper from Idp
+        realm.identityProvidersFederation().massIdPMapperAction(internalId,mapperId,"remove");
+        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+            // find idp and check parameters
+            IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
+            IdentityProviderRepresentation idp = provider.toRepresentation();
+            assertEquals("not saml IdP", "saml", idp.getProviderId());
+            assertNotNull("empty IdP config", idp.getConfig());
+            IdentityProviderResource identityProviderResource = realm.identityProviders().get(idp.getAlias());
+            //check mapper
+            List<IdentityProviderMapperRepresentation> mappers = identityProviderResource.getMappers();
+            assertEquals(0, mappers.size());
+        });
+
+        removeFederation(representation.getInternalId());
+
     }
 
 

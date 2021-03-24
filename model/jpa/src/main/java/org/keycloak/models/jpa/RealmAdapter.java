@@ -1724,6 +1724,13 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     }
 
     @Override
+    public List<IdentityProviderModel> getIdentityProvidersByFederation(String federationId) {
+        TypedQuery<IdentityProviderEntity> query = em.createNamedQuery("findIdentityProviderByFederation", IdentityProviderEntity.class);
+        query.setParameter("federationId", federationId);
+        return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toList());
+    }
+
+    @Override
     public boolean isInternationalizationEnabled() {
         return realm.isInternationalizationEnabled();
     }

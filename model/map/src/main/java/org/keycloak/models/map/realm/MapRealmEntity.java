@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.keycloak.common.util.Time;
-import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.FederationMapperModel;
 import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.ModelDuplicateException;
 import org.keycloak.models.ModelException;
@@ -39,7 +39,6 @@ import org.keycloak.models.map.realm.entity.MapClientInitialAccessEntity;
 import org.keycloak.models.map.realm.entity.MapComponentEntity;
 import org.keycloak.models.map.realm.entity.MapIdentityProviderEntity;
 import org.keycloak.models.map.realm.entity.MapIdentityProviderMapperEntity;
-import org.keycloak.models.map.realm.entity.MapIdpFederationEntity;
 import org.keycloak.models.map.realm.entity.MapOTPPolicyEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredActionProviderEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredCredentialEntity;
@@ -125,7 +124,7 @@ public class MapRealmEntity<K> implements AbstractEntity<K> {
     private final Map<String, MapAuthenticatorConfigEntity> authenticatorConfigs = new HashMap<>();
     private final Map<String, MapIdentityProviderEntity> identityProviders = new HashMap<>();
     private final Map<String, MapIdentityProviderMapperEntity> identityProviderMappers = new HashMap<>();
-    private final Map<String, MapIdpFederationEntity> identityProviderFederations = new HashMap<>();
+    private final Map<String, IdentityProvidersFederationModel> identityProviderFederations = new HashMap<>();
     private final Map<String, MapRequiredActionProviderEntity> requiredActionProviders = new HashMap<>();
 
     /**
@@ -945,15 +944,15 @@ public class MapRealmEntity<K> implements AbstractEntity<K> {
     }
 
 
-    public MapIdpFederationEntity getIdentityProvidersFederationById(String id){
+    public IdentityProvidersFederationModel getIdentityProvidersFederationById(String id){
         return identityProviderFederations.get(id);
     }
 
-    public Stream<MapIdpFederationEntity> getIdentityProvidersFederations(){
+    public Stream<IdentityProvidersFederationModel> getIdentityProvidersFederations(){
         return identityProviderFederations.values().stream();
     }
 
-    public void addIdentityProvidersFederation(MapIdpFederationEntity idpFederation) {
+    public void addIdentityProvidersFederation(IdentityProvidersFederationModel idpFederation) {
         if (identityProviderFederations.containsKey(idpFederation.getInternalId())) {
             throw new ModelDuplicateException("An IdentityProviderFederation with given id already exists");
         }
@@ -967,11 +966,38 @@ public class MapRealmEntity<K> implements AbstractEntity<K> {
         return removed;
     }
 
-    public void updateIdentityProvidersFederation(MapIdpFederationEntity idpFederation) {
+    public void updateIdentityProvidersFederation(IdentityProvidersFederationModel idpFederation) {
         this.updated |= identityProviderFederations.replace(idpFederation.getInternalId(), idpFederation) != null;
     }
 
-    public void addFederationIdp(MapIdpFederationEntity idpFederation, MapIdentityProviderEntity idp){
+    public void addIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+        this.updated = true;
+        this.identityProviderFederations.get(federationMapperModel.getFederationId()).getFederationMapperModels().add(federationMapperModel);
+    };
+
+    public  void updateIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+        this.updated = true;
+        IdentityProvidersFederationModel federationModel = this.identityProviderFederations.get(federationMapperModel.getFederationId());
+        List<FederationMapperModel> filtered = federationModel.getFederationMapperModels().stream()
+                .filter(mapper -> !mapper.getId().equals(federationMapperModel.getId()))
+                .collect(Collectors.toList());
+        filtered.add(federationMapperModel);
+        federationModel.setFederationMapperModels(filtered);
+    };
+
+    public void removeIdentityProvidersFederationMapper(String id) {
+        this.updated = true;
+        for(String federationId : this.identityProviderFederations.keySet()){
+            IdentityProvidersFederationModel federation = this.identityProviderFederations.get(federationId);
+            List<FederationMapperModel> federationMappers = federation.getFederationMapperModels().stream()
+                    .filter(mapper -> !mapper.getId().equals(id))
+                    .collect(Collectors.toList());
+            federation.setFederationMapperModels(federationMappers);
+        }
+    };
+
+
+    public void addFederationIdp(IdentityProvidersFederationModel idpFederation, MapIdentityProviderEntity idp){
         if (!identityProviderFederations.containsKey(idpFederation.getInternalId()))
             throw new ModelException("An IdentityProviderFederation with given id does not exist. Cannot insert identity provider for that federation");
         MapIdentityProviderEntity currentIdp = getIdentityProviders().filter(i -> i.getAlias().equals(idp.getAlias())).findFirst().orElse(null);
@@ -989,7 +1015,7 @@ public class MapRealmEntity<K> implements AbstractEntity<K> {
         }
     }
 
-    public void removeFederationIdp(MapIdpFederationEntity idpFederation, String idpAlias){
+    public void removeFederationIdp(IdentityProvidersFederationModel idpFederation, String idpAlias){
         if (!identityProviderFederations.containsKey(idpFederation.getInternalId()))
             throw new ModelException("An IdentityProviderFederation with given id does not exist. Cannot remove identity provider of that federation");
         if (idpAlias==null || idpAlias.isEmpty())

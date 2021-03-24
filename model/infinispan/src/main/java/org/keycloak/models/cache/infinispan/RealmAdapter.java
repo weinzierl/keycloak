@@ -30,6 +30,7 @@ import org.keycloak.storage.client.ClientStorageProvider;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -1292,6 +1293,12 @@ public class RealmAdapter implements CachedRealmModel {
     public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias) {
         getDelegateForUpdate();
         return updated.removeFederationIdp(identityProvidersFederationModel,  idpAlias);
+    }
+
+
+    @Override
+    public List<IdentityProviderModel> getIdentityProvidersByFederation(String federationId) {
+       return getIdentityProvidersStream().filter(idp -> idp.getFederations().contains(federationId)).collect(Collectors.toList());
     }
 
 

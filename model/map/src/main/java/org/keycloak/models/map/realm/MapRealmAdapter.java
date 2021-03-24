@@ -36,6 +36,7 @@ import org.keycloak.models.CibaConfig;
 import org.keycloak.models.ClientInitialAccessModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
+import org.keycloak.models.FederationMapperModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
@@ -56,7 +57,6 @@ import org.keycloak.models.map.realm.entity.MapClientInitialAccessEntity;
 import org.keycloak.models.map.realm.entity.MapComponentEntity;
 import org.keycloak.models.map.realm.entity.MapIdentityProviderEntity;
 import org.keycloak.models.map.realm.entity.MapIdentityProviderMapperEntity;
-import org.keycloak.models.map.realm.entity.MapIdpFederationEntity;
 import org.keycloak.models.map.realm.entity.MapOTPPolicyEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredActionProviderEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredCredentialEntity;
@@ -924,13 +924,13 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
 
     @Override
     public List<IdentityProvidersFederationModel> getIdentityProviderFederations(){
-        return entity.getIdentityProvidersFederations().map(MapIdpFederationEntity::toModel).collect(Collectors.toList());
+        return entity.getIdentityProvidersFederations().collect(Collectors.toList());
     }
 
     @Override
     public IdentityProvidersFederationModel getIdentityProvidersFederationById(String id){
         if (id == null) return null;
-        return MapIdpFederationEntity.toModel(entity.getIdentityProvidersFederationById(id));
+        return entity.getIdentityProvidersFederationById(id);
     }
 
     @Override
@@ -938,18 +938,17 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
         return entity.getIdentityProvidersFederations()
                 .filter(idpFed -> idpFed.getAlias().equals(alias))
                 .findFirst()
-                .map(MapIdpFederationEntity::toModel)
                 .orElse(null);
     }
 
     @Override
     public void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel){
-        entity.addIdentityProvidersFederation(MapIdpFederationEntity.fromModel(identityProvidersFederationModel));
+        entity.addIdentityProvidersFederation(identityProvidersFederationModel);
     }
 
     @Override
     public void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel){
-        entity.updateIdentityProvidersFederation(MapIdpFederationEntity.fromModel(identityProvidersFederationModel));
+        entity.updateIdentityProvidersFederation(identityProvidersFederationModel);
     }
 
     @Override
@@ -961,7 +960,7 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
     @Override
     public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel){
         try {
-            entity.addFederationIdp(MapIdpFederationEntity.fromModel(idpfModel), MapIdentityProviderEntity.fromModel(idpModel));
+            entity.addFederationIdp(idpfModel, MapIdentityProviderEntity.fromModel(idpModel));
             return true;
         }
         catch(RuntimeException ex){
@@ -972,13 +971,55 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
     @Override
     public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias){
         try {
-            entity.removeFederationIdp(MapIdpFederationEntity.fromModel(identityProvidersFederationModel), idpAlias);
+            entity.removeFederationIdp(identityProvidersFederationModel, idpAlias);
             return true;
         }
         catch(RuntimeException ex){
             return false;
         }
     }
+
+    @Override
+    public List<IdentityProviderModel> getIdentityProvidersByFederation(String federationId) {
+        return getIdentityProvidersStream().filter(idp -> idp.getFederations().contains(federationId)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FederationMapperModel> getIdentityProviderFederationMappers(String federationId){
+        IdentityProvidersFederationModel federation = getIdentityProvidersFederationById(federationId);
+        if ( federation != null) {
+            return federation.getFederationMapperModels();
+        } else {
+            throw new IllegalStateException("Federation not found: " + federationId);
+        }
+    };
+
+    @Override
+    public FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id) {
+        IdentityProvidersFederationModel federation = getIdentityProvidersFederationById(federationId);
+        if (federation != null) {
+            return federation.getFederationMapperModels().stream().filter(mapper -> Objects.equals(mapper.getId(), id))
+                    .findFirst().orElse(null);
+        } else {
+            throw new IllegalStateException("Federation not found: " + federationId);
+        }
+
+    };
+
+    @Override
+    public void addIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+        entity.addIdentityProvidersFederationMapper(federationMapperModel);
+    };
+
+    @Override
+    public  void updateIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+        entity.updateIdentityProvidersFederationMapper(federationMapperModel);
+    };
+
+    @Override
+    public void removeIdentityProvidersFederationMapper(String id) {
+        entity.removeIdentityProvidersFederationMapper(id);
+    };
 
     @Override
     public ComponentModel addComponentModel(ComponentModel model) {

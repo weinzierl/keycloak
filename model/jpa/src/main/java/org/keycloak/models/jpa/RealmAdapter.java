@@ -1339,7 +1339,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		//should not change alias, providerid, and creation date, since those attributes are immutable
 		//lastMetadataRefreshTimestamp field should be updated only related to idps refresh 
 		//and not if user change some federation fields
-		federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
+		federationEntity.setLastMetadataRefreshTimestamp(identityProvidersFederationModel.getLastMetadataRefreshTimestamp());
 		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
 		federationEntity.setEntityIdBlackList(identityProvidersFederationModel.getEntityIdBlackList());
 		federationEntity.setEntityIdWhiteList(identityProvidersFederationModel.getEntityIdWhiteList());

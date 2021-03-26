@@ -1854,7 +1854,7 @@ module.controller('IdentityProvidersFederationsMappersCtrl', function(realm, $sc
     };
 
     $scope.updateMapper = function(mapperId) {
-        Dialog.confirm('Update Mapper', 'This mapper will be updated to all Identity Providers of this Federation. Are you sure?', function() {
+        Dialog.confirm('Update Mapper', 'This mapper will be updated on all Identity Providers of this Federation. Are you sure?', function() {
             $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/instances/'+internalId+'/mappers/'+mapperId+'/idp/update')
                 .then(function(response) {
                     Notifications.success("Mapper updated to all Identity Providers of this Federation.");
@@ -1864,7 +1864,7 @@ module.controller('IdentityProvidersFederationsMappersCtrl', function(realm, $sc
 
 
     $scope.removeMapper = function(mapperId) {
-        Dialog.confirm('Remove Mapper', 'This mapper will be removed to all Identity Providers of this Federation. Are you sure?', function() {
+        Dialog.confirm('Remove Mapper', 'This mapper will be removed from all Identity Providers of this Federation. Are you sure?', function() {
             $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/instances/'+internalId+'/mappers/'+mapperId+'/idp/remove')
                 .then(function(response) {
                     Notifications.success("Mapper removed to all Identity Providers of this Federation.");

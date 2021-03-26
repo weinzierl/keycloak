@@ -56,6 +56,26 @@
 				<kc-tooltip>{{::'saml-federation.update-frequency-in-mins.tooltip' | translate}}</kc-tooltip>
 			</div>
 
+			<div class="form-group clearfix" data-ng-show="identityProvidersFederation.internalId">
+				<label class="col-md-2 control-label" for="lastMetadataRefreshTimestamp">{{::'last-updated' | translate}}</label>
+				<div class="col-md-6">
+					<input class="form-control" id="lastMetadataRefreshTimestamp" type="text"
+						   ng-model="identityProvidersFederation.lastMetadataRefreshTimestamp | date : 'yyyy-MM-dd HH:mm:ss'"
+						   readonly>
+				</div>
+				<kc-tooltip>{{:: 'last-updated.tooltip' |translate}}</kc-tooltip>
+			</div>
+
+			<div class="form-group clearfix" data-ng-show="identityProvidersFederation.internalId">
+				<label class="col-md-2 control-label" for="validUntilTimestamp">{{::'valid-until' | translate}}</label>
+				<div class="col-md-6">
+					<input class="form-control" id="validUntilTimestamp" type="text"
+						   ng-model="identityProvidersFederation.validUntilTimestamp | date : 'yyyy-MM-dd HH:mm:ss'"
+						   readonly>
+				</div>
+				<kc-tooltip>{{:: 'valid-until.tooltip' |translate}}</kc-tooltip>
+			</div>
+
 			<div class="form-group clearfix">
 				<label class="col-md-2 control-label" for="nameIDPolicyFormat">{{::	'nameid-policy-format' | translate}}</label>
 				<div class="col-md-6">

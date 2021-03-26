@@ -88,6 +88,7 @@ public class IdentityProvidersFederationModel implements Serializable {
         this.setCategoryBlackList(model.getRegistrationAuthorityBlackList() != null ? model.getCategoryBlackList() : new HashMap<String,List<String>>());
         this.setCategoryWhiteList(model.getRegistrationAuthorityWhiteList() != null ? model.getCategoryWhiteList() : new HashMap<String,List<String>>());
 		this.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
+        this.setValidUntilTimestamp(model.getValidUntilTimestamp());
 		this.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
 		this.setConfig(model.getConfig());
 		this.setFederationMapperModels(model.getFederationMapperModels());

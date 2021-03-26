@@ -149,7 +149,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			e.printStackTrace();
 		}
 
-		if(validUntil == null || entities.isEmpty())
+		if(entities.isEmpty())
          {
             return; //add a log entry for the failure reason and/or write it in the database, so you can alert later on the admins through the UI
         }
@@ -286,7 +286,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
     private void parseIdP(IdentityProviderModel identityProviderModel, Date validUntil, EntityDescriptorType entity,
         IDPSSODescriptorType idpDescriptor, String preferredLang) {
-        if (validUntil.before(new Date())) {
+        if (validUntil!= null &&  validUntil.before(new Date())) {
             identityProviderModel.setEnabled(false);
         } else {
             identityProviderModel.setEnabled(true);

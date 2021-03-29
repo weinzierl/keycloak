@@ -20,6 +20,7 @@ import org.keycloak.admin.client.resource.ClientsResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.authentication.authenticators.broker.IdpReviewProfileAuthenticatorFactory;
 import org.keycloak.broker.saml.SAMLConfigNames;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.broker.saml.SAMLIdentityProviderFactory;
 import org.keycloak.dom.saml.v2.SAML2Object;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -46,6 +47,7 @@ import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.keycloak.saml.processing.core.parsers.saml.xmldsig.XmlDSigQNames;
 import org.keycloak.saml.processing.core.parsers.util.HasQName;
 import org.keycloak.saml.processing.core.saml.v2.common.SAMLDocumentHolder;
+import org.keycloak.saml.processing.core.saml.v2.constants.X500SAMLProfileConstants;
 import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
 import org.keycloak.testsuite.updaters.IdentityProviderCreator;
 import org.keycloak.testsuite.util.IdentityProviderBuilder;
@@ -53,6 +55,7 @@ import org.keycloak.testsuite.util.SamlClientBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.security.KeyPair;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -64,6 +67,7 @@ import org.apache.http.HttpHeaders;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.keycloak.util.JsonSerialization;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -185,8 +189,12 @@ public class BrokerTest extends AbstractSamlTest {
         final RealmResource realm = adminClient.realm(REALM_NAME);
         final IdentityProviderRepresentation rep = addIdentityProvider("https://saml.idp/");
         rep.getConfig().put(SAMLConfigNames.NAME_ID_POLICY_FORMAT, "undefined");
-        rep.getConfig().put(SAMLConfigNames.PRINCIPAL_TYPE, SamlPrincipalType.ATTRIBUTE.toString());
-        rep.getConfig().put(SAMLConfigNames.PRINCIPAL_ATTRIBUTE, "user");
+        SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
+        pr.setPrincipalType(SamlPrincipalType.ATTRIBUTE);
+        pr.setPrincipalAttribute("user");
+        LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
+        principals.add(pr);
+        rep.getConfig().put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
 
         try (IdentityProviderCreator idp = new IdentityProviderCreator(realm, rep)) {
             new SamlClientBuilder()

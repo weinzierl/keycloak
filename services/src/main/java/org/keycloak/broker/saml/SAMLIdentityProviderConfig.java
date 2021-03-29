@@ -18,14 +18,21 @@ package org.keycloak.broker.saml;
 
 import static org.keycloak.common.util.UriUtils.checkUrl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.saml.SamlPrincipalType;
+import org.keycloak.representations.account.ClientRepresentation;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
+import org.keycloak.util.JsonSerialization;
+
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Pedro Igor
@@ -48,8 +55,9 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
     public static final String SINGLE_LOGOUT_SERVICE_URL = "singleLogoutServiceUrl";
     public static final String SINGLE_SIGN_ON_SERVICE_URL = "singleSignOnServiceUrl";
     public static final String VALIDATE_SIGNATURE = "validateSignature";
-    public static final String PRINCIPAL_TYPE = "principalType";
-    public static final String PRINCIPAL_ATTRIBUTE = "principalAttribute";
+//    public static final String PRINCIPAL_TYPE = "principalType";
+//    public static final String PRINCIPAL_ATTRIBUTE = "principalAttribute";
+    public static final String MULTIPLE_PRINCIPALS = "multiplePrincipals";
     public static final String WANT_ASSERTIONS_ENCRYPTED = "wantAssertionsEncrypted";
     public static final String WANT_ASSERTIONS_SIGNED = "wantAssertionsSigned";
     public static final String WANT_AUTHN_REQUESTS_SIGNED = "wantAuthnRequestsSigned";
@@ -278,23 +286,23 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
         }
     }
 
-    public SamlPrincipalType getPrincipalType() {
-        return SamlPrincipalType.from(getConfig().get(PRINCIPAL_TYPE), SamlPrincipalType.SUBJECT);
+    public LinkedList<Principal> getMultiplePrincipals() throws IOException {
+        String principalsJson =getConfig().get(MULTIPLE_PRINCIPALS);
+        if (principalsJson != null ) {
+            return JsonSerialization.readValue(principalsJson, new TypeReference<LinkedList<Principal>>() {
+            });
+        } else {
+            return new LinkedList<>();
+        }
     }
 
-    public void setPrincipalType(SamlPrincipalType principalType) {
-        getConfig().put(PRINCIPAL_TYPE,
-            principalType == null
-                ? null
-                : principalType.name());
-    }
-
-    public String getPrincipalAttribute() {
-        return getConfig().get(PRINCIPAL_ATTRIBUTE);
-    }
-
-    public void setPrincipalAttribute(String principalAttribute) {
-        getConfig().put(PRINCIPAL_ATTRIBUTE, principalAttribute);
+    public void setMultiplePrincipals(LinkedList<Principal> multiplePrincipals) {
+        try {
+            getConfig().put(MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(multiplePrincipals));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     public boolean isEnabledFromMetadata() {
@@ -352,8 +360,50 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
         checkUrl(sslRequired, getSingleLogoutServiceUrl(), SINGLE_LOGOUT_SERVICE_URL);
         checkUrl(sslRequired, getSingleSignOnServiceUrl(), SINGLE_SIGN_ON_SERVICE_URL);
         //transient name id format is not accepted together with principaltype SubjectnameId
-        if ( JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT.get().equals(getConfig().get(NAME_ID_POLICY_FORMAT)) && SamlPrincipalType.SUBJECT.name().equals(getConfig().get(PRINCIPAL_TYPE))) 
-            throw new IllegalArgumentException("Can not have Transient NameID Policy Format together with SUBJECT Principal Type");
-        
+        if ( JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT.get().equals(getConfig().get(NAME_ID_POLICY_FORMAT))) {
+            try {
+                LinkedList<Principal> principals = JsonSerialization.readValue(getConfig().get(MULTIPLE_PRINCIPALS), new TypeReference<LinkedList<Principal>>() {
+                });
+                if (principals.stream().allMatch(pr -> SamlPrincipalType.SUBJECT.equals(pr.getPrincipalType())))
+                    throw new IllegalArgumentException("Can not have Transient NameID Policy Format together with SUBJECT Principal Type");
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Can not have Transient NameID Policy Format together with SUBJECT Principal Type");
+            }
+        }
+
+    }
+
+    public static class Principal {
+        private SamlPrincipalType principalType;
+        private String principalAttribute;
+        private String nameIDPolicyFormat;
+
+        public Principal() {
+
+        }
+
+        public SamlPrincipalType getPrincipalType() {
+            return principalType;
+        }
+
+        public void setPrincipalType(SamlPrincipalType principalType) {
+            this.principalType = principalType;
+        }
+
+        public String getPrincipalAttribute() {
+            return principalAttribute;
+        }
+
+        public void setPrincipalAttribute(String principalAttribute) {
+            this.principalAttribute = principalAttribute;
+        }
+
+        public String getNameIDPolicyFormat() {
+            return nameIDPolicyFormat;
+        }
+
+        public void setNameIDPolicyFormat(String nameIDPolicyFormat) {
+            this.nameIDPolicyFormat = nameIDPolicyFormat;
+        }
     }
 }

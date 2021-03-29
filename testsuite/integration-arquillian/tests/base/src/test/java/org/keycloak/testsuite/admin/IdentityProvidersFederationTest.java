@@ -7,12 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,19 +19,24 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
+import org.keycloak.broker.saml.SAMLConfigNames;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
+import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.representations.idm.FederationMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
+import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.testsuite.Assert;
 import org.keycloak.testsuite.util.AdminEventPaths;
 
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
+import org.keycloak.util.JsonSerialization;
 
 public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
@@ -79,7 +79,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
 
 	@Test
-    public void testCreateUpdateAndRemove() {
+    public void testCreateUpdateAndRemove() throws IOException {
 
         String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
             new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
@@ -144,7 +144,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
     }
 
 	@Test
-	public void testCreateWithBlackListandRemove() {
+	public void testCreateWithBlackListandRemove() throws IOException {
 	    //blacklist entityIdIdP entity id and registrationAuthority="http://aai.grnet.gr/"
 
 		//create with excluding one idp
@@ -184,7 +184,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 	}
 	
 	@Test
-    public void testCreateWithWhiteListandRemove() {
+    public void testCreateWithWhiteListandRemove() throws IOException {
 	  //whitelist entityIdIdP entity id and registrationAuthority="http://aai.grnet.gr/"
 	    
         //create with excluding one idp
@@ -225,7 +225,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
     }
 	
 	@Test
-    public void testCreateWithCategoryBlackListandRemove() {
+    public void testCreateWithCategoryBlackListandRemove() throws IOException {
       //blacklist with attributeName and attributeValue exclude only hashEntityIdIdP
         
         Map<String,List<String>> blackMap =  new HashMap<>();
@@ -263,7 +263,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
     }
 
     @Test
-    public void testFederationMappers() {
+    public void testFederationMappers() throws IOException {
 
         String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
                 new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
@@ -295,7 +295,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
     }
 
     @Test
-    public void testFederationMappersActions() {
+    public void testFederationMappersActions() throws IOException {
 
         String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
                 new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
@@ -386,7 +386,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
 
     private String createFederation(String alias, String url, Set<String> blackList, Set<String> whitelist,
-        Set<String> registrationAuthorityBlackList, Set<String> registrationAuthorityWhitelist, Map<String,List<String>> categoryBlackList) {
+        Set<String> registrationAuthorityBlackList, Set<String> registrationAuthorityWhitelist, Map<String,List<String>> categoryBlackList) throws IOException {
         IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
         representation.setAlias(alias);
         representation.setProviderId("saml");
@@ -397,6 +397,26 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         representation.setRegistrationAuthorityBlackList(registrationAuthorityBlackList);
         representation.setRegistrationAuthorityWhiteList(registrationAuthorityWhitelist);
         representation.setCategoryBlackList(categoryBlackList);
+
+        Map<String,String> config = new HashMap<>();
+        config.put("nameIDPolicyFormat","urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");
+        LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
+        SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
+        pr.setPrincipalType(SamlPrincipalType.SUBJECT);
+        pr.setNameIDPolicyFormat(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get());
+        principals.add(pr);
+        SAMLIdentityProviderConfig.Principal pr2 = new SAMLIdentityProviderConfig.Principal();
+        pr2.setPrincipalType(SamlPrincipalType.SUBJECT);
+        pr2.setNameIDPolicyFormat(JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
+        principals.add(pr2);
+        SAMLIdentityProviderConfig.Principal pr3 = new SAMLIdentityProviderConfig.Principal();
+        pr3.setPrincipalType(SamlPrincipalType.ATTRIBUTE);
+        pr3.setPrincipalAttribute("subject-id");
+        principals.add(pr3);
+        config.put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
+        config.put("wantAssertionsEncrypted","true");
+        config.put("wantAssertionsSigned","true");
+        representation.setConfig(config);
 
         Response response = realm.identityProvidersFederation().create(representation);
         String id = ApiUtil.getCreatedId(response);

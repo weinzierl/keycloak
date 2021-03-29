@@ -40,6 +40,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.jboss.logging.Logger;
 import org.keycloak.broker.federation.AbstractIdPFederationProvider;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
@@ -67,9 +68,11 @@ import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
+import org.keycloak.saml.processing.core.saml.v2.constants.X500SAMLProfileConstants;
 import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
 import org.keycloak.services.scheduled.UpdateFederationIdentityProviders;
 import org.keycloak.timer.TimerProvider;
+import org.keycloak.util.JsonSerialization;
 import org.w3c.dom.Element;
 
 
@@ -217,7 +220,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                     config.put("addExtensionsElementWithKeyInfo", "false");
                     config.put("signatureAlgorithm", "RSA_SHA256");
                     config.put("samlXmlKeyNameTranformer", "KEY_ID");
-                    config.put("principalType", "SUBJECT");
+
+					//config.put("principalType", "SUBJECT");
                     config.put(IdentityProviderModel.SYNC_MODE, "IMPORT");
                     config.put("loginHint", "false");
 
@@ -411,11 +415,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                     : JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
         }
 
-        //for transient nameid policy format if principal type is equal to SUBJECT, set it as SAML Federation selection
-        if ( JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT.get().equals(identityProviderModel.getConfig().get("nameIDPolicyFormat"))  && SamlPrincipalType.SUBJECT.name().equals(identityProviderModel.getConfig().get("principalType"))) {
-            identityProviderModel.getConfig().put("principalType", model.getPrincipalType());
-            identityProviderModel.getConfig().put("principalAttribute", model.getPrincipalAttribute());
-        }
+		if (identityProviderModel.getConfig().get("multiplePrincipals") == null) {
+			identityProviderModel.getConfig().put("multiplePrincipals", model.getConfig().get("multiplePrincipals"));
+		}
 	}
 
 

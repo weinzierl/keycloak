@@ -1053,8 +1053,7 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
 
     $scope.initSamlProvider = function() {
         $scope.nameIdFormats = [
-           
-           
+
             {
                 format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
                 name: "Persistent"
@@ -1090,6 +1089,39 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
 
             }
         ];
+        $scope.nameIdForPrincipal = [
+
+                    {
+                        format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
+                        name: "Persistent"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+                        name: "Email"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos",
+                        name: "Kerberos"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+                        name: "X.509 Subject Name"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName",
+                        name: "Windows Domain Qualified Name"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+                        name: "Unspecified"
+
+                    }
+                ];
         $scope.signatureAlgorithms = [
             "RSA_SHA1",
             "RSA_SHA256",
@@ -1139,6 +1171,13 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
 
     if (instance && instance.alias) {
         $scope.identityProvider = angular.copy(instance);
+        if ($scope.identityProvider.config.multiplePrincipals !== undefined ) {
+            $scope.multiplePrincipals= angular.fromJson($scope.identityProvider.config.multiplePrincipals);
+            $scope.newMultiplePrincipal={};
+        } else  if ($scope.identityProvider.providerId == 'saml'){
+            $scope.multiplePrincipals= [];
+            $scope.newMultiplePrincipal={};
+        }
         $scope.newIdentityProvider = false;
         for (var i in serverInfo.identityProviders) {
             var provider = serverInfo.identityProviders[i];
@@ -1158,8 +1197,14 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
         $scope.identityProvider.firstBrokerLoginFlowAlias = 'first broker login';
         $scope.identityProvider.config.useJwksUrl = 'true';
         $scope.identityProvider.config.syncMode = 'IMPORT';
-        $scope.newIdentityProvider = true;
+        if ($scope.identityProvider.providerId == 'saml'){
+            $scope.multiplePrincipals= [];
+            $scope.newMultiplePrincipal={};
+         }
+         $scope.newIdentityProvider = true;
+
     }
+
 
     $scope.changed = $scope.newIdentityProvider;
 
@@ -1313,7 +1358,31 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
         $location.url("/create/identity-provider/" + realm.realm + "/" + provider.id);
     };
 
+    $scope.addNewMultiplePrincipal = function() {
+            $scope.multiplePrincipals.push($scope.newMultiplePrincipal);
+            $scope.newMultiplePrincipal = {};
+    }
+
+   $scope.removeMultiplePrincipal = function(index) {
+            $scope.multiplePrincipals.splice(index, 1);
+   }
+
+   $scope.movePrincipalUp = function(index) {
+               var tempPr = $scope.multiplePrincipals[index-1];
+               $scope.multiplePrincipals[index-1] =$scope.multiplePrincipals[index];
+               $scope.multiplePrincipals[index] = tempPr;
+   }
+
     $scope.save = function() {
+         if ($scope.newMultiplePrincipal !== undefined && $scope.newMultiplePrincipal.principalType !== undefined && $scope.newMultiplePrincipal.principalType.length) {
+                $scope.addNewMultiplePrincipal();
+         }
+         if ($scope.multiplePrincipals !== undefined ) {
+            	$scope.identityProvider.config.multiplePrincipals = angular.toJson($scope.multiplePrincipals);
+         } else if ($scope.identityProvider.providerId == 'saml'){
+                Notifications.error("You must specify at least one principal");
+                return;
+         }
         if ($scope.newIdentityProvider) {
             if (!$scope.identityProvider.alias) {
                 Notifications.error("You must specify an alias");
@@ -1478,8 +1547,47 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
             name: "Unspecified"
         }
     ];
+
+    $scope.nameIdForPrincipal = [
+
+                        {
+                            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
+                            name: "Persistent"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+                            name: "Email"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos",
+                            name: "Kerberos"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+                            name: "X.509 Subject Name"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName",
+                            name: "Windows Domain Qualified Name"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+                            name: "Unspecified"
+
+                        }
+                    ];
 	
 	 $scope.principalTypes = [
+	     {
+                          type: "SUBJECT",
+                          name: "Subject NameID"
+
+         },
          {
              type: "ATTRIBUTE",
              name: "Attribute [Name]"
@@ -1513,6 +1621,8 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.config = {};
 		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
          $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+         $scope.multiplePrincipals= [];
+          $scope.newMultiplePrincipal={};
 	} else {
 		 $scope.newCategoryWhiteList = {};
 		 $scope.newCategoryWhiteList.key='';
@@ -1520,6 +1630,13 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.newCategoryBlackList = {};
 		 $scope.newCategoryBlackList.key='';
 		 $scope.newCategoryBlackList.value = [];
+		 if ($scope.identityProvidersFederation.config.multiplePrincipals !== undefined ) {
+             $scope.multiplePrincipals= angular.fromJson($scope.identityProvidersFederation.config.multiplePrincipals);
+             $scope.newMultiplePrincipal={};
+         } else  {
+             $scope.multiplePrincipals= [];
+             $scope.newMultiplePrincipal={};
+         }
 	}
 
 	
@@ -1538,7 +1655,20 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 //                Notifications.error("Config can not be loaded. Please verify the url.");
 //            });
 //    };
-	
+	$scope.addNewMultiplePrincipal = function() {
+        $scope.multiplePrincipals.push($scope.newMultiplePrincipal);
+        $scope.newMultiplePrincipal = {};
+    }
+
+    $scope.removeMultiplePrincipal = function(index) {
+        $scope.multiplePrincipals.splice(index, 1);
+    }
+
+    $scope.movePrincipalUp = function(index) {
+         var tempPr = $scope.multiplePrincipals[index-1];
+         $scope.multiplePrincipals[index-1] =$scope.multiplePrincipals[index];
+         $scope.multiplePrincipals[index] = tempPr;
+    }
        
     $scope.cancel = function() {
         $location.url("/realms/" + realm.realm + "/identity-providers-federations");
@@ -1558,6 +1688,15 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     	if ($scope.newRegistrationAuthorityBlackList && $scope.newRegistrationAuthorityBlackList.length > 0) {
             $scope.addRegistrationAuthorityBlackList();
         }
+        if ($scope.newMultiplePrincipal !== undefined && $scope.newMultiplePrincipal.principalType !== undefined && $scope.newMultiplePrincipal.principalType.length) {
+            $scope.addNewMultiplePrincipal();
+        }
+         if ($scope.multiplePrincipals !== undefined ) {
+             $scope.identityProvidersFederation.config.multiplePrincipals = angular.toJson($scope.multiplePrincipals);
+         } else {
+            Notifications.error("You must specify at least one principal");
+            return;
+         }
 
     	IdentityProvidersFederation.save({
             realm: $scope.realm.realm

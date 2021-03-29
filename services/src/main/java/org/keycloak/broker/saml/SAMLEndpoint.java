@@ -99,6 +99,7 @@ import org.keycloak.rotation.KeyLocator;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.ConditionsValidator;
 import org.keycloak.saml.validators.DestinationValidator;
+import org.keycloak.util.JsonSerialization;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -434,10 +435,24 @@ public class SAMLEndpoint {
 
                 AssertionType assertion = responseType.getAssertions().get(0).getAssertion();
                 NameIDType subjectNameID = getSubjectNameID(assertion);
-                String principal = getPrincipal(assertion);
+                String principal = null;
+                LinkedList<SAMLIdentityProviderConfig.Principal> principals = config.getMultiplePrincipals();
+                if (principals.isEmpty()) {
+                    //default value when principal has not been set
+                    principal = subjectNameID != null ? subjectNameID.getValue() : null;
+                } else {
+                    //find first existing principal
+                    for (SAMLIdentityProviderConfig.Principal pr : principals) {
+                        principal = getPrincipal(assertion, pr);
+                        if (principal != null)
+                            break;
+                    }
+                }
+
+
 
                 if (principal == null) {
-                    logger.errorf("no principal in assertion; expected: %s", expectedPrincipalType());
+                    logger.errorf("no principal in assertion; expected: %s", JsonSerialization.writeValueAsString(config.getMultiplePrincipals()));
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
                     return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
@@ -667,17 +682,15 @@ public class SAMLEndpoint {
         return getFirstMatchingAttribute(assertion, attribute -> Objects.equals(attribute.getFriendlyName(), friendlyName));
     }
 
-    private String getPrincipal(AssertionType assertion) {
+    private String getPrincipal(AssertionType assertion,SAMLIdentityProviderConfig.Principal principal) {
 
-        SamlPrincipalType principalType = config.getPrincipalType();
-
-        if (principalType == null || principalType.equals(SamlPrincipalType.SUBJECT)) {
+        if (principal.getPrincipalType() == null || principal.getPrincipalType().equals(SamlPrincipalType.SUBJECT)) {
             NameIDType subjectNameID = getSubjectNameID(assertion);
-            return subjectNameID != null ? subjectNameID.getValue() : null;
-        } else if (principalType.equals(SamlPrincipalType.ATTRIBUTE)) {
-            return getAttributeByName(assertion, config.getPrincipalAttribute());
+            return ( subjectNameID != null && subjectNameID.getFormat()!= null && subjectNameID.getFormat().toString().equals(principal.getNameIDPolicyFormat())) ? subjectNameID.getValue() : null;
+        } else if (principal.getPrincipalType().equals(SamlPrincipalType.ATTRIBUTE)) {
+            return getAttributeByName(assertion, principal.getPrincipalAttribute());
         } else {
-            return getAttributeByFriendlyName(assertion, config.getPrincipalAttribute());
+            return getAttributeByFriendlyName(assertion, principal.getPrincipalAttribute());
         }
 
     }
@@ -695,18 +708,18 @@ public class SAMLEndpoint {
                 .orElse(null);
     }
 
-    private String expectedPrincipalType() {
-        SamlPrincipalType principalType = config.getPrincipalType();
-        switch (principalType) {
-            case SUBJECT:
-                return principalType.name();
-            case ATTRIBUTE:
-            case FRIENDLY_ATTRIBUTE:
-                return String.format("%s(%s)", principalType.name(), config.getPrincipalAttribute());
-            default:
-                return null;
-        }
-    }
+//    private String expectedPrincipalType() {
+//        SamlPrincipalType principalType = config.getPrincipalType();
+//        switch (principalType) {
+//            case SUBJECT:
+//                return principalType.name();
+//            case ATTRIBUTE:
+//            case FRIENDLY_ATTRIBUTE:
+//                return String.format("%s(%s)", principalType.name(), config.getPrincipalAttribute());
+//            default:
+//                return null;
+//        }
+//    }
 
     private NameIDType getSubjectNameID(final AssertionType assertion) {
         SubjectType subject = assertion.getSubject();

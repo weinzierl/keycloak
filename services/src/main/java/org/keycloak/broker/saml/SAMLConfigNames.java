@@ -25,5 +25,6 @@ public class SAMLConfigNames {
 	public static final String WANT_ASSERTIONS_SIGNED = "wantAssertionsSigned";
 	public static final String WANT_AUTHN_REQUESTS_SIGNED = "wantAuthnRequestsSigned";
 	public static final String XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER = "xmlSigKeyInfoKeyNameTransformer";
+	public static final String MULTIPLE_PRINCIPALS = "multiplePrincipals";
 
 }

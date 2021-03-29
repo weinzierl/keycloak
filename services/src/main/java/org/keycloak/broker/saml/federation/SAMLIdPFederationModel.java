@@ -2,7 +2,13 @@ package org.keycloak.broker.saml.federation;
 
 import static org.keycloak.broker.saml.SAMLConfigNames.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.util.JsonSerialization;
+
+import java.io.IOException;
+import java.util.LinkedList;
 
 public class SAMLIdPFederationModel extends IdentityProvidersFederationModel {
 	
@@ -17,13 +23,15 @@ public class SAMLIdPFederationModel extends IdentityProvidersFederationModel {
     public String getNameIDPolicyFormat() {
         return getConfig().get(NAME_ID_POLICY_FORMAT);
     }
-    
-    public String getPrincipalType() {
-        return getConfig().get(PRINCIPAL_TYPE);
-    }
-    
-    public String getPrincipalAttribute() {
-        return getConfig().get(PRINCIPAL_ATTRIBUTE);
+
+    public LinkedList<SAMLIdentityProviderConfig.Principal> getMultiplePrincipals() throws IOException {
+        String principalsJson =getConfig().get(MULTIPLE_PRINCIPALS);
+        if (principalsJson != null ) {
+            return JsonSerialization.readValue(principalsJson, new TypeReference<LinkedList<SAMLIdentityProviderConfig.Principal>>() {
+            });
+        } else {
+            return new LinkedList<>();
+        }
     }
 
     public boolean isWantAuthnRequestsSigned() {

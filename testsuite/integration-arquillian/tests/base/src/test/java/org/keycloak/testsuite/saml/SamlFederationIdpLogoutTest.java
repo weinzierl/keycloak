@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,6 +32,7 @@ import org.junit.Test;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.broker.saml.SAMLConfigNames;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.dom.saml.v2.SAML2Object;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -39,6 +41,7 @@ import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
+import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
@@ -57,6 +60,7 @@ import org.keycloak.testsuite.util.SamlClientBuilder;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
+import org.keycloak.util.JsonSerialization;
 
 public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 
@@ -72,7 +76,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 	private final AtomicReference<String> sessionIndexRef = new AtomicReference<>();
 
 	@Before
-	public void createFederation() {
+	public void createFederation() throws IOException {
 		realm = adminClient.realm(REALM_NAME);
 		internalId = createFederation("edugain-sample", "http://localhost:8880/sample-federation-authn.xml");
 
@@ -264,7 +268,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		}
 	}
 
-	private String createFederation(String alias, String url) throws NotFoundException {
+	private String createFederation(String alias, String url) throws NotFoundException, IOException {
 		IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
 		representation.setAlias(alias);
 		representation.setProviderId("saml");
@@ -276,6 +280,20 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		map.put(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, "false");
 		map.put(SAMLConfigNames.WANT_ASSERTIONS_ENCRYPTED, "false");
 		map.put(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, "false");
+		LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
+		SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
+		pr.setPrincipalType(SamlPrincipalType.SUBJECT);
+		pr.setNameIDPolicyFormat(JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
+		principals.add(pr);
+		SAMLIdentityProviderConfig.Principal pr2 = new SAMLIdentityProviderConfig.Principal();
+		pr2.setPrincipalType(SamlPrincipalType.ATTRIBUTE);
+		pr2.setPrincipalAttribute("subject-id");
+		principals.add(pr2);
+		SAMLIdentityProviderConfig.Principal pr3 = new SAMLIdentityProviderConfig.Principal();
+		pr3.setPrincipalType(SamlPrincipalType.SUBJECT);
+		pr3.setNameIDPolicyFormat(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get());
+		principals.add(pr3);
+		map.put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
 		representation.setConfig(map);
 
 		Response response = realm.identityProvidersFederation().create(representation);
@@ -290,7 +308,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		return id;
 	}
 
-	private IdentityProviderRepresentation updateIdpByAlias(String idpAlias) {
+	private IdentityProviderRepresentation updateIdpByAlias(String idpAlias) throws IOException {
 		IdentityProviderResource identityProviderResource = realm.identityProviders().get(idpAlias);
 
 		IdentityProviderRepresentation representation = identityProviderResource.toRepresentation();

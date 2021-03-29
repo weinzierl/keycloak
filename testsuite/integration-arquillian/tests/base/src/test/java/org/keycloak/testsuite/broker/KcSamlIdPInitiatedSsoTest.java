@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.keycloak.admin.client.resource.ClientsResource;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.common.util.StringPropertyReplacer;
@@ -42,6 +43,7 @@ import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.assertion.AudienceRestrictionType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.StatementAbstractType;
+import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -61,10 +63,11 @@ import org.keycloak.testsuite.arquillian.annotation.AuthServerContainerExclude.A
 import org.keycloak.testsuite.pages.LoginPage;
 import org.keycloak.testsuite.pages.PageUtils;
 import org.keycloak.testsuite.pages.UpdateAccountInformationPage;
-import org.keycloak.testsuite.utils.io.IOUtil;
 import org.keycloak.testsuite.util.Matchers;
 import org.keycloak.testsuite.util.SamlClient.Binding;
 import org.keycloak.testsuite.util.SamlClientBuilder;
+import org.keycloak.testsuite.utils.io.IOUtil;
+import org.keycloak.util.JsonSerialization;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -124,11 +127,16 @@ public class KcSamlIdPInitiatedSsoTest extends AbstractKeycloakTest {
     }
 
     @Before
-    public void resetPrincipalType() {
+    public void resetPrincipalType() throws IOException {
         IdentityProviderResource idp = adminClient.realm(REALM_CONS_NAME).identityProviders().get("saml-leaf");
         IdentityProviderRepresentation rep = idp.toRepresentation();
-        rep.getConfig().put(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT, JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
-        rep.getConfig().put(SAMLIdentityProviderConfig.PRINCIPAL_TYPE, SamlPrincipalType.SUBJECT.name());
+        rep.getConfig().put(SAMLConfigNames.NAME_ID_POLICY_FORMAT, JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
+        SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
+        pr.setPrincipalType(SamlPrincipalType.SUBJECT);
+        pr.setNameIDPolicyFormat(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get());
+        LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
+        principals.add(pr);
+        rep.getConfig().put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
         idp.update(rep);
     }
 
@@ -245,6 +253,16 @@ public class KcSamlIdPInitiatedSsoTest extends AbstractKeycloakTest {
 
     @Test
     public void testConsumerIdpInitiatedLoginToApp() throws Exception {
+        IdentityProviderResource idp = adminClient.realm(REALM_CONS_NAME).identityProviders().get("saml-leaf");
+        IdentityProviderRepresentation rep = idp.toRepresentation();
+        SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
+        pr.setPrincipalType(SamlPrincipalType.SUBJECT);
+        pr.setNameIDPolicyFormat(JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
+        LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
+        principals.add(pr);
+        rep.getConfig().put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
+        idp.update(rep);
+
         SAMLDocumentHolder samlResponse = new SamlClientBuilder()
           .navigateTo(getSamlIdpInitiatedUrl(REALM_CONS_NAME, "sales"))
           // Request login via saml-leaf
@@ -352,8 +370,12 @@ public class KcSamlIdPInitiatedSsoTest extends AbstractKeycloakTest {
     public void testProviderIdpInitiatedLoginWithPrincipalAttribute() throws Exception {
         IdentityProviderResource idp = adminClient.realm(REALM_CONS_NAME).identityProviders().get("saml-leaf");
         IdentityProviderRepresentation rep = idp.toRepresentation();
-        rep.getConfig().put(SAMLIdentityProviderConfig.PRINCIPAL_TYPE, SamlPrincipalType.ATTRIBUTE.name());
-        rep.getConfig().put(SAMLIdentityProviderConfig.PRINCIPAL_ATTRIBUTE, X500SAMLProfileConstants.UID.get());
+        SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
+        pr.setPrincipalType(SamlPrincipalType.ATTRIBUTE);
+        pr.setPrincipalAttribute(X500SAMLProfileConstants.UID.get());
+        LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
+        principals.add(pr);
+        rep.getConfig().put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
         idp.update(rep);
 
         SAMLDocumentHolder samlResponse = new SamlClientBuilder()
@@ -407,9 +429,13 @@ public class KcSamlIdPInitiatedSsoTest extends AbstractKeycloakTest {
     public void testProviderTransientIdpInitiatedLogin() throws Exception {
         IdentityProviderResource idp = adminClient.realm(REALM_CONS_NAME).identityProviders().get("saml-leaf");
         IdentityProviderRepresentation rep = idp.toRepresentation();
-        rep.getConfig().put(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT, JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT.get());
-        rep.getConfig().put(SAMLIdentityProviderConfig.PRINCIPAL_TYPE, SamlPrincipalType.ATTRIBUTE.name());
-        rep.getConfig().put(SAMLIdentityProviderConfig.PRINCIPAL_ATTRIBUTE, X500SAMLProfileConstants.UID.get());
+        rep.getConfig().put(SAMLConfigNames.NAME_ID_POLICY_FORMAT, JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT.get());
+        SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
+        pr.setPrincipalType(SamlPrincipalType.ATTRIBUTE);
+        pr.setPrincipalAttribute(X500SAMLProfileConstants.UID.get());
+        LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
+        principals.add(pr);
+        rep.getConfig().put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
         idp.update(rep);
 
         SAMLDocumentHolder samlResponse = new SamlClientBuilder()

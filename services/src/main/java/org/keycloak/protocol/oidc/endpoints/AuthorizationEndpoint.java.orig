@@ -38,8 +38,11 @@ import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor;
+<<<<<<< HEAD
 import org.keycloak.protocol.oidc.grants.device.endpoints.DeviceEndpoint;
+=======
 import org.keycloak.protocol.oidc.utils.AcrUtils;
+>>>>>>> ee76e469ae... KEYCLOAK-847 Add support for step up authentication
 import org.keycloak.protocol.oidc.utils.OIDCRedirectUriBuilder;
 import org.keycloak.protocol.oidc.utils.OIDCResponseMode;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;

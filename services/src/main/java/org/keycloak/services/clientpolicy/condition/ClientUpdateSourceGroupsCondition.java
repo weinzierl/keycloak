@@ -17,7 +17,6 @@
 
 package org.keycloak.services.clientpolicy.condition;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,42 +24,27 @@ import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
 import org.keycloak.OAuthErrorException;
-import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.UserModel;
 import org.keycloak.representations.JsonWebToken;
-import org.keycloak.services.clientpolicy.AdminClientRegisterContext;
-import org.keycloak.services.clientpolicy.AdminClientUpdateContext;
 import org.keycloak.services.clientpolicy.ClientPolicyContext;
 import org.keycloak.services.clientpolicy.ClientPolicyException;
 import org.keycloak.services.clientpolicy.ClientPolicyLogger;
 import org.keycloak.services.clientpolicy.ClientPolicyVote;
-import org.keycloak.services.clientpolicy.ClientUpdateContext;
-import org.keycloak.services.clientpolicy.DynamicClientRegisterContext;
-import org.keycloak.services.clientpolicy.DynamicClientUpdateContext;
+import org.keycloak.services.clientpolicy.context.AdminClientRegisterContext;
+import org.keycloak.services.clientpolicy.context.AdminClientUpdateContext;
+import org.keycloak.services.clientpolicy.context.ClientCRUDContext;
+import org.keycloak.services.clientpolicy.context.DynamicClientRegisterContext;
+import org.keycloak.services.clientpolicy.context.DynamicClientUpdateContext;
 
-public class ClientUpdateSourceGroupsCondition implements ClientPolicyConditionProvider {
+public class ClientUpdateSourceGroupsCondition extends AbstractClientPolicyConditionProvider {
 
     private static final Logger logger = Logger.getLogger(ClientUpdateSourceGroupsCondition.class);
 
-    private final KeycloakSession session;
-    private final ComponentModel componentModel;
-
     public ClientUpdateSourceGroupsCondition(KeycloakSession session, ComponentModel componentModel) {
-        this.session = session;
-        this.componentModel = componentModel;
-    }
-
-    @Override
-    public String getName() {
-        return componentModel.getName();
-    }
-
-    @Override
-    public String getProviderId() {
-        return componentModel.getProviderId();
+        super(session, componentModel);
     }
 
     @Override
@@ -68,17 +52,17 @@ public class ClientUpdateSourceGroupsCondition implements ClientPolicyConditionP
         switch (context.getEvent()) {
         case REGISTER:
             if (context instanceof AdminClientRegisterContext) {
-                return getVoteForGroupsMatched(((ClientUpdateContext)context).getAuthenticatedUser());
+                return getVoteForGroupsMatched(((ClientCRUDContext)context).getAuthenticatedUser());
             } else if (context instanceof DynamicClientRegisterContext) {
-                return getVoteForGroupsMatched(((ClientUpdateContext)context).getToken());
+                return getVoteForGroupsMatched(((ClientCRUDContext)context).getToken());
             } else {
                 throw new ClientPolicyException(OAuthErrorException.SERVER_ERROR, "unexpected context type.");
             }
         case UPDATE:
             if (context instanceof AdminClientUpdateContext) {
-                return getVoteForGroupsMatched(((ClientUpdateContext)context).getAuthenticatedUser());
+                return getVoteForGroupsMatched(((ClientCRUDContext)context).getAuthenticatedUser());
             } else if (context instanceof DynamicClientUpdateContext) {
-                return getVoteForGroupsMatched(((ClientUpdateContext)context).getToken());
+                return getVoteForGroupsMatched(((ClientCRUDContext)context).getToken());
             } else {
                 throw new ClientPolicyException(OAuthErrorException.SERVER_ERROR, "unexpected context type.");
             }

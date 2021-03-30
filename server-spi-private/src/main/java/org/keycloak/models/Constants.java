@@ -62,6 +62,7 @@ public final class Constants {
     // KEYCLOAK-7688 Offline Session Max for Offline Token
     // 60 days
     public static final int DEFAULT_OFFLINE_SESSION_MAX_LIFESPAN = 5184000;
+    public static final String DEFAULT_SIGNATURE_ALGORITHM = Algorithm.RS256;
 
     public static final String DEFAULT_WEBAUTHN_POLICY_SIGNATURE_ALGORITHMS = Algorithm.ES256;
     public static final String DEFAULT_WEBAUTHN_POLICY_RP_ENTITY_NAME = "keycloak";
@@ -126,4 +127,4 @@ public final class Constants {
     public static final int MINIMUM_LOA = 0;
     public static final int MAXIMUM_LOA = Integer.MAX_VALUE;
     public static final int INVALID_LOA = -1;
-}
+

@@ -220,6 +220,10 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                     config.put("principalType", "SUBJECT");
                     config.put(IdentityProviderModel.SYNC_MODE, "IMPORT");
                     config.put("loginHint", "false");
+
+					identityProviderModel.getConfig().put("wantAssertionsEncrypted", String.valueOf(model.isWantAssertionsEncrypted()));
+					identityProviderModel.getConfig().put("wantAssertionsSigned", String.valueOf(model.isWantAssertionsSigned()));
+
                     config.put("promotedLoginbutton", "false");
                     identityProviderModel.setConfig(config);
 
@@ -396,11 +400,6 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			    identityProviderModel.getConfig().put("encryptionPublicKey", defaultCertificate);
 			}
 		}
-
-		//saml aggregate metadata config parameters
-        identityProviderModel.getConfig().put("wantAssertionsEncrypted", String.valueOf(model.isWantAssertionsEncrypted()));
-
-        identityProviderModel.getConfig().put("wantAssertionsSigned", String.valueOf(model.isWantAssertionsSigned()));
 
         List<String> nameIdFormatList = idpDescriptor.getNameIDFormat();
         if (nameIdFormatList != null && !nameIdFormatList.isEmpty()) {

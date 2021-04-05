@@ -927,6 +927,8 @@ public interface RealmModel extends RoleContainerModel {
      */
     Stream<GroupModel> searchForGroupByNameStream(String search, Integer first, Integer max);
 
+    Stream<GroupModel> searchForAllGroupByNameStream(String search, Integer first, Integer max);
+
     boolean removeGroup(GroupModel group);
     void moveGroup(GroupModel group, GroupModel toParent);
 

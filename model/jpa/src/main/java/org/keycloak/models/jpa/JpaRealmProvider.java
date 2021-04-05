@@ -928,6 +928,17 @@ public class JpaRealmProvider implements RealmProvider, ClientProvider, ClientSc
     }
 
     @Override
+    public Stream<GroupModel> searchForAllGroupByNameStream(RealmModel realm, String search, Integer first, Integer max) {
+        TypedQuery<String> query = em.createNamedQuery("getGroupIdsByNameContaining", String.class)
+                .setParameter("realm", realm.getId())
+                .setParameter("search", search);
+
+        Stream<String> groups = paginateQuery(query, first, max).getResultStream();
+
+        return closing(groups.map(id -> session.groups().getGroupById(realm, id)).sorted(GroupModel.COMPARE_BY_NAME).distinct());
+    }
+
+    @Override
     public void removeExpiredClientInitialAccess() {
         int currentTime = Time.currentTime();
 

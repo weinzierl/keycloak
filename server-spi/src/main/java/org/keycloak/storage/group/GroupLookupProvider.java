@@ -64,5 +64,7 @@ public interface GroupLookupProvider {
      */
     Stream<GroupModel> searchForGroupByNameStream(RealmModel realm, String search, Integer firstResult, Integer maxResults);
 
+    Stream<GroupModel> searchForAllGroupByNameStream(RealmModel realm, String search, Integer firstResult, Integer maxResults);
+
 
 }

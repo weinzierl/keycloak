@@ -67,6 +67,11 @@ public class HardcodedGroupStorageProvider implements GroupStorageProvider {
         return Stream.empty();
     }
 
+    @Override
+    public Stream<GroupModel> searchForAllGroupByNameStream(RealmModel realm, String search, Integer firstResult, Integer maxResults) {
+        return searchForGroupByNameStream(realm, search, firstResult, maxResults);
+    }
+
 
     public class HardcodedGroupAdapter implements GroupModel.Streams {
 

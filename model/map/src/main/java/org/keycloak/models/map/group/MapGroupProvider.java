@@ -185,6 +185,11 @@ public class MapGroupProvider implements GroupProvider {
     }
 
     @Override
+    public Stream<GroupModel> searchForAllGroupByNameStream(RealmModel realm, String search, Integer firstResult, Integer maxResults) {
+        return searchForGroupByNameStream(realm, search, firstResult, maxResults);
+    }
+
+    @Override
     public GroupModel createGroup(RealmModel realm, String id, String name, GroupModel toParent) {
         LOG.tracef("createGroup(%s, %s, %s, %s)%s", realm, id, name, toParent, getShortStackTrace());
         // Check Db constraint: uniqueConstraints = { @UniqueConstraint(columnNames = {"REALM_ID", "PARENT_GROUP", "NAME"})}

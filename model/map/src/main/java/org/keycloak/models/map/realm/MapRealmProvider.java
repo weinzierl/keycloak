@@ -415,6 +415,12 @@ public class MapRealmProvider implements RealmProvider {
 
     @Override
     @Deprecated
+    public Stream<GroupModel> searchForAllGroupByNameStream(RealmModel realm, String search, Integer firstResult, Integer maxResults) {
+        return session.groups().searchForAllGroupByNameStream(realm, search, firstResult, maxResults);
+    }
+
+    @Override
+    @Deprecated
     public RoleModel addRealmRole(RealmModel realm, String id, String name) {
         return session.roles().addRealmRole(realm, id, name);
     }

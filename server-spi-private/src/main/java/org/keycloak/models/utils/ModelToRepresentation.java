@@ -148,6 +148,11 @@ public class ModelToRepresentation {
                 .map(g -> toGroupHierarchy(g, full, search));
     }
 
+    public static Stream<GroupRepresentation> searchForAllGroupByName(RealmModel realm, String search, Integer first, Integer max) {
+        return realm.searchForAllGroupByNameStream(search, first, max)
+                .map(g -> toRepresentation(g, false));
+    }
+
     public static Stream<GroupRepresentation> searchForGroupByName(UserModel user, boolean full, String search, Integer first, Integer max) {
         return user.getGroupsStream(search, first, max)
                 .map(group -> toRepresentation(group, full));

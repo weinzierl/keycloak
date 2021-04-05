@@ -1236,6 +1236,11 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     }
 
     @Override
+    public Stream<GroupModel> searchForAllGroupByNameStream(String search, Integer first, Integer max) {
+        return session.groups().searchForGroupByNameStream(this, search, first, max);
+    }
+
+    @Override
     public boolean removeGroup(GroupModel group) {
         return session.groups().removeGroup(this, group);
     }

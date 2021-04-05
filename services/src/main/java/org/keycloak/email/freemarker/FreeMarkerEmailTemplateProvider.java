@@ -176,6 +176,13 @@ public class FreeMarkerEmailTemplateProvider implements EmailTemplateProvider {
         send("emailVerificationSubject", "email-verification.ftl", attributes);
     }
 
+    @Override
+    public void sendJoinGroupRequestEmail(String link) throws EmailException {
+        attributes.put("user", user);
+        attributes.put("url", link);
+        send("joinGroupRequestSubject", "join-group-request.ftl", attributes);
+    }
+
     /**
      * Add link info into template attributes.
      * 

@@ -67,6 +67,15 @@ public class GroupStorageManager extends AbstractStorageManager<GroupStorageProv
         return Stream.concat(local, ext);
     }
 
+    @Override
+    public Stream<GroupModel> searchForAllGroupByNameStream(RealmModel realm, String search, Integer firstResult, Integer maxResults) {
+        Stream<GroupModel> local = session.groupLocalStorage().searchForAllGroupByNameStream(realm, search,  firstResult, maxResults);
+        Stream<GroupModel> ext = flatMapEnabledStorageProvidersWithTimeout(realm, GroupLookupProvider.class,
+                p -> p.searchForAllGroupByNameStream(realm, search, firstResult, maxResults));
+
+        return Stream.concat(local, ext);
+    }
+
     /* GROUP PROVIDER METHODS - provided only by local storage (e.g. not supported by storage providers) */
 
     @Override

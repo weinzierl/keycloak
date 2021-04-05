@@ -42,7 +42,6 @@ import org.keycloak.representations.account.UserRepresentation;
 import org.keycloak.services.ErrorResponse;
 import org.keycloak.services.managers.Auth;
 import org.keycloak.services.managers.UserConsentManager;
-import org.keycloak.services.managers.UserSessionManager;
 import org.keycloak.services.messages.Messages;
 import org.keycloak.services.resources.account.resources.ResourcesService;
 import org.keycloak.services.util.ResolveRelative;
@@ -395,6 +394,11 @@ public class AccountRestService {
     @Path("/linked-accounts")
     public LinkedAccountsResource linkedAccounts() {
         return new LinkedAccountsResource(session, request, client, auth, event, user);
+    }
+
+    @Path("/groups")
+    public GroupMembershipResource groupResource() {
+        return new GroupMembershipResource(session, auth, event, user);
     }
 
     @Path("/applications")

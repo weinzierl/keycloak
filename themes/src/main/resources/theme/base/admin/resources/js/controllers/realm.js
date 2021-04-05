@@ -1127,6 +1127,7 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
             $scope.identityProvider.config.principalType = $scope.principalTypes[0].type;
             $scope.identityProvider.config.signatureAlgorithm = $scope.signatureAlgorithms[1];
             $scope.identityProvider.config.xmlSigKeyInfoKeyNameTransformer = $scope.xmlKeyNameTranformers[1];
+            $scope.identityProvider.config.allowCreate = 'true';
         }
         $scope.identityProvider.config.entityId = $scope.identityProvider.config.entityId || (authUrl + '/realms/' + realm.realm);
     }

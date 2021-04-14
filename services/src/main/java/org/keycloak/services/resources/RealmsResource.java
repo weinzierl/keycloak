@@ -17,6 +17,7 @@
 package org.keycloak.services.resources;
 
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.OAuthErrorException;
@@ -26,11 +27,18 @@ import org.keycloak.common.ClientConnection;
 import org.keycloak.common.Profile;
 import org.keycloak.common.util.KeycloakUriBuilder;
 import org.keycloak.events.EventBuilder;
+import org.keycloak.forms.login.freemarker.LoginFormsUtil;
+import org.keycloak.forms.login.freemarker.model.IdentityProviderBean;
 import org.keycloak.models.ClientModel;
+import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.models.utils.ModelToRepresentation;
+import org.keycloak.models.utils.StripSecretsUtils;
 import org.keycloak.protocol.LoginProtocol;
 import org.keycloak.protocol.LoginProtocolFactory;
+import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.services.CorsErrorResponseException;
 import org.keycloak.services.clientregistration.ClientRegistrationService;
 import org.keycloak.services.managers.RealmManager;
@@ -38,23 +46,23 @@ import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.services.resources.account.AccountLoader;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.services.util.ResolveRelative;
+import org.keycloak.theme.Theme;
 import org.keycloak.utils.MediaTypeMatcher;
 import org.keycloak.utils.ProfileHelper;
 import org.keycloak.wellknown.WellKnownProvider;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 import java.net.URI;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -290,6 +298,71 @@ public class RealmsResource {
 
         throw new NotFoundException();
     }
+
+    /**
+     * This should be used from login pages to show all available identity providers of the realm for logging in.
+     * It has to be a public endpoint.
+     */
+    @GET
+    @Path("{realm}/identity-providers")
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<IdentityProviderBean.IdentityProvider> getIdentityProviders(
+            @PathParam("realm") String realmName,
+            @QueryParam("keyword") @DefaultValue("") String keyword,
+            @QueryParam("first") @DefaultValue("-1") Integer firstResult,
+            @QueryParam("max") @DefaultValue("-1") Integer maxResults
+    ) {
+        if(keyword.isEmpty() && firstResult == -1 && maxResults == -1)
+            throw new BadRequestException("Should specify all pamameters: {keyword, firstResult, maxResults}");
+        RealmModel realm = init(realmName);
+        List<IdentityProviderModel> identityProviders = session.identityProviderStorage().searchIdentityProviders(realm, keyword, firstResult, maxResults);
+
+        //this translates to http 204 code (instead of an empty list's 200). Is used to specify that its a end-of-stream.
+        if(identityProviders.isEmpty())
+            return null;
+
+        //Expose through the Bean, because it makes some extra processing. URI is re-composed back in the UI, so we can ignore here
+        //returns empty list if all idps are filtered out, and not null. This is important for the UI
+        IdentityProviderBean idpBean = new IdentityProviderBean(realm, session, identityProviders, URI.create(""));
+        return idpBean.getProviders()!=null ? idpBean.getProviders() : new ArrayList<>();
+    }
+
+
+    /**
+     * This should be used from login pages to show any promoted identity providers of the realm for logging in with.
+     * It has to be a public endpoint.
+     */
+    @GET
+    @Path("{realm}/identity-providers-promoted")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<IdentityProviderBean.IdentityProvider> getPromotedIdentityProviders(
+            @PathParam("realm") String realmName
+    ) {
+        RealmModel realm = init(realmName);
+        List<IdentityProviderModel> promotedProviders = new ArrayList<>();
+        session.identityProviderStorage().getIdentityProviders(realm).forEach(idp -> {
+            if(idp.getConfig()!=null && "true".equals(idp.getConfig().get("specialLoginbutton")))
+                promotedProviders.add(idp);
+        });
+
+        //Expose through the Bean, because it makes some extra processing. URI is re-composed back in the UI, so we can ignore here
+        IdentityProviderBean idpBean = new IdentityProviderBean(realm, session, promotedProviders, URI.create(""));
+        return idpBean.getProviders()!=null ? idpBean.getProviders() : new ArrayList<>();
+
+    }
+
+    private String getLoginIconClasses(String alias) {
+        final String ICON_THEME_PREFIX = "kcLogoIdP-";
+        try {
+            Theme theme = session.theme().getTheme(Theme.Type.LOGIN);
+            return Optional.ofNullable(theme.getProperties().getProperty(ICON_THEME_PREFIX + alias)).orElse("");
+        } catch (IOException e) {
+            //NOP
+        }
+        return "";
+    }
+
 
     private void checkSsl(RealmModel realm) {
         if (!session.getContext().getUri().getBaseUri().getScheme().equals("https")

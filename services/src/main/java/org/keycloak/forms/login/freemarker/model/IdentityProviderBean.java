@@ -42,14 +42,12 @@ public class IdentityProviderBean {
 
     private boolean displaySocial;
     private List<IdentityProvider> providers;
-    private List<IdentityProvider> specialProviders;
     private RealmModel realm;
     private final KeycloakSession session;
 
     public IdentityProviderBean(RealmModel realm, KeycloakSession session, List<IdentityProviderModel> identityProviders, URI baseURI) {
         this.realm = realm;
         this.session = session;
-        this.specialProviders = new ArrayList<>();
 
         if (!identityProviders.isEmpty()) {
             List<IdentityProvider> orderedList = new ArrayList<>();
@@ -77,8 +75,6 @@ public class IdentityProviderBean {
                 displayName, identityProvider.getProviderId(), loginUrl,
                 config != null ? config.get("guiOrder") : null, getLoginIconClasses(identityProvider.getAlias()));
             orderedSet.add(idp);
-            if (config != null && "true".equals(config.get("specialLoginbutton")))
-                specialProviders.add(idp);
         }
     }
 
@@ -98,10 +94,6 @@ public class IdentityProviderBean {
 
     public List<IdentityProvider> getProviders() {
         return providers;
-    }
-    
-    public List<IdentityProvider> getSpecialProviders() {
-        return specialProviders;
     }
 
     public boolean isDisplayInfo() {

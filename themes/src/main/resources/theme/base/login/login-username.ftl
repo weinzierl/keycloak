@@ -5,14 +5,14 @@
     </script>
 </#noautoesc>
 	<script>
-	
+
 	var aClass = '${properties.kcFormSocialAccountListButtonClass!}'.split(" ");
 		var iconClass = '${properties.kcCommonLogoIdP!}'.split(" ");
-		
+
 		function buildFiltered(value) {
-			
+
 			if(!Array.isArray(identityProvidersSummary)) return;
-			
+
 			var listElem = document.getElementById('kc-providers-list');
 			if(listElem==null)
 				return;
@@ -28,7 +28,7 @@
 					}
 					var span = document.createElement('span');
 					span.textContent = idp.displayName;
-					span.classList.add("kc-social-provider-name");	
+					span.classList.add("kc-social-provider-name");
 				    if (idp.iconClasses) {
 				        //idps with icons
 					    var idpIconClass = idp.iconClasses.split(" ");
@@ -41,19 +41,19 @@
 					    }
 					    icon.setAttribute("aria-hidden", "true");
 					    a.appendChild(icon);
-					    span.classList.add("kc-social-icon-text");	
+					    span.classList.add("kc-social-icon-text");
 					}
-					
+
 					a.appendChild(span);
 					listElem.appendChild(a);
 				}
 			}
 		};
-		
+
 		window.onload = function() {
 		  buildFiltered("");
 		};
-		
+
     </script>
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('username') displayInfo=(realm.password && realm.registrationAllowed && !registrationDisabled??); section>
     <#if section = "header">
@@ -140,16 +140,16 @@
                 <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
                     <hr/>
                     <h4>${msg("identity-provider-login-label")}</h4>
-                
+
             		<input id="kc-providers-filter" type="text" placeholder="Filter..." oninput="buildFiltered(this.value)">
             		<ul id="kc-providers-list" class="${properties.kcFormSocialAccountListClass!} login-pf-list-scrollable"></ul>
-                    
+
                 </div>
             <#else>
                   <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
                     <hr/>
                     <h4>${msg("identity-provider-login-label")}</h4>
-                
+
                 	 <ul class="${properties.kcFormSocialAccountListClass!} ">
                      <#list social.providers as p>
                         <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.providers?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
@@ -163,7 +163,7 @@
                         </a>
                      </#list>
                      </ul>
-                    
+
                 </div>
             </#if>
             </#if>

@@ -18,7 +18,6 @@
 package org.keycloak.admin.client.resource;
 
 import org.jboss.resteasy.annotations.cache.NoCache;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.representations.adapters.action.GlobalRequestResult;
 import org.keycloak.representations.idm.AdminEventRepresentation;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -186,6 +185,9 @@ public interface RealmResource {
 
     @Path("identity-provider")
     IdentityProvidersResource identityProviders();
+    
+    @Path("saml-federations")
+    SAMLFederationResource samlFederation();
 
     @DELETE
     void remove();

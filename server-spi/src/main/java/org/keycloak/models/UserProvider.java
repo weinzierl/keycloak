@@ -310,6 +310,14 @@ public interface UserProvider extends Provider,
     void preRemove(RealmModel realm, IdentityProviderModel provider);
 
     /**
+     * Called during SAML federation IdPs update.
+     * Should remove all federated identities assigned to users from the removed IdPs from SAML federation.
+     *
+     * @param idpAlias List<String> of all idp alias
+     */
+    default void preRemove(List<String> idpAlias){};
+
+    /**
      * Called when a role is removed.
      * Should remove the role membership for each user.
      *

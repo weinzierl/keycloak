@@ -44,7 +44,7 @@ import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.PROTOCOL_
 public class SPMetadataDescriptor {
 
     public static EntityDescriptorType buildSPdescriptor(URI loginBinding, URI logoutBinding, URI assertionEndpoint, URI logoutEndpoint,
-        boolean wantAuthnRequestsSigned, boolean wantAssertionsSigned, boolean wantAssertionsEncrypted,
+        boolean wantAuthnRequestsSigned, boolean wantLogoutRequestsSigned, boolean wantAssertionsSigned, boolean wantAssertionsEncrypted,
         String entityId, String nameIDPolicyFormat, List<Element> signingCerts, List<Element> encryptionCerts)
     {
         EntityDescriptorType entityDescriptor = new EntityDescriptorType(entityId);
@@ -53,10 +53,11 @@ public class SPMetadataDescriptor {
         SPSSODescriptorType spSSODescriptor = new SPSSODescriptorType(Arrays.asList(PROTOCOL_NSURI.get()));
         spSSODescriptor.setAuthnRequestsSigned(wantAuthnRequestsSigned);
         spSSODescriptor.setWantAssertionsSigned(wantAssertionsSigned);
-        spSSODescriptor.addNameIDFormat(nameIDPolicyFormat);
+        if ( nameIDPolicyFormat!= null)
+            spSSODescriptor.addNameIDFormat(nameIDPolicyFormat);
         spSSODescriptor.addSingleLogoutService(new EndpointType(logoutBinding, logoutEndpoint));
 
-        if (wantAuthnRequestsSigned && signingCerts != null) {
+        if ((wantAuthnRequestsSigned || wantLogoutRequestsSigned) && signingCerts != null) {
             for (Element key: signingCerts)
             {
                 KeyDescriptorType keyDescriptor = new KeyDescriptorType();

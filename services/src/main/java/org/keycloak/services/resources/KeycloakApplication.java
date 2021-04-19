@@ -19,9 +19,12 @@ package org.keycloak.services.resources;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.jboss.logging.Logger;
 import org.keycloak.Config;
+import org.keycloak.broker.federation.FederationProvider;
+import org.keycloak.broker.federation.SAMLFederationProviderFactory;
 import org.keycloak.common.util.Resteasy;
 import org.keycloak.config.ConfigProviderFactory;
 import org.keycloak.exportimport.ExportImportManager;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.KeycloakSessionTask;
@@ -243,6 +246,27 @@ public class KeycloakApplication extends Application {
             timer.schedule(new ClusterAwareScheduledTaskRunner(sessionFactory, new ClearExpiredEvents(), interval), interval, "ClearExpiredEvents");
             timer.schedule(new ClusterAwareScheduledTaskRunner(sessionFactory, new ClearExpiredClientInitialAccessTokens(), interval), interval, "ClearExpiredClientInitialAccessTokens");
             timer.schedule(new ScheduledTaskRunner(sessionFactory, new ClearExpiredUserSessions()), interval, ClearExpiredUserSessions.TASK_NAME);
+            try {
+            	session.getTransactionManager().begin();
+            	for (RealmModel realm : session.realms().getRealms()) {
+                 	for ( FederationModel fedModel : realm.getSAMLFederations()) {
+                 		FederationProvider federationProvider = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, fedModel.getProviderId()).create(session, fedModel,realm.getId());
+                    	federationProvider.enableUpdateTask();
+                 	}
+                }
+                session.getTransactionManager().commit();
+
+            } catch (Throwable t) {
+                ServicesLogger.LOGGER.error("Failed to update identity providers from federation",t);
+
+                session.getTransactionManager().rollback();
+            } finally {
+                try {
+                    session.close();
+                } catch (Throwable t) {
+                    ServicesLogger.LOGGER.failedToCloseProviderSession(t);
+                }
+            }
             new UserStorageSyncManager().bootstrapPeriodic(sessionFactory, timer);
         } finally {
             session.close();

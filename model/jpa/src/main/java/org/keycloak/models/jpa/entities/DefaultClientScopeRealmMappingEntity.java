@@ -17,6 +17,8 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import java.io.Serializable;
 
 import javax.persistence.Column;
@@ -50,6 +52,7 @@ public class DefaultClientScopeRealmMappingEntity {
     protected String clientScopeId;
 
     @Id
+    @BatchSize(size = 50)
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name="REALM_ID")
     protected RealmEntity realm;

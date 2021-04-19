@@ -44,6 +44,7 @@
                         || path[2] == 'user-storage'
                         || path[2] == 'ldap-mappers'
                         ) && 'active'"><a href="#/realms/{{realm.realm}}/user-federation"><i class="fa fa-database"></i> {{:: 'user-federation' | translate}}</a></li>
+            <li data-ng-show="access.viewIdentityProviders" data-ng-class="(path[1] == 'saml-federations' || path[1] == 'saml-federation' || path[2] == 'federation-mappers') && 'active'"><a href="#/realms/{{realm.realm}}/saml-federations"><i class="pficon pficon-integration"></i> {{:: 'saml-federations' | translate}}</a></li>
             <li data-ng-show="access.viewRealm" data-ng-class="(path[1] == 'authentication' || path[2] == 'authentication') && 'active'"><a href="#/realms/{{realm.realm}}/authentication/flows"><i class="fa fa-lock"></i> {{:: 'authentication' | translate}}</a></li>
         </ul>
     </div>

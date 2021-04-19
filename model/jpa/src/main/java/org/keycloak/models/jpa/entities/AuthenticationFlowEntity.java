@@ -17,6 +17,7 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.Access;
@@ -45,6 +46,7 @@ public class AuthenticationFlowEntity {
     @Access(AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity.  This avoids an extra SQL
     protected String id;
 
+    @BatchSize(size = 50)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REALM_ID")
     protected RealmEntity realm;
@@ -65,7 +67,7 @@ public class AuthenticationFlowEntity {
     @Column(name="BUILT_IN")
     protected boolean builtIn;
 
-
+    @BatchSize(size = 50)
     @OneToMany(fetch = FetchType.LAZY, cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "parentFlow")
     Collection<AuthenticationExecutionEntity> executions;
     public String getId() {

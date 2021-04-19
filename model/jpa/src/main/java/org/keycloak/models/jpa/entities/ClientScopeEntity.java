@@ -37,6 +37,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Nationalized;
 
 /**
@@ -59,6 +60,7 @@ public class ClientScopeEntity {
     @Nationalized
     @Column(name = "DESCRIPTION")
     private String description;
+    @BatchSize(size = 50)
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "clientScope")
     Collection<ProtocolMapperEntity> protocolMappers;
 
@@ -68,9 +70,11 @@ public class ClientScopeEntity {
     @Column(name="PROTOCOL")
     private String protocol;
 
+    @BatchSize(size = 50)
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "clientScope")
     protected Collection<ClientScopeAttributeEntity> attributes;
 
+    @BatchSize(size = 50)
     @ElementCollection
     @Column(name="ROLE_ID")
     @CollectionTable(name="CLIENT_SCOPE_ROLE_MAPPING", joinColumns = { @JoinColumn(name="SCOPE_ID")})

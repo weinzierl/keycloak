@@ -71,9 +71,10 @@ public class IdentityProviderBean {
         Map<String, String> config = identityProvider.getConfig();
         boolean hideOnLoginPage = config != null && Boolean.parseBoolean(config.get("hideOnLoginPage"));
         if (!hideOnLoginPage) {
-            orderedSet.add(new IdentityProvider(identityProvider.getAlias(),
-                    displayName, identityProvider.getProviderId(), loginUrl,
-                    config != null ? config.get("guiOrder") : null, getLoginIconClasses(identityProvider.getAlias())));
+            IdentityProvider idp = new IdentityProvider(identityProvider.getAlias(),
+                displayName, identityProvider.getProviderId(), loginUrl,
+                config != null ? config.get("guiOrder") : null, getLoginIconClasses(identityProvider.getAlias()));
+            orderedSet.add(idp);
         }
     }
 

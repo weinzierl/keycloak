@@ -66,7 +66,11 @@ import org.keycloak.theme.beans.MessageType;
 import org.keycloak.theme.beans.MessagesPerFieldBean;
 import org.keycloak.userprofile.UserProfileContext;
 import org.keycloak.userprofile.UserProfileProvider;
+import org.keycloak.urls.UrlType;
 import org.keycloak.utils.MediaType;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -211,6 +215,19 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
         }
 
         switch (page) {
+            case LOGIN:
+            case LOGIN_USERNAME:
+                //login-enhanced is the EGI theme (plugin).
+                if("eosc-kc".equals(theme.getName()))
+                    attributes.put("uriInfo", uriInfo);
+                else {
+                    try {
+                        attributes.put("identityProvidersSummary", new ObjectMapper().writeValueAsString(((IdentityProviderBean) attributes.get("social")).getProviders()));
+                    } catch (JsonProcessingException e) {
+                        logger.error("Failed to add identity providers summary", e);
+                    }
+                }
+        		break;
             case LOGIN_CONFIG_TOTP:
                 attributes.put("totp", new TotpBean(session, realm, user, uriInfo.getRequestUriBuilder()));
                 break;
@@ -297,9 +314,9 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
 
     /**
      * Prepare base uri builder for later use
-     * 
+     *
      * @param resetRequestUriParams - for some reason Resteasy 2.3.7 doesn't like query params and form params with the same name and will null out the code form param, so we have to reset them for some pages
-     * @return base uri builder  
+     * @return base uri builder
      */
     protected UriBuilder prepareBaseUriBuilder(boolean resetRequestUriParams) {
         String requestURI = uriInfo.getBaseUri().getPath();
@@ -319,7 +336,7 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
 
     /**
      * Get Theme used for page rendering.
-     * 
+     *
      * @return theme for page rendering, never null
      * @throws IOException in case of Theme loading problem
      */
@@ -329,7 +346,7 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
 
     /**
      * Load message bundle and place it into <code>msg</code> template attribute. Also load Theme properties and place them into <code>properties</code> template attribute.
-     * 
+     *
      * @param theme actual Theme to load bundle from
      * @param locale to load bundle for
      * @return message bundle for other use
@@ -357,7 +374,7 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
 
     /**
      * Handle messages to be shown on the page - set them to template attributes
-     * 
+     *
      * @param locale to be used for message text loading
      * @param messagesBundle to be used for message text loading
      * @see #messageType
@@ -420,13 +437,13 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
 
     /**
      * Create common attributes used in all templates.
-     * 
-     * @param theme actual Theme used (provided by <code>getTheme()</code>) 
+     *
+     * @param theme actual Theme used (provided by <code>getTheme()</code>)
      * @param locale actual locale
      * @param messagesBundle actual message bundle (provided by <code>handleThemeResources()</code>)
      * @param baseUriBuilder actual base uri builder (provided by <code>prepareBaseUriBuilder()</code>)
      * @param page in case if common page is rendered, is null if called from <code>createForm()</code>
-     * 
+     *
      */
     protected void createCommonAttributes(Theme theme, Locale locale, Properties messagesBundle, UriBuilder baseUriBuilder, LoginFormsPages page) {
         URI baseUri = baseUriBuilder.build();
@@ -442,9 +459,13 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
         if (realm != null) {
             attributes.put("realm", new RealmBean(realm));
 
-            List<IdentityProviderModel> identityProviders = LoginFormsUtil
-                    .filterIdentityProviders(realm.getIdentityProvidersStream(), session, context);
-            attributes.put("social", new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
+            if("eosc-kc".equals(theme.getName()))
+                attributes.put("idpLoginFullUrl", Urls.identityProviderAuthnRequest(baseUriWithCodeAndClientId, "_", realm.getName()));
+            else{
+                List<IdentityProviderModel> identityProviders = LoginFormsUtil
+                        .filterIdentityProviders(realm.getIdentityProvidersStream(), session, context);
+                attributes.put("social", new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
+            }
 
             attributes.put("url", new UrlBean(realm, theme, baseUri, this.actionUri));
             attributes.put("requiredActionUrl", new RequiredActionUrlFormatterMethod(realm, baseUri));
@@ -494,7 +515,7 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
 
     /**
      * Process FreeMarker template and prepare Response. Some fields are used for rendering also.
-     * 
+     *
      * @param theme to be used (provided by <code>getTheme()</code>)
      * @param templateName name of the template to be rendered
      * @param locale to be used

@@ -30,6 +30,7 @@ import org.keycloak.storage.client.ClientStorageProvider;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -871,6 +872,24 @@ public class RealmAdapter implements CachedRealmModel {
         updated.setSmtpConfig(smtpConfig);
     }
 
+    @Override
+    public IdentityProviderModel getIdentityProviderById(String internalId) {
+        if (isUpdated()) return updated.getIdentityProviderById(internalId);
+        return cached.getIdentityProviders().stream().filter(idp -> Objects.equals(idp.getInternalId(), internalId)).findFirst().orElse(null);
+    }
+
+    @Override
+    public Stream<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults){
+        final String lowercaseKeyword = keyword.toLowerCase();
+        Stream<IdentityProviderModel> result = isUpdated() ? updated.getIdentityProvidersStream() : cached.getIdentityProviders().stream();
+        return result
+            .filter(idp -> {
+                String name = idp.getDisplayName() == null ? "" : idp.getDisplayName();
+                return name.toLowerCase().contains(lowercaseKeyword) || idp.getAlias().toLowerCase().contains(lowercaseKeyword);
+            })
+            .skip(firstResult)
+            .limit(maxResults);
+    }
 
     @Override
     public Stream<IdentityProviderModel> getIdentityProvidersStream() {
@@ -905,6 +924,91 @@ public class RealmAdapter implements CachedRealmModel {
         updated.removeIdentityProviderByAlias(alias);
     }
 
+
+    @Override
+    public List<IdentityProvidersFederationModel> getIdentityProviderFederations() {
+        if (isUpdated()) return updated.getIdentityProviderFederations();
+        return cached.getIdentityProvidersFederations();
+    }
+    
+    @Override
+    public IdentityProvidersFederationModel getIdentityProvidersFederationById(String id) {
+    	if (isUpdated()) return updated.getIdentityProvidersFederationById(id);
+    	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getInternalId().equals(id)).findAny().orElse(null);
+    }
+    
+    @Override
+    public IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias) {
+    	if (isUpdated()) return updated.getIdentityProvidersFederationByAlias(alias);
+    	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getAlias().equals(alias)).findAny().orElse(null);
+    }
+    
+    
+    @Override
+	public void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+    	 getDelegateForUpdate();
+         updated.addIdentityProvidersFederation(identityProvidersFederationModel);
+	}
+	
+	@Override
+	public void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+		getDelegateForUpdate();
+        updated.updateIdentityProvidersFederation(identityProvidersFederationModel);
+	}
+
+    @Override
+    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
+        getDelegateForUpdate();
+        updated.taskExecutionFederation(identityProvidersFederationModel, addIdPs, updatedIdPs, removedIdPs);
+    }
+
+    @Override
+	public void removeIdentityProvidersFederation(String internalId) {
+		getDelegateForUpdate();
+		updated.removeIdentityProvidersFederation(internalId);
+	}
+	
+	@Override
+	public List<FederationMapperModel> getIdentityProviderFederationMappers(String federationId){
+	    IdentityProvidersFederationModel federation = getIdentityProvidersFederationById(federationId);
+	    if ( federation != null) {
+	        return federation.getFederationMapperModels();
+	    } else {
+	        throw new IllegalStateException("Federation not found: " + federationId);
+	    }
+	};
+	
+	@Override
+    public FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id) {
+        IdentityProvidersFederationModel federation = getIdentityProvidersFederationById(federationId);
+        if (federation != null) {
+            return federation.getFederationMapperModels().stream().filter(mapper -> Objects.equals(mapper.getId(), id))
+                .findFirst().orElse(null);
+        } else {
+            throw new IllegalStateException("Federation not found: " + federationId);
+        }
+
+    };
+	
+	@Override
+	public void addIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+	    getDelegateForUpdate();
+        updated.addIdentityProvidersFederationMapper( federationMapperModel);
+	};
+	
+	@Override
+	public  void updateIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+	    getDelegateForUpdate();
+        updated.updateIdentityProvidersFederationMapper(federationMapperModel);
+	};
+	
+	@Override
+	public void removeIdentityProvidersFederationMapper(String id,String federationId) {
+	    getDelegateForUpdate();
+        updated.removeIdentityProvidersFederationMapper(id, federationId);
+	};
+	
+	
     @Override
     public String getLoginTheme() {
         if (isUpdated()) return updated.getLoginTheme();
@@ -1203,6 +1307,19 @@ public class RealmAdapter implements CachedRealmModel {
         }
         return null;
     }
+
+    @Override
+    public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias) {
+        getDelegateForUpdate();
+        return updated.removeFederationIdp(identityProvidersFederationModel,  idpAlias);
+    }
+
+
+    @Override
+    public List<String> getIdentityProvidersByFederation(String federationId) {
+       return cacheSession.getRealmDelegate().getRealm(cached.getId()).getIdentityProvidersByFederation(federationId);
+    }
+
 
     @Override
     public AuthenticationFlowModel getBrowserFlow() {

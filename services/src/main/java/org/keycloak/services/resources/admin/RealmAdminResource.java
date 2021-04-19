@@ -1024,6 +1024,12 @@ public class RealmAdminResource {
         return new IdentityProvidersResource(realm, session, this.auth, adminEvent);
     }
 
+    @Path("identity-provider-federation")
+    public IdentityProvidersFederationResource getIdentityProviderFederationResource() {
+        return new IdentityProvidersFederationResource(realm, session, this.auth, adminEvent);
+    }
+    
+    
     /**
      * Get group hierarchy.  Only name and ids are returned.
      *

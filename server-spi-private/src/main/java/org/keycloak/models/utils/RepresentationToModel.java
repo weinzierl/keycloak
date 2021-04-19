@@ -52,6 +52,8 @@ import org.keycloak.authorization.store.StoreFactory;
 import org.keycloak.broker.provider.IdentityProvider;
 import org.keycloak.broker.provider.IdentityProviderFactory;
 import org.keycloak.broker.social.SocialIdentityProvider;
+import org.keycloak.broker.federation.IdpFederationProvider;
+import org.keycloak.broker.federation.IdpFederationProviderFactory;
 import org.keycloak.common.Profile;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.common.util.MultivaluedHashMap;
@@ -72,9 +74,11 @@ import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.Constants;
 import org.keycloak.models.FederatedIdentityModel;
+import org.keycloak.models.FederationMapperModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.LDAPConstants;
 import org.keycloak.models.ModelException;
@@ -112,7 +116,9 @@ import org.keycloak.representations.idm.ComponentExportRepresentation;
 import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
+import org.keycloak.representations.idm.FederationMapperRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
 import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.OAuthClientRepresentation;
@@ -317,6 +323,7 @@ public class RepresentationToModel {
             DefaultRequiredActions.addActions(newRealm);
         }
 
+	importIdentityProvidersFederations(session,rep.getIdentityProvidersFederations(),newRealm);
         importIdentityProviders(rep, newRealm, session);
         importIdentityProviderMappers(rep, newRealm);
 
@@ -1990,6 +1997,23 @@ public class RepresentationToModel {
         }
     }
 
+    private static void importIdentityProvidersFederations(KeycloakSession session, List<IdentityProvidersFederationRepresentation> federations, RealmModel newRealm) {
+        if (federations != null) {
+            for (IdentityProvidersFederationRepresentation representation : federations) {
+            	//set LastMetadataRefreshTimestamp to null in order to run immediately the schedule task
+            	representation.setLastMetadataRefreshTimestamp(null);
+            	IdentityProvidersFederationModel model = toModel(representation);
+                model.setFederationMapperModels(
+                        representation.getFederationMappers().stream().map(mapper -> toModel(mapper)).collect(Collectors.toList()));
+            	newRealm.addIdentityProvidersFederation(model);
+                IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory
+                    .getIdpFederationProviderFactoryById(session, model.getProviderId())
+                    .create(session, model, newRealm.getId());
+                idpFederationProvider.enableUpdateTask();
+            }
+        }
+    }
+
     public static IdentityProviderModel toModel(RealmModel realm, IdentityProviderRepresentation representation, KeycloakSession session) {
         IdentityProviderFactory providerFactory = (IdentityProviderFactory) session.getKeycloakSessionFactory().getProviderFactory(
                 IdentityProvider.class, representation.getProviderId());
@@ -2016,6 +2040,7 @@ public class RepresentationToModel {
         identityProviderModel.setStoreToken(representation.isStoreToken());
         identityProviderModel.setAddReadTokenRoleOnCreate(representation.isAddReadTokenRoleOnCreate());
         identityProviderModel.setConfig(removeEmptyString(representation.getConfig()));
+        identityProviderModel.setFederations(representation.getFederations());
 
         String flowAlias = representation.getFirstBrokerLoginFlowAlias();
         if (flowAlias == null) {
@@ -2042,6 +2067,37 @@ public class RepresentationToModel {
         identityProviderModel.validate(realm);
 
         return identityProviderModel;
+    }
+    
+    public static IdentityProvidersFederationModel toModel(IdentityProvidersFederationRepresentation representation ) {
+    	IdentityProvidersFederationModel model = new IdentityProvidersFederationModel();
+    	model.setInternalId(representation.getInternalId());
+    	model.setAlias(representation.getAlias());
+    	model.setDisplayName(representation.getDisplayName());
+    	model.setLastMetadataRefreshTimestamp(representation.getLastMetadataRefreshTimestamp());
+    	model.setProviderId(representation.getProviderId());
+    	model.setUpdateFrequencyInMins(representation.getUpdateFrequencyInMins());
+    	model.setEntityIdDenyList(representation.getEntityIdDenyList());
+    	model.setEntityIdAllowList(representation.getEntityIdAllowList());
+    	model.setRegistrationAuthorityDenyList(representation.getRegistrationAuthorityDenyList());
+        model.setRegistrationAuthorityAllowList(representation.getRegistrationAuthorityAllowList());
+        model.setCategoryDenyList(representation.getCategoryDenyList());
+        model.setCategoryAllowList(representation.getCategoryAllowList());
+    	model.setUrl(representation.getUrl());
+    	model.setValidUntilTimestamp(representation.getValidUntilTimestamp());
+    	model.setConfig(removeEmptyString(representation.getConfig()));
+    	return model;
+    }
+
+    public static FederationMapperModel toModel( FederationMapperRepresentation representation ) {
+        FederationMapperModel model = new FederationMapperModel();
+        model.setId(representation.getId());
+        model.setIdentityProviderMapper(representation.getIdentityProviderMapper());
+        model.setName(representation.getName());
+        model.setFederationId(representation.getFederationId());
+        model.setConfig(representation.getConfig());
+        return model;
+
     }
 
     public static ProtocolMapperModel toModel(ProtocolMapperRepresentation rep) {

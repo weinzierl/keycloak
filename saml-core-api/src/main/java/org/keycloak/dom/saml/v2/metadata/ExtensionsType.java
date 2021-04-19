@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.keycloak.dom.saml.v2.mdattr.EntityAttributes;
+import org.keycloak.dom.saml.v2.mdrpi.RegistrationInfoType;
+import org.keycloak.dom.saml.v2.mdui.UIInfoType;
 import org.w3c.dom.Element;
 
 /**
@@ -42,10 +44,11 @@ import org.w3c.dom.Element;
  * &lt;/complexType>
  * </pre>
  */
-public class ExtensionsType {
+public class ExtensionsType extends TypeWithOtherAttributes {
 
     protected List<Object> any = new ArrayList<>();
-
+  
+    
     /**
      * Function is obsoleted with getAny
      * @return
@@ -110,5 +113,34 @@ public class ExtensionsType {
         }
         return null;
     }
+    
+    public RegistrationInfoType getRegistrationInfo() {
+        for (Object o : this.any) {
+            if (o instanceof RegistrationInfoType) {
+                return (RegistrationInfoType) o;
+            }
+        }
+        return null;
+    }
 
+    public List<ScopeType> getScopes() {
+        List<ScopeType> list = new ArrayList<>();
+        for (Object o : this.any) {
+            if (o instanceof ScopeType) {
+                list.add((ScopeType) o);
+            }
+        }
+        return list;
+    }
+
+    public UIInfoType getUIInfo() {
+        for (Object o : this.any) {
+            if (o instanceof UIInfoType) {
+                return (UIInfoType) o;
+            }
+        }
+        return null;
+    }
+    
+    
 }

@@ -73,6 +73,12 @@ public class Urls {
                 .path(IdentityBrokerService.class, "getEndpoint")
                 .build(realmName, providerId);
     }
+    
+    public static URI identityProviderAuthnResponse(URI baseUri, String realmName) {
+        return realmBase(baseUri).path(RealmsResource.class, "getBrokerService")
+                .path(IdentityBrokerService.ENDPOINT_PATH)
+                .build(realmName);
+    }
 
     public static URI identityProviderAuthnRequest(URI baseUri, String providerId, String realmName, String accessCode, String clientId, String tabId) {
         UriBuilder uriBuilder = realmBase(baseUri).path(RealmsResource.class, "getBrokerService")

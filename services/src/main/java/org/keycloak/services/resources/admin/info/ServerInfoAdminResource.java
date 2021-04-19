@@ -18,6 +18,8 @@
 package org.keycloak.services.resources.admin.info;
 
 import org.jboss.resteasy.annotations.cache.NoCache;
+import org.keycloak.broker.federation.IdpFederationProvider;
+import org.keycloak.broker.federation.IdpFederationProviderFactory;
 import org.keycloak.broker.provider.IdentityProvider;
 import org.keycloak.broker.provider.IdentityProviderFactory;
 import org.keycloak.broker.social.SocialIdentityProvider;
@@ -96,6 +98,7 @@ public class ServerInfoAdminResource {
 
         setSocialProviders(info);
         setIdentityProviders(info);
+        setIdentityProviderAggeregations(info);
         setThemes(info);
         setProviders(info);
         setProtocolMapperTypes(info);
@@ -226,6 +229,23 @@ public class ServerInfoAdminResource {
 
         providers.addAll(providerMaps);
     }
+
+    public void setIdentityProviderAggeregations(ServerInfoRepresentation info) {
+    	List<ProviderFactory> providerFactories = session.getKeycloakSessionFactory().getProviderFactories(IdpFederationProvider.class);
+
+    	List <Map<String,String>> idpFederationProviders = providerFactories.stream()
+    			.map(pf -> (IdpFederationProviderFactory)pf)
+    			.map(pf -> {
+		    		Map<String, String> data = new HashMap<>();
+		            data.put("name", pf.getName());
+		            data.put("id", pf.getId());
+		            return data;
+    			})
+    			.collect(Collectors.toList());
+
+    	info.setIdentityProviderAggregations(idpFederationProviders);
+    }
+
 
     private void setClientInstallations(ServerInfoRepresentation info) {
         HashMap<String, List<ClientInstallationRepresentation>> clientInstallations = session.getKeycloakSessionFactory()

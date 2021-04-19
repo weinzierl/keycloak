@@ -17,6 +17,7 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.*;
@@ -64,6 +65,7 @@ public class GroupEntity {
     @Column(name = "REALM_ID")
     private String realm;
 
+    @BatchSize(size = 50)
     @OneToMany(
             cascade = CascadeType.REMOVE,
             orphanRemoval = true, mappedBy="group")

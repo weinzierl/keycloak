@@ -50,8 +50,88 @@ import java.util.stream.Collectors;
 public interface MapRealmEntity extends UpdatableEntity, AbstractEntity, EntityWithAttributes {
 
     public abstract class AbstractRealmEntity extends UpdatableEntity.Impl implements MapRealmEntity {
+    private String id;
+//    private String name;
+//
+//private Boolean enabled = false;
+//    private Boolean registrationAllowed = false;
+//    private Boolean registrationEmailAsUsername = false;
+//    private Boolean verifyEmail = false;
+//    private Boolean resetPasswordAllowed = false;
+//    private Boolean loginWithEmailAllowed = false;
+//    private Boolean duplicateEmailsAllowed = false;
+//    private Boolean rememberMe = false;
+//    private Boolean editUsernameAllowed = false;
+//    private Boolean revokeRefreshToken = false;
+//    private Boolean adminEventsEnabled = false;
+//    private Boolean adminEventsDetailsEnabled = false;
+//    private Boolean internationalizationEnabled = false;
+//    private Boolean allowUserManagedAccess = false;
+//    private Boolean offlineSessionMaxLifespanEnabled = false;
+//    private Boolean eventsEnabled = false;
+//    private Integer refreshTokenMaxReuse = 0;
+//    private Integer ssoSessionIdleTimeout = 0;
+//    private Integer ssoSessionMaxLifespan = 0;
+//    private Integer ssoSessionIdleTimeoutRememberMe = 0;
+//    private Integer ssoSessionMaxLifespanRememberMe = 0;
+//    private Integer offlineSessionIdleTimeout = 0;
+//    private Integer accessTokenLifespan = 0;
+//    private Integer accessTokenLifespanForImplicitFlow = 0;
+//    private Integer accessCodeLifespan = 0;
+//    private Integer accessCodeLifespanUserAction = 0;
+//    private Integer accessCodeLifespanLogin = 0;
+//    private Integer notBefore = 0;
+//    private Integer clientSessionIdleTimeout = 0;
+//    private Integer clientSessionMaxLifespan = 0;
+//    private Integer clientOfflineSessionIdleTimeout = 0;
+//    private Integer clientOfflineSessionMaxLifespan = 0;
+//    private Integer actionTokenGeneratedByAdminLifespan = 0;
+//    private Integer offlineSessionMaxLifespan = 0;
+//    private Long eventsExpiration = 0l;
+//    private String displayName;
+//    private String displayNameHtml;
+//    private String passwordPolicy;
+//    private String sslRequired;
+//    private String loginTheme;
+//    private String accountTheme;
+//    private String adminTheme;
+//    private String emailTheme;
+//    private String masterAdminClient;
+//    private String defaultRoleId;
+//    private String defaultLocale;
+//    private String browserFlow;
+//    private String registrationFlow;
+//    private String directGrantFlow;
+//    private String resetCredentialsFlow;
+//    private String clientAuthenticationFlow;
+//    private String dockerAuthenticationFlow;
+//    private MapOTPPolicyEntity otpPolicy = MapOTPPolicyEntity.fromModel(OTPPolicy.DEFAULT_POLICY);;
+//    private MapWebAuthnPolicyEntity webAuthnPolicy = MapWebAuthnPolicyEntity.defaultWebAuthnPolicy();;
+//    private MapWebAuthnPolicyEntity webAuthnPolicyPasswordless = MapWebAuthnPolicyEntity.defaultWebAuthnPolicy();;
+//
+//
+//    private Set<String> eventsListeners = new HashSet<>();
+//    private Set<String> enabledEventTypes = new HashSet<>();
+//    private Set<String> supportedLocales = new HashSet<>();
+//    private Map<String, String> browserSecurityHeaders = new HashMap<>();
+//    private Map<String, String> smtpConfig = new HashMap<>();
+//
+//    private final Set<String> defaultGroupIds = new HashSet<>();
+//    private final Set<String> defaultClientScopes = new HashSet<>();
+//    private final Set<String> optionalClientScopes = new HashSet<>();
+//    private final Map<String, List<String>> attributes = new HashMap<>();
+//    private final Map<String, Map<String, String>> localizationTexts = new HashMap<>();
+//    private final Map<String, MapClientInitialAccessEntity> clientInitialAccesses = new HashMap<>();
+//    private final Map<String, MapComponentEntity> components = new HashMap<>();
+//    private final Map<String, MapAuthenticationFlowEntity> authenticationFlows = new HashMap<>();
+//    private final Map<String, MapAuthenticationExecutionEntity> authenticationExecutions = new HashMap<>();
+//    private final Map<String, MapRequiredCredentialEntity> requiredCredentials = new HashMap<>();
+//    private final Map<String, MapAuthenticatorConfigEntity> authenticatorConfigs = new HashMap<>();
+//    private final Map<String, MapIdentityProviderEntity> identityProviders = new HashMap<>();
+//    private final Map<String, MapIdentityProviderMapperEntity> identityProviderMappers = new HashMap<>();
+//    private final Map<String, MapFederationEntity> identityProviderFederations = new HashMap<>();
+//    private final Map<String, MapRequiredActionProviderEntity> requiredActionProviders = new HashMap<>();
 
-        private String id;
 
         @Override
         public String getId() {
@@ -488,4 +568,67 @@ public interface MapRealmEntity extends UpdatableEntity, AbstractEntity, EntityW
     void removeExpiredClientInitialAccesses();
     @IgnoreForEntityImplementationGenerator
     boolean hasClientInitialAccess();
+//
+//    public MapFederationEntity getIdentityProvidersFederationById(String id){
+//        return identityProviderFederations.get(id);
+//    }
+//
+//    public Stream<MapFederationEntity> getIdentityProvidersFederations(){
+//        return identityProviderFederations.values().stream();
+//    }
+//
+//    public void addIdentityProvidersFederation(MapFederationEntity idpFederation) {
+//        if (identityProviderFederations.containsKey(idpFederation.getInternalId())) {
+//            throw new ModelDuplicateException("An IdentityProviderFederation with given id already exists");
+//        }
+//        this.updated = true;
+//        identityProviderFederations.put(idpFederation.getInternalId(), idpFederation);
+//    }
+//
+//    public boolean removeIdentityProvidersFederation(String id) {
+//        boolean removed = this.identityProviderFederations.remove(id) != null;
+//        updated |= removed;
+//        return removed;
+//    }
+//
+//    public void updateIdentityProvidersFederation(MapFederationEntity idpFederation) {
+//        this.updated |= identityProviderFederations.replace(idpFederation.getInternalId(), idpFederation) != null;
+//    }
+//
+//    public void addIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+//        this.updated = true;
+//        this.identityProviderFederations.get(federationMapperModel.getFederationId()).addFederationMapper(MapFederationMapperEntity.fromModel(federationMapperModel));
+//    };
+//
+//    public  void updateIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel) {
+//        this.updated = true;
+//        MapFederationEntity federationEntity = this.identityProviderFederations.get(federationMapperModel.getFederationId());
+//        MapFederationMapperEntity mapperEntity = MapFederationMapperEntity.fromModel(federationMapperModel);
+//        federationEntity.getFederationMappers().remove(mapperEntity);
+//        federationEntity.addFederationMapper(mapperEntity);
+//    };
+//
+//    public void removeIdentityProvidersFederationMapper(String id,String federationId) {
+//        this.updated = true;
+//        MapFederationEntity federationEntity = this.identityProviderFederations.get(federationId);
+//        federationEntity.removeFederationMapper(id);
+//    };
+//
+//
+//    public void removeFederationIdp(FederationModel idpFederation, String idpAlias){
+//        if (!identityProviderFederations.containsKey(idpFederation.getInternalId()))
+//            throw new ModelException("An IdentityProviderFederation with given id does not exist. Cannot remove identity provider of that federation");
+//        if (idpAlias==null || idpAlias.isEmpty())
+//            throw new ModelException("Impossible to remove an identity provider, provided a null or empty alias");
+//        MapIdentityProviderEntity currentIdp = getIdentityProviders().filter(i -> i.getAlias().equals(idpAlias)).findFirst().orElse(null);
+//        if(currentIdp==null)
+//            throw new ModelException("There's no identity provider by that alias in this federation.");
+//        if(currentIdp.getFederations()!=null && currentIdp.getFederations().size()==1){ //remove the idp, since it belongs only in this federation
+//            this.removeIdentityProvider(currentIdp.getId());
+//        }
+//        else if(currentIdp.getFederations()!=null ) {
+//            currentIdp.getFederations().remove(idpFederation.getInternalId());
+//            this.updateIdentityProvider(currentIdp);
+//        }
+//    }
 }

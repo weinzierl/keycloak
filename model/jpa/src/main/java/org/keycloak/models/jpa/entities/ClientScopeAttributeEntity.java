@@ -17,6 +17,8 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import java.io.Serializable;
 
 import javax.persistence.Column;
@@ -36,6 +38,7 @@ import javax.persistence.Table;
 @IdClass(ClientScopeAttributeEntity.Key.class)
 public class ClientScopeAttributeEntity {
 
+    @BatchSize(size = 50)
     @Id
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name = "SCOPE_ID")

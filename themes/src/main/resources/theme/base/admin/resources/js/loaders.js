@@ -395,6 +395,18 @@ module.factory('RoleMappingLoader', function(Loader, RoleMapping, $route, $q) {
 	});
 });
 
+
+
+module.factory('IdentityProviderListLoader', function(Loader, IdentityProviderList, $route, $q) {
+    return Loader.query(IdentityProviderList, function () {
+        return {
+            realm: $route.current.params.realm,
+            brief: true
+        }
+    });
+});
+
+
 module.factory('IdentityProviderLoader', function(Loader, IdentityProvider, $route, $q) {
     return Loader.get(IdentityProvider, function () {
         return {
@@ -440,6 +452,44 @@ module.factory('IdentityProviderMapperLoader', function(Loader, IdentityProvider
         }
     });
 });
+
+
+module.factory('IdentityProvidersFederationLoader', function(Loader, IdentityProvidersFederation, $route, $q) {
+    return Loader.get(IdentityProvidersFederation, function () {
+        return {
+            realm: $route.current.params.realm,
+            id: $route.current.params.internalId
+        }
+    });
+});
+
+module.factory('IdentityProviderMapperTypesFederationLoader', function(Loader, IdentityProviderMapperTypesFederation, $route, $q) {
+    return Loader.get(IdentityProviderMapperTypesFederation, function () {
+        return {
+            realm: $route.current.params.realm
+        }
+    });
+});
+
+module.factory('IdentityProvidersFederationMappersLoader', function(Loader, IdentityProvidersFederationMappers, $route, $q) {
+    return Loader.query(IdentityProvidersFederationMappers, function () {
+        return {
+            realm: $route.current.params.realm,
+            id : $route.current.params.internalId
+        }
+    });
+});
+
+module.factory('IdentityProvidersFederationMapperLoader', function(Loader, IdentityProvidersFederationMapper, $route, $q) {
+    return Loader.get(IdentityProvidersFederationMapper, function () {
+        return {
+            realm: $route.current.params.realm,
+            id : $route.current.params.internalId,
+            mapperId : $route.current.params.mapperId
+        }
+    });
+});
+
 
 module.factory('AuthenticationFlowsLoader', function(Loader, AuthenticationFlows, $route, $q) {
     return Loader.query(AuthenticationFlows, function() {

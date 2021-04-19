@@ -24,7 +24,6 @@ import org.jboss.logging.Logger;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.util.JsonSerialization;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -183,6 +182,7 @@ public class RealmRepresentation {
     protected Boolean adminEventsEnabled;
     protected Boolean adminEventsDetailsEnabled;
     
+    private List<SAMLFederationRepresentation> samlFederations;
     private List<IdentityProviderRepresentation> identityProviders;
     private List<IdentityProviderMapperRepresentation> identityProviderMappers;
     private List<ProtocolMapperRepresentation> protocolMappers;
@@ -883,12 +883,20 @@ public class RealmRepresentation {
         this.identityProviders = identityProviders;
     }
 
+    public List<SAMLFederationRepresentation> getSamlFederations() {
+		return samlFederations;
+	}
+
     public void addIdentityProvider(IdentityProviderRepresentation identityProviderRepresentation) {
         if (identityProviders == null) identityProviders = new LinkedList<>();
         identityProviders.add(identityProviderRepresentation);
     }
+    
+	public void setSamlFederations(List<SAMLFederationRepresentation> samlFederations) {
+		this.samlFederations = samlFederations;
+	}
 
-    public List<ProtocolMapperRepresentation> getProtocolMappers() {
+	public List<ProtocolMapperRepresentation> getProtocolMappers() {
         return protocolMappers;
     }
 

@@ -45,6 +45,7 @@ import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
+import org.keycloak.representations.idm.SAMLFederationRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
@@ -61,7 +62,6 @@ import org.keycloak.storage.ldap.mappers.LDAPStorageMapper;
 import org.keycloak.testsuite.ProfileAssume;
 import org.keycloak.testsuite.admin.ApiUtil;
 import org.keycloak.testsuite.client.KeycloakTestingClient;
-import org.keycloak.testsuite.util.RealmRepUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,6 +87,8 @@ import static org.junit.Assert.assertThat;
  * @author Stan Silvert ssilvert@redhat.com (C) 2016 Red Hat Inc.
  */
 public class ExportImportUtil {
+
+	private static final String samlIdpAlias = "6b6b716bef3c495083e31e1a71e8622e07d69b955cc3d9764fe28be5d0e8fb02";
 
     // In the old testsuite, this method exists as a public method of ImportTest from the model package.
     // However, model package is not ready to be migrated yet.
@@ -282,18 +284,41 @@ public class ExportImportUtil {
         Assert.assertEquals("3025", smtpConfig.get("port"));
 
         // Test identity providers
-        List<IdentityProviderRepresentation> identityProviders = realm.getIdentityProviders();
-        Assert.assertEquals(3, identityProviders.size());
+        List<IdentityProviderRepresentation> identityProviders = realmRsc.identityProviders().findAll(false,"",-1,-1);
+        Assert.assertEquals(5, identityProviders.size());
         IdentityProviderRepresentation google = null;
+        IdentityProviderRepresentation samlIdp = null;
         for (IdentityProviderRepresentation idpRep : identityProviders) {
-            if (idpRep.getAlias().equals("google1")) google = idpRep;
+            if (idpRep.getAlias().equals("google1")) {
+            	google = idpRep;
+            } else  if (idpRep.getAlias().equals(samlIdpAlias)) {
+            	samlIdp = idpRep;
+            }
         }
+        //check google Idp
         Assert.assertNotNull(google);
         Assert.assertEquals("google1", google.getAlias());
         Assert.assertEquals("google", google.getProviderId());
         Assert.assertTrue(google.isEnabled());
         Assert.assertEquals("googleId", google.getConfig().get("clientId"));
-        Assert.assertEquals("googleSecret", google.getConfig().get("clientSecret"));
+        //the clientSecret value is replaced by the StripSecretsUtils.strip(IdentityProviderRepresentation)
+        Assert.assertEquals(ComponentRepresentation.SECRET_VALUE, google.getConfig().get("clientSecret"));
+        //check Idp from saml metadata aggregate
+        Assert.assertNotNull(samlIdp);
+        Assert.assertEquals(samlIdpAlias, samlIdp.getAlias());
+        Assert.assertEquals("saml", samlIdp.getProviderId());
+        Assert.assertTrue(samlIdp.isEnabled());
+        Assert.assertEquals("true", samlIdp.getConfig().get("postBindingResponse"));
+        Assert.assertEquals("https://idp.admin.grnet.gr/idp/profile/SAML2/POST/SSO", samlIdp.getConfig().get("singleSignOnServiceUrl"));
+        Assert.assertNotNull(samlIdp.getFederations());
+        Assert.assertEquals(1, samlIdp.getFederations().size());
+        Assert.assertTrue(samlIdp.getFederations().contains("1dc40e23-e9d0-41de-9324-62e600fab855"));
+
+        //check saml metadata aggregate
+        Assert.assertEquals(1, realm.getSamlFederations().size());
+        SAMLFederationRepresentation metadataAggregate =realm.getSamlFederations().get(0);
+        Assert.assertEquals("saml-edugain",metadataAggregate.getAlias());
+        Assert.assertEquals("saml",metadataAggregate.getProviderId());
 
         //////////////////
         // Test federation providers

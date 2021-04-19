@@ -17,6 +17,8 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -42,11 +44,13 @@ import java.io.Serializable;
 public class ClientScopeRoleMappingEntity {
 
     @Id
+    @BatchSize(size = 50)
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name = "SCOPE_ID")
     protected ClientScopeEntity clientScope;
 
     @Id
+    @BatchSize(size = 50)
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name="ROLE_ID")
     protected RoleEntity role;

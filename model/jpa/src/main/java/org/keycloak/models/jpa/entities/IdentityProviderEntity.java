@@ -17,8 +17,11 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -26,20 +29,37 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Index;
+
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Pedro Igor
  */
 @Entity
-@Table(name="IDENTITY_PROVIDER")
+@Table(
+		name="IDENTITY_PROVIDER",
+		indexes = {
+				@Index(name = "IDP_PROVIDER_ALIAS_INDX", columnList = "PROVIDER_ALIAS")
+		}
+)
 @NamedQueries({
-        @NamedQuery(name="findIdentityProviderByAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias")
+		@NamedQuery(name="countIdentityProvidersOfRealm", query="select count(identityProvider.internalId) from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId"),
+        @NamedQuery(name="findIdentityProvidersByAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias"),
+        @NamedQuery(name="findIdentityProviderByRealm", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId"),
+        @NamedQuery(name="findIdentityProviderByRealmAndKeyword", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId and (lower(identityProvider.alias) like :keyword or lower(identityProvider.displayName) like :keyword )"),
+        @NamedQuery(name="findIdentityProviderByRealmAndAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias and identityProvider.realm.id = :realmId"),
+        @NamedQuery(name="findUtilizedIdentityProviderTypesOfRealm", query="select distinct identityProvider.providerId from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId"),
+        @NamedQuery(name="findIdentityProviderByFederation", query="select identityProvider.alias from IdentityProviderEntity identityProvider join identityProvider.federations f where f.internalId = :federationId")
 })
 public class IdentityProviderEntity {
 
@@ -48,6 +68,7 @@ public class IdentityProviderEntity {
     @Access(AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity.  This avoids an extra SQL
     protected String internalId;
 
+    @BatchSize(size = 50)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REALM_ID")
     protected RealmEntity realm;
@@ -85,11 +106,20 @@ public class IdentityProviderEntity {
     @Column(name="POST_BROKER_LOGIN_FLOW_ID")
     private String postBrokerLoginFlowId;
 
+    @BatchSize(size = 50)
     @ElementCollection
     @MapKeyColumn(name="NAME")
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="IDENTITY_PROVIDER_CONFIG", joinColumns={ @JoinColumn(name="IDENTITY_PROVIDER_ID") })
     private Map<String, String> config;
+    
+    @ManyToMany
+    @BatchSize(size = 50)
+    @JoinTable(
+    	name = "federation_idps", 
+		joinColumns = @JoinColumn(name = "identityprovider_id"), 
+		inverseJoinColumns = @JoinColumn(name = "federation_id"))
+    Set<FederationEntity> federations = new HashSet<FederationEntity>();
 
     public String getInternalId() {
         return this.internalId;
@@ -203,7 +233,24 @@ public class IdentityProviderEntity {
         this.displayName = displayName;
     }
 
-    @Override
+	public Set<FederationEntity> getFederations() {
+		return federations;
+	}
+
+	public void setFederations(Set<FederationEntity> federations) {
+		this.federations = federations;
+	}
+
+	public void addToFederation(FederationEntity federation) {
+		this.federations.add(federation);
+	}
+	
+	public void removeFromFederation(FederationEntity federation) {
+		this.federations.remove(federation);
+	}
+	
+	
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null) return false;

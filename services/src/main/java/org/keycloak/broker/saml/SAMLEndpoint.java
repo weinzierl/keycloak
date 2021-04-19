@@ -110,6 +110,7 @@ import org.keycloak.saml.validators.ConditionsValidator;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.sessions.AuthenticationSessionModel;
+import org.keycloak.util.JsonSerialization;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -285,7 +286,7 @@ public class SAMLEndpoint {
                 event.error(Errors.INVALID_REQUEST);
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
             }
-            if (! destinationValidator.validate(getExpectedDestination(config.getAlias(), null), requestAbstractType.getDestination())) {
+            if (! destinationValidator.validate(getExpectedDestination(config.getAlias(), null), requestAbstractType.getDestination()) && (config.getFederations().isEmpty() || ! destinationValidator.validate(getExpectedDestination( ), requestAbstractType.getDestination()))) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                 event.detail(Details.REASON, Errors.INVALID_DESTINATION);
                 event.error(Errors.INVALID_SAML_RESPONSE);
@@ -356,7 +357,7 @@ public class SAMLEndpoint {
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
                         .relayState(relayState);
             boolean postBinding = config.isPostBindingLogout();
-            if (config.isWantAuthnRequestsSigned()) {
+            if (config.isWantLogoutRequestsSigned()) {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
                 String keyName = config.getXmlSigKeyInfoKeyNameTransformer().getKeyName(keys.getKid(), keys.getCertificate());
                 binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())
@@ -396,7 +397,7 @@ public class SAMLEndpoint {
         }
 
         private String getEntityId(UriInfo uriInfo, RealmModel realm) {
-            String configEntityId = config.getEntityId();
+            String configEntityId = config.getSpEntityId();
 
             if (configEntityId == null || configEntityId.isEmpty())
                 return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
@@ -472,10 +473,24 @@ public class SAMLEndpoint {
                 }
                 AssertionType assertion = responseType.getAssertions().get(0).getAssertion();
                 NameIDType subjectNameID = getSubjectNameID(assertion);
-                String principal = getPrincipal(assertion);
+                String principal = null;
+                LinkedList<SAMLIdentityProviderConfig.Principal> principals = config.getMultiplePrincipals();
+                if (principals.isEmpty()) {
+                    //default value when principal has not been set
+                    principal = subjectNameID != null ? subjectNameID.getValue() : null;
+                } else {
+                    //find first existing principal
+                    for (SAMLIdentityProviderConfig.Principal pr : principals) {
+                        principal = getPrincipal(assertion, pr);
+                        if (principal != null)
+                            break;
+                    }
+                }
+
+
 
                 if (principal == null) {
-                    logger.errorf("no principal in assertion; expected: %s", expectedPrincipalType());
+                    logger.errorf("no principal in assertion; expected: %s", JsonSerialization.writeValueAsString(config.getMultiplePrincipals()));
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
                     return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
@@ -611,7 +626,8 @@ public class SAMLEndpoint {
                 event.error(Errors.INVALID_SAML_LOGOUT_RESPONSE);
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
             }
-            if (! destinationValidator.validate(getExpectedDestination(config.getAlias(), clientId), statusResponse.getDestination())) {
+            //if clientId == null, check if destination is federation endpoint
+            if (! destinationValidator.validate(getExpectedDestination(config.getAlias(), clientId), statusResponse.getDestination()) && (clientId != null || config.getFederations().isEmpty() || ! destinationValidator.validate(getExpectedDestination( ), statusResponse.getDestination()))) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                 event.detail(Details.REASON, Errors.INVALID_DESTINATION);
                 event.error(Errors.INVALID_SAML_RESPONSE);
@@ -666,6 +682,10 @@ public class SAMLEndpoint {
                 return session.getContext().getUri().getAbsolutePath().toString();
             }
             return Urls.identityProviderAuthnResponse(session.getContext().getUri().getBaseUri(), providerAlias, realm.getName()).toString();
+        }
+
+        private String getExpectedDestination() {
+            return Urls.identityProviderAuthnResponse(session.getContext().getUri().getBaseUri(), realm.getName()).toString();
         }
     }
 
@@ -752,17 +772,15 @@ public class SAMLEndpoint {
         return getFirstMatchingAttribute(assertion, attribute -> Objects.equals(attribute.getFriendlyName(), friendlyName));
     }
 
-    private String getPrincipal(AssertionType assertion) {
+    private String getPrincipal(AssertionType assertion,SAMLIdentityProviderConfig.Principal principal) {
 
-        SamlPrincipalType principalType = config.getPrincipalType();
-
-        if (principalType == null || principalType.equals(SamlPrincipalType.SUBJECT)) {
+        if (principal.getPrincipalType() == null || principal.getPrincipalType().equals(SamlPrincipalType.SUBJECT)) {
             NameIDType subjectNameID = getSubjectNameID(assertion);
-            return subjectNameID != null ? subjectNameID.getValue() : null;
-        } else if (principalType.equals(SamlPrincipalType.ATTRIBUTE)) {
-            return getAttributeByName(assertion, config.getPrincipalAttribute());
+            return ( subjectNameID != null && subjectNameID.getFormat()!= null && subjectNameID.getFormat().toString().equals(principal.getNameIDPolicyFormat())) ? subjectNameID.getValue() : null;
+        } else if (principal.getPrincipalType().equals(SamlPrincipalType.ATTRIBUTE)) {
+            return getAttributeByName(assertion, principal.getPrincipalAttribute());
         } else {
-            return getAttributeByFriendlyName(assertion, config.getPrincipalAttribute());
+            return getAttributeByFriendlyName(assertion, principal.getPrincipalAttribute());
         }
 
     }
@@ -776,22 +794,29 @@ public class SAMLEndpoint {
                 .map(AttributeType::getAttributeValue)
                 .flatMap(Collection::stream)
                 .findFirst()
-                .map(Object::toString)
+                .map(val -> {
+                    if (val != null && val instanceof NameIDType) {
+                        NameIDType nameIDType = (NameIDType) val;
+                        return nameIDType.getValue();
+                    } else {
+                        return val.toString();
+                    }
+                })
                 .orElse(null);
     }
 
-    private String expectedPrincipalType() {
-        SamlPrincipalType principalType = config.getPrincipalType();
-        switch (principalType) {
-            case SUBJECT:
-                return principalType.name();
-            case ATTRIBUTE:
-            case FRIENDLY_ATTRIBUTE:
-                return String.format("%s(%s)", principalType.name(), config.getPrincipalAttribute());
-            default:
-                return null;
-        }
-    }
+//    private String expectedPrincipalType() {
+//        SamlPrincipalType principalType = config.getPrincipalType();
+//        switch (principalType) {
+//            case SUBJECT:
+//                return principalType.name();
+//            case ATTRIBUTE:
+//            case FRIENDLY_ATTRIBUTE:
+//                return String.format("%s(%s)", principalType.name(), config.getPrincipalAttribute());
+//            default:
+//                return null;
+//        }
+//    }
 
     private NameIDType getSubjectNameID(final AssertionType assertion) {
         SubjectType subject = assertion.getSubject();

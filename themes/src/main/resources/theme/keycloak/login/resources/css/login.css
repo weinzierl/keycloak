@@ -767,3 +767,9 @@ ul#kc-totp-supported-apps {
     margin-bottom: 16px;
 }
 /* End Recovery codes */
+
+.login-pf-list-scrollable {
+	max-height: 40vh;
+    overflow: hidden;
+    overflow-y: auto;
+}

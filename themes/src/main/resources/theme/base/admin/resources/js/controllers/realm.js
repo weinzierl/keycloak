@@ -1010,6 +1010,115 @@ module.controller('IdentityProviderTabCtrl', function(Dialog, $scope, Current, N
     };
 });
 
+module.controller('RealmIdentityProviderListCtrl', function($scope, $filter, realm,	serverInfo, $route,
+		$location, Notifications, Dialog,
+		IdentityProviderUsedProviderIds,
+		IdentityProviderList,
+		IdentityProvider
+		) {
+
+
+    $scope.realm = angular.copy(realm);
+
+    $scope.serverInfo = serverInfo;
+
+    $scope.allProviders = angular.copy(serverInfo.identityProviders);
+
+    $scope.showWelcome = false;
+
+    $scope.search = function(){
+    	$scope.query.realm = realm.realm;
+    	$scope.configuredProviders = IdentityProviderList.query($scope.query, function() {
+    		$scope.showWelcome = ($scope.configuredProviders.length == 0 && $scope.query.keyword == "") ? true : false;
+    		IdentityProviderUsedProviderIds.query({realm : $scope.query.realm}, function(response){
+    			removeUsedSocial(response);
+    		});
+
+    	});
+    }
+
+
+    if($scope.query == null){
+    	$scope.query = {
+	        realm : realm.realm,
+	        brief : true,
+	        keyword : "",
+	        first : 0,
+	        max : 20
+	    };
+    }
+
+
+    $scope.search();
+
+
+    $scope.hasPreviousPage = function () {
+    	return $scope.query.first != 0;
+    }
+
+    $scope.hasNextPage = function () {
+    	return $scope.configuredProviders.length == $scope.query.max;
+    }
+
+    $scope.nextPage = function(){
+    	$scope.query.first += $scope.query.max;
+    	$scope.search();
+    }
+
+    $scope.previousPage = function(){
+    	$scope.query.first -= $scope.query.max;
+    	$scope.search();
+    }
+
+    $scope.firstPage = function(){
+    	$scope.query.first = 0;
+    	$scope.search();
+    }
+
+
+
+
+
+    $scope.addProvider = function(provider) {
+        $location.url("/create/identity-provider/" + realm.realm + "/" + provider.id);
+    };
+
+
+    $scope.removeIdentityProvider = function(identityProvider) {
+        Dialog.confirmDelete(identityProvider.alias, 'provider', function() {
+            IdentityProvider.remove({
+                realm : realm.realm,
+                alias : identityProvider.alias
+            }, function() {
+                $route.reload();
+                Notifications.success("The identity provider has been deleted.");
+            });
+        });
+    };
+
+
+
+    // KEYCLOAK-5932: remove social providers that have already been defined
+    function removeUsedSocial(usedIdentityProviderIds) {
+    	if ($scope.configuredProviders == null)
+    		return;
+        var i = $scope.allProviders.length;
+        while (i--) {
+            if ($scope.allProviders[i].groupName !== 'Social') continue;
+            for (var j = 0; j < usedIdentityProviderIds.length; j++) {
+            	if(usedIdentityProviderIds[j] === $scope.allProviders[i].id) {
+					$scope.allProviders.splice(i, 1);
+					break;
+				}
+            }
+        }
+    };
+
+
+
+});
+
+
 module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload, $http, $route, realm, instance, providerFactory, IdentityProvider, serverInfo, authFlows, $location, Notifications, Dialog) {
     $scope.realm = angular.copy(realm);
 
@@ -1050,6 +1159,39 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
 
             }
         ];
+        $scope.nameIdForPrincipal = [
+
+                    {
+                        format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
+                        name: "Persistent"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+                        name: "Email"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos",
+                        name: "Kerberos"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+                        name: "X.509 Subject Name"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName",
+                        name: "Windows Domain Qualified Name"
+
+                    },
+                    {
+                        format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+                        name: "Unspecified"
+
+                    }
+                ];
         $scope.signatureAlgorithms = [
             "RSA_SHA1",
             "RSA_SHA256",
@@ -1089,7 +1231,7 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
             $scope.identityProvider.config.xmlSigKeyInfoKeyNameTransformer = $scope.xmlKeyNameTranformers[1];			
             $scope.identityProvider.config.allowCreate = 'true';
         }
-        $scope.identityProvider.config.entityId = $scope.identityProvider.config.entityId || (authUrl + '/realms/' + realm.realm);
+        $scope.identityProvider.config.spEntityId = $scope.identityProvider.config.spEntityId || (authUrl + '/realms/' + realm.realm);
     }
 
     $scope.hidePassword = true;
@@ -1099,6 +1241,13 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
 
     if (instance && instance.alias) {
         $scope.identityProvider = angular.copy(instance);
+        if ($scope.identityProvider.config.multiplePrincipals !== undefined ) {
+            $scope.multiplePrincipals= angular.fromJson($scope.identityProvider.config.multiplePrincipals);
+            $scope.newMultiplePrincipal={};
+        } else  if ($scope.identityProvider.providerId == 'saml'){
+            $scope.multiplePrincipals= [];
+            $scope.newMultiplePrincipal={};
+        }
         $scope.newIdentityProvider = false;
         for (var i in serverInfo.identityProviders) {
             var provider = serverInfo.identityProviders[i];
@@ -1117,9 +1266,16 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
         $scope.identityProvider.authenticateByDefault = false;
         $scope.identityProvider.firstBrokerLoginFlowAlias = 'first broker login';
         $scope.identityProvider.config.useJwksUrl = 'true';
+        $scope.identityProvider.config.postBindingLogoutReceivingRequest = 'false';
         $scope.identityProvider.config.syncMode = 'IMPORT';
-        $scope.newIdentityProvider = true;
+        if ($scope.identityProvider.providerId == 'saml'){
+            $scope.multiplePrincipals= [];
+            $scope.newMultiplePrincipal={};
+         }
+         $scope.newIdentityProvider = true;
+
     }
+
 
     $scope.changed = $scope.newIdentityProvider;
 
@@ -1151,7 +1307,7 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
     for (var i=0 ; i<$scope.authFlows.length ; i++) {
         $scope.postBrokerAuthFlows.push($scope.authFlows[i]);
     }
-    
+
     if (!$scope.identityProvider.postBrokerLoginFlowAlias) {
         $scope.identityProvider.postBrokerLoginFlowAlias = $scope.postBrokerAuthFlows[0].alias;
     }
@@ -1273,7 +1429,31 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
         $location.url("/create/identity-provider/" + realm.realm + "/" + provider.id);
     };
 
+    $scope.addNewMultiplePrincipal = function() {
+            $scope.multiplePrincipals.push($scope.newMultiplePrincipal);
+            $scope.newMultiplePrincipal = {};
+    }
+
+   $scope.removeMultiplePrincipal = function(index) {
+            $scope.multiplePrincipals.splice(index, 1);
+   }
+
+   $scope.movePrincipalUp = function(index) {
+               var tempPr = $scope.multiplePrincipals[index-1];
+               $scope.multiplePrincipals[index-1] =$scope.multiplePrincipals[index];
+               $scope.multiplePrincipals[index] = tempPr;
+   }
+
     $scope.save = function() {
+         if ($scope.newMultiplePrincipal !== undefined && $scope.newMultiplePrincipal.principalType !== undefined && $scope.newMultiplePrincipal.principalType.length) {
+                $scope.addNewMultiplePrincipal();
+         }
+         if ($scope.multiplePrincipals !== undefined ) {
+            	$scope.identityProvider.config.multiplePrincipals = angular.toJson($scope.multiplePrincipals);
+         } else if ($scope.identityProvider.providerId == 'saml'){
+                Notifications.error("You must specify at least one principal");
+                return;
+         }
         if ($scope.newIdentityProvider) {
             if (!$scope.identityProvider.alias) {
                 Notifications.error("You must specify an alias");
@@ -1372,6 +1552,636 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
         $scope.newAuthnContextDeclRef = "";
     };
 });
+
+
+module.controller('IdentityProvidersFederationsListCtrl', function(realm, serverInfo, Dialog, IdentityProvidersFederation, $scope, $route, Current, Notifications, $location) {
+
+	$scope.realm = realm;
+	$scope.serverInfo = serverInfo;
+
+	$scope.addIdpFederation = function(federation) {
+        $location.url("/realms/" + realm.realm + "/saml-federation/" + federation.id);
+    };
+
+	$scope.removeIdentityProvidersFederation = function(federation) {
+
+        Dialog.confirmDelete(federation.alias, 'identity providers federation', function() {
+
+        	IdentityProvidersFederation.remove({
+                realm : realm.realm,
+                id : federation.internalId
+            }, function() {
+                $route.reload();
+                Notifications.success("The identity providers federation has been deleted.");
+            });
+
+        });
+
+    };
+
+});
+
+module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialog, $scope, providerId, identityProvidersFederation, IdentityProvidersFederation, Current, Notifications, $location, $http) {
+
+	$scope.nameIdFormats = [
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
+            name: "Persistent"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+            name: "Transient"
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+            name: "Email"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos",
+            name: "Kerberos"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+            name: "X.509 Subject Name"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName",
+            name: "Windows Domain Qualified Name"
+
+        },
+        {
+            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+            name: "Unspecified"
+        }
+    ];
+
+    $scope.nameIdForPrincipal = [
+
+                        {
+                            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
+                            name: "Persistent"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+                            name: "Email"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos",
+                            name: "Kerberos"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+                            name: "X.509 Subject Name"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName",
+                            name: "Windows Domain Qualified Name"
+
+                        },
+                        {
+                            format: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+                            name: "Unspecified"
+
+                        }
+                    ];
+	
+	 $scope.principalTypes = [
+	     {
+                          type: "SUBJECT",
+                          name: "Subject NameID"
+
+         },
+         {
+             type: "ATTRIBUTE",
+             name: "Attribute [Name]"
+
+         },
+         {
+             type: "FRIENDLY_ATTRIBUTE",
+             name: "Attribute [Friendly Name]"
+
+         }
+     ];
+
+	$scope.realm = realm;
+	$scope.identityProvidersFederation = identityProvidersFederation;
+
+	if ($scope.identityProvidersFederation == null) {
+		 $scope.identityProvidersFederation = {};
+		 $scope.identityProvidersFederation.providerId = providerId;
+		 $scope.identityProvidersFederation.entityIdDenyList = [];
+		 $scope.identityProvidersFederation.entityIdAllowList = [];
+		 $scope.identityProvidersFederation.registrationAuthorityDenyList = [];
+		 $scope.identityProvidersFederation.registrationAuthorityAllowList = [];
+		 $scope.identityProvidersFederation.categoryAllowList = {};
+         $scope.newCategoryAllowList = {};
+		 $scope.newCategoryAllowList.key='';
+		 $scope.newCategoryAllowList.value = [];
+		 $scope.identityProvidersFederation.categoryDenyList = {};
+		 $scope.newCategoryDenyList = {};
+		 $scope.newCategoryDenyList.key='';
+		 $scope.newCategoryDenyList.value = [];
+		 $scope.identityProvidersFederation.config = {};
+		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
+         $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+         $scope.identityProvidersFederation.config.postBindingResponse = 'true';
+         $scope.identityProvidersFederation.config.xsltOverride = '';
+         $scope.identityProvidersFederation.config.spEntityId = $scope.identityProvidersFederation.config.spEntityId || (authUrl + '/realms/' + realm.realm);
+         $scope.multiplePrincipals= [];
+         $scope.newMultiplePrincipal={};
+	} else {
+		 $scope.newCategoryAllowList = {};
+		 $scope.newCategoryAllowList.key='';
+		 $scope.newCategoryAllowList.value = [];
+		 $scope.newCategoryDenyList = {};
+		 $scope.newCategoryDenyList.key='';
+		 $scope.newCategoryDenyList.value = [];
+		 if ($scope.identityProvidersFederation.config.multiplePrincipals !== undefined ) {
+             $scope.multiplePrincipals= angular.fromJson($scope.identityProvidersFederation.config.multiplePrincipals);
+             $scope.newMultiplePrincipal={};
+         } else  {
+             $scope.multiplePrincipals= [];
+             $scope.newMultiplePrincipal={};
+         }
+	}
+	$scope.changed = false;
+
+    $scope.showXsltOverride = false;
+
+	$scope.callbackUrl = authServerUrl + "/realms/" + realm.realm + "/broker/federation/";
+
+	$scope.addNewMultiplePrincipal = function() {
+        $scope.multiplePrincipals.push($scope.newMultiplePrincipal);
+        $scope.newMultiplePrincipal = {};
+        $scope.changed = true;
+    }
+
+    $scope.removeMultiplePrincipal = function(index) {
+        $scope.multiplePrincipals.splice(index, 1);
+        $scope.changed = true;
+    }
+
+    $scope.movePrincipalUp = function(index) {
+         var tempPr = $scope.multiplePrincipals[index-1];
+         $scope.multiplePrincipals[index-1] =$scope.multiplePrincipals[index];
+         $scope.multiplePrincipals[index] = tempPr;
+         $scope.changed = true;
+    }
+       
+    $scope.cancel = function() {
+        $location.url("/realms/" + realm.realm + "/saml-federations");
+    };
+    
+    $scope.save = function(){
+    	if ($scope.newEntityIdAllowList && $scope.newEntityIdAllowList.length > 0) {
+            $scope.addEntityIdAllowList();
+        }
+    	if ($scope.newEntityIdDenyList && $scope.newEntityIdDenyList.length > 0) {
+            $scope.addEntityIdDenyList();
+        }
+    	
+    	if ($scope.newRegistrationAuthorityAllowList && $scope.newRegistrationAuthorityAllowList.length > 0) {
+            $scope.addRegistrationAuthorityAllowList();
+        }
+    	if ($scope.newRegistrationAuthorityDenyList && $scope.newRegistrationAuthorityDenyList.length > 0) {
+            $scope.addRegistrationAuthorityDenyList();
+        }
+        if ($scope.newMultiplePrincipal !== undefined && $scope.newMultiplePrincipal.principalType !== undefined && $scope.newMultiplePrincipal.principalType.length) {
+            $scope.addNewMultiplePrincipal();
+        }
+         if ($scope.multiplePrincipals !== undefined && $scope.multiplePrincipals.length > 0) {
+             $scope.identityProvidersFederation.config.multiplePrincipals = angular.toJson($scope.multiplePrincipals);
+         } else {
+            Notifications.error("You must specify at least one principal");
+            return;
+         }
+
+    	IdentityProvidersFederation.save({
+            realm: $scope.realm.realm
+        }, 
+        $scope.identityProvidersFederation, 
+        function () {
+        	$location.url("/realms/" + realm.realm + "/saml-federations");
+            Notifications.success("The " + $scope.identityProvidersFederation.alias + " provider has been created.");
+        });
+    }
+
+    var initValues = angular.copy($scope.identityProvidersFederation);
+    
+    if(initValues==null) 
+    	initValues = {};
+    
+    $scope.$watch('identityProvidersFederation.url', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.url) {
+    			$scope.changed = true;
+    		}
+    		else {
+    			$scope.changed = false;
+    		}
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.alias', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.alias) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.updateFrequencyInMins', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.updateFrequencyInMins) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+
+	$scope.$watch('identityProvidersFederation.config.syncMode',
+        	function (newValue, oldValue, scope) {
+        		if(newValue != initValues.config.syncMode)
+        			$scope.changed = true;
+        		else
+        			$scope.changed = false;
+        	},
+        true);
+    
+    if(initValues.config == null) 
+    	initValues.config = {};	
+    
+    $scope.$watch('identityProvidersFederation.config.nameIDPolicyFormat', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.config.nameIDPolicyFormat) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+    
+
+    $scope.$watch('identityProvidersFederation.config.postBindingAuthnRequest', 
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.config.postBindingAuthnRequest) 
+    			$scope.changed = true;
+    		else 
+    			$scope.changed = false;
+    	}, 
+    true);
+    
+    $scope.$watch('identityProvidersFederation.config.wantAuthnRequestsSigned', 
+		function (newValue, oldValue, scope) {
+			if(newValue != initValues.config.wantAuthnRequestsSigned) 
+				$scope.changed = true;
+			else 
+				$scope.changed = false;
+		}, 
+	true);
+    
+    $scope.$watch('identityProvidersFederation.config.wantAssertionsSigned', 
+		function (newValue, oldValue, scope) {
+			if(newValue != initValues.config.wantAssertionsSigned) 
+				$scope.changed = true;
+			else 
+				$scope.changed = false;
+		}, 
+	true);
+    
+    $scope.$watch('identityProvidersFederation.config.wantAssertionsEncrypted', 
+		function (newValue, oldValue, scope) {
+			if(newValue != initValues.config.wantAssertionsEncrypted) 
+				$scope.changed = true;
+			else 
+				$scope.changed = false;
+		}, 
+	true);
+
+	$scope.$watch('identityProvidersFederation.config.attributeConsumingServiceIndex',
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.config.attributeConsumingServiceIndex)
+    			$scope.changed = true;
+    		else
+    			$scope.changed = false;
+    	},
+    true);
+
+    $scope.$watch('identityProvidersFederation.config.attributeConsumingServiceName',
+        	function (newValue, oldValue, scope) {
+        		if(newValue != initValues.config.attributeConsumingServiceName)
+        			$scope.changed = true;
+        		else
+        			$scope.changed = false;
+        	},
+    true);
+
+    $scope.$watch('identityProvidersFederation.config.signSpMetadata',
+            function (newValue, oldValue, scope) {
+            	if(newValue != initValues.config.signSpMetadata)
+            		$scope.changed = true;
+            	else
+            		$scope.changed = false;
+            },
+    true);
+
+    $scope.$watch('newEntityIdDenyList',
+    		function (newValue, oldValue, scope) {
+    			if(newValue != initValues.denyList)
+    				$scope.changed = true;
+    			else 
+    				$scope.changed = false;
+    		}, 
+    	true);
+        
+    $scope.$watch('newEntityIdAllowList',
+    		function (newValue, oldValue, scope) {
+    			if(newValue != initValues.allowList)
+    				$scope.changed = true;
+    			else 
+    				$scope.changed = false;
+    		}, 
+    	true);
+    
+    
+    $scope.$watch('newRegistrationAuthorityDenyList',
+    		function (newValue, oldValue, scope) {
+    			if(newValue != initValues.denyList)
+    				$scope.changed = true;
+    			else 
+    				$scope.changed = false;
+    		}, 
+    	true);
+        
+    $scope.$watch('newRegistrationAuthorityAllowList',
+    		function (newValue, oldValue, scope) {
+    			if(newValue != initValues.allowList)
+    				$scope.changed = true;
+    			else 
+    				$scope.changed = false;
+    		}, 
+    	true);
+    
+        $scope.deleteEntityIdAllowList = function(index) {
+            $scope.identityProvidersFederation.entityIdAllowList.splice(index, 1);
+            $scope.changed = true;
+        }
+
+        $scope.addEntityIdAllowList = function() {
+            $scope.identityProvidersFederation.entityIdAllowList.push($scope.newEntityIdAllowList);
+            $scope.newEntityIdAllowList = "";
+        }
+        
+        $scope.deleteEntityIdDenyList = function(index) {
+            $scope.identityProvidersFederation.entityIdDenyList.splice(index, 1);
+            $scope.changed = true;
+        }
+
+        $scope.addEntityIdDenyList = function() {
+            $scope.identityProvidersFederation.entityIdDenyList.push($scope.newEntityIdDenyList);
+            $scope.newEntityIdDenyList = "";
+        }
+        
+        $scope.deleteRegistrationAuthorityAllowList = function(index) {
+            $scope.identityProvidersFederation.registrationAuthorityAllowList.splice(index, 1);
+            $scope.changed = true;
+        }
+
+        $scope.addRegistrationAuthorityAllowList = function() {
+            $scope.identityProvidersFederation.registrationAuthorityAllowList.push($scope.newRegistrationAuthorityAllowList);
+            $scope.newRegistrationAuthorityAllowList = "";
+        }
+        
+        $scope.deleteRegistrationAuthorityDenyList = function(index) {
+            $scope.identityProvidersFederation.registrationAuthorityDenyList.splice(index, 1);
+            $scope.changed = true;
+        }
+
+        $scope.addRegistrationAuthorityDenyList = function() {
+            $scope.identityProvidersFederation.registrationAuthorityDenyList.push($scope.newRegistrationAuthorityDenyList);
+            $scope.newRegistrationAuthorityDenyList = "";
+        }
+
+        //entity category allowlist / denylist functions
+        $scope.addCategoryDenyList = function() {
+        	if ($scope.newCategoryDenyListValue.length > 0)
+        		$scope.newCategoryDenyList.value.push($scope.newCategoryDenyListValue);
+            $scope.identityProvidersFederation.categoryDenyList[$scope.newCategoryDenyList.key] = $scope.newCategoryDenyList.value;
+            $scope.newCategoryDenyList.key='';
+            $scope.newCategoryDenyList.value =[];
+            $scope.newCategoryDenyListValue='';
+            $scope.changed = true;
+
+        }
+
+        $scope.removeCategoryDenyList = function(key) {
+        	delete $scope.identityProvidersFederation.categoryDenyList[key];
+            $scope.changed = true;
+        }
+
+        $scope.addCategoryDenyListValue = function() {
+            $scope.newCategoryDenyList.value.push($scope.newCategoryDenyListValue);
+            $scope.newCategoryDenyListValue = "";
+        }
+
+        $scope.deleteNewValueCategoryDenyList = function(index) {
+            $scope.newCategoryDenyList.value.splice(index, 1);
+        }
+
+        $scope.deleteOldValueCategoryDenyList = function(index,key) {
+        	if ( $scope.identityProvidersFederation.categoryDenyList[key].length > 1) {
+        		 $scope.identityProvidersFederation.categoryDenyList[key].splice(index, 1);
+                 $scope.changed = true;
+        	} else {
+        		 Notifications.error('Attribute value can not be empty');
+        	}
+        }
+
+        $scope.addCategoryAllowList = function() {
+        	if ($scope.newCategoryAllowListValue.length > 0)
+        		$scope.newCategoryAllowList.value.push($scope.newCategoryAllowListValue);
+            $scope.identityProvidersFederation.categoryAllowList[$scope.newCategoryAllowList.key] = $scope.newCategoryAllowList.value;
+            $scope.newCategoryAllowList.key='';
+            $scope.newCategoryAllowList.value =[];
+            $scope.newCategoryAllowListValue='';
+            $scope.changed = true;
+        }
+
+        $scope.removeCategoryAllowList = function(key) {
+        	delete $scope.identityProvidersFederation.categoryAllowList[key];
+            $scope.changed = true;
+        }
+
+        $scope.addCategoryAllowListValue = function() {
+            $scope.newCategoryAllowList.value.push($scope.newCategoryAllowListValue);
+            $scope.newCategoryAllowListValue = "";
+        }
+
+        $scope.deleteNewValueCategoryAllowList = function(index) {
+            $scope.newCategoryAllowList.value.splice(index, 1);
+        }
+
+        $scope.deleteOldValueCategoryAllowList = function(index,key) {
+        	if ( $scope.identityProvidersFederation.categoryAllowList[key].length > 1) {
+        		 $scope.identityProvidersFederation.categoryAllowList[key].splice(index, 1);
+                 $scope.changed = true;
+        	} else {
+        		 Notifications.error('Attribute value can not be empty');
+        	}
+        }
+
+});
+
+module.controller('IdentityProvidersFederationsMappersCtrl', function(realm, $scope, providerId, internalId,alias, identityProvidersFederationMappers, mapperTypes, Current,Dialog ,Notifications, $http) {
+
+	$scope.realm = realm;
+	$scope.providerId=providerId;
+	$scope.internalId=internalId;
+	$scope.alias=alias;
+    $scope.identityProvidersFederationMappers = identityProvidersFederationMappers;
+	$scope.mapperTypes = mapperTypes;
+
+	$scope.addMapper = function(mapperId) {
+        Dialog.confirm('Add Mapper', 'This mapper will be added to all Identity Providers of this Federation. Are you sure?', function() {
+            $http.post(authUrl + '/admin/realms/' + realm.realm + '/saml-federations/instances/'+internalId+'/mappers/'+mapperId+'/idp/add')
+                .then(function(response) {
+                    Notifications.success("Mapper added to all Identity Providers of this Federation.");
+                });
+        });
+    };
+
+    $scope.updateMapper = function(mapperId) {
+        Dialog.confirm('Update Mapper', 'This mapper will be updated on all Identity Providers of this Federation. Are you sure?', function() {
+            $http.post(authUrl + '/admin/realms/' + realm.realm + '/saml-federations/instances/'+internalId+'/mappers/'+mapperId+'/idp/update')
+                .then(function(response) {
+                    Notifications.success("Mapper updated to all Identity Providers of this Federation.");
+                });
+        });
+    };
+
+
+    $scope.removeMapper = function(mapperId) {
+        Dialog.confirm('Remove Mapper', 'This mapper will be removed from all Identity Providers of this Federation. Are you sure?', function() {
+            $http.post(authUrl + '/admin/realms/' + realm.realm + '/saml-federations/instances/'+internalId+'/mappers/'+mapperId+'/idp/remove')
+                .then(function(response) {
+                    Notifications.success("Mapper removed to all Identity Providers of this Federation.");
+                });
+        });
+    };
+	
+});
+
+module.controller('IdentityProvidersFederationsMapperCreateCtrl', function(realm, $scope, internalId, alias, mapperTypes,IdentityProvidersFederationMapper, Current, Notifications, $location) {
+
+	$scope.realm = realm;
+	$scope.internalId=internalId;
+	$scope.alias=alias;
+	$scope.mapper = { config: {}};
+    $scope.mapperTypes = mapperTypes;
+    $scope.create = true;
+
+    // make first type the default
+    $scope.mapperType = mapperTypes[Object.keys(mapperTypes)[0]];
+    $scope.mapper.config.syncMode = 'INHERIT';
+
+    $scope.$watch(function() {
+        return $location.path();
+    }, function() {
+        $scope.path = $location.path().substring(1).split("/");
+    });
+
+    $scope.save = function() {
+        $scope.mapper.identityProviderMapper = $scope.mapperType.id;
+        IdentityProvidersFederationMapper.save({
+             realm : realm.realm, id: internalId
+       }, $scope.mapper, function(data, headers) {
+              var l = headers().location;
+              var id = l.substring(l.lastIndexOf("/") + 1);
+              $location.url("/realms/" + realm.realm + '/saml-federation/' + internalId +"/"+alias+ "/mappers/" + id);
+              Notifications.success("Mapper has been created.");
+       });
+    };
+
+    $scope.cancel = function() {
+        //$location.url("/realms");
+        window.history.back();
+    };
+
+
+
+});
+
+module.controller('IdentityProvidersFederationsMapperEditCtrl', function(realm, Dialog, $scope, internalId, alias,mapper, mapperTypes, IdentityProvidersFederationMapper,Current, Notifications, $location) {
+
+	$scope.realm = realm;
+	$scope.internalId=internalId;
+	$scope.alias=alias;
+	$scope.create = false;
+    $scope.mapper = angular.copy(mapper);
+    $scope.changed = false;
+    $scope.mapperType = mapperTypes[mapper.identityProviderMapper];
+
+    $scope.$watch(function() {
+      return $location.path();
+    }, function() {
+      $scope.path = $location.path().substring(1).split("/");
+    });
+
+    $scope.$watch('mapper', function() {
+       if (!angular.equals($scope.mapper, mapper)) {
+           $scope.changed = true;
+       }
+    }, true);
+
+     $scope.save = function() {
+        IdentityProvidersFederationMapper.update({
+           realm : realm.realm,
+           id: internalId,
+           mapperId : mapper.id
+        }, $scope.mapper, function() {
+           $scope.changed = false;
+           mapper = angular.copy($scope.mapper);
+           $location.url("/realms/" + realm.realm + '/saml-federation/' + internalId +"/" +alias+ "/mappers/" + mapper.id);
+           Notifications.success("Your changes have been saved.");
+        });
+     };
+
+     $scope.reset = function() {
+        $scope.mapper = angular.copy(mapper);
+        $scope.changed = false;
+     };
+
+     $scope.cancel = function() {
+       //$location.url("/realms");
+       window.history.back();
+     };
+
+     $scope.remove = function() {
+        Dialog.confirmDelete($scope.mapper.name, 'mapper', function() {
+           IdentityProvidersFederationMapper.remove({ realm: realm.realm, id: internalId, mapperId : $scope.mapper.id }, function() {
+               Notifications.success("The mapper has been deleted.");
+               $location.url("/realms/" + realm.realm + '/saml-federation/saml/' + internalId +"/" + alias + "/mappers");
+           });
+        });
+      };
+
+    });
+
+
+
+
+
+
+
+
 
 module.controller('RealmTokenDetailCtrl', function($scope, Realm, realm, $http, $location, $route, Dialog, Notifications, TimeUnit, TimeUnit2, serverInfo) {
     $scope.realm = realm;
@@ -4488,7 +5298,10 @@ module.controller('RealmImportCtrl', function($scope, realm, $route,
         json.ifResourceExists = $scope.ifResourceExists;
         if (!$scope.importUsers) delete json.users;
         if (!$scope.importGroups) delete json.groups;
-        if (!$scope.importIdentityProviders) delete json.identityProviders;
+        if (!$scope.importIdentityProviders) {
+          delete json.identityProviders;
+          delete json.samlFederations;
+        }
         if (!$scope.importClients) delete json.clients;
         
         if (json.hasOwnProperty('roles')) {

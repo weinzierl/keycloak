@@ -182,6 +182,9 @@ public interface RealmResource {
 
     @Path("identity-provider")
     IdentityProvidersResource identityProviders();
+    
+    @Path("saml-federations")
+    SAMLFederationResource samlFederation();
 
     @DELETE
     void remove();

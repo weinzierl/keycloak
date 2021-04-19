@@ -20,6 +20,7 @@ package org.keycloak.common.util;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.regex.Pattern;
@@ -110,6 +111,17 @@ public class UriUtils {
 
         if (!"https".equals(protocol) && sslRequired.isRequired(parsed.getHost())) {
             throw new IllegalArgumentException("The url [" + name + "] requires secure connections");
+        }
+    }
+
+    public static void checkUri(String uri, String name) throws IllegalArgumentException {
+        if (uri == null) {
+            return;
+        }
+        try {
+            URI parsed = new URI(uri);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("The uri [" + name + "] is malformed", e);
         }
     }
 }

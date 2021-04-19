@@ -1,4 +1,60 @@
 <#import "template.ftl" as layout>
+<#noautoesc>
+    <script>
+        var identityProvidersSummary = JSON.parse("${identityProvidersSummary?js_string}");
+    </script>
+</#noautoesc>
+	<script>
+
+	var aClass = '${properties.kcFormSocialAccountListButtonClass!}'.split(" ");
+		var iconClass = '${properties.kcCommonLogoIdP!}'.split(" ");
+
+		function buildFiltered(value) {
+
+			if(!Array.isArray(identityProvidersSummary)) return;
+
+			var listElem = document.getElementById('kc-providers-list');
+			if(listElem==null)
+				return;
+			listElem.textContent = "";
+			for(var i=0; i<identityProvidersSummary.length; i++ ){
+				var idp = identityProvidersSummary[i];
+				if(idp.displayName.toLowerCase().lastIndexOf(value.toLowerCase())>=0){
+				    var a = document.createElement('a');
+					a.href = idp.loginUrl;
+					a.id = "social-" + idp.alias;
+					for (var j = 0; j < aClass.length; j++) {
+					   a.classList.add(aClass[j]);
+					}
+					var span = document.createElement('span');
+					span.textContent = idp.displayName;
+					span.classList.add("kc-social-provider-name");
+				    if (idp.iconClasses) {
+				        //idps with icons
+					    var idpIconClass = idp.iconClasses.split(" ");
+					    var icon = document.createElement('i');
+					    for (var j = 0; j < iconClass.length; j++) {
+					        icon.classList.add(iconClass[j]);
+					    }
+					    for (var j = 0; j < idpIconClass.length; j++) {
+					        icon.classList.add(idpIconClass[j]);
+					    }
+					    icon.setAttribute("aria-hidden", "true");
+					    a.appendChild(icon);
+					    span.classList.add("kc-social-icon-text");
+					}
+
+					a.appendChild(span);
+					listElem.appendChild(a);
+				}
+			}
+		};
+
+		window.onload = function() {
+		  buildFiltered("");
+		};
+
+    </script>
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('username') displayInfo=(realm.password && realm.registrationAllowed && !registrationDisabled??); section>
     <#if section = "header">
         ${msg("loginAccountTitle")}
@@ -54,7 +110,6 @@
                 </#if>
             </div>
         </div>
-
     <#elseif section = "info" >
         <#if realm.password && realm.registrationAllowed && !registrationDisabled??>
             <div id="kc-registration">
@@ -62,13 +117,43 @@
             </div>
         </#if>
     <#elseif section = "socialProviders" >
-        <#if realm.password && social.providers??>
-            <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
-                <hr/>
-                <h4>${msg("identity-provider-login-label")}</h4>
 
-                <ul class="${properties.kcFormSocialAccountListClass!} <#if social.providers?size gt 3>${properties.kcFormSocialAccountListGridClass!}</#if>">
-                    <#list social.providers as p>
+            <#if realm.password && social.providers??>
+              <#if social.providers?size gt 8>
+                 <#if social.promotedProviders??>
+                      <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
+
+                          <ul class="${properties.kcFormSocialAccountListClass!} ">
+                          <#list social.promotedProviders as p>
+                               <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.promotedProviders?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
+                                                type="button" href="${p.loginUrl}">
+                               <#if p.iconClasses?has_content>
+                                    <i class="${properties.kcCommonLogoIdP!} ${p.iconClasses!}" aria-hidden="true"></i>
+                                    <span class="${properties.kcFormSocialAccountNameClass!} kc-social-icon-text">${p.displayName!}</span>
+                               <#else>
+                                      <span class="${properties.kcFormSocialAccountNameClass!}">${p.displayName!}</span>
+                               </#if>
+                               </a>
+                          </#list>
+                          </ul>
+
+                      </div>
+                </#if>
+                <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
+                    <hr/>
+                    <h4>${msg("identity-provider-login-label")}</h4>
+
+            		<input id="kc-providers-filter" type="text" placeholder="Filter..." oninput="buildFiltered(this.value)">
+            		<ul id="kc-providers-list" class="${properties.kcFormSocialAccountListClass!} login-pf-list-scrollable"></ul>
+
+                </div>
+            <#else>
+                  <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
+                    <hr/>
+                    <h4>${msg("identity-provider-login-label")}</h4>
+
+                	 <ul class="${properties.kcFormSocialAccountListClass!} ">
+                     <#list social.providers as p>
                         <a id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!} <#if social.providers?size gt 3>${properties.kcFormSocialAccountGridItem!}</#if>"
                                 type="button" href="${p.loginUrl}">
                             <#if p.iconClasses?has_content>
@@ -83,5 +168,6 @@
             </div>
         </#if>
     </#if>
+ </#if>
 
 </@layout.registrationLayout>

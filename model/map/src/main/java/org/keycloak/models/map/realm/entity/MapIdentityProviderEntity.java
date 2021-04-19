@@ -18,8 +18,11 @@
 package org.keycloak.models.map.realm.entity;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.map.common.UpdatableEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
@@ -39,6 +42,7 @@ public class MapIdentityProviderEntity extends UpdatableEntity.Impl {
     private Boolean addReadTokenRoleOnCreate = false;
     private Boolean authenticateByDefault = false;
     private Map<String, String> config = new HashMap<>();
+    private Set<String> federations = new HashSet<>();
 
 
     private MapIdentityProviderEntity() {}
@@ -60,6 +64,7 @@ public class MapIdentityProviderEntity extends UpdatableEntity.Impl {
         entity.setAddReadTokenRoleOnCreate(model.isAddReadTokenRoleOnCreate());
         entity.setAuthenticateByDefault(model.isAuthenticateByDefault());
         entity.setConfig(model.getConfig() == null ? null : new HashMap<>(model.getConfig()));
+        entity.setFederations(model.getFederations());
         return entity;
     }
 
@@ -79,6 +84,7 @@ public class MapIdentityProviderEntity extends UpdatableEntity.Impl {
         model.setAddReadTokenRoleOnCreate(entity.isAddReadTokenRoleOnCreate());
         model.setAuthenticateByDefault(entity.isAuthenticateByDefault());
         model.setConfig(entity.getConfig() == null ? null : new HashMap<>(entity.getConfig()));
+        model.setFederations(entity.getFederations());
         return model;
     }
 
@@ -197,6 +203,15 @@ public class MapIdentityProviderEntity extends UpdatableEntity.Impl {
     public void setConfig(Map<String, String> config) {
         this.updated = !Objects.equals(this.config, config);
         this.config = config;
+    }
+
+    public Set<String> getFederations() {
+        return federations;
+    }
+
+    public void setFederations(Set<String> federations) {
+        this.updated = !Objects.equals(this.federations, federations);
+        this.federations = federations;
     }
 
     @Override

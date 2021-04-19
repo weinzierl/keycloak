@@ -17,6 +17,8 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CollectionTable;
@@ -46,6 +48,7 @@ public class UserFederationMapperEntity {
     @Column(name="NAME")
     protected String name;
 
+    @BatchSize(size = 50)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "FEDERATION_PROVIDER_ID")
     protected UserFederationProviderEntity federationProvider;
@@ -53,12 +56,14 @@ public class UserFederationMapperEntity {
     @Column(name = "FEDERATION_MAPPER_TYPE")
     protected String federationMapperType;
 
+    @BatchSize(size = 50)
     @ElementCollection
     @MapKeyColumn(name="NAME")
     @Column(name="VALUE")
     @CollectionTable(name="USER_FEDERATION_MAPPER_CONFIG", joinColumns={ @JoinColumn(name="USER_FEDERATION_MAPPER_ID") })
     private Map<String, String> config;
 
+    @BatchSize(size = 50)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REALM_ID")
     private RealmEntity realm;

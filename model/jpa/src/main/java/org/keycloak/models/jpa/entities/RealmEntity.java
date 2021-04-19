@@ -17,6 +17,8 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
@@ -33,6 +35,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -186,14 +189,20 @@ public class RealmEntity {
     @Column(name="DEFAULT_ROLE")
     protected String defaultRoleId;
 
+    @BatchSize(size = 50)
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
-    protected List<IdentityProviderEntity> identityProviders;
+    protected List<IdentityProviderEntity> identityProviders = new ArrayList<IdentityProviderEntity>();
 
+    @BatchSize(size = 50)
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
-    Collection<IdentityProviderMapperEntity> identityProviderMappers;
+    Collection<IdentityProviderMapperEntity> identityProviderMappers = new ArrayList<IdentityProviderMapperEntity>();
 
+    @BatchSize(size = 50)
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
-    Collection<AuthenticatorConfigEntity> authenticators;
+    protected List<FederationEntity> identityProvidersFederations = new ArrayList<FederationEntity>();
+    
+	@OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
+    Collection<AuthenticatorConfigEntity> authenticators ;
 
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
     Collection<RequiredActionProviderEntity> requiredActionProviders;
@@ -631,6 +640,23 @@ public class RealmEntity {
         getIdentityProviders().add(entity);
     }
 
+    
+    public List<FederationEntity> getIdentityProvidersFederations() {
+		return this.identityProvidersFederations;
+	}
+
+	public void setIdentityProvidersFederations(List<FederationEntity> identityProvidersFederations) {
+		this.identityProvidersFederations = identityProvidersFederations;
+	}
+
+    
+    
+    public void addIdentityProvidersFederation(FederationEntity entity) {
+        entity.setRealm(this);
+        getIdentityProvidersFederations().add(entity);
+    }
+    
+    
     public boolean isInternationalizationEnabled() {
         return internationalizationEnabled;
     }

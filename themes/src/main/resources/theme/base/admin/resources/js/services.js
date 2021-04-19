@@ -612,6 +612,11 @@ module.service('ClientListSearchState', function() {
     };
 });
 
+module.service('IdentityProviderListSearchState', function() {
+	
+});
+
+
 // Service tracks the last flow selected in Authentication-->Flows tab
 module.service('LastFlowSelected', function() {
     this.alias = null;
@@ -1694,6 +1699,25 @@ module.filter('removeSelectedPolicies', function() {
     }
 });
 
+
+module.factory('IdentityProviderUsedProviderIds', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/identity-provider/types-used', {
+    	realm: '@realm'
+    });
+});
+
+
+module.factory('IdentityProviderList', function($resource) {
+      return $resource(authUrl + '/admin/realms/:realm/identity-provider/instances', {
+		  realm: '@realm',
+		  brief: '@brief',
+		  keyword: '@keyword',
+		  first: '@first',
+		  max: '@max'
+	  });
+});
+
+
 module.factory('IdentityProvider', function($resource) {
     return $resource(authUrl + '/admin/realms/:realm/identity-provider/instances/:alias', {
         realm : '@realm',
@@ -1740,6 +1764,41 @@ module.factory('IdentityProviderMapper', function($resource) {
     return $resource(authUrl + '/admin/realms/:realm/identity-provider/instances/:alias/mappers/:mapperId', {
         realm : '@realm',
         alias : '@alias',
+        mapperId: '@mapperId'
+    }, {
+        update: {
+            method : 'PUT'
+        }
+    });
+});
+
+
+
+
+module.factory('IdentityProvidersFederation', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id', {
+        realm : '@realm',
+        id : '@id'
+    });
+});
+
+module.factory('IdentityProvidersFederationMappers', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id/mappers', {
+        realm : '@realm',
+        id : '@id'
+    });
+});
+
+module.factory('IdentityProviderMapperTypesFederation', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/mapper-types', {
+        realm : '@realm'
+    });
+});
+
+module.factory('IdentityProvidersFederationMapper', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id/mappers/:mapperId', {
+        realm : '@realm',
+        id : '@id',
         mapperId: '@mapperId'
     }, {
         update: {

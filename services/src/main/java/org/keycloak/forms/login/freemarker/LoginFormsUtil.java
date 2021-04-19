@@ -76,17 +76,18 @@ public class LoginFormsUtil {
     }
 
     public static List<IdentityProviderModel> filterIdentityProviders(Stream<IdentityProviderModel> providers, KeycloakSession session, AuthenticationFlowContext context) {
+        if (context != null)
+            return filterIdentityProviders(providers, session, context.getAuthenticationSession());
+        return providers.collect(Collectors.toList());
+    }
 
-        if (context != null) {
-            AuthenticationSessionModel authSession = context.getAuthenticationSession();
-            SerializedBrokeredIdentityContext serializedCtx = SerializedBrokeredIdentityContext.readFromAuthenticationSession(authSession, AbstractIdpAuthenticator.BROKERED_CONTEXT_NOTE);
-
-            if (serializedCtx != null) {
-                IdentityProviderModel idp = serializedCtx.deserialize(session, authSession).getIdpConfig();
-                return providers
-                        .filter(p -> !Objects.equals(p.getAlias(), idp.getAlias()))
-                        .collect(Collectors.toList());
-            }
+    public static List<IdentityProviderModel> filterIdentityProviders(Stream<IdentityProviderModel> providers, KeycloakSession session, AuthenticationSessionModel authSession) {
+        SerializedBrokeredIdentityContext serializedCtx = SerializedBrokeredIdentityContext.readFromAuthenticationSession(authSession, AbstractIdpAuthenticator.BROKERED_CONTEXT_NOTE);
+        if (serializedCtx != null) {
+            IdentityProviderModel idp = serializedCtx.deserialize(session, authSession).getIdpConfig();
+            return providers
+                    .filter(p -> !Objects.equals(p.getAlias(), idp.getAlias()))
+                    .collect(Collectors.toList());
         }
         return providers.collect(Collectors.toList());
     }

@@ -54,7 +54,7 @@ public interface RealmModel extends RoleContainerModel {
          */
         public static final SearchableModelField<RealmModel> CLIENT_INITIAL_ACCESS  = new SearchableModelField<>("clientInitialAccess", Boolean.class);
         /**
-         * Search for realms that have some component with 
+         * Search for realms that have some component with
          */
         public static final SearchableModelField<RealmModel> COMPONENT_PROVIDER_TYPE  = new SearchableModelField<>("componentProviderType", String.class);
     }
@@ -276,7 +276,7 @@ public interface RealmModel extends RoleContainerModel {
     void setActionTokenGeneratedByUserLifespan(String actionTokenType, Integer seconds);
 
     /**
-     * @deprecated Use {@link #getRequiredCredentialsStream() getRequiredCredentialsStream} instead.
+     * @deprecated Use {@link #getRequiredCredentialsStream()  getRequiredCredentialsStream} instead.
      */
     @Deprecated
     default List<RequiredCredentialModel> getRequiredCredentials() {
@@ -526,6 +526,22 @@ public interface RealmModel extends RoleContainerModel {
     RequiredActionProviderModel getRequiredActionProviderById(String id);
     RequiredActionProviderModel getRequiredActionProviderByAlias(String alias);
 
+    List<IdentityProvidersFederationModel> getIdentityProviderFederations();
+    IdentityProvidersFederationModel getIdentityProvidersFederationById(String id);
+    IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias);
+    void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
+    void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
+    void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs);
+    void removeIdentityProvidersFederation(String internalId);
+    List<FederationMapperModel> getIdentityProviderFederationMappers(String federationId);
+    FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id);
+    void addIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel);
+    void updateIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel);
+    void removeIdentityProvidersFederationMapper(String id, String federationId);
+
+    IdentityProviderModel getIdentityProviderById(String internalId);
+    Stream<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults);
+
     /**
      * @deprecated Use {@link #getIdentityProvidersStream() getIdentityProvidersStream} instead.
      */
@@ -544,6 +560,8 @@ public interface RealmModel extends RoleContainerModel {
     void addIdentityProvider(IdentityProviderModel identityProvider);
     void removeIdentityProviderByAlias(String alias);
     void updateIdentityProvider(IdentityProviderModel identityProvider);
+
+    List<String> getIdentityProvidersByFederation(String federationId);
 
     /**
      * @deprecated Use {@link #getIdentityProviderMappersStream() getIdentityProviderMappersStream} instead.
@@ -580,6 +598,8 @@ public interface RealmModel extends RoleContainerModel {
     IdentityProviderMapperModel getIdentityProviderMapperById(String id);
     IdentityProviderMapperModel getIdentityProviderMapperByName(String brokerAlias, String name);
 
+    boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias);
+
 
     /**
      * Adds component model.  Will call onCreate() method of ComponentFactory
@@ -606,7 +626,7 @@ public interface RealmModel extends RoleContainerModel {
     /**
      * Removes given component. Will call preRemove() method of ComponentFactory.
      * Also calls {@code this.removeComponents(component.getId())}.
-     * 
+     *
      * @param component to be removed
      */
     void removeComponent(ComponentModel component);
@@ -624,6 +644,7 @@ public interface RealmModel extends RoleContainerModel {
     default List<ComponentModel> getComponents(String parentId, String providerType) {
         return getComponentsStream(parentId, providerType).collect(Collectors.toList());
     }
+
 
     /**
      * Returns stream of ComponentModels for specific parentId and providerType.
@@ -954,7 +975,7 @@ public interface RealmModel extends RoleContainerModel {
     ClientScopeModel addClientScope(String name);
 
     /**
-     * Creates new client scope with the given internal ID and name. 
+     * Creates new client scope with the given internal ID and name.
      * If given name contains spaces, those are replaced by underscores.
      * @param id {@code String} id of the client scope.
      * @param name {@code String} name of the client scope.
@@ -977,10 +998,10 @@ public interface RealmModel extends RoleContainerModel {
     ClientScopeModel getClientScopeById(String id);
 
     /**
-     * Adds given client scope among default/optional client scopes of this realm. 
+     * Adds given client scope among default/optional client scopes of this realm.
      * The scope will be assigned to each new client.
      * @param clientScope to be added
-     * @param defaultScope if {@code true} the scope will be added among default client scopes, 
+     * @param defaultScope if {@code true} the scope will be added among default client scopes,
      * if {@code false} it will be added among optional client scopes
      */
     void addDefaultClientScope(ClientScopeModel clientScope, boolean defaultScope);
@@ -1011,16 +1032,16 @@ public interface RealmModel extends RoleContainerModel {
 
     /**
      * Returns default client scopes of this realm either default ones or optional ones.
-     * @param defaultScope if {@code true} default client scopes are returned, 
+     * @param defaultScope if {@code true} default client scopes are returned,
      * if {@code false} optional client scopes are returned.
      * @return Stream of {@link ClientScopeModel}. Never returns {@code null}.
      */
     Stream<ClientScopeModel> getDefaultClientScopesStream(boolean defaultScope);
 
     /**
-     * Adds a role as a composite to default role of this realm. 
+     * Adds a role as a composite to default role of this realm.
      * @param role to be added
-     */ 
+     */
     default void addToDefaultRoles(RoleModel role) {
         getDefaultRole().addCompositeRole(role);
     }

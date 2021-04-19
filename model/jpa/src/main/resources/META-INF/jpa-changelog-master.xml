@@ -71,5 +71,8 @@
     <include file="META-INF/jpa-changelog-13.0.0.xml"/>
     <include file="META-INF/jpa-changelog-14.0.0.xml"/>
     <include file="META-INF/jpa-changelog-15.0.0.xml"/>
+    <include file="META-INF/jpa-changelog-saml-fed-initial.xml"/>
+    <include file="META-INF/jpa-changelog-saml-fed2.xml"/>
+    
 
 </databaseChangeLog>

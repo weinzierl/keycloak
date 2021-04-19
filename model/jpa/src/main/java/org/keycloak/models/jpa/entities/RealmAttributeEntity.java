@@ -17,6 +17,7 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.Column;
@@ -44,6 +45,7 @@ import java.io.Serializable;
 public class RealmAttributeEntity {
 
     @Id
+    @BatchSize(size = 50)
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name = "REALM_ID")
     protected RealmEntity realm;

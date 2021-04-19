@@ -686,3 +686,9 @@ ul#kc-totp-supported-apps {
 #kc-back {
     margin-top: 5px;
 }
+
+.login-pf-list-scrollable {
+	max-height: 40vh;
+    overflow: hidden;
+    overflow-y: auto;
+}

@@ -17,6 +17,8 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import java.io.Serializable;
 
 import javax.persistence.Column;
@@ -48,6 +50,7 @@ import javax.persistence.Table;
 public class UserConsentClientScopeEntity {
 
     @Id
+    @BatchSize(size = 50)
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name = "USER_CONSENT_ID")
     protected UserConsentEntity userConsent;

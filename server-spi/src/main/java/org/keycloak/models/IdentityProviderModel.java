@@ -18,7 +18,9 @@ package org.keycloak.models;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>A model type representing the configuration for identity providers. It provides some common properties and also a {@link org.keycloak.models.IdentityProviderModel#config}
@@ -34,6 +36,7 @@ public class IdentityProviderModel implements Serializable {
     public static final String SYNC_MODE = "syncMode";
     
     public static final String HIDE_ON_LOGIN = "hideOnLoginPage";
+    public static final String PROMOTED_LOGIN_BUTTON = "promotedLoginbutton";
 
     private String internalId;
 
@@ -77,6 +80,8 @@ public class IdentityProviderModel implements Serializable {
      */
     private Map<String, String> config = new HashMap<>();
 
+    private Set<String> federations = new HashSet<>();
+    
     public IdentityProviderModel() {
     }
 
@@ -95,6 +100,7 @@ public class IdentityProviderModel implements Serializable {
             this.addReadTokenRoleOnCreate = model.addReadTokenRoleOnCreate;
             this.firstBrokerLoginFlowId = model.getFirstBrokerLoginFlowId();
             this.postBrokerLoginFlowId = model.getPostBrokerLoginFlowId();
+            this.federations = new HashSet<>(model.getFederations());
         }
     }
 
@@ -238,4 +244,99 @@ public class IdentityProviderModel implements Serializable {
     public void setHideOnLogin(boolean hideOnLogin) {
         getConfig().put(HIDE_ON_LOGIN, String.valueOf(hideOnLogin));
     }
+    
+    
+    public boolean isPromotedLoginButton() {
+        return Boolean.valueOf(getConfig().get(PROMOTED_LOGIN_BUTTON));
+    }
+
+    public void setPromotedLoginButton(boolean promotedLoginButton) {
+        getConfig().put(PROMOTED_LOGIN_BUTTON, String.valueOf(promotedLoginButton));
+    }     
+
+    public Set<String> getFederations() {
+		return federations;
+    }
+
+    public void setFederations(Set<String> federations) {
+		this.federations = federations;
+   }
+    
+    public void addFederation (String federation) {
+        if ( federations == null)
+            federations = new HashSet<>();
+        federations.add(federation);
+    }
+
+    public boolean equalsPreviousVersion(IdentityProviderModel other) {
+        if (this == other)
+            return true;
+        if (other == null)
+            return false;
+        if (addReadTokenRoleOnCreate != other.addReadTokenRoleOnCreate)
+            return false;
+        if (authenticateByDefault != other.authenticateByDefault)
+            return false;
+        if (config == null) {
+            if (other.config != null)
+                return false;
+        } else if (!config.equals(other.config))
+            return false;
+        if (displayName == null) {
+            if (other.displayName != null)
+                return false;
+        } else if (!displayName.equals(other.displayName))
+            return false;
+        if (enabled != other.enabled)
+            return false;
+        if (federations == null) {
+            if (other.federations != null)
+                return false;
+        } else if (!federations.equals(other.federations))
+            return false;
+        if (firstBrokerLoginFlowId == null) {
+            if (other.firstBrokerLoginFlowId != null)
+                return false;
+        } else if (!firstBrokerLoginFlowId.equals(other.firstBrokerLoginFlowId))
+            return false;
+        if (linkOnly != other.linkOnly)
+            return false;
+        if (postBrokerLoginFlowId == null) {
+            if (other.postBrokerLoginFlowId != null)
+                return false;
+        } else if (!postBrokerLoginFlowId.equals(other.postBrokerLoginFlowId))
+            return false;
+        if (providerId == null) {
+            if (other.providerId != null)
+                return false;
+        } else if (!providerId.equals(other.providerId))
+            return false;
+        if (storeToken != other.storeToken)
+            return false;
+        if (syncMode != other.syncMode)
+            return false;
+        if (trustEmail != other.trustEmail)
+            return false;
+        return true;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj != null && obj instanceof IdentityProviderModel) {
+            IdentityProviderModel s = (IdentityProviderModel)obj;
+            return internalId.equals(s.internalId);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + (internalId == null ? 0 : internalId.hashCode());
+        return hash;
+    }
+
+
+
 }

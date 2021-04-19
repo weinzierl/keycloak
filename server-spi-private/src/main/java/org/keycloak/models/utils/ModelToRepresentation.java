@@ -41,6 +41,9 @@ import org.keycloak.storage.StorageId;
 import org.keycloak.utils.StringUtil;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -473,6 +476,13 @@ public class ModelToRepresentation {
                 .map(ModelToRepresentation::toRepresentation).collect(Collectors.toList());
         rep.setIdentityProviderMappers(identityProviderMappers);
 
+       rep.setIdentityProvidersFederations(realm.getIdentityProviderFederations().stream().map(obj -> {
+            IdentityProvidersFederationRepresentation representation = toRepresentation(obj);
+            representation.setFederationMappers(
+                obj.getFederationMapperModels().stream().map(mapper -> toRepresentation(mapper)).collect(Collectors.toList()));
+            return representation;
+        }).collect(Collectors.toList()));
+
         rep.setInternationalizationEnabled(realm.isInternationalizationEnabled());
         rep.setSupportedLocales(realm.getSupportedLocalesStream().collect(Collectors.toSet()));
         rep.setDefaultLocale(realm.getDefaultLocale());
@@ -676,6 +686,19 @@ public class ModelToRepresentation {
         return rep;
     }
 
+    public static IdentityProviderRepresentation toBriefRepresentation(RealmModel realm, IdentityProviderModel identityProviderModel) {
+        IdentityProviderRepresentation providerRep = new IdentityProviderRepresentation();
+
+        providerRep.setInternalId(identityProviderModel.getInternalId());
+        providerRep.setProviderId(identityProviderModel.getProviderId());
+        providerRep.setAlias(identityProviderModel.getAlias());
+        providerRep.setDisplayName(identityProviderModel.getDisplayName());
+        providerRep.setEnabled(identityProviderModel.isEnabled());
+        providerRep.setLinkOnly(identityProviderModel.isLinkOnly());
+
+        return providerRep;
+    }
+
     public static IdentityProviderRepresentation toRepresentation(RealmModel realm, IdentityProviderModel identityProviderModel) {
         IdentityProviderRepresentation providerRep = new IdentityProviderRepresentation();
 
@@ -691,6 +714,7 @@ public class ModelToRepresentation {
         Map<String, String> config = new HashMap<>(identityProviderModel.getConfig());
         providerRep.setConfig(config);
         providerRep.setAddReadTokenRoleOnCreate(identityProviderModel.isAddReadTokenRoleOnCreate());
+        providerRep.setFederations(identityProviderModel.getFederations());
 
         String firstBrokerLoginFlowId = identityProviderModel.getFirstBrokerLoginFlowId();
         if (firstBrokerLoginFlowId != null) {
@@ -712,6 +736,37 @@ public class ModelToRepresentation {
 
         return providerRep;
     }
+
+    public static IdentityProvidersFederationRepresentation toRepresentation(IdentityProvidersFederationModel model) {
+    	IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
+    	representation.setInternalId(model.getInternalId());
+    	representation.setAlias(model.getAlias());
+    	representation.setDisplayName(model.getDisplayName());
+    	representation.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
+    	representation.setProviderId(model.getProviderId());
+    	representation.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
+    	representation.setEntityIdBlackList(model.getEntityIdBlackList());
+    	representation.setEntityIdWhiteList(model.getEntityIdWhiteList());
+    	representation.setRegistrationAuthorityBlackList(model.getRegistrationAuthorityBlackList());
+        representation.setRegistrationAuthorityWhiteList(model.getRegistrationAuthorityWhiteList());
+        representation.setCategoryBlackList(model.getCategoryBlackList());
+        representation.setCategoryWhiteList(model.getCategoryWhiteList());
+    	representation.setUrl(model.getUrl());
+    	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());
+    	representation.setConfig(model.getConfig());
+        return representation;
+    }
+
+    public static FederationMapperRepresentation toRepresentation(FederationMapperModel model) {
+        FederationMapperRepresentation representation = new FederationMapperRepresentation();
+        representation.setId(model.getId());
+        representation.setIdentityProviderMapper(model.getIdentityProviderMapper());
+        representation.setName(model.getName());
+        representation.setConfig(model.getConfig());
+        representation.setFederationId(model.getFederationId());
+        return representation;
+    }
+
 
     public static ProtocolMapperRepresentation toRepresentation(ProtocolMapperModel model) {
         ProtocolMapperRepresentation rep = new ProtocolMapperRepresentation();

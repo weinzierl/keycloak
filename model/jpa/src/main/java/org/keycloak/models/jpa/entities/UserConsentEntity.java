@@ -17,6 +17,8 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
@@ -59,6 +61,7 @@ public class UserConsentEntity {
     @Access(AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity.  This avoids an extra SQL
     protected String id;
 
+    @BatchSize(size = 50)
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name="USER_ID")
     protected UserEntity user;
@@ -72,6 +75,7 @@ public class UserConsentEntity {
     @Column(name="EXTERNAL_CLIENT_ID")
     protected String externalClientId;
 
+    @BatchSize(size = 50)
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "userConsent")
     Collection<UserConsentClientScopeEntity> grantedClientScopes;
 

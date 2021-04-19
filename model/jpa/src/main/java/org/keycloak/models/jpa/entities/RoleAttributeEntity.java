@@ -17,6 +17,7 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.Access;
@@ -46,6 +47,7 @@ public class RoleAttributeEntity {
     @Access(AccessType.PROPERTY)
     protected String id;
 
+    @BatchSize(size = 50)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ROLE_ID")
     protected RoleEntity role;

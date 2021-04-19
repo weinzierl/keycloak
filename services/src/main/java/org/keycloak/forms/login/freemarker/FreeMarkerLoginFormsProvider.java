@@ -69,9 +69,13 @@ import org.keycloak.theme.beans.MessageType;
 import org.keycloak.theme.beans.MessagesPerFieldBean;
 import org.keycloak.userprofile.UserProfileContext;
 import org.keycloak.userprofile.UserProfileProvider;
+import org.keycloak.urls.UrlType;
 import org.keycloak.utils.MediaType;
 
 import javax.ws.rs.core.MultivaluedHashMap;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -215,6 +219,19 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
         }
 
         switch (page) {
+            case LOGIN:
+            case LOGIN_USERNAME:
+                //login-enhanced is the EGI theme (plugin).
+                if("eosc-kc".equals(theme.getName()))
+                    attributes.put("uriInfo", uriInfo);
+                else {
+                    try {
+                        attributes.put("identityProvidersSummary", new ObjectMapper().writeValueAsString(((IdentityProviderBean) attributes.get("social")).getProviders()));
+                    } catch (JsonProcessingException e) {
+                        logger.error("Failed to add identity providers summary", e);
+                    }
+                }
+        		break;
             case LOGIN_CONFIG_TOTP:
                 attributes.put("totp", new TotpBean(session, realm, user, uriInfo.getRequestUriBuilder()));
                 break;
@@ -449,9 +466,13 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
         if (realm != null) {
             attributes.put("realm", new RealmBean(realm));
 
-            List<IdentityProviderModel> identityProviders = LoginFormsUtil
-                    .filterIdentityProviders(realm.getIdentityProvidersStream(), session, context);
-            attributes.put("social", new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
+            if("eosc-kc".equals(theme.getName()))
+                attributes.put("idpLoginFullUrl", Urls.identityProviderAuthnRequest(baseUriWithCodeAndClientId, "_", realm.getName()));
+            else{
+                List<IdentityProviderModel> identityProviders = LoginFormsUtil
+                        .filterIdentityProviders(realm.getIdentityProvidersStream(), session, context);
+                attributes.put("social", new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
+            }
 
             attributes.put("url", new UrlBean(realm, theme, baseUri, this.actionUri));
             attributes.put("requiredActionUrl", new RequiredActionUrlFormatterMethod(realm, baseUri));

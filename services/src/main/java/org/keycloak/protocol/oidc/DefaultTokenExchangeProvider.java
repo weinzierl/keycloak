@@ -68,6 +68,7 @@ import org.keycloak.services.validation.Validation;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.sessions.RootAuthenticationSessionModel;
 import org.keycloak.util.TokenUtil;
+import org.keycloak.utils.ServicesUtils;
 
 import static org.keycloak.authentication.authenticators.util.AuthenticatorUtils.getDisabledByBruteForceEventError;
 import static org.keycloak.models.ImpersonationSessionNote.IMPERSONATOR_ID;
@@ -533,7 +534,7 @@ public class DefaultTokenExchangeProvider implements TokenExchangeProvider {
                 target.importNewUser(session, realm, user, mapper, context);
             }
 
-            if (context.getIdpConfig().isTrustEmail() && !Validation.isBlank(user.getEmail())) {
+            if ((context.getIdpConfig().isTrustEmail() || ServicesUtils.isEmailVerifiedFromClaim(context)) && !Validation.isBlank(user.getEmail())) {
                 logger.debugf("Email verified automatically after registration of user '%s' through Identity provider '%s' ", user.getUsername(), context.getIdpConfig().getAlias());
                 user.setEmailVerified(true);
             }

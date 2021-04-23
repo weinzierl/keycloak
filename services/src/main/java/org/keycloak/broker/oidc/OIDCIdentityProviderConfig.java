@@ -133,6 +133,14 @@ public class OIDCIdentityProviderConfig extends OAuth2IdentityProviderConfig {
         }
     }
 
+    public boolean isConditionalTrustEmail() {
+        return Boolean.valueOf(getConfig().get("conditionalTrustEmail"));
+    }
+
+    public void setConditionalTrustEmail(boolean conditionalTrustEmail) {
+        getConfig().put("conditionalTrustEmail", String.valueOf(conditionalTrustEmail));
+    }
+
     @Override
     public void validate(RealmModel realm) {
         super.validate(realm);

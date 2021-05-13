@@ -1239,6 +1239,11 @@ public class RealmAdapter implements CachedRealmModel {
 
     @Override
     public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel) {
+//        if (idpModel.getInternalId() != null) {
+//            IdentityProviderModel existingModel = getIdentityProviderById(idpModel.getInternalId());
+//            if (existingModel.equalsPreviousVersion(idpModel))
+//                return true;
+//        }
         getDelegateForUpdate();
         return updated.addFederationIdp(idpfModel, idpModel);
     }

@@ -801,12 +801,23 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
     }
 
     @Override
+    public Stream<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults){
+        final String lowercaseKeyword = keyword.toLowerCase();
+        Stream<MapIdentityProviderEntity> result = entity.getIdentityProviders();
+        if(keyword!=null && !keyword.isEmpty()){
+            result = result.filter(idp -> {
+                    String name = idp.getDisplayName() == null ? "" : idp.getDisplayName();
+                    return name.toLowerCase().contains(lowercaseKeyword) || idp.getAlias().toLowerCase().contains(lowercaseKeyword);
+                });
+        }
+        if(firstResult>=0 && maxResults>=0)
+            result = result.skip(firstResult).limit(maxResults);
+        return result.map(MapIdentityProviderEntity::toModel);
+    }
+
+    @Override
     public IdentityProviderModel getIdentityProviderById(String internalId) {
-        return entity.getIdentityProviders()
-                .filter(identityProvider -> Objects.equals(identityProvider.getId(), internalId))
-                .findFirst()
-                .map(MapIdentityProviderEntity::toModel)
-                .orElse(null);
+        return MapIdentityProviderEntity.toModel(entity.getIdentityProviderById(internalId));
     }
 
     @Override

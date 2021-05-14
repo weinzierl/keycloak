@@ -535,6 +535,7 @@ public interface RealmModel extends RoleContainerModel {
     void removeIdentityProvidersFederationMapper(String id);
 
     IdentityProviderModel getIdentityProviderById(String internalId);
+    Stream<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults);
 
     /**
      * @deprecated Use {@link #getIdentityProvidersStream() getIdentityProvidersStream} instead.

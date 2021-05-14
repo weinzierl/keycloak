@@ -1035,6 +1035,10 @@ public class MapRealmEntity<K> implements AbstractEntity<K> {
         }
     }
 
+    public MapIdentityProviderEntity getIdentityProviderById(String internalId){
+        return identityProviders.get(internalId);
+    }
+
     public Stream<MapIdentityProviderEntity> getIdentityProviders() {
         return identityProviders.values().stream();
     }

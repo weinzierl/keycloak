@@ -56,6 +56,7 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -312,7 +313,7 @@ public class RealmsResource {
         if(keyword.isEmpty() && firstResult == -1 && maxResults == -1)
             throw new BadRequestException("Should specify all pamameters: {keyword, firstResult, maxResults}");
         RealmModel realm = init(realmName);
-        List<IdentityProviderModel> identityProviders = realm.getIdentityProviders();
+        List<IdentityProviderModel> identityProviders = realm.searchIdentityProviders(keyword, firstResult, maxResults).collect(Collectors.toList());
         //TODO write method similar to :
                 //searchIdentityProviders(realm, keyword, firstResult, maxResults);
 

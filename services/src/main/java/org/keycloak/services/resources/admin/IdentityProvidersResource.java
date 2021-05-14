@@ -165,7 +165,7 @@ public class IdentityProvidersResource {
     }
 
     /**
-     * Get identity providers
+     * Get all or search identity providers
      *
      * @return
      */
@@ -173,31 +173,20 @@ public class IdentityProvidersResource {
     @Path("instances")
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
-    public Stream<IdentityProviderRepresentation> getIdentityProviders(
-    		@QueryParam("brief") @DefaultValue("false") Boolean brief,
-    		@QueryParam("keyword") @DefaultValue("") String keyword,
-    		@QueryParam("first") @DefaultValue("-1") Integer firstResult,
+    public List<IdentityProviderRepresentation> getIdentityProviders(
+            @QueryParam("brief") @DefaultValue("false") Boolean brief,
+            @QueryParam("keyword") @DefaultValue("") String keyword,
+            @QueryParam("first") @DefaultValue("-1") Integer firstResult,
             @QueryParam("max") @DefaultValue("-1") Integer maxResults
-    		) {
+    ) {
         this.auth.realm().requireViewIdentityProviders();
 
-        Stream<IdentityProviderModel> idpsStream = realm.getIdentityProvidersStream();
-
-        if(!keyword.isEmpty()) {
-            final String term = keyword.toLowerCase().trim();
-            idpsStream = idpsStream.filter(idp -> {
-                return idp.getAlias().toLowerCase().contains(term) || (idp.getDisplayName()!=null && idp.getDisplayName().toLowerCase().contains(term));
-            });
-        }
-
-        if(firstResult != -1 && maxResults != -1)
-            idpsStream = idpsStream.skip(firstResult).limit(maxResults);
-
-        if(brief)
-            return idpsStream.map(idpModel -> StripSecretsUtils.strip(ModelToRepresentation.toBriefRepresentation(realm, idpModel)));
-        else
-            return idpsStream.map(idpModel -> StripSecretsUtils.strip(ModelToRepresentation.toRepresentation(realm, idpModel)));
-
+        Stream<IdentityProviderModel> identityProviders = (keyword.isEmpty() && firstResult == -1 && maxResults == -1) ?
+                realm.getIdentityProvidersStream() :
+                realm.searchIdentityProviders(keyword, firstResult, maxResults);
+        return (brief) ?
+            identityProviders.map(idpModel -> StripSecretsUtils.strip(ModelToRepresentation.toBriefRepresentation(realm, idpModel))).collect(Collectors.toList()) :
+            identityProviders.map(idpModel -> StripSecretsUtils.strip(ModelToRepresentation.toRepresentation(realm, idpModel))).collect(Collectors.toList());
     }
 
     /**

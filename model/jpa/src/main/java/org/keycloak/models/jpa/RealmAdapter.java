@@ -1226,6 +1226,24 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     }
 
     @Override
+    public Stream<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults) {
+        TypedQuery<IdentityProviderEntity> query = (keyword!=null && !keyword.isEmpty()) ?
+                em.createNamedQuery("findIdentityProviderByRealmAndKeyword", IdentityProviderEntity.class) :
+                em.createNamedQuery("findIdentityProviderByRealm", IdentityProviderEntity.class);
+
+        query.setParameter("realmId", realm.getId());
+        if (firstResult != null && firstResult >= 0)
+            query.setFirstResult(firstResult);
+        if (maxResults != null && maxResults > 0)
+            query.setMaxResults(maxResults);
+
+        if(keyword!=null && !keyword.isEmpty())
+            query.setParameter("keyword", "%"+keyword.toLowerCase()+"%");
+
+        return query.getResultList().stream().map(entity -> entityToModel(entity));
+    }
+
+    @Override
     public Stream<IdentityProviderModel> getIdentityProvidersStream() {
         return realm.getIdentityProviders().stream().map(this::entityToModel);
     }

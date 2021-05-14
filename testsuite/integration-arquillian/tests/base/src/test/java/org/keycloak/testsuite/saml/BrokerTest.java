@@ -19,7 +19,7 @@ package org.keycloak.testsuite.saml;
 import org.keycloak.admin.client.resource.ClientsResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.authentication.authenticators.broker.IdpReviewProfileAuthenticatorFactory;
-import org.keycloak.broker.saml.SAMLConfigNames;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.broker.saml.SAMLIdentityProviderFactory;
 import org.keycloak.dom.saml.v2.SAML2Object;
@@ -94,12 +94,12 @@ public class BrokerTest extends AbstractSamlTest {
           .providerId(SAMLIdentityProviderFactory.PROVIDER_ID)
           .alias(SAML_BROKER_ALIAS)
           .displayName("SAML")
-          .setAttribute(SAMLConfigNames.SINGLE_SIGN_ON_SERVICE_URL, samlEndpoint)
-          .setAttribute(SAMLConfigNames.SINGLE_LOGOUT_SERVICE_URL, samlEndpoint)
-          .setAttribute(SAMLConfigNames.NAME_ID_POLICY_FORMAT, JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get())
-          .setAttribute(SAMLConfigNames.POST_BINDING_RESPONSE, "false")
-          .setAttribute(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, "false")
-          .setAttribute(SAMLConfigNames.BACKCHANNEL_SUPPORTED, "false")
+          .setAttribute(SAMLIdentityProviderConfig.SINGLE_SIGN_ON_SERVICE_URL, samlEndpoint)
+          .setAttribute(SAMLIdentityProviderConfig.SINGLE_LOGOUT_SERVICE_URL, samlEndpoint)
+          .setAttribute(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT, JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get())
+          .setAttribute(SAMLIdentityProviderConfig.POST_BINDING_RESPONSE, "false")
+          .setAttribute(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, "false")
+          .setAttribute(SAMLIdentityProviderConfig.BACKCHANNEL_SUPPORTED, "false")
           .build();
         return identityProvider;
     }
@@ -188,13 +188,13 @@ public class BrokerTest extends AbstractSamlTest {
         final String userName = "newUser-" + UUID.randomUUID();
         final RealmResource realm = adminClient.realm(REALM_NAME);
         final IdentityProviderRepresentation rep = addIdentityProvider("https://saml.idp/");
-        rep.getConfig().put(SAMLConfigNames.NAME_ID_POLICY_FORMAT, "undefined");
+        rep.getConfig().put(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT, "undefined");
         SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
         pr.setPrincipalType(SamlPrincipalType.ATTRIBUTE);
         pr.setPrincipalAttribute("user");
         LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
         principals.add(pr);
-        rep.getConfig().put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
+        rep.getConfig().put(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
 
         try (IdentityProviderCreator idp = new IdentityProviderCreator(realm, rep)) {
             new SamlClientBuilder()

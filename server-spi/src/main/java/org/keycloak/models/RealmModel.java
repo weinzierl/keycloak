@@ -593,8 +593,6 @@ public interface RealmModel extends RoleContainerModel {
     IdentityProviderMapperModel getIdentityProviderMapperById(String id);
     IdentityProviderMapperModel getIdentityProviderMapperByName(String brokerAlias, String name);
 
-
-    boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel);
     boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias);
 
 

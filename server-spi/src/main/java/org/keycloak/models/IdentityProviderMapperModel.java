@@ -116,22 +116,21 @@ public class IdentityProviderMapperModel implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(obj != null && obj instanceof IdentityProviderMapperModel) {
-            IdentityProviderMapperModel s = (IdentityProviderMapperModel)obj;
-            return id.equals(s.id);
-        }
-        return false;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        IdentityProviderMapperModel that = (IdentityProviderMapperModel) o;
+
+        if (!id.equals(that.id)) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 31 * hash + (id == null ? 0 : id.hashCode());
-        return hash;
+        return id.hashCode();
     }
-
-
 
     static class StringPair {
         private String key;

@@ -120,6 +120,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
 	@Override
 	public void enableUpdateTask() {
+		logger.info("Enabling update task of federation with id: " + model.getInternalId());
 		if(model.getLastMetadataRefreshTimestamp()==null) {
             model.setLastMetadataRefreshTimestamp(0L);
         }
@@ -130,10 +131,11 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		ClusterAwareScheduledTaskRunner taskRunner = new ClusterAwareScheduledTaskRunner(session.getKeycloakSessionFactory(),updateFederationIdentityProviders,model.getUpdateFrequencyInMins() * 60 * 1000);
 		long delay = (model.getUpdateFrequencyInMins() * 60 * 1000) - Instant.now().toEpochMilli() + model.getLastMetadataRefreshTimestamp();
 		timer.schedule(taskRunner, delay > 60 * 1000 ? delay : 60 * 1000, model.getUpdateFrequencyInMins() * 60 * 1000, "UpdateFederation" + model.getInternalId());
+		logger.info("Finished setting up the update task of federation with id: " + model.getInternalId());
 	}
 
 	@Override
-	public synchronized void updateIdentityProviders() {
+	public void updateIdentityProviders() {
 
 		logger.info("Started updating IdPs of federation (id): " + model.getInternalId());
 

@@ -1267,6 +1267,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         identityProviderModel.setPostBrokerLoginFlowId(entity.getPostBrokerLoginFlowId());
         identityProviderModel.setStoreToken(entity.isStoreToken());
         identityProviderModel.setAddReadTokenRoleOnCreate(entity.isAddReadTokenRoleOnCreate());
+        identityProviderModel.setFederations(entity.getFederations().stream().map(fe -> fe.getInternalId()).collect(Collectors.toCollection(HashSet::new)));
         return identityProviderModel;
     }
 

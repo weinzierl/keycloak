@@ -176,7 +176,6 @@ jobs:
         run: |
           declare -A PARAMS TESTGROUP
           PARAMS["quarkus"]="-Pauth-server-quarkus"
-#          PARAMS["undertow-map"]="-Pauth-server-undertow -Pmap-storage -Dpageload.timeout=90000"
           PARAMS["undertow-map"]="-Pauth-server-undertow -Dpageload.timeout=90000"
           PARAMS["wildfly"]="-Pauth-server-wildfly"
           TESTGROUP["group1"]="-Dtest=!**.crossdc.**,!**.cluster.**,%regex[org.keycloak.testsuite.(a[abc]|ad[a-l]|[^a-q]).*]"   # Tests alphabetically before admin tests and those after "r"

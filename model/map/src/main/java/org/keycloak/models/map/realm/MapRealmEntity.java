@@ -997,24 +997,6 @@ public class MapRealmEntity<K> implements AbstractEntity<K> {
     };
 
 
-    public void addFederationIdp(IdentityProvidersFederationModel idpFederation, MapIdentityProviderEntity idp){
-        if (!identityProviderFederations.containsKey(idpFederation.getInternalId()))
-            throw new ModelException("An IdentityProviderFederation with given id does not exist. Cannot insert identity provider for that federation");
-        MapIdentityProviderEntity currentIdp = getIdentityProviders().filter(i -> i.getAlias().equals(idp.getAlias())).findFirst().orElse(null);
-        if(currentIdp == null) {
-            if(currentIdp.getFederations()==null)
-                idp.setFederations(new HashSet<>());
-            idp.getFederations().add(idpFederation.getInternalId());
-            this.addIdentityProvider(idp);
-        }
-        else{
-            if(currentIdp.getFederations()==null)
-                currentIdp.setFederations(new HashSet<>());
-            currentIdp.getFederations().add(idpFederation.getInternalId());
-            this.updateIdentityProvider(currentIdp);
-        }
-    }
-
     public void removeFederationIdp(IdentityProvidersFederationModel idpFederation, String idpAlias){
         if (!identityProviderFederations.containsKey(idpFederation.getInternalId()))
             throw new ModelException("An IdentityProviderFederation with given id does not exist. Cannot remove identity provider of that federation");

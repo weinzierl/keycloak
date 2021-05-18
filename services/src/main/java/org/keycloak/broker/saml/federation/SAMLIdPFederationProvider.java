@@ -241,10 +241,13 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
 			try {
 			    identityProviderModel.validate(realm);
-				realm.addFederationIdp(model, identityProviderModel);
 				//add mappers from federation for new identity providers
-				if (newIdp)
+				if (newIdp) {
+					realm.addIdentityProvider(identityProviderModel);
 					model.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, alias)).forEach(fedMap -> realm.addIdentityProviderMapper(fedMap));
+				} else {
+					realm.updateIdentityProvider(identityProviderModel);
+				}
 			}
 			catch(Exception ex) {
 				ex.printStackTrace();

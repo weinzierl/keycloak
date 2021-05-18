@@ -967,18 +967,6 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
         entity.removeIdentityProvidersFederation(internalId);
     }
 
-
-    @Override
-    public boolean addFederationIdp(IdentityProvidersFederationModel idpfModel, IdentityProviderModel idpModel){
-        try {
-            entity.addFederationIdp(idpfModel, MapIdentityProviderEntity.fromModel(idpModel));
-            return true;
-        }
-        catch(RuntimeException ex){
-            return false;
-        }
-    }
-
     @Override
     public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias){
         try {

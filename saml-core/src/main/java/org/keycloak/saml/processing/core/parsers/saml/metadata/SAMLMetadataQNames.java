@@ -93,6 +93,8 @@ public enum SAMLMetadataQNames implements HasQName {
     ATTR_REGEXP(null, "regexp"),
     ATTR_REGISTRATION_AUTHORITY(null, "registrationAuthority"),
     ATTR_REGISTRATION_INSTANT(null, "registrationInstant"),
+    ATTR_WIDTH(null, "width"),
+    ATTR_HEIGHT(null, "height"),
     
     // Elements from other namespaces that can be direct subelements of this namespace's elements
     SIGNATURE(XmlDSigQNames.SIGNATURE),

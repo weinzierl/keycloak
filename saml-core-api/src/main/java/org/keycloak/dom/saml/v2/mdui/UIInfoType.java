@@ -36,8 +36,10 @@ public class UIInfoType implements Serializable {
 
     protected List<LocalizedNameType> displayName = new ArrayList<>();
     protected List<LocalizedNameType> description = new ArrayList<>();
+    protected List<KeywordsType> keywords = new ArrayList<>();
     protected List<LocalizedURIType> informationURL = new ArrayList<>();
     protected List<LocalizedURIType> privacyStatementURL = new ArrayList<>();
+    protected List<LogoType> logo = new ArrayList<>();
 
     public void addDisplayName(LocalizedNameType displayName) {
         this.displayName.add(displayName);
@@ -45,6 +47,10 @@ public class UIInfoType implements Serializable {
 
     public void addDescription(LocalizedNameType description) {
         this.description.add(description);
+    }
+
+    public void addKeywords(KeywordsType keywords) {
+        this.keywords.add(keywords);
     }
 
     public void addInformationURL(LocalizedURIType informationURL) {
@@ -55,12 +61,20 @@ public class UIInfoType implements Serializable {
         this.privacyStatementURL.add(privacyStatementURL);
     }
 
+    public void addLogo(LogoType logo) {
+        this.logo.add(logo);
+    }
+
     public List<LocalizedNameType> getDisplayName() {
         return displayName;
     }
 
     public List<LocalizedNameType> getDescription() {
         return description;
+    }
+
+    public List<KeywordsType> getKeywords() {
+        return keywords;
     }
 
     public List<LocalizedURIType> getInformationURL() {
@@ -70,4 +84,9 @@ public class UIInfoType implements Serializable {
     public List<LocalizedURIType> getPrivacyStatementURL() {
         return privacyStatementURL;
     }
+
+    public List<LogoType> getLogo() {
+        return logo;
+    }
+
 }

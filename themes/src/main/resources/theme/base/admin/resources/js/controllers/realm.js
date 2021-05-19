@@ -1686,7 +1686,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
         if ($scope.newMultiplePrincipal !== undefined && $scope.newMultiplePrincipal.principalType !== undefined && $scope.newMultiplePrincipal.principalType.length) {
             $scope.addNewMultiplePrincipal();
         }
-         if ($scope.multiplePrincipals !== undefined ) {
+         if ($scope.multiplePrincipals !== undefined && $scope.multiplePrincipals.length > 0) {
              $scope.identityProvidersFederation.config.multiplePrincipals = angular.toJson($scope.multiplePrincipals);
          } else {
             Notifications.error("You must specify at least one principal");

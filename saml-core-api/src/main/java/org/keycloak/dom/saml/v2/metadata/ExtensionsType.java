@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.keycloak.dom.saml.v2.mdattr.EntityAttributes;
 import org.keycloak.dom.saml.v2.mdrpi.RegistrationInfoType;
+import org.keycloak.dom.saml.v2.mdui.UIInfoType;
 import org.w3c.dom.Element;
 
 /**
@@ -47,13 +48,9 @@ public class ExtensionsType extends TypeWithOtherAttributes {
 
     protected List<Object> any = new ArrayList<>();
 
-    protected List<ScopeType> scopes = new ArrayList<>();
-    
-    protected UIInfoType uiInfo;
-  
-    
     /**
      * Function is obsoleted with getAny
+     *
      * @return
      */
     @Deprecated
@@ -63,6 +60,7 @@ public class ExtensionsType extends TypeWithOtherAttributes {
 
     /**
      * Function is obsoleted with addExtension
+     *
      * @return
      */
     @Deprecated
@@ -116,7 +114,7 @@ public class ExtensionsType extends TypeWithOtherAttributes {
         }
         return null;
     }
-    
+
     public RegistrationInfoType getRegistrationInfo() {
         for (Object o : this.any) {
             if (o instanceof RegistrationInfoType) {
@@ -125,22 +123,24 @@ public class ExtensionsType extends TypeWithOtherAttributes {
         }
         return null;
     }
-    
-    public void addScope(ScopeType scope) {
-    	this.scopes.add(scope);
+
+    public List<ScopeType> getScopes() {
+        List<ScopeType> list = new ArrayList<>();
+        for (Object o : this.any) {
+            if (o instanceof ScopeType) {
+                list.add((ScopeType) o);
+            }
+        }
+        return list;
     }
-    
-    public List<ScopeType> getScopes(){
-    	return this.scopes;
-    }
-    
-    public void setUiInfo(UIInfoType uiInfo) {
-    	this.uiInfo = uiInfo;
-    }
-    
+
     public UIInfoType getUIInfo() {
-        return this.uiInfo;
+        for (Object o : this.any) {
+            if (o instanceof UIInfoType) {
+                return (UIInfoType) o;
+            }
+        }
+        return null;
     }
-    
-    
+
 }

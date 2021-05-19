@@ -51,9 +51,10 @@ public class SAMLExtensionsParser extends AbstractStaxSamlMetadataParser<Extensi
     }
 
     @Override
-    protected void processSubElement(XMLEventReader xmlEventReader, ExtensionsType target, SAMLMetadataQNames element, StartElement elementDetail) throws ParsingException {
-        
-    	switch (element) {
+    protected void processSubElement(XMLEventReader xmlEventReader, ExtensionsType target, SAMLMetadataQNames element,
+        StartElement elementDetail) throws ParsingException {
+
+        switch (element) {
             case ENTITY_ATTRIBUTES:
                 target.addExtension(SAMLEntityAttributesParser.getInstance().parse(xmlEventReader));
                 break;
@@ -61,10 +62,10 @@ public class SAMLExtensionsParser extends AbstractStaxSamlMetadataParser<Extensi
                 ScopeType scope = new ScopeType(StaxParserUtil.getAttributeValue(elementDetail, ATTR_REGEXP));
                 StaxParserUtil.advance(xmlEventReader);
                 scope.setValue(StaxParserUtil.getElementText(xmlEventReader));
-                target.addScope(scope);
+                target.addExtension(scope);
                 break;
             case UIINFO:
-                target.setUiInfo(SAMLUIInfoParser.getInstance().parse(xmlEventReader));
+                target.addExtension(SAMLUIInfoParser.getInstance().parse(xmlEventReader));
                 break;
             case REGISTRATION_INFO:
                 target.addExtension(SAMLRegistrationInfoParser.getInstance().parse(xmlEventReader));

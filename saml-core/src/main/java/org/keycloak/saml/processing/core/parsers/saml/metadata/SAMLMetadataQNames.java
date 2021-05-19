@@ -56,13 +56,13 @@ public enum SAMLMetadataQNames implements HasQName {
     TELEPHONE_NUMBER("TelephoneNumber"),
     
     SCOPE(JBossSAMLURIConstants.SHIBBOLETH_METADATA_NSURI, "Scope"),
-    UIINFO(JBossSAMLURIConstants.METADATA_UI_NSURI, "UIInfo"),
-    DISPLAY_NAME(JBossSAMLURIConstants.METADATA_UI_NSURI, "DisplayName"),
-    DESCRIPTION(JBossSAMLURIConstants.METADATA_UI_NSURI, "Description"),
-    KEYWORDS(JBossSAMLURIConstants.METADATA_UI_NSURI, "Keywords"),
-    LOGO(JBossSAMLURIConstants.METADATA_UI_NSURI, "Logo"),
-    INFORMATION_URL(JBossSAMLURIConstants.METADATA_UI_NSURI, "InformationURL"),
-    PRIVACY_STATEMENT_URL(JBossSAMLURIConstants.METADATA_UI_NSURI, "PrivacyStatementURL"),
+    UIINFO(JBossSAMLURIConstants.METADATA_UI, "UIInfo"),
+    DISPLAY_NAME(JBossSAMLURIConstants.METADATA_UI, "DisplayName"),
+    DESCRIPTION(JBossSAMLURIConstants.METADATA_UI, "Description"),
+    KEYWORDS(JBossSAMLURIConstants.METADATA_UI, "Keywords"),
+    LOGO(JBossSAMLURIConstants.METADATA_UI, "Logo"),
+    INFORMATION_URL(JBossSAMLURIConstants.METADATA_UI, "InformationURL"),
+    PRIVACY_STATEMENT_URL(JBossSAMLURIConstants.METADATA_UI, "PrivacyStatementURL"),
     //mdrpi elemetns METADATA_RPI
     REGISTRATION_INFO(JBossSAMLURIConstants.METADATA_RPI, "RegistrationInfo"),
     REGISTRATION_POLICY(JBossSAMLURIConstants.METADATA_RPI, "RegistrationPolicy"),
@@ -93,6 +93,8 @@ public enum SAMLMetadataQNames implements HasQName {
     ATTR_REGEXP(null, "regexp"),
     ATTR_REGISTRATION_AUTHORITY(null, "registrationAuthority"),
     ATTR_REGISTRATION_INSTANT(null, "registrationInstant"),
+    ATTR_WIDTH(null, "width"),
+    ATTR_HEIGHT(null, "height"),
     
     // Elements from other namespaces that can be direct subelements of this namespace's elements
     SIGNATURE(XmlDSigQNames.SIGNATURE),

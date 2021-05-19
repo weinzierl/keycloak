@@ -440,14 +440,6 @@ public class ModelToRepresentation {
             return representation;
         }).collect(Collectors.toList()));
 
-        List<IdentityProviderRepresentation> identityProviders = realm.getIdentityProvidersStream()
-                .map(provider -> toRepresentation(realm, provider)).collect(Collectors.toList());
-        rep.setIdentityProviders(identityProviders);
-
-        List<IdentityProviderMapperRepresentation> identityProviderMappers = realm.getIdentityProviderMappersStream()
-                .map(ModelToRepresentation::toRepresentation).collect(Collectors.toList());
-        rep.setIdentityProviderMappers(identityProviderMappers);
-
         rep.setInternationalizationEnabled(realm.isInternationalizationEnabled());
         rep.setSupportedLocales(realm.getSupportedLocalesStream().collect(Collectors.toSet()));
         rep.setDefaultLocale(realm.getDefaultLocale());

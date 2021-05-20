@@ -1490,7 +1490,19 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
 	}
 
-	@Override
+    @Override
+    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, Set<String> removedIdPs) {
+        addIdPs.stream().forEach(idp -> {
+            this.addIdentityProvider(idp);
+            //add mappers from federation for new identity providers
+            identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(this::addIdentityProviderMapper);
+        });
+        updatedIdPs.stream().forEach(this::updateIdentityProvider);
+        removedIdPs.stream().forEach(alias -> this.removeFederationIdp(identityProvidersFederationModel, alias));
+        this.updateIdentityProvidersFederation(identityProvidersFederationModel);
+    }
+
+    @Override
 	public void removeIdentityProvidersFederation(String internalId) {
 		logger.info("Removing the IdP federation entry with id: "+ internalId);
 

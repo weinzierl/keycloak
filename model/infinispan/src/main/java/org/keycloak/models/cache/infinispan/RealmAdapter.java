@@ -944,8 +944,14 @@ public class RealmAdapter implements CachedRealmModel {
 		getDelegateForUpdate();
         updated.updateIdentityProvidersFederation(identityProvidersFederationModel);
 	}
-    
-	@Override
+
+    @Override
+    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, Set<String> removedIdPs) {
+        getDelegateForUpdate();
+        updated.taskExecutionFederation(identityProvidersFederationModel, addIdPs, updatedIdPs, removedIdPs);
+    }
+
+    @Override
 	public void removeIdentityProvidersFederation(String internalId) {
 		getDelegateForUpdate();
 		updated.removeIdentityProvidersFederation(internalId);

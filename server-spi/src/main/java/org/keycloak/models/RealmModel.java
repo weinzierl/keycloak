@@ -527,6 +527,7 @@ public interface RealmModel extends RoleContainerModel {
     IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias);
     void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
     void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
+    void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, Set<String> removedIdPs);
     void removeIdentityProvidersFederation(String internalId);
     List<FederationMapperModel> getIdentityProviderFederationMappers(String federationId);
     FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id);

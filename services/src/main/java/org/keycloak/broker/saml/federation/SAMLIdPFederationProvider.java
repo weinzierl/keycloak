@@ -169,6 +169,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             throw new ModelException("No available authentication flow with alias: " + DefaultAuthenticationFlows.FIRST_BROKER_LOGIN_FLOW);
         }
 
+        List<IdentityProviderModel> addedIdps= new ArrayList<>();
+		List<IdentityProviderModel> updatedIdps= new ArrayList<>();
+
 		for(EntityDescriptorType entity: entities) {
 
             if (!parseIdP(entity)) {
@@ -197,7 +200,6 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
             String alias = getHash(entity.getEntityID());
             IdentityProviderModel identityProviderModel = null;
-            boolean newIdp = false;
 
             //check if this federation has already included this IdP
             if (model.getIdentityprovidersAlias().contains(alias)) {
@@ -211,7 +213,6 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                 if (previous != null) {
                     identityProviderModel = new SAMLIdentityProviderConfig(previous);
                 } else {
-					newIdp = true;
                     // initialize idp values
                     // set alias and default values
                     identityProviderModel = new SAMLIdentityProviderConfig();
@@ -241,12 +242,10 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
 			try {
 			    identityProviderModel.validate(realm);
-				//add mappers from federation for new identity providers
-				if (newIdp) {
-					realm.addIdentityProvider(identityProviderModel);
-					model.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, alias)).forEach(fedMap -> realm.addIdentityProviderMapper(fedMap));
+				if (identityProviderModel.getInternalId() == null) {
+					addedIdps.add(identityProviderModel);
 				} else {
-					realm.updateIdentityProvider(identityProviderModel);
+					updatedIdps.add(identityProviderModel);
 				}
 			}
 			catch(Exception ex) {
@@ -257,10 +256,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
 		}
 
-		model.getIdentityprovidersAlias().stream().forEach(idpAlias ->  realm.removeFederationIdp(model, idpAlias));
-
 		model.setLastMetadataRefreshTimestamp(new Date().getTime());
-		realm.updateIdentityProvidersFederation(model);
+		realm.taskExecutionFederation(model, addedIdps, updatedIdps, model.getIdentityprovidersAlias());
 
 		logger.info("Finished updating IdPs of federation (id): " + model.getInternalId());
 	}

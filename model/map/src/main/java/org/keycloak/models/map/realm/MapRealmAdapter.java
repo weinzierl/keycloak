@@ -963,6 +963,17 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
     }
 
     @Override
+    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, Set<String> removedIdPs) {
+        addIdPs.stream().forEach(idp -> {
+            this.addIdentityProvider(idp);
+            identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(this::addIdentityProviderMapper);
+        });
+        updatedIdPs.stream().forEach(this::updateIdentityProvider);
+        removedIdPs.stream().forEach(alias -> this.removeFederationIdp(identityProvidersFederationModel, alias));
+        this.updateIdentityProvidersFederation(identityProvidersFederationModel);
+    }
+
+    @Override
     public void removeIdentityProvidersFederation(String internalId){
         entity.removeIdentityProvidersFederation(internalId);
     }

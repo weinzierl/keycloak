@@ -135,7 +135,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 	}
 
 	@Override
-	public void updateIdentityProviders() {
+	public synchronized void updateIdentityProviders() {
 
 		logger.info("Started updating IdPs of federation (id): " + model.getInternalId());
 

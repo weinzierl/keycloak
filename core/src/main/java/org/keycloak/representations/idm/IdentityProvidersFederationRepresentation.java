@@ -33,8 +33,6 @@ public class IdentityProvidersFederationRepresentation {
     
     private Set<String> registrationAuthorityWhiteList;
     
-    private Set<String> identityprovidersAlias;
-    
     private Map<String, String> config;
     
     private Map<String, List<String>> categoryBlackList;
@@ -45,7 +43,6 @@ public class IdentityProvidersFederationRepresentation {
     
     public IdentityProvidersFederationRepresentation() {
     	this.entityIdBlackList = new HashSet<String>();
-    	this.identityprovidersAlias = new HashSet<String>();
     }
 
 	public String getInternalId() {
@@ -135,14 +132,6 @@ public class IdentityProvidersFederationRepresentation {
     public void setRegistrationAuthorityWhiteList(Set<String> registrationAuthorityWhiteList) {
         this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
     }
-
-    public Set<String> getIdentityprovidersAlias() {
-		return identityprovidersAlias;
-	}
-
-	public void setIdentityprovidersAlias(Set<String> identityprovidersAlias) {
-		this.identityprovidersAlias = identityprovidersAlias;
-	}
 	
 	public Long getValidUntilTimestamp() {
 		return validUntilTimestamp;

@@ -319,8 +319,6 @@ public class ExportImportUtil {
         IdentityProvidersFederationRepresentation metadataAggregate =realm.getIdentityProvidersFederations().get(0);
         Assert.assertEquals("saml-edugain",metadataAggregate.getAlias());
         Assert.assertEquals("saml",metadataAggregate.getProviderId());
-        Assert.assertNotNull(metadataAggregate.getIdentityprovidersAlias());
-        Assert.assertEquals(2,metadataAggregate.getIdentityprovidersAlias().size());
 
         //////////////////
         // Test federation providers

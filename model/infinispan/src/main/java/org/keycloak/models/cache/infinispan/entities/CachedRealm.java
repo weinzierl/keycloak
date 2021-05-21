@@ -243,16 +243,13 @@ public class CachedRealm extends AbstractExtendableRevisioned {
 
         this.identityProvidersFederations  = model.getIdentityProviderFederations();
 
-        this.identityProviders = model.getIdentityProvidersStream().map(IdentityProviderModel::new)
-                .collect(Collectors.toList());
+        this.identityProviders = model.getIdentityProvidersStream().collect(Collectors.toList());
         this.identityProviders = Collections.unmodifiableList(this.identityProviders);
 
         this.identityProviderMapperSet = model.getIdentityProviderMappersStream().collect(Collectors.toSet());
         for (IdentityProviderMapperModel mapper : identityProviderMapperSet) {
             identityProviderMappers.add(mapper.getIdentityProviderAlias(), mapper);
         }
-
-
 
         smtpConfig = model.getSmtpConfig();
         browserSecurityHeaders = model.getBrowserSecurityHeaders();

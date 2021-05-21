@@ -17,6 +17,7 @@
 
 package org.keycloak.admin.client.resource;
 
+import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataOutput;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
 
@@ -46,6 +47,11 @@ public interface IdentityProvidersResource {
     @Produces(MediaType.APPLICATION_JSON)
     List<IdentityProviderRepresentation> findAll(@QueryParam("brief") Boolean brief, @QueryParam("keyword") String keyword,
     		@QueryParam("first") Integer firstResult,@QueryParam("max") Integer maxResults);
+
+    @Path("/federation/{federationId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<String> getIdPsPerFederation(@PathParam("federationId") String federationId);
 
     @POST
     @Path("instances")

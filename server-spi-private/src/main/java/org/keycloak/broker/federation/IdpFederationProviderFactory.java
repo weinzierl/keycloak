@@ -36,7 +36,7 @@ public interface IdpFederationProviderFactory extends ProviderFactory<IdpFederat
 
 	static IdpFederationProviderFactory getIdpFederationProviderFactoryById(KeycloakSession session, String providerId) {
 		return (IdpFederationProviderFactory) session.getKeycloakSessionFactory()
-				.getProviderFactories(IdpFederationProvider.class).stream().filter(pf -> pf.getId().equals(providerId))
+				.getProviderFactoriesStream(IdpFederationProvider.class).filter(pf -> pf.getId().equals(providerId))
 				.findAny().orElse(null);
 	};
     

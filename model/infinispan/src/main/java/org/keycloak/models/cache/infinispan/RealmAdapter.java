@@ -946,7 +946,7 @@ public class RealmAdapter implements CachedRealmModel {
 	}
 
     @Override
-    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, Set<String> removedIdPs) {
+    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
         getDelegateForUpdate();
         updated.taskExecutionFederation(identityProvidersFederationModel, addIdPs, updatedIdPs, removedIdPs);
     }
@@ -1305,8 +1305,8 @@ public class RealmAdapter implements CachedRealmModel {
 
 
     @Override
-    public List<IdentityProviderModel> getIdentityProvidersByFederation(String federationId) {
-       return getIdentityProvidersStream().filter(idp -> idp.getFederations().contains(federationId)).collect(Collectors.toList());
+    public List<String> getIdentityProvidersByFederation(String federationId) {
+       return cacheSession.getRealmDelegate().getRealm(cached.getId()).getIdentityProvidersByFederation(federationId);
     }
 
 

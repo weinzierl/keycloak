@@ -190,6 +190,20 @@ public class IdentityProvidersResource {
     }
 
     /**
+     * get IdPs alias per federation
+     * @param federationId
+     * @return
+     */
+    @Path("/federation/{federationId}")
+    @GET
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<String> getIdPsPerFederation(@PathParam("federationId") String federationId) {
+        this.auth.realm().requireViewIdentityProviders();
+       return realm.getIdentityProvidersByFederation(federationId);
+    }
+
+    /**
      * Create a new identity provider
      *
      * @param representation JSON body

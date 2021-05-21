@@ -56,8 +56,6 @@ public class IdentityProvidersFederationModel implements Serializable {
     
     private Set<String> registrationAuthorityWhiteList;
     
-    private Set<String> identityprovidersAlias;
-    
     private Map<String, String> config;
     
     private Map<String, List<String>> categoryBlackList;
@@ -70,7 +68,6 @@ public class IdentityProvidersFederationModel implements Serializable {
     public IdentityProvidersFederationModel() {
 		super();
 		this.entityIdBlackList = new HashSet<String>();
-		this.identityprovidersAlias = new HashSet<String>();
 	}
 
     public IdentityProvidersFederationModel(IdentityProvidersFederationModel model) {
@@ -89,24 +86,8 @@ public class IdentityProvidersFederationModel implements Serializable {
         this.setCategoryWhiteList(model.getRegistrationAuthorityWhiteList() != null ? model.getCategoryWhiteList() : new HashMap<String,List<String>>());
 		this.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
         this.setValidUntilTimestamp(model.getValidUntilTimestamp());
-		this.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
 		this.setConfig(model.getConfig());
 		this.setFederationMapperModels(model.getFederationMapperModels());
-	}
-
-	public IdentityProvidersFederationModel(String internalId, String alias, String providerId, String url,
-			Integer refreshEveryMinutes, String displayName, Long lastMetadataRefreshTimestamp,Set<String> blackList,Set<String> whiteList,Set<String> identityprovidersAlias) {
-		super();
-		this.internalId = internalId;
-		this.alias = alias;
-		this.providerId = providerId;
-		this.url = url;
-		this.updateFrequencyInMins = refreshEveryMinutes;
-		this.displayName = displayName;
-		this.entityIdBlackList = (blackList != null) ? blackList : new HashSet<String>();
-		this.entityIdWhiteList = (whiteList != null) ? whiteList : new HashSet<String>();
-		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp;
-		this.identityprovidersAlias = identityprovidersAlias;
 	}
 
 
@@ -199,14 +180,6 @@ public class IdentityProvidersFederationModel implements Serializable {
     public void setRegistrationAuthorityWhiteList(Set<String> registrationAuthorityWhiteList) {
         this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
     }
-
-    public Set<String> getIdentityprovidersAlias() {
-		return identityprovidersAlias;
-	}
-
-	public void setIdentityprovidersAlias(Set<String> identityprovidersAlias) {
-		this.identityprovidersAlias = identityprovidersAlias;
-	}
 
 	public Long getValidUntilTimestamp() {
 		return validUntilTimestamp;

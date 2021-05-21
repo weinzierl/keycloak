@@ -90,8 +90,8 @@ public class FederationEntity {
     @CollectionTable(name="REGISTRATION_AUTHORITY_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
     private Set<String> registrationAuthorityWhiteList = new HashSet<String>();
 	
-	@ManyToMany(mappedBy = "federations")
-	private Set<IdentityProviderEntity> identityproviders = new HashSet<IdentityProviderEntity>();
+//	@ManyToMany(mappedBy = "federations")
+//	private Set<IdentityProviderEntity> identityproviders = new HashSet<IdentityProviderEntity>();
 	
 	@ElementCollection
     @MapKeyColumn(name="NAME")
@@ -206,14 +206,6 @@ public class FederationEntity {
         this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
     }
 
-    public Set<IdentityProviderEntity> getIdentityproviders() {
-		return identityproviders;
-	}
-
-	public void setIdentityproviders(Set<IdentityProviderEntity> identityproviders) {
-		this.identityproviders = identityproviders;
-	}
-	
 	public String getProviderId() {
 		return providerId;
 	}

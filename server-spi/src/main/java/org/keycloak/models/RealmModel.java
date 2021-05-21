@@ -527,7 +527,7 @@ public interface RealmModel extends RoleContainerModel {
     IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias);
     void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
     void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
-    void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, Set<String> removedIdPs);
+    void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs);
     void removeIdentityProvidersFederation(String internalId);
     List<FederationMapperModel> getIdentityProviderFederationMappers(String federationId);
     FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id);
@@ -557,7 +557,7 @@ public interface RealmModel extends RoleContainerModel {
     void removeIdentityProviderByAlias(String alias);
     void updateIdentityProvider(IdentityProviderModel identityProvider);
 
-    List<IdentityProviderModel> getIdentityProvidersByFederation(String federationId);
+    List<String> getIdentityProvidersByFederation(String federationId);
 
     /**
      * @deprecated Use {@link #getIdentityProviderMappersStream() getIdentityProviderMappersStream} instead.

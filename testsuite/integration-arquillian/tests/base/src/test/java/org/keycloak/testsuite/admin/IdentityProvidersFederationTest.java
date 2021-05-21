@@ -97,8 +97,9 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
                 representation.getUrl());
 
         // must be three saml idps
-        assertEquals(3, representation.getIdentityprovidersAlias().size());
-        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+        List<String> idps = realm.identityProviders().getIdPsPerFederation(representation.getInternalId());
+        assertEquals(3, idps.size());
+        idps.stream().forEach(idpAlias -> {
             assertTrue("wrong IdPs", aliasSet.contains(idpAlias));
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
@@ -132,7 +133,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         representation = realm.identityProvidersFederation()
             .getIdentityProviderFederation(internalId);
         assertNotNull(representation);
-        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+        idps.stream().forEach(idpAlias -> {
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
             IdentityProviderRepresentation idp = provider.toRepresentation();
             assertTrue("IdP postBindingResponse not exist", idp.getConfig().containsKey("postBindingResponse"));
@@ -167,8 +168,9 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 				representation.getUrl());
 
 		// must be one idp
-		assertEquals(1, representation.getIdentityprovidersAlias().size());
-        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+        List<String> idps = realm.identityProviders().getIdPsPerFederation(representation.getInternalId());
+        assertEquals(1, idps.size());
+        idps.stream().forEach(idpAlias -> {
             assertEquals("wrong IdP", hashEntityIdIdP, idpAlias);
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
@@ -207,9 +209,10 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
                 representation.getUrl());
 
         // must be two saml idps and not contain
-        assertEquals(2, representation.getIdentityprovidersAlias().size());
-        assertFalse("wrong IdPs", representation.getIdentityprovidersAlias().contains(hashEntityIdIdP));
-        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+        List<String> idps = realm.identityProviders().getIdPsPerFederation(representation.getInternalId());
+        assertEquals(2, idps.size());
+        assertFalse("wrong IdPs",idps.contains(hashEntityIdIdP));
+        idps.stream().forEach(idpAlias -> {
             assertTrue("wrong IdPs", aliasSet.contains(idpAlias));
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
@@ -245,9 +248,10 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
                 representation.getUrl());
 
         // must be two saml idps and not contain
-        assertEquals(2, representation.getIdentityprovidersAlias().size());
-        assertFalse("wrong IdPs", representation.getIdentityprovidersAlias().contains(hashEntityIdIdP));
-        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+        List<String> idps = realm.identityProviders().getIdPsPerFederation(representation.getInternalId());
+        assertEquals(2, idps.size());
+        assertFalse("wrong IdPs", idps.contains(hashEntityIdIdP));
+        idps.stream().forEach(idpAlias -> {
             assertTrue("wrong IdPs", aliasSet.contains(idpAlias));
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
@@ -312,8 +316,9 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
                 representation.getUrl());
 
         // must be three saml idps
-        assertEquals(3, representation.getIdentityprovidersAlias().size());
-        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+        List<String> idps = realm.identityProviders().getIdPsPerFederation(representation.getInternalId());
+        assertEquals(3, idps.size());
+        idps.stream().forEach(idpAlias -> {
             assertTrue("wrong IdPs", aliasSet.contains(idpAlias));
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
@@ -326,7 +331,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         String mapperId = createMapper(internalId);
         realm.identityProvidersFederation().massIdPMapperAction(internalId,mapperId,"add");
 
-        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+        idps.stream().forEach(idpAlias -> {
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
             IdentityProviderRepresentation idp = provider.toRepresentation();
@@ -348,7 +353,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         fedMapper.getConfig().put("user.attribute","name");
         realm.identityProvidersFederation().updateMapper(internalId,mapperId,fedMapper);
         realm.identityProvidersFederation().massIdPMapperAction(internalId,mapperId,"update");
-        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+        idps.stream().forEach(idpAlias -> {
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
             IdentityProviderRepresentation idp = provider.toRepresentation();
@@ -367,7 +372,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
         //remove mapper from Idp
         realm.identityProvidersFederation().massIdPMapperAction(internalId,mapperId,"remove");
-        representation.getIdentityprovidersAlias().stream().forEach(idpAlias -> {
+        idps.stream().forEach(idpAlias -> {
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
             IdentityProviderRepresentation idp = provider.toRepresentation();

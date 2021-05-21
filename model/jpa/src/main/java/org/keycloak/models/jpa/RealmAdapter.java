@@ -1372,8 +1372,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         categoryWhiteList.putAll(entity.getCategoryWhiteList());
         federationModel.setCategoryWhiteList(categoryWhiteList);
     	federationModel.setUrl(entity.getUrl());
-    	Set<String> identityprovidersAlias = entity.getIdentityproviders().stream().map(idp -> idp.getAlias()).collect(Collectors.toSet());
-    	federationModel.setIdentityprovidersAlias(identityprovidersAlias);
     	Map<String, String> copy = new HashMap<>();
         copy.putAll(entity.getConfig());
     	federationModel.setConfig(copy);
@@ -1491,7 +1489,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 	}
 
     @Override
-    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, Set<String> removedIdPs) {
+    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
         addIdPs.stream().forEach(idp -> {
             this.addIdentityProvider(idp);
             //add mappers from federation for new identity providers
@@ -1545,54 +1543,16 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             IdentityProviderEntity idpEntity = getIdentityProviderEntityByAlias(idpAlias);
             if(idpEntity == null) return false;
             Set<FederationEntity> idpFeds = idpEntity.getFederations();
-            FederationEntity fedEntity = em.find(FederationEntity.class, idpfModel.getInternalId());
-            IdentityProviderModel idpModel = entityToModel(idpEntity, true);
             if(idpFeds.size() == 1) {
                 em.remove(idpEntity);
                 em.flush();
-
-//				session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderRemovedEvent() {
-//
-//	                    @Override
-//	                    public RealmModel getRealm() {
-//	                        return RealmAdapter.this;
-//	                    }
-//
-//	                    @Override
-//	                    public IdentityProviderModel getRemovedIdentityProvider() {
-//	                        return idpModel;
-//	                    }
-//
-//	                    @Override
-//	                    public KeycloakSession getKeycloakSession() {
-//	                        return session;
-//	                    }
-//	                });
             }
             else if(idpFeds.size() > 1) {
+                FederationEntity fedEntity = em.find(FederationEntity.class, idpfModel.getInternalId());
                 idpEntity.removeFromFederation(fedEntity);
                 em.persist(idpEntity);
                 em.flush();
-
-//				session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderUpdatedEvent() {
-//
-//		            @Override
-//		            public RealmModel getRealm() {
-//		                return RealmAdapter.this;
-//		            }
-//
-//		            @Override
-//		            public IdentityProviderModel getUpdatedIdentityProvider() {
-//		                return idpModel;
-//		            }
-//
-//		            @Override
-//		            public KeycloakSession getKeycloakSession() {
-//		                return session;
-//		            }
-//		        });
             }
-
             return true;
         }
         catch(Exception ex) {
@@ -1696,10 +1656,10 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
 
     @Override
-    public List<IdentityProviderModel> getIdentityProvidersByFederation(String federationId) {
-        TypedQuery<IdentityProviderEntity> query = em.createNamedQuery("findIdentityProviderByFederation", IdentityProviderEntity.class);
+    public List<String> getIdentityProvidersByFederation(String federationId) {
+        TypedQuery<String> query = em.createNamedQuery("findIdentityProviderByFederation", String.class);
         query.setParameter("federationId", federationId);
-        return query.getResultList().stream().map(entity -> entityToModel(entity)).collect(Collectors.toList());
+        return query.getResultList();
     }
 
     @Override

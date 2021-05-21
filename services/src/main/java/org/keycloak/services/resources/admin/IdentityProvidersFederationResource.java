@@ -270,37 +270,37 @@ public class IdentityProvidersFederationResource {
 
         FederationMapperModel mapper = realm.getIdentityProviderFederationMapper(id, mapperId);
         if (mapper == null) throw new NotFoundException("mapper not found");
-        List<IdentityProviderModel> idps = realm.getIdentityProvidersByFederation(id);
+        List<String> idpAlias = realm.getIdentityProvidersByFederation(id);
 
         if (action.equals("add")) {
-            idps.stream().forEach(idp -> {
+            idpAlias.stream().forEach(alias -> {
                 try {
-                    realm.addIdentityProviderMapper(new IdentityProviderMapperModel(mapper, idp.getAlias()));
+                    realm.addIdentityProviderMapper(new IdentityProviderMapperModel(mapper, alias));
                 } catch (Exception e) {
-                    logger.info("Mapper with id = " + mapperId + " failed to add to Idp with alias = " + idp.getAlias());
+                    logger.info("Mapper with id = " + mapperId + " failed to add to Idp with alias = " + alias);
                 }
             });
         } else if (action.equals("update")) {
-            idps.stream().forEach(idp -> {
+            idpAlias.stream().forEach(alias -> {
                 try {
-                    IdentityProviderMapperModel idpMapper = realm.getIdentityProviderMapperByName(idp.getAlias(), mapper.getName());
+                    IdentityProviderMapperModel idpMapper = realm.getIdentityProviderMapperByName(alias, mapper.getName());
                     if (idpMapper != null) {
                         idpMapper.setIdentityProviderMapper(mapper.getIdentityProviderMapper());
                         idpMapper.setConfig(mapper.getConfig());
                         realm.updateIdentityProviderMapper(idpMapper);
                     }
                 } catch (Exception e) {
-                    logger.info("Mapper with id = " + mapperId + " failed to update in the Idp with alias = " + idp.getAlias());
+                    logger.info("Mapper with id = " + mapperId + " failed to update in the Idp with alias = " + alias);
                 }
             });
         } else if (action.equals("remove")) {
-            idps.stream().forEach(idp -> {
+            idpAlias.stream().forEach(alias -> {
                 try {
-                    IdentityProviderMapperModel idpMapper = realm.getIdentityProviderMapperByName(idp.getAlias(), mapper.getName());
+                    IdentityProviderMapperModel idpMapper = realm.getIdentityProviderMapperByName(alias, mapper.getName());
                     if (idpMapper != null)
                         realm.removeIdentityProviderMapper(idpMapper);
                 } catch (Exception e) {
-                    logger.info("Mapper with id = " + mapperId + " failed to remove from Idp with alias = " + idp.getAlias());
+                    logger.info("Mapper with id = " + mapperId + " failed to remove from Idp with alias = " + alias);
                 }
             });
         } else {

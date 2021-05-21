@@ -171,6 +171,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
         List<IdentityProviderModel> addedIdps= new ArrayList<>();
 		List<IdentityProviderModel> updatedIdps= new ArrayList<>();
+		List<String> existingIdps = realm.getIdentityProvidersByFederation(model.getInternalId());
 
 		for(EntityDescriptorType entity: entities) {
 
@@ -202,10 +203,10 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             IdentityProviderModel identityProviderModel = null;
 
             //check if this federation has already included this IdP
-            if (model.getIdentityprovidersAlias().contains(alias)) {
+            if (existingIdps.contains(alias)) {
                 identityProviderModel = new SAMLIdentityProviderConfig(
 						realm.getIdentityProviderByAlias(alias));
-                model.getIdentityprovidersAlias().remove(alias);
+				existingIdps.remove(alias);
             } else {
 
                 // check if Idp exists in database
@@ -257,7 +258,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		}
 
 		model.setLastMetadataRefreshTimestamp(new Date().getTime());
-		realm.taskExecutionFederation(model, addedIdps, updatedIdps, model.getIdentityprovidersAlias());
+		realm.taskExecutionFederation(model, addedIdps, updatedIdps, existingIdps);
 
 		logger.info("Finished updating IdPs of federation (id): " + model.getInternalId());
 	}
@@ -440,8 +441,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
 
 		RealmModel realm = session.realms().getRealm(realmId);
-
-		List<Boolean> results = model.getIdentityprovidersAlias().stream().map(idpAlias -> realm.removeFederationIdp(model, idpAlias)).collect(Collectors.toList());
+		List<String> existingIdps = realm.getIdentityProvidersByFederation(model.getInternalId());
+		existingIdps.stream().forEach(idpAlias -> realm.removeFederationIdp(model, idpAlias));
 
 		realm.removeIdentityProvidersFederation(model.getInternalId());
 	}

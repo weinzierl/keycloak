@@ -963,7 +963,7 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
     }
 
     @Override
-    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, Set<String> removedIdPs) {
+    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
         addIdPs.stream().forEach(idp -> {
             this.addIdentityProvider(idp);
             identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(this::addIdentityProviderMapper);
@@ -990,8 +990,8 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
     }
 
     @Override
-    public List<IdentityProviderModel> getIdentityProvidersByFederation(String federationId) {
-        return getIdentityProvidersStream().filter(idp -> idp.getFederations().contains(federationId)).collect(Collectors.toList());
+    public List<String> getIdentityProvidersByFederation(String federationId) {
+        return entity.getIdentityProviders().filter(idp -> idp.getFederations().contains(federationId)).map(MapIdentityProviderEntity::getAlias).collect(Collectors.toList());
     }
 
     @Override

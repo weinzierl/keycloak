@@ -704,7 +704,6 @@ public class ModelToRepresentation {
         representation.setCategoryBlackList(model.getCategoryBlackList());
         representation.setCategoryWhiteList(model.getCategoryWhiteList());
     	representation.setUrl(model.getUrl());
-    	representation.setIdentityprovidersAlias(model.getIdentityprovidersAlias());
     	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());
     	representation.setConfig(model.getConfig());
         return representation;

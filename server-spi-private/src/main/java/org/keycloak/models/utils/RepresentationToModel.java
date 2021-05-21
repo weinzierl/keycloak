@@ -2053,7 +2053,6 @@ public class RepresentationToModel {
         model.setCategoryWhiteList(representation.getCategoryWhiteList());
     	model.setUrl(representation.getUrl());
     	model.setValidUntilTimestamp(representation.getValidUntilTimestamp());
-    	model.setIdentityprovidersAlias(representation.getIdentityprovidersAlias());
     	model.setConfig(removeEmptyString(representation.getConfig()));
     	return model;
     }

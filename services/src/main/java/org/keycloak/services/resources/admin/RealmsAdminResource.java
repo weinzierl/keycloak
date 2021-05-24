@@ -95,14 +95,14 @@ public class RealmsAdminResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Stream<RealmRepresentation> getRealms() {
         Stream<RealmRepresentation> realms = session.realms().getRealmsStream()
-                .map(this::toRealmRep)
+                .map(realm -> toRealmRep(realm, true))
                 .filter(Objects::nonNull);
         return throwIfEmpty(realms, new ForbiddenException());
     }
 
-    protected RealmRepresentation toRealmRep(RealmModel realm) {
+    protected RealmRepresentation toRealmRep(RealmModel realm, boolean briefRep) {
         if (AdminPermissions.realms(session, auth).canView(realm)) {
-            return ModelToRepresentation.toRepresentation(realm, false);
+            return briefRep ? ModelToRepresentation.toBriefRepresentation(realm) : ModelToRepresentation.toRepresentation(realm, false);
         } else if (AdminPermissions.realms(session, auth).isAdmin(realm)) {
             RealmRepresentation rep = new RealmRepresentation();
             rep.setRealm(realm.getName());

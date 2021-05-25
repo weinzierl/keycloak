@@ -25,6 +25,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
 import org.keycloak.models.jpa.converter.ListJsonConverter;
 
 @Entity
@@ -59,32 +60,38 @@ public class FederationEntity {
 
 	@Column(name = "LAST_METADATA_REFRESH_TIMESTAMP")
 	private Long lastMetadataRefreshTimestamp;
-	
+
+	@BatchSize(size = 50)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REALM_ID")
     protected RealmEntity realm;
-    
+
+	@BatchSize(size = 50)
     @ElementCollection
     @MapKeyColumn(name="NAME")
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="FEDERATION_CONFIG", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
     private Map<String, String> config;
-	
+
+	@BatchSize(size = 50)
 	@ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="ENTITYID_BLACKLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
     private Set<String> entityIdBlackList = new HashSet<String>();
-	
+
+	@BatchSize(size = 50)
 	@ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="ENTITYID_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
     private Set<String> entityIdWhiteList = new HashSet<String>();
-	
+
+	@BatchSize(size = 50)
 	@ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="REGISTRATION_AUTHORITY_BLACKLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
     private Set<String> registrationAuthorityBlackList = new HashSet<String>();
-    
+
+	@BatchSize(size = 50)
     @ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="REGISTRATION_AUTHORITY_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
@@ -92,21 +99,24 @@ public class FederationEntity {
 	
 //	@ManyToMany(mappedBy = "federations")
 //	private Set<IdentityProviderEntity> identityproviders = new HashSet<IdentityProviderEntity>();
-	
+
+	@BatchSize(size = 50)
 	@ElementCollection
     @MapKeyColumn(name="NAME")
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="ENTITY_CATEGORY_BLACKLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
 	@Convert(converter = ListJsonConverter.class, attributeName = "value")
     private Map<String, List<String>> categoryBlackList;
-	
+
+	@BatchSize(size = 50)
 	@ElementCollection
     @MapKeyColumn(name="NAME")
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="ENTITY_CATEGORY_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
     @Convert(converter = ListJsonConverter.class, attributeName = "value")
     private Map<String, List<String>> categoryWhiteList;
-	
+
+	@BatchSize(size = 50)
 	@OneToMany(cascade =CascadeType.REMOVE,  mappedBy = "federation")
 	private List<FederationMapperEntity> federationMapperEntities = new ArrayList<FederationMapperEntity>();
 

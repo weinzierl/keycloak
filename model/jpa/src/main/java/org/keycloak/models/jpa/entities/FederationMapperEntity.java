@@ -1,5 +1,7 @@
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import java.util.Map;
 
 import javax.persistence.Access;
@@ -33,12 +35,14 @@ public class FederationMapperEntity {
     @Column(name="NAME")
     private String name;
 
+    @BatchSize(size = 50)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "FEDERATION_ID")
     private FederationEntity federation;
     @Column(name = "IDP_MAPPER_NAME")
     private String identityProviderMapper;
 
+    @BatchSize(size = 50)
     @ElementCollection
     @MapKeyColumn(name="NAME")
     @Column(name="VALUE")

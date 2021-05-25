@@ -17,6 +17,7 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.Access;
@@ -95,25 +96,30 @@ public class ClientEntity {
     @Column(name = "REALM_ID")
     protected String realmId;
 
+    @BatchSize(size = 50)
     @ElementCollection
     @Column(name="VALUE")
     @CollectionTable(name = "WEB_ORIGINS", joinColumns={ @JoinColumn(name="CLIENT_ID") })
     protected Set<String> webOrigins;
 
+    @BatchSize(size = 50)
     @ElementCollection
     @Column(name="VALUE")
     @CollectionTable(name = "REDIRECT_URIS", joinColumns={ @JoinColumn(name="CLIENT_ID") })
     protected Set<String> redirectUris;
 
+    @BatchSize(size = 50)
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "client")
     protected Collection<ClientAttributeEntity> attributes;
 
+    @BatchSize(size = 50)
     @ElementCollection
     @MapKeyColumn(name="BINDING_NAME")
     @Column(name="FLOW_ID", length = 4000)
     @CollectionTable(name="CLIENT_AUTH_FLOW_BINDINGS", joinColumns={ @JoinColumn(name="CLIENT_ID") })
     protected Map<String, String> authFlowBindings;
 
+    @BatchSize(size = 50)
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "client")
     Collection<ProtocolMapperEntity> protocolMappers;
 

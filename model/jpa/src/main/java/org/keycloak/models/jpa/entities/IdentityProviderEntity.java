@@ -17,6 +17,8 @@
 
 package org.keycloak.models.jpa.entities;
 
+import org.hibernate.annotations.BatchSize;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
@@ -68,6 +70,7 @@ public class IdentityProviderEntity {
     @Access(AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity.  This avoids an extra SQL
     protected String internalId;
 
+    @BatchSize(size = 50)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REALM_ID")
     protected RealmEntity realm;
@@ -105,13 +108,15 @@ public class IdentityProviderEntity {
     @Column(name="POST_BROKER_LOGIN_FLOW_ID")
     private String postBrokerLoginFlowId;
 
+    @BatchSize(size = 50)
     @ElementCollection
     @MapKeyColumn(name="NAME")
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="IDENTITY_PROVIDER_CONFIG", joinColumns={ @JoinColumn(name="IDENTITY_PROVIDER_ID") })
     private Map<String, String> config;
     
-    @ManyToMany 
+    @ManyToMany
+    @BatchSize(size = 50)
     @JoinTable(
     	name = "federation_idps", 
 		joinColumns = @JoinColumn(name = "identityprovider_id"), 

@@ -70,7 +70,7 @@ public enum JBossSAMLURIConstants {
     //https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf
     METADATA_RPI("urn:oasis:names:tc:SAML:metadata:rpi"),
     SHIBBOLETH_METADATA_NSURI("urn:mace:shibboleth:metadata:1.0"),
-    METADATA_UI_NSURI("urn:oasis:names:tc:SAML:metadata:ui"),
+    METADATA_UI("urn:oasis:names:tc:SAML:metadata:ui"),
     NAMEID_FORMAT_TRANSIENT("urn:oasis:names:tc:SAML:2.0:nameid-format:transient"),
     NAMEID_FORMAT_PERSISTENT("urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"),
     NAMEID_FORMAT_UNSPECIFIED("urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"),

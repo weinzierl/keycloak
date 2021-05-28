@@ -1275,6 +1275,13 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         }
         entity.setProviderId(identityProvider.getProviderId());
         modelToEntity(entity,identityProvider);
+        if (identityProvider.getFederations() != null) {
+            entity.setFederations(identityProvider.getFederations().stream().map(id -> {
+                FederationEntity fed = new FederationEntity();
+                fed.setInternalId(id);
+                return fed;
+            }).collect(Collectors.toSet()));
+        }
 
         realm.addIdentityProvider(entity);
 
@@ -1317,10 +1324,45 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
     @Override
     public void updateIdentityProvider(IdentityProviderModel identityProvider) {
-        for (IdentityProviderEntity entity : this.realm.getIdentityProviders()) {
-            if (entity.getInternalId().equals(identityProvider.getInternalId())) {
-                modelToEntity(entity,identityProvider);
+
+        IdentityProviderEntity entity =(IdentityProviderEntity)  em.find(IdentityProviderEntity.class,identityProvider.getInternalId());
+        modelToEntity(entity,identityProvider);
+
+        em.flush();
+
+        session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderUpdatedEvent() {
+
+            @Override
+            public RealmModel getRealm() {
+                return RealmAdapter.this;
             }
+
+            @Override
+            public IdentityProviderModel getUpdatedIdentityProvider() {
+                return identityProvider;
+            }
+
+            @Override
+            public KeycloakSession getKeycloakSession() {
+                return session;
+            }
+        });
+    }
+
+    /**
+     * method for update when federation task is executed
+     * @param identityProvider
+     */
+    private void updateIdentityProviderFromFed(IdentityProviderModel identityProvider) {
+
+        IdentityProviderEntity entity =(IdentityProviderEntity)  em.find(IdentityProviderEntity.class,identityProvider.getInternalId());
+        modelToEntity(entity,identityProvider);
+        if (identityProvider.getFederations() != null) {
+            entity.setFederations(identityProvider.getFederations().stream().map(id -> {
+                FederationEntity fed = new FederationEntity();
+                fed.setInternalId(id);
+                return fed;
+            }).collect(Collectors.toSet()));
         }
 
         em.flush();
@@ -1495,7 +1537,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             //add mappers from federation for new identity providers
             identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(this::addIdentityProviderMapper);
         });
-        updatedIdPs.stream().forEach(this::updateIdentityProvider);
+        updatedIdPs.stream().forEach(this::updateIdentityProviderFromFed);
         removedIdPs.stream().forEach(alias -> this.removeFederationIdp(identityProvidersFederationModel, alias));
         this.updateIdentityProvidersFederation(identityProvidersFederationModel);
     }
@@ -1524,15 +1566,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         entity.setPostBrokerLoginFlowId(identityProvider.getPostBrokerLoginFlowId());
         entity.setConfig(identityProvider.getConfig());
         entity.setLinkOnly(identityProvider.isLinkOnly());
-        if (identityProvider.getFederations() != null) {
-            entity.setFederations(identityProvider.getFederations().stream().map(id -> {
-                FederationEntity fed = new FederationEntity();
-                fed.setInternalId(id);
-                return fed;
-            }).collect(Collectors.toSet()));
-        } else {
-            entity.setFederations(null);
-        }
 
     }
 

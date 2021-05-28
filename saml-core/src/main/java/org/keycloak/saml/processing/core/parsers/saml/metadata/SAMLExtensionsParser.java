@@ -24,6 +24,7 @@ import org.keycloak.saml.common.util.StaxParserUtil;
 import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetadataQNames.ATTR_REGEXP;
 import org.keycloak.saml.processing.core.parsers.saml.mdattr.SAMLEntityAttributesParser;
 import org.keycloak.saml.processing.core.parsers.saml.mdrpi.SAMLRegistrationInfoParser;
+import org.keycloak.saml.processing.core.parsers.saml.mdui.SAMLUIInfoParser;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.events.StartElement;

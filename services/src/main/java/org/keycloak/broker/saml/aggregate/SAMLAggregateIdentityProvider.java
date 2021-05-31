@@ -278,7 +278,7 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
                 .path("realms").path(realm.getName())
                 .path("broker")
                 .path(getConfig().getProviderId())
-                .path("endpoint*")
+                .path("endpoint")
                 .build().toString();
 
         boolean wantAuthnRequestsSigned = getConfig().isWantAuthnRequestsSigned();

@@ -39,6 +39,7 @@ public class SAMLAggregateIdentityProviderConfig extends IdentityProviderModel {
 
   public SAMLAggregateIdentityProviderConfig(IdentityProviderModel model) {
     super(model);
+    setPostBindingAuthnRequest(true);
   }
 
   public boolean isAddExtensionsElementWithKeyInfo() {

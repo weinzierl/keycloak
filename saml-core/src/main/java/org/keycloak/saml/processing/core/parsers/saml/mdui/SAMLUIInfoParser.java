@@ -4,6 +4,7 @@ import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetada
 import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetadataQNames.ATTR_WIDTH;
 import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetadataQNames.ATTR_HEIGHT;
 
+import org.jboss.logging.Logger;
 import org.keycloak.dom.saml.v2.mdui.KeywordsType;
 import org.keycloak.dom.saml.v2.mdui.LogoType;
 import org.keycloak.dom.saml.v2.mdui.UIInfoType;
@@ -83,7 +84,8 @@ public class SAMLUIInfoParser extends AbstractStaxSamlMetadataParser<UIInfoType>
                     logo.setLang(lang);
                 StaxParserUtil.advance(xmlEventReader);
                 try {
-                    logo.setValue(new URI(StaxParserUtil.getElementText(xmlEventReader)));
+                    String logoValue =StaxParserUtil.getElementText(xmlEventReader).trim();
+                    logo.setValue(new URI(logoValue));
                 } catch (URISyntaxException ex) {
                     throw new ParsingException(ex);
                 }

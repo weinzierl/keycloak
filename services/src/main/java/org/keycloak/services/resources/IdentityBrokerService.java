@@ -453,6 +453,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
         String alias = SAMLIdPFederationProvider.getHash(issuer);
         String path = request.getUri().getPath();
+        logger.info("alias === "+alias);
+        logger.info("path === "+path);
         path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
         request.forward(path);
     }
@@ -467,6 +469,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
         String alias = SAMLIdPFederationProvider.getHash(issuer);
         String path = request.getUri().getPath();
+        logger.info("alias === "+alias);
+        logger.info("path === "+path);
         path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
         request.forward(path);
     }

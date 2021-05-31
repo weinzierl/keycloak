@@ -1,9 +1,11 @@
 package org.keycloak.broker.saml.aggregate;
 
+import org.keycloak.Config;
 import org.keycloak.broker.provider.AbstractIdentityProviderFactory;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
+import org.keycloak.saml.validators.DestinationValidator;
 
 public class SAMLAggregateIdentityProviderFactory
     extends AbstractIdentityProviderFactory<SAMLAggregateIdentityProvider> {
@@ -12,6 +14,7 @@ public class SAMLAggregateIdentityProviderFactory
   public static final String PROVIDER_NAME = "SAML v2.0 Aggregate";
 
   private KeycloakSessionFactory sessionFactory;
+  private DestinationValidator destinationValidator;
 
   public SAMLAggregateIdentityProviderFactory() {
     // TODO Auto-generated constructor stub
@@ -46,10 +49,17 @@ public class SAMLAggregateIdentityProviderFactory
   public SAMLAggregateIdentityProvider create(KeycloakSession session,
       IdentityProviderModel model) {
 
-
     SAMLAggregateIdentityProviderConfig config = new SAMLAggregateIdentityProviderConfig(model);
+    config.setSessionFactory(sessionFactory);
 
-    return new SAMLAggregateIdentityProvider(session, config);
+    return new SAMLAggregateIdentityProvider(session, config, destinationValidator);
+  }
+
+  @Override
+  public void init(Config.Scope config) {
+    super.init(config);
+
+    this.destinationValidator = DestinationValidator.forProtocolMap(config.getArray("knownProtocols"));
   }
 
 }

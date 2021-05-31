@@ -16,22 +16,37 @@ import javax.ws.rs.core.Response;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
+import org.keycloak.authentication.AuthenticationFlow;
+import org.keycloak.broker.provider.AuthenticationRequest;
+import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.broker.provider.IdentityProviderFactory;
+import org.keycloak.broker.provider.util.IdentityBrokerState;
 import org.keycloak.broker.saml.aggregate.SAMLAggregateIdentityProviderFactory;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLAggregateMetadataStoreProvider;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLIdpDescriptor;
+import org.keycloak.broker.social.SocialIdentityProvider;
 import org.keycloak.common.ClientConnection;
+import org.keycloak.common.util.Base64Url;
+import org.keycloak.common.util.Time;
 import org.keycloak.forms.login.LoginFormsPages;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserSessionModel;
+import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.provider.ProviderFactory;
 import org.keycloak.representations.saml.SAMLAggreateWayfResponseRepresentation;
 import org.keycloak.representations.saml.SAMLAggregateIdpRepresentation;
 import org.keycloak.services.ErrorResponseException;
+import org.keycloak.services.managers.ClientSessionCode;
 import org.keycloak.services.managers.RealmManager;
 
 import com.google.common.base.Strings;
+import org.keycloak.services.messages.Messages;
+import org.keycloak.services.util.BrowserHistoryHelper;
 import org.keycloak.services.util.CacheControlUtil;
+import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.theme.FreeMarkerException;
 import org.keycloak.theme.FreeMarkerUtil;
 import org.keycloak.theme.Theme;
@@ -70,6 +85,7 @@ public class SAMLAggregateWayfResource {
                               @QueryParam("sessionCode") String sessionCode,
                               @QueryParam("tabId") String tabId,
                               @QueryParam("clientId") String clientId) throws IOException, FreeMarkerException {
+
     if (Strings.isNullOrEmpty(providerAlias)) {
       throw new ErrorResponseException("Bad request", "Please specify a provider",
               Response.Status.BAD_REQUEST);
@@ -85,30 +101,31 @@ public class SAMLAggregateWayfResource {
               Response.Status.BAD_REQUEST);
     }
 
-    Map<String, String> attributes = new HashMap<>();
-    attributes.put("realm", name);
-    attributes.put("provider", providerAlias);
+    final String BASE_URL = "http://dev.local.io:8081/auth/realms/";
+    String redirectUri = BASE_URL + name + "/account/login-redirect";
+    String state =  UUID.randomUUID().toString();
+    String actionUrl = BASE_URL + name + "/protocol/openid-connect/auth";
+    String responseType = "code";
 
+    SAMLAggregateMetadataStoreProvider md =
+            session.getProvider(SAMLAggregateMetadataStoreProvider.class);
+    List<SAMLIdpDescriptor> descriptors = md.getEntities(realm, providerAlias);
 
-    Theme theme = session.theme().getTheme(Theme.Type.LOGIN);
-
-    /**
-    FreeMarkerUtil freemarker = new FreeMarkerUtil();
-    String wayfHtml = freemarker.processTemplate(attributes, "saml-wayf.ftl", theme);
-     */
     LoginFormsProvider loginFormsProvider = session.getProvider(LoginFormsProvider.class);
     loginFormsProvider.setAttribute("provider", providerAlias);
+    loginFormsProvider.setAttribute("descriptors", descriptors);
+    loginFormsProvider.setAttribute("actionUrl", actionUrl);
+
     loginFormsProvider.setAttribute("tabId", tabId);
     loginFormsProvider.setAttribute("clientId", clientId);
-    loginFormsProvider.setAttribute("sessionCode", sessionCode);
-    return loginFormsProvider.createSamlWayf();
-    /**
-    Response.ResponseBuilder rb = Response.status( Response.Status.OK)
-            .entity(wayfHtml)
-            .cacheControl(CacheControlUtil.noCache());
+    loginFormsProvider.setAttribute("redirectUri", redirectUri);
+    loginFormsProvider.setAttribute("state", state);
+    loginFormsProvider.setAttribute("responseType", responseType);
+    loginFormsProvider.setAttribute("sessionCode", Base64Url.encode(KeycloakModelUtils.generateSecret()));
 
-    return rb.build();
-     */
+    IdentityBrokerState decodedState = IdentityBrokerState.decoded(sessionCode, clientId, tabId);
+
+    return loginFormsProvider.createSamlWayf();
   }
 
   @GET

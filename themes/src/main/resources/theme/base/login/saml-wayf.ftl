@@ -3,8 +3,26 @@
     <#if section = "header">
         SAML Aggregate WAYF
     <#elseif section = "form">
-        Provider: ${provider}
-        Test: ${test}
-        <a href="http://dev.local.io:8081/auth/realms/test1/broker/saml-idp-test-aggregate/login?&entity_id=https%3A%2F%2Fidp.infn.it%2Fsaml2%2Fidp%2Fmetadata.php&client_id=${clientId}&tab_id=${tabId}&session_code=${sessionCode}">LOGIN</a>
+
+        <form id="kc-form-saml-wayf" action="${actionUrl}" method="GET">
+            <div class="${properties.kcFormGroupClass!}">
+                <label for="idplist" class="${properties.kcLabelClass!}">${msg("saml-wayf-select-label")}</label>
+                <select id="idplist" name="entity_id" class="${properties.kcSelectClass!}">
+                <#list descriptors as d>
+                   <option value="${d.entityId}">${d.entityId}</option>
+                </#list>
+                </select>
+            </div>
+
+            <div class="${properties.kcFormGroupClass!}">
+               <input type="hidden" name="client_id" value="${clientId}" />
+               <input type="hidden" name="redirect_uri" value="${redirectUri}" />
+               <input type="hidden" name="state" value="${state}" />
+               <input type="hidden" name="kc_idp_hint" value="${provider}" />
+               <input type="hidden" name="response_type" value="${responseType}" />
+               <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" name="wayf-login" id="kc-wayf-login" type="submit" value="${msg("saml-wayf-dologin")}"/>
+            </div>
+        </form>
+
     </#if>
 </@layout.registrationLayout>

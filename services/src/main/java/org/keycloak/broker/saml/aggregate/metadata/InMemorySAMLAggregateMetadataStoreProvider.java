@@ -166,6 +166,25 @@ public class InMemorySAMLAggregateMetadataStoreProvider
   }
 
   @Override
+  public List<SAMLIdpDescriptor> getEntities(RealmModel realm, String providerAlias) {
+
+    final String providerKey = providerKey(realm, providerAlias);
+
+    RegisteredProvider provider = registeredProviders.stream()
+            .filter(p -> p.getProviderKey().equals(providerKey(realm, providerAlias)))
+            .findAny()
+            .orElseThrow(() -> new RuntimeException("Unknown provider: " + providerKey));
+
+    if (isNull(metadataStore.get(provider.getMetadataUrl()))) {
+      throw new RuntimeException("No metadata found for provider: " + providerKey);
+    }
+
+    List<SAMLIdpDescriptor> idpList = Lists.newArrayList();
+
+    return metadataStore.get(provider.getMetadataUrl()).values().stream().limit(MAX_IDP_RESULTS).collect(toList());
+  }
+
+  @Override
   public boolean cleanupMetadata(RealmModel realm, String providerAlias) {
     final String providerKey = providerKey(realm, providerAlias);
 

@@ -1,27 +1,13 @@
-/*
- * Copyright 2016 Red Hat, Inc. and/or its affiliates
- * and other contributors as indicated by the @author tags.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package org.keycloak.authentication.authenticators.browser;
+package org.keycloak.broker.saml.aggregate.authenticator;
 
 import org.jboss.logging.Logger;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationProcessor;
 import org.keycloak.authentication.Authenticator;
+import org.keycloak.authentication.authenticators.browser.IdentityProviderAuthenticator;
+import org.keycloak.authentication.authenticators.browser.IdentityProviderAuthenticatorFactory;
+import org.keycloak.broker.saml.aggregate.SAMLAggregateConstants;
 import org.keycloak.constants.AdapterConstants;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
@@ -36,10 +22,7 @@ import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.List;
 
-/**
- * @author <a href="mailto:sthorger@redhat.com">Stian Thorgersen</a>
- */
-public class IdentityProviderAuthenticator implements Authenticator {
+public class SAMLAggregateIdentityProviderAuthenticator implements Authenticator  {
 
     private static final Logger LOG = Logger.getLogger(IdentityProviderAuthenticator.class);
 
@@ -56,8 +39,8 @@ public class IdentityProviderAuthenticator implements Authenticator {
                 LOG.tracef("Redirecting: %s set to %s", AdapterConstants.KC_IDP_HINT, providerId);
                 redirect(context, providerId);
             }
-        } else if (context.getAuthenticatorConfig() != null && context.getAuthenticatorConfig().getConfig().containsKey(IdentityProviderAuthenticatorFactory.DEFAULT_PROVIDER)) {
-            String defaultProvider = context.getAuthenticatorConfig().getConfig().get(IdentityProviderAuthenticatorFactory.DEFAULT_PROVIDER);
+        } else if (context.getAuthenticatorConfig() != null && context.getAuthenticatorConfig().getConfig().containsKey(SAMLAggregateIdentityProviderAuthenticatorFactory.DEFAULT_PROVIDER)) {
+            String defaultProvider = context.getAuthenticatorConfig().getConfig().get(SAMLAggregateIdentityProviderAuthenticatorFactory.DEFAULT_PROVIDER);
             LOG.tracef("Redirecting: default provider set to %s", defaultProvider);
             redirect(context, defaultProvider);
         } else {
@@ -77,9 +60,9 @@ public class IdentityProviderAuthenticator implements Authenticator {
                 if (context.getAuthenticationSession().getClientNote(OAuth2Constants.DISPLAY) != null) {
                     location = UriBuilder.fromUri(location).queryParam(OAuth2Constants.DISPLAY, context.getAuthenticationSession().getClientNote(OAuth2Constants.DISPLAY)).build();
                 }
-                if (context.getUriInfo().getQueryParameters().containsKey("entity_id")) {
-                    String entityId = context.getUriInfo().getQueryParameters().get("entity_id").get(0);
-                    location = UriBuilder.fromUri(location).queryParam("entity_id", entityId).build();
+                if (context.getUriInfo().getQueryParameters().containsKey(SAMLAggregateConstants.REDIRECT_TO_ENTITY_ID)) {
+                    String entityId = context.getUriInfo().getQueryParameters().get(SAMLAggregateConstants.REDIRECT_TO_ENTITY_ID).get(0);
+                    location = UriBuilder.fromUri(location).queryParam(SAMLAggregateConstants.REDIRECT_TO_ENTITY_ID, entityId).build();
                 }
                 Response response = Response.seeOther(location)
                         .build();
@@ -119,5 +102,4 @@ public class IdentityProviderAuthenticator implements Authenticator {
     @Override
     public void close() {
     }
-
 }

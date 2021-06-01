@@ -4,7 +4,6 @@ import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetada
 import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetadataQNames.ATTR_WIDTH;
 import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetadataQNames.ATTR_HEIGHT;
 
-import org.jboss.logging.Logger;
 import org.keycloak.dom.saml.v2.mdui.KeywordsType;
 import org.keycloak.dom.saml.v2.mdui.LogoType;
 import org.keycloak.dom.saml.v2.mdui.UIInfoType;
@@ -57,8 +56,6 @@ public class SAMLUIInfoParser extends AbstractStaxSamlMetadataParser<UIInfoType>
                 break;
             case KEYWORDS:
                 KeywordsType keywords = new KeywordsType(StaxParserUtil.getRequiredAttributeValue(elementDetail, ATTR_LANG));
-                // StaxParserUtil.advance(xmlEventReader);
-                // keywords.setValues(StaxParserUtil.get(xmlEventReader));
                 target.addKeywords(keywords);
                 break;
             case INFORMATION_URL:
@@ -84,7 +81,7 @@ public class SAMLUIInfoParser extends AbstractStaxSamlMetadataParser<UIInfoType>
                     logo.setLang(lang);
                 StaxParserUtil.advance(xmlEventReader);
                 try {
-                    String logoValue =StaxParserUtil.getElementText(xmlEventReader).trim().replaceAll("\n", "");;
+                    String logoValue =StaxParserUtil.getElementText(xmlEventReader).replaceAll("\\s+", "");
                     logo.setValue(new URI(logoValue));
                 } catch (URISyntaxException ex) {
                     throw new ParsingException(ex);

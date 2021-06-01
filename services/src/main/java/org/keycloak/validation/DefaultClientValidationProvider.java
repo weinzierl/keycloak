@@ -162,7 +162,7 @@ public class DefaultClientValidationProvider implements ClientValidationProvider
         client.getRedirectUris().stream()
                 .map(u -> ResolveRelative.resolveRelativeUri(authServerUrl, authServerUrl, rootUrl, u))
                 .forEach(u -> checkUri(FieldMessages.REDIRECT_URIS, u, context, false, true));
-        checkUri(FieldMessages.LOGO_URI, client.getAttribute(OIDCConfigAttributes.LOGO_URI), context, true, false);
+        checkUriLogo(FieldMessages.LOGO_URI, client.getAttribute(OIDCConfigAttributes.LOGO_URI), context);
         checkUri(FieldMessages.POLICY_URI, client.getAttribute(OIDCConfigAttributes.POLICY_URI), context, true, false);
         checkUri(FieldMessages.TOS_URI, client.getAttribute(OIDCConfigAttributes.TOS_URI), context, true, false);
     }
@@ -195,6 +195,24 @@ public class DefaultClientValidationProvider implements ClientValidationProvider
             }
         }
         catch (MalformedURLException | IllegalArgumentException | URISyntaxException e) {
+            context.addError(field.getFieldId(), field.getInvalid(), field.getInvalidKey());
+        }
+    }
+
+    private void checkUriLogo(FieldMessages field, String url, ValidationContext<ClientModel> context) {
+        if (url == null || url.isEmpty()) {
+            return;
+        }
+
+        try {
+            URI uri = new URI(url);
+
+            if (uri.getScheme() != null &&  uri.getScheme().equals("javascript")) {
+                context.addError(field.getFieldId(), field.getScheme(), field.getSchemeKey());
+            }
+
+        }
+        catch (URISyntaxException e) {
             context.addError(field.getFieldId(), field.getInvalid(), field.getInvalidKey());
         }
     }

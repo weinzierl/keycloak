@@ -201,15 +201,18 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
         }
 
         switch (page) {
-        	case LOGIN:
-        	case LOGIN_USERNAME:
-                try {
-                    attributes.put("identityProvidersSummary", new ObjectMapper().writeValueAsString(((IdentityProviderBean)attributes.get("social")).getProviders()));
+            case LOGIN:
+            case LOGIN_USERNAME:
+                //login-enhanced is the EGI theme (plugin).
+                if("eosc-kc".equals(theme.getName()))
+                    attributes.put("uriInfo", uriInfo);
+                else {
+                    try {
+                        attributes.put("identityProvidersSummary", new ObjectMapper().writeValueAsString(((IdentityProviderBean) attributes.get("social")).getProviders()));
+                    } catch (JsonProcessingException e) {
+                        logger.error("Failed to add identity providers summary", e);
+                    }
                 }
-                catch(JsonProcessingException e) {
-                    logger.error("Failed to add identity providers summary", e);
-                }
-        	    attributes.put("uriInfo", uriInfo);
         		break;
             case LOGIN_CONFIG_TOTP:
                 attributes.put("totp", new TotpBean(session, realm, user, uriInfo.getRequestUriBuilder()));
@@ -424,11 +427,14 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
 
         if (realm != null) {
             attributes.put("realm", new RealmBean(realm));
-            attributes.put("idpLoginFullUrl", Urls.identityProviderAuthnRequest(baseUriWithCodeAndClientId, "_", realm.getName()));
 
-            List<IdentityProviderModel> identityProviders = LoginFormsUtil
-                    .filterIdentityProviders(realm.getIdentityProvidersStream(), session, context);
-            attributes.put("social", new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
+            if("eosc-kc".equals(theme.getName()))
+                attributes.put("idpLoginFullUrl", Urls.identityProviderAuthnRequest(baseUriWithCodeAndClientId, "_", realm.getName()));
+            else{
+                List<IdentityProviderModel> identityProviders = LoginFormsUtil
+                        .filterIdentityProviders(realm.getIdentityProvidersStream(), session, context);
+                attributes.put("social", new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
+            }
 
             attributes.put("url", new UrlBean(realm, theme, baseUri, this.actionUri));
             attributes.put("requiredActionUrl", new RequiredActionUrlFormatterMethod(realm, baseUri));

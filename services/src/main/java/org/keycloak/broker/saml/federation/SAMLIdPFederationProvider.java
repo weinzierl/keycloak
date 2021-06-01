@@ -223,7 +223,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                     Map<String, String> config = new HashMap<>();
                     config.put("addExtensionsElementWithKeyInfo", "false");
                     config.put("signatureAlgorithm", "RSA_SHA256");
-                    config.put("samlXmlKeyNameTranformer", "KEY_ID");
+                    config.put("xmlSigKeyInfoKeyNameTransformer", "KEY_ID");
 
 					//config.put("principalType", "SUBJECT");
                     config.put(IdentityProviderModel.SYNC_MODE, "IMPORT");

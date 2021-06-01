@@ -84,7 +84,7 @@ public class SAMLUIInfoParser extends AbstractStaxSamlMetadataParser<UIInfoType>
                     logo.setLang(lang);
                 StaxParserUtil.advance(xmlEventReader);
                 try {
-                    String logoValue =StaxParserUtil.getElementText(xmlEventReader).trim();
+                    String logoValue =StaxParserUtil.getElementText(xmlEventReader).trim().replaceAll("\n", "");;
                     logo.setValue(new URI(logoValue));
                 } catch (URISyntaxException ex) {
                     throw new ParsingException(ex);

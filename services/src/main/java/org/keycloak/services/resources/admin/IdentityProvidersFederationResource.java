@@ -319,7 +319,7 @@ public class IdentityProvidersFederationResource {
     public void deleteMapper(@PathParam("id") String id, @PathParam("mapperId") String mapperId) {
         this.auth.realm().requireManageIdentityProviders();
 
-        realm.removeIdentityProvidersFederationMapper(mapperId);
+        realm.removeIdentityProvidersFederationMapper(mapperId,id);
         adminEvent.operation(OperationType.DELETE).resource(ResourceType.IDENTITY_PROVIDERS_FEDERATION).resourcePath(session.getContext().getUri()).success();
 
     }

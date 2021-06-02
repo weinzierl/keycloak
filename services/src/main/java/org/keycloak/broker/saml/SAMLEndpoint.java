@@ -286,7 +286,7 @@ public class SAMLEndpoint {
                 event.error(Errors.INVALID_REQUEST);
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
             }
-            if (! destinationValidator.validate(getExpectedDestination(config.getAlias(), null), requestAbstractType.getDestination())) {
+            if (! destinationValidator.validate(getExpectedDestination(config.getAlias(), null), requestAbstractType.getDestination()) && (config.getFederations().isEmpty() || ! destinationValidator.validate(getExpectedDestination( ), requestAbstractType.getDestination()))) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                 event.detail(Details.REASON, Errors.INVALID_DESTINATION);
                 event.error(Errors.INVALID_SAML_RESPONSE);
@@ -622,6 +622,13 @@ public class SAMLEndpoint {
                 event.error(Errors.INVALID_SAML_LOGOUT_RESPONSE);
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
             }
+            //if clientId == null, check if destination is federation endpoint
+            if (! destinationValidator.validate(getExpectedDestination(config.getAlias(), clientId), statusResponse.getDestination()) && (clientId != null || config.getFederations().isEmpty() || ! destinationValidator.validate(getExpectedDestination( ), statusResponse.getDestination()))) {
+                event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                event.detail(Details.REASON, Errors.INVALID_DESTINATION);
+                event.error(Errors.INVALID_SAML_RESPONSE);
+                return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
+            }
             if (config.isValidateSignature()) {
                 try {
                     verifySignature(GeneralConstants.SAML_RESPONSE_KEY, holder);
@@ -671,6 +678,10 @@ public class SAMLEndpoint {
                 return session.getContext().getUri().getAbsolutePath().toString();
             }
             return Urls.identityProviderAuthnResponse(session.getContext().getUri().getBaseUri(), providerAlias, realm.getName()).toString();
+        }
+
+        private String getExpectedDestination() {
+            return Urls.identityProviderAuthnResponse(session.getContext().getUri().getBaseUri(), realm.getName()).toString();
         }
     }
 

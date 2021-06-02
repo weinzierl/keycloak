@@ -172,8 +172,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
         }
 
 		//default language
-		//should be changed to default realm???
-		final String preferredLang = "en";
+		final String preferredLang = realm.getDefaultLocale() != null ? realm.getDefaultLocale():"en";
 
 		//default authedication flow model
 		AuthenticationFlowModel flowModel = realm.getFlowByAlias(DefaultAuthenticationFlows.FIRST_BROKER_LOGIN_FLOW);

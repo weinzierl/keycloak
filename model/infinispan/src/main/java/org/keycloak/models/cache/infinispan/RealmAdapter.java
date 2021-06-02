@@ -1003,9 +1003,9 @@ public class RealmAdapter implements CachedRealmModel {
 	};
 	
 	@Override
-	public void removeIdentityProvidersFederationMapper(String id) {
+	public void removeIdentityProvidersFederationMapper(String id,String federationId) {
 	    getDelegateForUpdate();
-        updated.removeIdentityProvidersFederationMapper(id);
+        updated.removeIdentityProvidersFederationMapper(id, federationId);
 	};
 	
 	

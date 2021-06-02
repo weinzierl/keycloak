@@ -1668,7 +1668,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     };
     
     @Override
-    public void removeIdentityProvidersFederationMapper(String id) {
+    public void removeIdentityProvidersFederationMapper(String id, String federationId) {
         FederationMapperEntity mapper = em.find(FederationMapperEntity.class, id);
         em.remove(mapper);
         em.flush();

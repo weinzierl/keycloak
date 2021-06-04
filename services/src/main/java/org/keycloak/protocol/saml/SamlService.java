@@ -40,29 +40,13 @@ import org.keycloak.dom.saml.v2.SAML2Object;
 import org.keycloak.dom.saml.v2.assertion.BaseIDAbstractType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
-import org.keycloak.dom.saml.v2.protocol.ArtifactResolveType;
-import org.keycloak.dom.saml.v2.protocol.ArtifactResponseType;
-import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
-import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
-import org.keycloak.dom.saml.v2.protocol.NameIDPolicyType;
-import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
-import org.keycloak.dom.saml.v2.protocol.ResponseType;
-import org.keycloak.dom.saml.v2.protocol.StatusResponseType;
+import org.keycloak.dom.saml.v2.protocol.*;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
 import org.keycloak.executors.ExecutorsProvider;
-import org.keycloak.models.AuthenticatedClientSessionModel;
-import org.keycloak.models.ClientModel;
-import org.keycloak.models.KeyManager;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.KeycloakTransaction;
-import org.keycloak.models.KeycloakUriInfo;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.SamlArtifactSessionMappingModel;
-import org.keycloak.models.SamlArtifactSessionMappingStoreProvider;
-import org.keycloak.models.UserSessionModel;
+import org.keycloak.models.*;
 import org.keycloak.protocol.AuthorizationEndpointBase;
 import org.keycloak.protocol.LoginProtocol;
 import org.keycloak.protocol.LoginProtocolFactory;
@@ -136,6 +120,7 @@ import java.net.URISyntaxException;
 import java.security.PublicKey;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -495,6 +480,13 @@ public class SamlService extends AuthorizationEndpointBase {
 
             for(Iterator<SamlAuthenticationPreprocessor> it = SamlSessionUtils.getSamlAuthenticationPreprocessorIterator(session); it.hasNext();) {
                 requestAbstractType = it.next().beforeProcessingLoginRequest(requestAbstractType, authSession);
+            }
+
+            RequestedAuthnContextType requestedAuthn = requestAbstractType.getRequestedAuthnContext();
+            //def ref???
+            if (requestedAuthn != null && requestedAuthn.getAuthnContextClassRef().size() > 0) {
+                SAMLAcrUtils samlAcrUtils = new SAMLAcrUtils(client);
+                authSession.setClientNote(Constants.REQUESTED_LEVEL_OF_AUTHENTICATION, String.valueOf(samlAcrUtils.getLoaFromRequestedAuthn(requestedAuthn)));
             }
 
             //If unset we fall back to default "false"

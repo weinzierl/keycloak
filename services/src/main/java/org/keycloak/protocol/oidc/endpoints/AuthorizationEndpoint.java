@@ -44,6 +44,7 @@ import org.keycloak.protocol.oidc.utils.OIDCRedirectUriBuilder;
 import org.keycloak.protocol.oidc.utils.OIDCResponseMode;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
+import org.keycloak.protocol.util.GeneralAcrUtils;
 import org.keycloak.services.ErrorPageException;
 import org.keycloak.services.ServicesLogger;
 import org.keycloak.services.Urls;
@@ -480,7 +481,7 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
         if (request.getCodeChallenge() != null) authenticationSession.setClientNote(OIDCLoginProtocol.CODE_CHALLENGE_PARAM, request.getCodeChallenge());
         if (request.getCodeChallengeMethod() != null) authenticationSession.setClientNote(OIDCLoginProtocol.CODE_CHALLENGE_METHOD_PARAM, request.getCodeChallengeMethod());
 
-        Map<String, Integer> acrLoaMap = AcrUtils.getAcrLoaMap(authenticationSession.getClient());
+        Map<String, Integer> acrLoaMap = GeneralAcrUtils.getAcrLoaMap(authenticationSession.getClient());
         List<String> acrValues = AcrUtils.getRequiredAcrValues(request.getClaims());
 
         if (acrValues.isEmpty()) {

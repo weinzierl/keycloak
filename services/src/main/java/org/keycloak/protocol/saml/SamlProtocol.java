@@ -36,16 +36,7 @@ import org.keycloak.dom.saml.v2.protocol.StatusResponseType;
 import org.keycloak.events.Details;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
-import org.keycloak.models.AuthenticatedClientSessionModel;
-import org.keycloak.models.ClientModel;
-import org.keycloak.models.ClientSessionContext;
-import org.keycloak.models.KeyManager;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.ProtocolMapperModel;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.SamlArtifactSessionMappingStoreProvider;
-import org.keycloak.models.UserModel;
-import org.keycloak.models.UserSessionModel;
+import org.keycloak.models.*;
 import org.keycloak.protocol.LoginProtocol;
 import org.keycloak.protocol.ProtocolMapper;
 import org.keycloak.protocol.ProtocolMapperUtils;
@@ -418,6 +409,7 @@ public class SamlProtocol implements LoginProtocol {
         String nameIdFormat = getNameIdFormat(samlClient, authSession);
 
         int assertionLifespan = samlClient.getAssertionLifespan();
+        SAMLAcrUtils samlAcrUtils = new SAMLAcrUtils();
         SAML2LoginResponseBuilder builder = new SAML2LoginResponseBuilder();
         builder.requestID(requestID)
                 .destination(redirectUri)
@@ -426,7 +418,7 @@ public class SamlProtocol implements LoginProtocol {
                 .subjectExpiration(assertionLifespan <= 0? realm.getAccessTokenLifespan() : assertionLifespan)
                 .sessionExpiration(realm.getSsoSessionMaxLifespan())
                 .requestIssuer(clientSession.getClient().getClientId())
-                .authMethod(JBossSAMLURIConstants.AC_UNSPECIFIED.get());
+                .authMethod(samlAcrUtils.getLoaAuthedicated(authSession,client));
 
         String sessionIndex = SamlSessionUtils.getSessionIndex(clientSession);
         builder.sessionIndex(sessionIndex);

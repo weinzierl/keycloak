@@ -122,9 +122,12 @@ public final class Constants {
 
     public static final String LEVEL_OF_AUTHENTICATION = "level-of-authentication";
     public static final String REQUESTED_LEVEL_OF_AUTHENTICATION = "requested-level-of-authentication";
+    public static final String REQUESTED_AUTHN_CONTEXT_CLASS_REF = "requestedAuthnContextClassRef";
+    public static final String SAML_COMPARISON_TYPE = "samlComparisonType";
     public static final String FORCE_LEVEL_OF_AUTHENTICATION = "force-level-of-authentication";
     public static final String ACR_LOA_MAP = "acr.loa.map";
     public static final int MINIMUM_LOA = 0;
     public static final int MAXIMUM_LOA = Integer.MAX_VALUE;
     public static final int INVALID_LOA = -1;
+    public static final int DEFAULT_LOA = 1;
 }

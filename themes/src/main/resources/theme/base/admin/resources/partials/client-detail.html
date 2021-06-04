@@ -776,7 +776,7 @@
                 <kc-tooltip>{{:: 'pkce-code-challenge-method.tooltip' | translate}}</kc-tooltip>
             </div>
 
-            <div class="form-group" data-ng-show="(!clientEdit.bearerOnly && protocol == 'openid-connect') && (clientEdit.standardFlowEnabled || clientEdit.directAccessGrantsEnabled || clientEdit.implicitFlowEnabled)">
+            <div class="form-group" data-ng-show="protocol == 'saml' || (!clientEdit.bearerOnly && protocol == 'openid-connect' && (clientEdit.standardFlowEnabled || clientEdit.directAccessGrantsEnabled || clientEdit.implicitFlowEnabled))">
                 <label class="col-md-2 control-label" for="newAcr">{{:: 'acr-loa-map' | translate}}</label>
                 <div class="col-sm-6">
                     <div class="input-group input-map" ng-repeat="(acr, loa) in acrLoaMap">

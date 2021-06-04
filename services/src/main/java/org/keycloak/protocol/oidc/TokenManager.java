@@ -61,6 +61,7 @@ import org.keycloak.protocol.oidc.mappers.OIDCIDTokenMapper;
 import org.keycloak.protocol.oidc.mappers.UserInfoTokenMapper;
 import org.keycloak.protocol.oidc.utils.AcrUtils;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
+import org.keycloak.protocol.util.GeneralAcrUtils;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.IDToken;
@@ -734,15 +735,15 @@ public class TokenManager {
             loa = AuthenticationManager.isSSOAuthentication(clientSession) ? 0 : 1;
         }
 
-        Map<String, Integer> acrLoaMap = AcrUtils.getAcrLoaMap(clientSession.getClient());
-        String acr = AcrUtils.mapLoaToAcr(loa, acrLoaMap, AcrUtils.getRequiredAcrValues(
+        Map<String, Integer> acrLoaMap = GeneralAcrUtils.getAcrLoaMap(clientSession.getClient());
+        String acr = GeneralAcrUtils.mapLoaToAcr(loa, acrLoaMap, AcrUtils.getRequiredAcrValues(
             clientSession.getNote(OIDCLoginProtocol.CLAIMS_PARAM)));
         if (acr == null) {
-            acr = AcrUtils.mapLoaToAcr(loa, acrLoaMap, AcrUtils.getAcrValues(
+            acr = GeneralAcrUtils.mapLoaToAcr(loa, acrLoaMap, AcrUtils.getAcrValues(
                 clientSession.getNote(OIDCLoginProtocol.CLAIMS_PARAM),
                 clientSession.getNote(OIDCLoginProtocol.ACR_PARAM)));
             if (acr == null) {
-                acr = AcrUtils.mapLoaToAcr(loa, acrLoaMap, acrLoaMap.keySet());
+                acr = GeneralAcrUtils.mapLoaToAcr(loa, acrLoaMap, acrLoaMap.keySet());
                 if (acr == null) {
                     acr = String.valueOf(loa);
                 }

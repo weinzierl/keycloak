@@ -122,6 +122,7 @@ public final class Constants {
 
     public static final String LEVEL_OF_AUTHENTICATION = "level-of-authentication";
     public static final String REQUESTED_LEVEL_OF_AUTHENTICATION = "requested-level-of-authentication";
+    public static final String REQUESTED_AUTHN_CONTEXT_CLASS_REF = "requestedAuthnContextClassRef";
     public static final String FORCE_LEVEL_OF_AUTHENTICATION = "force-level-of-authentication";
     public static final String ACR_LOA_MAP = "acr.loa.map";
     public static final int MINIMUM_LOA = 0;

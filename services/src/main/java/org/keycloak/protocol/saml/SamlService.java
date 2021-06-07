@@ -120,7 +120,6 @@ import java.net.URISyntaxException;
 import java.security.PublicKey;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -486,7 +485,7 @@ public class SamlService extends AuthorizationEndpointBase {
             //def ref???
             if (requestedAuthn != null && requestedAuthn.getAuthnContextClassRef().size() > 0) {
                 SAMLAcrUtils samlAcrUtils = new SAMLAcrUtils(client);
-                authSession.setClientNote(Constants.REQUESTED_LEVEL_OF_AUTHENTICATION, String.valueOf(samlAcrUtils.getLoaFromRequestedAuthn(requestedAuthn)));
+               samlAcrUtils.setLoaFromRequestedAuthn(requestedAuthn,authSession);
             }
 
             //If unset we fall back to default "false"

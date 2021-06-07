@@ -37,8 +37,9 @@ public class SAMLAcrUtils {
         {
             Integer loa = acrLoaMap.get(acr);
             // this is an unknown acr, we assume it is very high
+            //asume Constants.MAXIMUM_LOA -1 for not having problem with better ( loa.max() +1)
             //is this correct???
-            return loa == null ? Constants.MAXIMUM_LOA : loa;
+            return loa == null ? Constants.MAXIMUM_LOA -1 : loa;
         }
     }
 }

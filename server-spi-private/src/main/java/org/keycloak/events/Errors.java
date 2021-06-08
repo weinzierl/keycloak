@@ -101,6 +101,7 @@ public interface Errors {
     String MISSING_REQUIRED_DESTINATION = "missing_required_destination";
     String INVALID_SAML_DOCUMENT = "invalid_saml_document";
     String UNSUPPORTED_NAMEID_FORMAT = "unsupported_nameid_format";
+    String UNSUPPORTED_AUTHENTICATION_CONTEXTS = "unsupported_authentication_contexts";
 
     String INVALID_PERMISSION_TICKET = "invalid_permission_ticket";
     String ACCESS_DENIED = "access_denied";

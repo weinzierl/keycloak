@@ -484,8 +484,14 @@ public class SamlService extends AuthorizationEndpointBase {
             RequestedAuthnContextType requestedAuthn = requestAbstractType.getRequestedAuthnContext();
             //def ref???
             if (requestedAuthn != null && requestedAuthn.getAuthnContextClassRef().size() > 0) {
-                SAMLAcrUtils samlAcrUtils = new SAMLAcrUtils(client);
-               samlAcrUtils.setLoaFromRequestedAuthn(requestedAuthn,authSession);
+                try {
+                    SAMLAcrUtils samlAcrUtils = new SAMLAcrUtils(client);
+                    samlAcrUtils.setLoaFromRequestedAuthn(requestedAuthn, authSession);
+                } catch ( ProcessingException e ) {
+                    event.detail(Details.REASON, Errors.UNSUPPORTED_AUTHENTICATION_CONTEXTS);
+                    event.error(Errors.INVALID_SAML_AUTHN_REQUEST);
+                    return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.UNSUPPORTED_AUTHENTICATION_CONTEXTS);
+                }
             }
 
             //If unset we fall back to default "false"

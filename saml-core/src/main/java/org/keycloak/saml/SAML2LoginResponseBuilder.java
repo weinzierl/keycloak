@@ -42,7 +42,9 @@ import org.keycloak.saml.processing.core.saml.v2.util.StatementUtil;
 import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
 import org.w3c.dom.Document;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -188,7 +190,7 @@ public class SAML2LoginResponseBuilder implements SamlProtocolExtensionsAwareBui
         return samlResponseDocument;
     }
 
-    public ResponseType buildModel() throws ConfigurationException, ProcessingException {
+    public ResponseType buildModel() throws ConfigurationException, ProcessingException, URISyntaxException {
         ResponseType responseType = null;
 
         SAML2Response saml2Response = new SAML2Response();
@@ -231,8 +233,10 @@ public class SAML2LoginResponseBuilder implements SamlProtocolExtensionsAwareBui
         // Create an AuthnStatementType
         if (!disableAuthnStatement) {
             String authContextRef = JBossSAMLURIConstants.AC_UNSPECIFIED.get();
-            if (isNotNull(authMethod))
+            if (isNotNull(authMethod)) {
+                checkUri(authMethod);
                 authContextRef = authMethod;
+            }
 
             AuthnStatementType authnStatement = StatementUtil.createAuthnStatement(XMLTimeUtil.getIssueInstant(),
                     authContextRef);
@@ -259,6 +263,13 @@ public class SAML2LoginResponseBuilder implements SamlProtocolExtensionsAwareBui
         }
 
         return responseType;
+    }
+
+    private void checkUri(String url) throws URISyntaxException {
+        URI uri = new URI(url);
+
+        if (uri.getScheme() == null || "data".equals(uri.getScheme()) || "javascript".equals(uri.getScheme()))
+            throw new URISyntaxException(url, "Invalid scheme");
     }
 
 }

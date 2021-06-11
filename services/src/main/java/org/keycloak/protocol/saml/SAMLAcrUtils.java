@@ -35,7 +35,7 @@ public class SAMLAcrUtils {
             String text = null;
             Integer loa = null;
             for (String classRef : requestedAuthn.getAuthnContextClassRef()) {
-                loa = getLoa(classRef);
+                loa = acrLoaMap.get(classRef);
                 if (loa != null) {
                     text = classRef;
                     break;
@@ -57,18 +57,18 @@ public class SAMLAcrUtils {
         if ( authSession.getClientNote(Constants.REQUESTED_AUTHN_CONTEXT_CLASS_REF) != null ) {
             //for exact return actual requested flow
             return authSession.getClientNote(Constants.REQUESTED_AUTHN_CONTEXT_CLASS_REF);
-        } else if ( authSession.getClientNote(Constants.REQUESTED_LEVEL_OF_AUTHENTICATION) == null || authSession.getClientNote(Constants.LEVEL_OF_AUTHENTICATION) == null ) {
+        } else if ( authSession.getClientNote(Constants.REQUESTED_LEVEL_OF_AUTHENTICATION) == null || authSession.getAuthNote(Constants.LEVEL_OF_AUTHENTICATION) == null ) {
             return JBossSAMLURIConstants.AC_UNSPECIFIED.get();
         } else  {
             //for maximum return a loa not higher that requested
             //for minimum and exact return any known loa
-            Integer loa =AuthnContextComparisonType.MAXIMUM.name().equals(authSession.getClientNote(Constants.SAML_COMPARISON_TYPE) ) && Integer.valueOf(authSession.getClientNote(Constants.REQUESTED_LEVEL_OF_AUTHENTICATION)) < Integer.valueOf(authSession.getClientNote(Constants.LEVEL_OF_AUTHENTICATION)) ?Integer.valueOf(authSession.getClientNote(Constants.REQUESTED_LEVEL_OF_AUTHENTICATION))  :Integer.valueOf(authSession.getClientNote(Constants.LEVEL_OF_AUTHENTICATION)) ;
+            Integer loa =AuthnContextComparisonType.MAXIMUM.name().equals(authSession.getClientNote(Constants.SAML_COMPARISON_TYPE) ) && Integer.valueOf(authSession.getClientNote(Constants.REQUESTED_LEVEL_OF_AUTHENTICATION)) < Integer.valueOf(authSession.getAuthNote(Constants.LEVEL_OF_AUTHENTICATION)) ?Integer.valueOf(authSession.getClientNote(Constants.REQUESTED_LEVEL_OF_AUTHENTICATION))  :Integer.valueOf(authSession.getAuthNote(Constants.LEVEL_OF_AUTHENTICATION)) ;
             this.acrLoaMap = GeneralAcrUtils.getAcrLoaMap(client);
             return acrLoaMap.entrySet().stream()
                     .filter(e -> e.getValue() == loa)
                     .map(Map.Entry::getKey)
                     .findFirst()
-                    .orElse(loa.toString());
+                    .orElse("https://refeds.org/profile/"+loa.toString());
         }
 
     }

@@ -17,6 +17,8 @@
 package org.keycloak.testsuite.util.saml;
 
 import org.keycloak.common.util.Base64;
+import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
+import org.keycloak.dom.saml.v2.protocol.RequestedAuthnContextType;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.testsuite.admin.Users;
 import org.keycloak.testsuite.util.SamlClientBuilder;
@@ -28,6 +30,7 @@ import org.keycloak.saml.common.util.DocumentUtil;
 import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
 import org.keycloak.testsuite.util.SamlClient.Binding;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -51,6 +54,8 @@ public class CreateAuthnRequestStepBuilder extends SamlDocumentStepBuilder<Authn
     private String signingCertificate;
     private URI protocolBinding;
     private String authorizationHeader;
+    private AuthnContextComparisonType comparison;
+    private List<String> requestedAuthnValues;
 
     private final Document forceLoginRequestDocument;
 
@@ -65,6 +70,19 @@ public class CreateAuthnRequestStepBuilder extends SamlDocumentStepBuilder<Authn
 
         this.forceLoginRequestDocument = null;
     }
+
+    public CreateAuthnRequestStepBuilder(URI authServerSamlUrl, String issuer, String assertionConsumerURL, Binding requestBinding, SamlClientBuilder clientBuilder,AuthnContextComparisonType comparison, List<String> requestedAuthnValues) {
+        super(clientBuilder);
+        this.issuer = issuer;
+        this.authServerSamlUrl = authServerSamlUrl;
+        this.requestBinding = requestBinding;
+        this.assertionConsumerURL = assertionConsumerURL;
+        this.comparison = comparison;
+        this.requestedAuthnValues = requestedAuthnValues;
+
+        this.forceLoginRequestDocument = null;
+    }
+
 
     public CreateAuthnRequestStepBuilder(URI authServerSamlUrl, Document loginRequestDocument, Binding requestBinding, SamlClientBuilder clientBuilder) {
         super(clientBuilder);
@@ -150,6 +168,12 @@ public class CreateAuthnRequestStepBuilder extends SamlDocumentStepBuilder<Authn
             AuthnRequestType loginReq = samlReq.createAuthnRequestType(UUID.randomUUID().toString(), assertionConsumerURL, this.authServerSamlUrl.toString(), issuer, requestBinding.getBindingUri());
             if (protocolBinding != null) {
                 loginReq.setProtocolBinding(protocolBinding);
+            }
+            if ( comparison != null) {
+                RequestedAuthnContextType requestedAuthn = new RequestedAuthnContextType();
+                requestedAuthn.setComparison(comparison);
+                requestedAuthnValues.stream().forEach(val -> requestedAuthn.addAuthnContextClassRef(val));
+                loginReq.setRequestedAuthnContext(requestedAuthn);
             }
             return SAML2Request.convert(loginReq);
         } catch (ConfigurationException | ParsingException | ProcessingException ex) {

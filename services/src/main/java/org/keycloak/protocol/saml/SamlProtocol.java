@@ -418,7 +418,7 @@ public class SamlProtocol implements LoginProtocol {
                 .subjectExpiration(assertionLifespan <= 0? realm.getAccessTokenLifespan() : assertionLifespan)
                 .sessionExpiration(realm.getSsoSessionMaxLifespan())
                 .requestIssuer(clientSession.getClient().getClientId())
-                .authMethod(authSession.getClientNote(samlAcrUtils.getLoaAuthedicated(authSession,client)));
+                .authMethod(samlAcrUtils.getLoaAuthedicated(authSession,client));
 
         String sessionIndex = SamlSessionUtils.getSessionIndex(clientSession);
         builder.sessionIndex(sessionIndex);

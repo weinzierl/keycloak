@@ -17,6 +17,7 @@ import org.w3c.dom.Document;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
@@ -27,7 +28,7 @@ import static org.junit.Assert.assertThat;
 public class SamlProtocolUtilsTest {
 
     @Test
-    public void testBuildArtifactResponse() throws ConfigurationException, ProcessingException, ParsingException {
+    public void testBuildArtifactResponse() throws ConfigurationException, ProcessingException, ParsingException, URISyntaxException {
 
         ResponseType response = new SAML2LoginResponseBuilder()
                 .requestID(IDGenerator.create("ID_"))

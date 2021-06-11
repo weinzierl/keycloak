@@ -52,6 +52,7 @@ import org.keycloak.testsuite.util.IdentityProviderBuilder;
 import org.keycloak.testsuite.util.SamlClientBuilder;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyPair;
 import java.util.List;
 import java.util.Objects;
@@ -121,7 +122,7 @@ public class BrokerTest extends AbstractSamlTest {
             res.getAssertions().get(0).getAssertion().addStatement(attrStatement);
 
             return res;
-        } catch (ConfigurationException | ProcessingException ex) {
+        } catch (ConfigurationException | ProcessingException | URISyntaxException ex) {
             throw new RuntimeException(ex);
         }
     }

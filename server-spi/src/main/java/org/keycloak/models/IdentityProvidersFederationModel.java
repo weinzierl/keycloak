@@ -64,6 +64,8 @@ public class IdentityProvidersFederationModel implements Serializable {
     
     private List<FederationMapperModel> federationMapperModels = new ArrayList<>();
     
+    private List<String> idps;
+    
 
     public IdentityProvidersFederationModel() {
 		super();
@@ -220,5 +222,13 @@ public class IdentityProvidersFederationModel implements Serializable {
     public void setFederationMapperModels(List<FederationMapperModel> federationMapperModels) {
         this.federationMapperModels = federationMapperModels;
     }
+
+    public List<String> getIdps() {
+        return idps;
+    }
+
+    public void setIdps(List<String> idps) {
+        this.idps = idps;
+    }    
 
 }

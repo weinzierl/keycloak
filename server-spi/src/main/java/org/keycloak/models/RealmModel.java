@@ -533,7 +533,7 @@ public interface RealmModel extends RoleContainerModel {
     FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id);
     void addIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel);
     void updateIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel);
-    void removeIdentityProvidersFederationMapper(String id);
+    void removeIdentityProvidersFederationMapper(String id, String federationId);
 
     IdentityProviderModel getIdentityProviderById(String internalId);
     Stream<IdentityProviderModel> searchIdentityProviders(String keyword, Integer firstResult, Integer maxResults);

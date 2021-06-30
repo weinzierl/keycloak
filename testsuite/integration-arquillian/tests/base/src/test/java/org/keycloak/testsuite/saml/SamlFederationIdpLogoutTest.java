@@ -126,6 +126,51 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 	protected boolean isImportAfterEachMethod() {
 		return true;
 	}
+	
+    @Test
+    public void testLogoutPropagatesToSamlIdentityProviderNameIdPreserved() throws IOException {
+
+        try (Closeable sales = ClientAttributeUpdater.forClient(adminClient, REALM_NAME, SAML_CLIENT_ID_SALES_POST)
+            .setFrontchannelLogout(true).removeAttribute(SamlProtocol.SAML_SINGLE_LOGOUT_SERVICE_URL_POST_ATTRIBUTE)
+            .setAttribute(SamlProtocol.SAML_SINGLE_LOGOUT_SERVICE_URL_REDIRECT_ATTRIBUTE, "http://url").update();
+
+        ) {
+
+            updateIdpByAlias(brokerIdp);
+
+            SAMLDocumentHolder samlResponse = new SamlClientBuilder()
+                .authnRequest(getAuthServerSamlEndpoint(REALM_NAME), SAML_CLIENT_ID_SALES_POST,
+                    SAML_ASSERTION_CONSUMER_URL_SALES_POST, POST)
+                .build()
+
+                // Virtually perform login at IdP (return artificial SAML response)
+                .login().idp(brokerIdp).build().processSamlResponse(REDIRECT).transformObject(this::createAuthnResponse)
+                .targetAttributeSamlResponse().targetUri(getSamlBrokerUrl(REALM_NAME)).build().updateProfile().username("a")
+                .email("a@b.c").firstName("A").lastName("B").build().followOneRedirect()
+
+                // Now returning back to the app
+                .processSamlResponse(POST).transformObject(this::extractNameIdAndSessionIndexAndTerminate).build()
+
+                // ----- Logout phase ------
+
+                // Logout initiated from the app
+                .logoutRequest(getAuthServerSamlEndpoint(REALM_NAME), SAML_CLIENT_ID_SALES_POST, REDIRECT)
+                .nameId(nameIdRef::get).sessionIndex(sessionIndexRef::get).build()
+
+                .getSamlResponse(REDIRECT);
+
+            assertThat(samlResponse.getSamlObject(), isSamlLogoutRequest("https://saml.idp/SLO/saml"));
+            LogoutRequestType lr = (LogoutRequestType) samlResponse.getSamlObject();
+            NameIDType logoutRequestNameID = lr.getNameID();
+            assertThat(logoutRequestNameID.getFormat(), is(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.getUri()));
+            assertThat(logoutRequestNameID.getValue(), is("a@b.c"));
+            assertThat(logoutRequestNameID.getNameQualifier(), is("nameQualifier"));
+            assertThat(logoutRequestNameID.getSPProvidedID(), is("spProvidedId"));
+            assertThat(logoutRequestNameID.getSPNameQualifier(), is("spNameQualifier"));
+        } finally {
+            realm.clients().get(salesRep.getId()).update(salesRep);
+        }
+    }
 
 	@Test
 	public void testLogoutPropagatesToSamlIdentityProvider() throws IOException {
@@ -171,51 +216,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		}
 	}
 
-	@Test
-	public void testLogoutPropagatesToSamlIdentityProviderNameIdPreserved() throws IOException {
 
-		try (Closeable sales = ClientAttributeUpdater.forClient(adminClient, REALM_NAME, SAML_CLIENT_ID_SALES_POST)
-				.setFrontchannelLogout(true).removeAttribute(SamlProtocol.SAML_SINGLE_LOGOUT_SERVICE_URL_POST_ATTRIBUTE)
-				.setAttribute(SamlProtocol.SAML_SINGLE_LOGOUT_SERVICE_URL_REDIRECT_ATTRIBUTE, "http://url").update();
-
-		) {
-
-			updateIdpByAlias(brokerIdp);
-
-			SAMLDocumentHolder samlResponse = new SamlClientBuilder()
-					.authnRequest(getAuthServerSamlEndpoint(REALM_NAME), SAML_CLIENT_ID_SALES_POST,
-							SAML_ASSERTION_CONSUMER_URL_SALES_POST, POST)
-					.build()
-
-					// Virtually perform login at IdP (return artificial SAML response)
-					.login().idp(brokerIdp).build().processSamlResponse(REDIRECT)
-					.transformObject(this::createAuthnResponse).targetAttributeSamlResponse()
-					.targetUri(getSamlBrokerUrl(REALM_NAME)).build().updateProfile().username("a").email("a@b.c")
-					.firstName("A").lastName("B").build().followOneRedirect()
-
-					// Now returning back to the app
-					.processSamlResponse(POST).transformObject(this::extractNameIdAndSessionIndexAndTerminate).build()
-
-					// ----- Logout phase ------
-
-					// Logout initiated from the app
-					.logoutRequest(getAuthServerSamlEndpoint(REALM_NAME), SAML_CLIENT_ID_SALES_POST, REDIRECT)
-					.nameId(nameIdRef::get).sessionIndex(sessionIndexRef::get).build()
-
-					.getSamlResponse(REDIRECT);
-
-			assertThat(samlResponse.getSamlObject(), isSamlLogoutRequest("https://saml.idp/SLO/saml"));
-			LogoutRequestType lr = (LogoutRequestType) samlResponse.getSamlObject();
-			NameIDType logoutRequestNameID = lr.getNameID();
-			assertThat(logoutRequestNameID.getFormat(), is(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.getUri()));
-			assertThat(logoutRequestNameID.getValue(), is("a@b.c"));
-			assertThat(logoutRequestNameID.getNameQualifier(), is("nameQualifier"));
-			assertThat(logoutRequestNameID.getSPProvidedID(), is("spProvidedId"));
-			assertThat(logoutRequestNameID.getSPNameQualifier(), is("spNameQualifier"));
-		} finally {
-			realm.clients().get(salesRep.getId()).update(salesRep);
-		}
-	}
 
 	private SAML2Object createAuthnResponse(SAML2Object so) {
 		AuthnRequestType req = (AuthnRequestType) so;

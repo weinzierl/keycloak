@@ -44,6 +44,7 @@ import org.keycloak.models.ModelException;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserConsentModel;
 import org.keycloak.models.UserCredentialModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserLoginFailureModel;
 import org.keycloak.models.UserManager;
 import org.keycloak.models.UserModel;
@@ -56,8 +57,8 @@ import org.keycloak.provider.ProviderFactory;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.ErrorRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
-import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.UserConsentRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.UserSessionRepresentation;
 import org.keycloak.services.ErrorResponse;
@@ -102,6 +103,7 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -109,6 +111,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -859,7 +863,7 @@ public class UserResource {
     @Path("groups")
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
-    public Stream<GroupRepresentation> groupMembership(@QueryParam("search") String search,
+    public Stream<UserGroupMembershipRepresentation> groupMembership(@QueryParam("search") String search,
                                                        @QueryParam("first") Integer firstResult,
                                                        @QueryParam("max") Integer maxResults,
                                                        @QueryParam("briefRepresentation") @DefaultValue("true") boolean briefRepresentation) {
@@ -883,9 +887,9 @@ public class UserResource {
         Long results;
 
         if (Objects.nonNull(search)) {
-            results = user.getGroupsCountByNameContaining(search);
+            results = user.getGroupMembersCountByNameContaining(search);
         } else {
-            results = user.getGroupsCount();
+            results = user.getGroupMembersCount();
         }
         Map<String, Long> map = new HashMap<>();
         map.put("count", results);
@@ -919,17 +923,41 @@ public class UserResource {
     @PUT
     @Path("groups/{groupId}")
     @NoCache
-    public void joinGroup(@PathParam("groupId") String groupId) {
+    public Response joinGroup(@PathParam("groupId") String groupId, @QueryParam("validThrough") Long validThrough) {
+
         auth.users().requireManageGroupMembership(user);
         GroupModel group = session.groups().getGroupById(realm, groupId);
         if (group == null) {
-            throw new NotFoundException("Group not found");
+            return ErrorResponse.error("Group not found", Status.BAD_REQUEST);
+        } else if (validThrough != null && validThrough <= System.currentTimeMillis()) {
+            return ErrorResponse.error("ValidThrough date must be empty or after today", Status.BAD_REQUEST);
         }
         auth.groups().requireManageMembership(group);
         if (!user.isMemberOf(group)){
-            user.joinGroup(group);
+            user.joinGroup(new UserGroupMembershipModel(group, validThrough));
             adminEvent.operation(OperationType.CREATE).resource(ResourceType.GROUP_MEMBERSHIP).representation(ModelToRepresentation.toRepresentation(group, true)).resourcePath(session.getContext().getUri()).success();
         }
+        return Response.noContent().build();
+    }
+
+    @PUT
+    @Path("groups/{groupId}/update")
+    @NoCache
+    public Response updateValidThrough(@PathParam("groupId") String groupId, @QueryParam("validThrough") Long validThrough) {
+        auth.users().requireManageGroupMembership(user);
+
+        GroupModel group = session.groups().getGroupById(realm, groupId);
+        if (group == null) {
+            return ErrorResponse.error("Group not found", Status.BAD_REQUEST);
+        } else if (validThrough != null && validThrough <= System.currentTimeMillis()) {
+            return ErrorResponse.error("ValidThrough date must be empty or after today", Status.BAD_REQUEST);
+        }
+
+        auth.groups().requireManageMembership(group);
+
+        user.updateValidThroughGroup(groupId, validThrough);
+
+        return Response.noContent().build();
     }
 
     /**

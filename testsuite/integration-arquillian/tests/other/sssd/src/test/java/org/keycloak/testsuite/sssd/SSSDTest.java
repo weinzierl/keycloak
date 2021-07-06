@@ -21,6 +21,7 @@ import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.testsuite.AbstractKeycloakTest;
@@ -206,11 +207,11 @@ public class SSSDTest extends AbstractKeycloakTest {
         List<UserRepresentation> users = adminClient.realm(REALM_NAME).users().search(username, 0, 1);
         Assert.assertTrue("There must be at least one user", users.size() > 0);
         Assert.assertEquals("Exactly our test user", username, users.get(0).getUsername());
-        List<GroupRepresentation> assignedGroups = adminClient.realm(REALM_NAME).users().get(users.get(0).getId()).groups();
+        List<UserGroupMembershipRepresentation> assignedGroups = adminClient.realm(REALM_NAME).users().get(users.get(0).getId()).groups();
         Assert.assertEquals("User must have exactly " + groups.size() + " groups", groups.size(), assignedGroups.size());
 
-        for (GroupRepresentation group : assignedGroups) {
-            Assert.assertTrue(groups.contains(group.getName()));
+        for (UserGroupMembershipRepresentation group : assignedGroups) {
+            Assert.assertTrue(groups.contains(group.getGroup().getName()));
         }
     }
 

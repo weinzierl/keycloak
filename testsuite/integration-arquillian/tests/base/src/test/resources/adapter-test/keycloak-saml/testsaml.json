@@ -72,7 +72,9 @@
                     "value" : "password" }
             ],
             "groups": [
-                "/top"
+                {
+                    "group" : { "path" : "/top" }
+                }
             ]
         },
         {
@@ -84,7 +86,9 @@
                     "value" : "password" }
             ],
             "groups": [
-                "/top/level2"
+                {
+                    "group" : { "path" : "/top/level2" }
+                }
             ]
         },
         {

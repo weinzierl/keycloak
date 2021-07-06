@@ -35,6 +35,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserCredentialModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.RepresentationToModel;
@@ -65,8 +66,11 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
@@ -119,7 +123,8 @@ public class FineGrainAdminUnitTest extends AbstractKeycloakTest {
 
         UserModel user = session.users().addUser(realm, "salesman");
         user.setEnabled(true);
-        user.joinGroup(sales);
+        UserGroupMembershipModel member = new UserGroupMembershipModel(sales);
+        user.joinGroup(member);
 
         user = session.users().addUser(realm, "saleswoman");
         user.setEnabled(true);
@@ -247,9 +252,10 @@ public class FineGrainAdminUnitTest extends AbstractKeycloakTest {
         // group management
         AdminPermissionManagement permissions = AdminPermissions.management(session, realm);
 
-        GroupModel group =  KeycloakModelUtils.findGroupByPath(realm, "top");
+        GroupModel group = KeycloakModelUtils.findGroupByPath(realm, "top");
         UserModel groupMember = session.users().addUser(realm, "groupMember");
-        groupMember.joinGroup(group);
+        UserGroupMembershipModel member = new UserGroupMembershipModel(group);
+        groupMember.joinGroup(member);
         groupMember.setEnabled(true);
         UserModel groupManager = session.users().addUser(realm, "groupManager");
         groupManager.grantRole(queryGroupsRole);
@@ -988,7 +994,8 @@ public class FineGrainAdminUnitTest extends AbstractKeycloakTest {
             for (int i = 20; i < 40; i++) {
                 UserModel userModel = session.users().addUser(realm, "b" + i);
                 userModel.setFirstName("test");
-                userModel.joinGroup(customerAGroup);
+                UserGroupMembershipModel member = new UserGroupMembershipModel(customerAGroup);
+                userModel.joinGroup(member);
             }
         });
 

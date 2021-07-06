@@ -393,7 +393,7 @@ module.controller('UserDetailCtrl', function($scope, realm, user, BruteForceUser
     $scope.groupSearch = { selectedGroup : null };
 
     if ($scope.create) {
-        $scope.user = { enabled: true, attributes: {}, groups: [] }
+        $scope.user = { enabled: true, attributes: {}, groups: [] };
     } else {
         if (!user.attributes) {
             user.attributes = {}
@@ -518,11 +518,16 @@ module.controller('UserDetailCtrl', function($scope, realm, user, BruteForceUser
 
     function pushSelectedGroupsToUser() {
         var groups = $scope.user.groups;
-        if ($scope.selectedGroups) {
-            for (i = 0; i < $scope.selectedGroups.length; i++) {
-                var groupPath = $scope.selectedGroups[i].path;
-                if (!groups.includes(groupPath)) {
-                    groups.push(groupPath);
+        if ($scope.selectedMembers != null) {
+            for (i = 0; i < $scope.selectedMembers.length; i++) {
+                var sel = $scope.selectedMembers[i];
+                if ( !groups.some(member => member.group.path === sel.group.path)) {
+                    var member = {group : {} };
+                    member.group.path = sel.group.path;
+                    if (sel.validThrough != null ) {
+                        member.validThrough = sel.validThrough.getTime();
+                    }
+                    groups.push(member);
                 }
             }
         }
@@ -554,11 +559,11 @@ module.controller('UserDetailCtrl', function($scope, realm, user, BruteForceUser
      *   - include the search term in their path
      *   - are not already selected
      */
-    function filterSearchedGroups(groups, term, selectedGroups) {
+    function filterSearchedGroups(groups, term, selectedMembers) {
         if (!groups || groups.length === 0) return groups;
-        if (!selectedGroups) selectedGroups = [];
+        if (!selectedMembers) selectedMembers = [];
 
-        return groups.filter(group => group.path?.includes(term) && !selectedGroups.some(selGroup => selGroup.id === group.id));
+        return groups.filter(group => group.path?.includes(term) && !selectedMembers.some(selGroup => selGroup.group.id === group.id));
     }
 
     $scope.reset = function() {
@@ -596,7 +601,7 @@ module.controller('UserDetailCtrl', function($scope, realm, user, BruteForceUser
                 first : 0
             };
             Groups.query($scope.query, function(response) {
-                data.results = filterSearchedGroups(flattenGroups(response), query.term.trim(), $scope.selectedGroups);
+                data.results = filterSearchedGroups(flattenGroups(response), query.term.trim(), $scope.selectedMembers);
                 query.callback(data);
             });
         },
@@ -606,9 +611,9 @@ module.controller('UserDetailCtrl', function($scope, realm, user, BruteForceUser
         }
     };
 
-    $scope.removeGroup = function(list, group) {
+    $scope.removeGroup = function(list, member) {
         for (i = 0; i < angular.copy(list).length; i++) {
-            if (group.id == list[i].id) {
+            if (member.group.id == list[i].group.id) {
                 list.splice(i, 1);
             }
         }
@@ -621,17 +626,18 @@ module.controller('UserDetailCtrl', function($scope, realm, user, BruteForceUser
 
         $scope.groupSearch.selectedGroup = group;
 
-        if (!$scope.selectedGroups) {
-            $scope.selectedGroups = [];
+        if (!$scope.selectedMembers) {
+            $scope.selectedMembers = [];
         }
 
-        for (i = 0; i < $scope.selectedGroups.length; i++) {
-            if ($scope.selectedGroups[i].id == group.id) {
+        for (i = 0; i < $scope.selectedMembers.length; i++) {
+            if ($scope.selectedMembers[i].group.id == group.id) {
                 return;
             }
         }
 
-        $scope.selectedGroups.push(group);
+        var member = {group : group};
+        $scope.selectedMembers.push(member);
         $scope.groupSearch.selectedGroup = null;
     }
 
@@ -1214,21 +1220,7 @@ module.controller('GenericUserStorageCtrl', function($scope, $location, Notifica
 });
 
 
-function removeGroupMember(groups, member) {
-    for (var j = 0; j < groups.length; j++) {
-        //console.log('checking: ' + groups[j].path);
-        if (member.path == groups[j].path) {
-            groups.splice(j, 1);
-            break;
-        }
-        if (groups[j].subGroups && groups[j].subGroups.length > 0) {
-            //console.log('going into subgroups');
-            removeGroupMember(groups[j].subGroups, member);
-        }
-    }
-}
-
-module.controller('UserGroupMembershipCtrl', function($scope, $q, realm, user, UserGroupMembership, UserGroupMembershipCount, UserGroupMapping, Notifications, Groups, GroupsCount, ComponentUtils, $translate) {
+module.controller('UserGroupMembershipCtrl', function($scope, $q, realm, user, UserGroupMembership, UserGroupMembershipCount, UserGroupMapping, UserGroupUpdate, Notifications, Groups, GroupsCount, ComponentUtils, $translate,  $route, $modal) {
     $scope.realm = realm;
     $scope.user = user;
     $scope.groupList = [];
@@ -1440,10 +1432,49 @@ module.controller('UserGroupMembershipCtrl', function($scope, $q, realm, user, U
             Notifications.error($translate.instant('user.groups.join.error.already-added'));
             return;
         }
-        UserGroupMapping.update({realm: realm.realm, userId: user.id, groupId: $scope.tree.currentNode.id}, function() {
-            $scope.allGroupMemberships.push($scope.tree.currentNode);
-            refreshUserGroupMembership($scope.searchCriteriaMembership);
-            Notifications.success($translate.instant('user.groups.join.success'));
+        groupId = $scope.tree.currentNode.id;
+
+        var controller = function(realm, user, groupId, $scope, $modalInstance) {
+            $scope.realm = realm;
+            $scope.user = user;
+            $scope.groupId = groupId;
+            $scope.member = {};
+
+            $scope.ok = function () {
+               var validThrough = null;
+                   if ($scope.member.validThrough !== undefined ) {
+                      validThrough = $scope.member.validThrough.getTime();
+                   }
+                   $modalInstance.close();
+                   UserGroupMapping.update({realm: realm.realm, userId: user.id, groupId: groupId, validThrough: validThrough }, function() {
+                       $route.reload();
+                       Notifications.success($translate.instant('user.groups.join.success'));
+                   }, function (errorResponse) {
+                       $route.reload();
+                       var errDetails = (!errorResponse.data.errorMessage) ? "unknown error" : errorResponse.data.errorMessage;
+                       Notifications.error('Failed to join group: ' + errDetails);
+                   });
+            };
+            $scope.cancel = function () {
+                $modalInstance.close();
+            };
+
+        }
+        $modal.open({
+            templateUrl: resourceUrl + '/partials/modal/join-group.html',
+            controller: controller,
+            resolve: {
+                realm: function () {
+                     return realm;
+                },
+                user: function () {
+                     return user;
+                },
+                groupId : function () {
+                     return groupId;
+                },
+
+            }
         });
 
     };
@@ -1453,13 +1484,66 @@ module.controller('UserGroupMembershipCtrl', function($scope, $q, realm, user, U
             Notifications.error($translate.instant('user.groups.leave.error.no-group-selected'));
             return;
         }
-        UserGroupMapping.remove({realm: realm.realm, userId: user.id, groupId: $scope.membershipTree.currentNode.id}, function () {
-            removeGroupMember($scope.allGroupMemberships, $scope.membershipTree.currentNode);
-            refreshUserGroupMembership($scope.searchCriteriaMembership);
+        UserGroupMapping.remove({realm: realm.realm, userId: user.id, groupId: $scope.membershipTree.currentNode.group.id}, function () {
+            $route.reload();
             Notifications.success($translate.instant('user.groups.leave.success'));
         });
 
     };
+
+    $scope.updateValidThrough = function() {
+        if (!$scope.membershipTree.currentNode) {
+            Notifications.error($translate.instant('user.groups.edit.error.no-group-selected'));
+            return;
+        }
+        var controller = function(realm, user, groupId, validThrough, $scope, $modalInstance) {
+             $scope.realm = realm;
+             $scope.user = user;
+             $scope.groupId = groupId;
+             $scope.member={};
+             if (validThrough != null ){
+                 $scope.member.validThrough = new Date(validThrough);
+             }
+
+             $scope.ok = function () {
+                 var validThrough = null;
+                 if ($scope.member.validThrough != null && $scope.member.validThrough !== undefined ) {
+                     validThrough = $scope.member.validThrough.getTime();
+                 }
+                 $modalInstance.close();
+                 UserGroupUpdate.update({realm: realm.realm, userId: user.id, groupId: groupId, validThrough: validThrough }, function() {
+                     $route.reload();
+                     Notifications.success($translate.instant('member.edit.validthrough.success'));
+                 }, function (errorResponse) {
+                     $route.reload();
+                     var errDetails = (!errorResponse.data.errorMessage) ? "unknown error" : errorResponse.data.errorMessage;
+                     Notifications.error('Failed to edit validThrough date of member: ' + errDetails);
+                 });
+             }
+             $scope.cancel = function () {
+                 $modalInstance.close();
+             };
+        }
+        $modal.open({
+             templateUrl: resourceUrl + '/partials/modal/update-membership.html',
+             controller: controller,
+             resolve: {
+                 realm: function () {
+                     return realm;
+                 },
+                 user: function () {
+                     return user;
+                 },
+                 groupId : function () {
+                      return groupId;
+                 },
+                 validThrough : function () {
+                   return $scope.membershipTree.currentNode.validThrough;
+                 }
+
+             }
+        });
+    }
 
     var isLeaf = function(node) {
         return node.id !== 'realm' && (!node.subGroups || node.subGroups.length === 0);
@@ -1468,7 +1552,7 @@ module.controller('UserGroupMembershipCtrl', function($scope, $q, realm, user, U
     var isMember = function(node) {
         for (var i = 0; i < $scope.allGroupMemberships.length; i++) {
             var member = $scope.allGroupMemberships[i];
-            if (node.id === member.id) {
+            if (node.id === member.group.id) {
                 return true;
             }
         }

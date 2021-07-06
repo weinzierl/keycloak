@@ -36,6 +36,8 @@ import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.MappingsRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
+import org.keycloak.representations.idm.UserMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.testsuite.admin.ApiUtil;
 import org.keycloak.testsuite.arquillian.annotation.AuthServerContainerExclude;
@@ -60,6 +62,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.core.Response.Status;
 import static org.hamcrest.Matchers.*;
@@ -452,9 +456,9 @@ public class GroupTest extends AbstractGroupTest {
         realm.users().get(user.getId()).joinGroup(level3Group.getId());
         assertAdminEvents.assertEvent("test", OperationType.CREATE, AdminEventPaths.userGroupPath(user.getId(), level3Group.getId()), ResourceType.GROUP_MEMBERSHIP);
 
-        List<GroupRepresentation> membership = realm.users().get(user.getId()).groups();
+        List<UserGroupMembershipRepresentation> membership = realm.users().get(user.getId()).groups();
         assertEquals(1, membership.size());
-        assertEquals("level3", membership.get(0).getName());
+        assertEquals("level3", membership.get(0).getGroup().getName());
 
         AccessToken token = login("direct-login", "resource-owner", "secret", user.getId());
         assertTrue(token.getRealmAccess().getRoles().contains("topRole"));
@@ -478,7 +482,7 @@ public class GroupTest extends AbstractGroupTest {
 
         membership = realm.users().get(userId).groups();
         assertEquals(1, membership.size());
-        assertEquals("level3", membership.get(0).getName());
+        assertEquals("level3", membership.get(0).getGroup().getName());
 
         realm.removeDefaultGroup(level3Group.getId());
         assertAdminEvents.assertEvent("test", OperationType.DELETE, AdminEventPaths.defaultGroupPath(level3Group.getId()), ResourceType.GROUP);
@@ -619,7 +623,7 @@ public class GroupTest extends AbstractGroupTest {
         realm.users().get(userAId).joinGroup(groupId);
         assertAdminEvents.assertEvent("test", OperationType.CREATE, AdminEventPaths.userGroupPath(userAId, groupId), group, ResourceType.GROUP_MEMBERSHIP);
 
-        List<UserRepresentation> members = realm.groups().group(groupId).members(0, 10);
+        List<UserMembershipRepresentation> members = realm.groups().group(groupId).members(0, 10);
         assertNames(members, "user-a");
 
         realm.users().get(userBId).joinGroup(groupId);
@@ -659,9 +663,7 @@ public class GroupTest extends AbstractGroupTest {
         }
         
         List<String> memberUsernames = new ArrayList<>();
-        for (UserRepresentation member : realm.groups().group(groupId).members(0, 10)) {
-            memberUsernames.add(member.getUsername());
-        }
+        realm.groups().group(groupId).members(0, 10).stream().map(UserMembershipRepresentation::getUser).forEach(member ->  memberUsernames.add(member.getUsername()));
         assertArrayEquals("Expected: " + usernames + ", was: " + memberUsernames, 
                 usernames.toArray(), memberUsernames.toArray());
     }
@@ -1066,9 +1068,9 @@ public class GroupTest extends AbstractGroupTest {
             UserResource user = users.get(ApiUtil.getCreatedId(r));
             user.joinGroup(groupId);
 
-            UserRepresentation defaultRepresentation = group.members(null, null).get(0);
-            UserRepresentation fullRepresentation = group.members(null, null, false).get(0);
-            UserRepresentation briefRepresentation = group.members(null, null, true).get(0);
+            UserRepresentation defaultRepresentation = group.members(null, null).get(0).getUser();
+            UserRepresentation fullRepresentation = group.members(null, null, false).get(0).getUser();
+            UserRepresentation briefRepresentation = group.members(null, null, true).get(0).getUser();
 
             assertEquals("full group member representation includes attributes", fullRepresentation.getAttributes(), userRepresentation.getAttributes());
             assertEquals("default group member representation is full", defaultRepresentation.getAttributes(), userRepresentation.getAttributes());

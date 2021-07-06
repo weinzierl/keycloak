@@ -39,6 +39,9 @@ import org.keycloak.representations.idm.*;
 import org.keycloak.representations.idm.authorization.*;
 import org.keycloak.storage.StorageId;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -114,6 +117,22 @@ public class ModelToRepresentation {
         return sb.toString();
     }
 
+    private static UserGroupMembershipRepresentation toRepresentation(UserGroupMembershipModel member) {
+        GroupRepresentation group = toRepresentation(member.getGroup(), false);
+        UserGroupMembershipRepresentation rep = new UserGroupMembershipRepresentation();
+        rep.setGroup(group);
+        rep.setValidThrough(member.getValidThrough());
+        return rep;
+    }
+
+    public static UserGroupMembershipRepresentation toBriefRepresentation(UserGroupMembershipModel member) {
+        GroupRepresentation group = new GroupRepresentation();
+        group.setPath(ModelToRepresentation.buildGroupPath(member.getGroup()));
+        UserGroupMembershipRepresentation rep = new UserGroupMembershipRepresentation();
+        rep.setGroup(group);
+        rep.setValidThrough(member.getValidThrough());
+        return rep;
+    }
 
     public static GroupRepresentation toRepresentation(GroupModel group, boolean full) {
         GroupRepresentation rep = new GroupRepresentation();
@@ -147,19 +166,20 @@ public class ModelToRepresentation {
                 .map(g -> toGroupHierarchy(g, full));
     }
 
-    public static Stream<GroupRepresentation> searchForGroupByName(UserModel user, boolean full, String search, Integer first, Integer max) {
-        return user.getGroupsStream(search, first, max)
-                .map(group -> toRepresentation(group, full));
+    public static Stream<UserGroupMembershipRepresentation> searchForGroupByName(UserModel user, boolean full, String search, Integer first, Integer max) {
+        return user.getGroupMembershipsStream(search, first, max)
+                .map(member ->  toRepresentation(member));
     }
+
 
     public static Stream<GroupRepresentation> toGroupHierarchy(RealmModel realm, boolean full, Integer first, Integer max) {
         return realm.getTopLevelGroupsStream(first, max)
                 .map(g -> toGroupHierarchy(g, full));
     }
 
-    public static Stream<GroupRepresentation> toGroupHierarchy(UserModel user, boolean full, Integer first, Integer max) {
-        return user.getGroupsStream(null, first, max)
-                .map(group -> toRepresentation(group, full));
+    public static Stream<UserGroupMembershipRepresentation> toGroupHierarchy(UserModel user, boolean full, Integer first, Integer max) {
+        return user.getGroupMembershipsStream(null, first, max)
+                .map(member ->  toRepresentation(member));
     }
 
     public static Stream<GroupRepresentation> toGroupHierarchy(RealmModel realm, boolean full) {
@@ -167,9 +187,9 @@ public class ModelToRepresentation {
                 .map(g -> toGroupHierarchy(g, full));
     }
 
-    public static Stream<GroupRepresentation> toGroupHierarchy(UserModel user, boolean full) {
-        return user.getGroupsStream()
-                .map(group -> toRepresentation(group, full));
+    public static Stream<UserGroupMembershipRepresentation> toGroupHierarchy(UserModel user, boolean full) {
+        return user.getGroupMembershipsStream()
+                .map(member ->  toRepresentation(member));
     }
 
     public static GroupRepresentation toGroupHierarchy(GroupModel group, boolean full) {

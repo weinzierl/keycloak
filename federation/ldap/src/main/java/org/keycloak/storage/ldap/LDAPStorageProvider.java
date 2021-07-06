@@ -18,6 +18,7 @@
 package org.keycloak.storage.ldap;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +49,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserCredentialModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserManager;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.cache.CachedUserModel;
@@ -295,7 +297,7 @@ public class LDAPStorageProvider implements UserStorageProvider,
         UserModel proxy = proxy(realm, user, ldapUser, true);
         proxy.grantRole(realm.getDefaultRole());
 
-        realm.getDefaultGroupsStream().forEach(proxy::joinGroup);
+        realm.getDefaultGroupsStream().forEach(group -> proxy.joinGroup(new UserGroupMembershipModel(group)));
 
         realm.getRequiredActionProvidersStream()
                 .filter(RequiredActionProviderModel::isEnabled)

@@ -21,6 +21,7 @@ import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.ManagementPermissionReference;
 import org.keycloak.representations.idm.ManagementPermissionRepresentation;
+import org.keycloak.representations.idm.UserMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import javax.ws.rs.Consumes;
@@ -116,7 +117,7 @@ public interface GroupResource {
     @NoCache
     @Path("/members")
     @Produces(MediaType.APPLICATION_JSON)
-    List<UserRepresentation> members();
+    List<UserMembershipRepresentation> members();
 
     /**
      * Get users
@@ -131,8 +132,8 @@ public interface GroupResource {
     @NoCache
     @Path("/members")
     @Produces(MediaType.APPLICATION_JSON)
-    List<UserRepresentation> members(@QueryParam("first") Integer firstResult,
-                                     @QueryParam("max") Integer maxResults);
+    List<UserMembershipRepresentation> members(@QueryParam("first") Integer firstResult,
+                                               @QueryParam("max") Integer maxResults);
 
     /**
      * Get users
@@ -150,7 +151,7 @@ public interface GroupResource {
     @NoCache
     @Path("/members")
     @Produces(MediaType.APPLICATION_JSON)
-    List<UserRepresentation> members(@QueryParam("first") Integer firstResult,
+    List<UserMembershipRepresentation> members(@QueryParam("first") Integer firstResult,
                                      @QueryParam("max") Integer maxResults,
                                      @QueryParam("briefRepresentation") Boolean briefRepresentation);
 }

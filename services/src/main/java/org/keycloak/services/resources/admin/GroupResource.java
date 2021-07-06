@@ -26,10 +26,12 @@ import org.keycloak.models.Constants;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserGroupMembershipModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.ManagementPermissionReference;
-import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.representations.idm.UserMembershipRepresentation;
 import org.keycloak.services.ErrorResponse;
 import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluator;
 import org.keycloak.services.resources.admin.permissions.AdminPermissionManagement;
@@ -224,7 +226,7 @@ public class GroupResource {
     @NoCache
     @Path("members")
     @Produces(MediaType.APPLICATION_JSON)
-    public Stream<UserRepresentation> getMembers(@QueryParam("first") Integer firstResult,
+    public Stream<UserMembershipRepresentation> getMembers(@QueryParam("first") Integer firstResult,
                                                @QueryParam("max") Integer maxResults,
                                                @QueryParam("briefRepresentation") Boolean briefRepresentation) {
         this.auth.groups().requireViewMembers(group);
@@ -234,9 +236,15 @@ public class GroupResource {
         boolean briefRepresentationB = briefRepresentation != null && briefRepresentation;
 
         return session.users().getGroupMembersStream(realm, group, firstResult, maxResults)
-                .map(user -> briefRepresentationB
-                        ? ModelToRepresentation.toBriefRepresentation(user)
-                        : ModelToRepresentation.toRepresentation(session, realm, user));
+                .map(user -> this.toRepresentation(user, briefRepresentationB));
+    }
+
+    private UserMembershipRepresentation toRepresentation(UserModel user, boolean briefRepresentationB){
+        UserMembershipRepresentation rep = new UserMembershipRepresentation(briefRepresentationB
+                ? ModelToRepresentation.toBriefRepresentation(user)
+                : ModelToRepresentation.toRepresentation(session, realm, user));
+        rep.setValidThrough(user.getUserGroupMembership(group.getId()));
+        return rep;
     }
 
     /**

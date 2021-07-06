@@ -25,11 +25,14 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelDuplicateException;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.RoleUtils;
 
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -243,12 +246,35 @@ public abstract class MapUserAdapter extends AbstractUserModel<MapUserEntity> {
 
     @Override
     public Stream<GroupModel> getGroupsStream() {
-        return session.groups().getGroupsStream(realm, entity.getGroupsMembership().stream());
+        return entity.getGroupsMembership().values().stream().map(entity -> session.groups().getGroupById(realm, entity.getGroupId()));
     }
 
     @Override
-    public void joinGroup(GroupModel group) {
-        entity.addGroupsMembership(group.getId());
+    public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+        return entity.getGroupsMembership().values().stream().map(member -> UserGroupMembershipEntity.toModel(session, realm, member)).sorted(Comparator.comparing(member -> member.getGroup().getName()));
+    }
+
+    @Override
+    public long getGroupMembersCount() {
+        return entity.getGroupsMembership().keySet().size();
+    }
+
+    @Override
+    public Long getUserGroupMembership(String groupId) {
+        UserGroupMembershipEntity memberEntity =  entity.getGroupsMembership().values().stream().filter(member -> groupId.equals(member.getGroupId())).findAny().orElse(new UserGroupMembershipEntity());
+        return memberEntity.getValidThrough();
+    }
+
+    @Override
+    public void joinGroup(UserGroupMembershipModel member) {
+        if (!RoleUtils.isMember(getGroupsStream(), member.getGroup()))
+            entity.addGroupsMembership(UserGroupMembershipEntity.fromModel(member));
+    }
+
+    @Override
+    public void removeExpiredGroups() {
+        entity.getGroupsMembership().entrySet().stream().filter(entry -> entry.getValue().getValidThrough() != null && entry.getValue().getValidThrough() < new Date().getTime())
+        .forEach(entry ->entity.removeGroupsMembership(entry.getKey()));
     }
 
     @Override
@@ -257,8 +283,17 @@ public abstract class MapUserAdapter extends AbstractUserModel<MapUserEntity> {
     }
 
     @Override
+    public void updateValidThroughGroup(String groupId, Long validThrough)  {
+        UserGroupMembershipEntity member = entity.getGroupsMembership().get(groupId);
+        if ( member != null) {
+            member.setValidThrough(validThrough);
+            entity.addGroupsMembership(member);
+        }
+    }
+
+    @Override
     public boolean isMemberOf(GroupModel group) {
-        return entity.getGroupsMembership().contains(group.getId());
+        return entity.getGroupsMembership().values().stream().anyMatch(value -> value.getGroupId().equals(group.getId()));
     }
 
     @Override

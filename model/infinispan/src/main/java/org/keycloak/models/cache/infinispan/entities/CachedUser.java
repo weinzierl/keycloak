@@ -18,7 +18,6 @@
 package org.keycloak.models.cache.infinispan.entities;
 
 import org.keycloak.common.util.MultivaluedHashMap;
-import org.keycloak.models.GroupModel;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
@@ -26,8 +25,11 @@ import org.keycloak.models.cache.infinispan.DefaultLazyLoader;
 import org.keycloak.models.cache.infinispan.LazyLoader;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -49,7 +51,8 @@ public class CachedUser extends AbstractExtendableRevisioned implements InRealm 
     private final LazyLoader<UserModel, Set<String>> requiredActions;
     private final LazyLoader<UserModel, MultivaluedHashMap<String, String>> attributes;
     private final LazyLoader<UserModel, Set<String>> roleMappings;
-    private final LazyLoader<UserModel, Set<String>> groups;
+    //0 for null validThrough - Map value must not be null
+    private final LazyLoader<UserModel, LinkedHashMap<String, Long>> groups;
 
     public CachedUser(Long revision, RealmModel realm, UserModel user, int notBefore) {
         super(revision, user.getId());
@@ -65,7 +68,7 @@ public class CachedUser extends AbstractExtendableRevisioned implements InRealm 
         this.requiredActions = new DefaultLazyLoader<>(userModel -> userModel.getRequiredActionsStream().collect(Collectors.toSet()), Collections::emptySet);
         this.attributes = new DefaultLazyLoader<>(userModel -> new MultivaluedHashMap<>(userModel.getAttributes()), MultivaluedHashMap::new);
         this.roleMappings = new DefaultLazyLoader<>(userModel -> userModel.getRoleMappingsStream().map(RoleModel::getId).collect(Collectors.toSet()), Collections::emptySet);
-        this.groups = new DefaultLazyLoader<>(userModel -> userModel.getGroupsStream().map(GroupModel::getId).collect(Collectors.toCollection(LinkedHashSet::new)), LinkedHashSet::new);
+        this.groups = new DefaultLazyLoader<>(userModel -> userModel.getGroupMembershipsStream().collect(Collectors.toMap(group -> group.getGroup().getId(), group -> group.getValidThrough() != null ? group.getValidThrough() : 0, (e1, e2) -> e2, LinkedHashMap::new)), LinkedHashMap::new);
     }
 
     public String getRealm() {
@@ -112,7 +115,7 @@ public class CachedUser extends AbstractExtendableRevisioned implements InRealm 
         return serviceAccountClientLink;
     }
 
-    public Set<String> getGroups(Supplier<UserModel> userModel) {
+    public Map<String, Long> getGroups(Supplier<UserModel> userModel) {
         return groups.get(userModel);
     }
 

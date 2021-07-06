@@ -35,6 +35,7 @@ import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserConsentModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.jpa.JpaUserCredentialStore;
 import org.keycloak.models.utils.KeycloakModelUtils;
@@ -54,8 +55,10 @@ import org.keycloak.storage.jpa.entity.FederatedUserRequiredActionEntity.Key;
 import org.keycloak.storage.jpa.entity.FederatedUserRoleMappingEntity;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -428,24 +431,40 @@ public class JpaUserFederatedStorageProvider implements
     }
 
     @Override
-    public Stream<GroupModel> getGroupsStream(RealmModel realm, String userId) {
-        TypedQuery<FederatedUserGroupMembershipEntity> query = em.createNamedQuery("feduserGroupMembership", FederatedUserGroupMembershipEntity.class);
+    public Stream<UserGroupMembershipModel> getGroupMembersStream(RealmModel realm, String userId) {
+        TypedQuery<FederatedUserGroupMembershipEntity> query = em.createNamedQuery("fedUserGroupMembership", FederatedUserGroupMembershipEntity.class);
         query.setParameter("userId", userId);
-        return closing(query.getResultStream().map(FederatedUserGroupMembershipEntity::getGroupId).map(realm::getGroupById));
+        return closing(query.getResultStream().map(entity -> new UserGroupMembershipModel(realm.getGroupById(entity.getGroupId()), entity.getValidThrough())));
     }
 
     @Override
-    public void joinGroup(RealmModel realm, String userId, GroupModel group) {
+    public Long getUserGroupMembership(RealmModel realm, String userId, String groupId)  {
+        TypedQuery<FederatedUserGroupMembershipEntity> query = em.createNamedQuery("feduserMemberOf", FederatedUserGroupMembershipEntity.class);
+        query.setParameter("userId", userId);
+        query.setParameter("groupId",groupId);
+        List<FederatedUserGroupMembershipEntity> results = query.getResultList();
+        return results.isEmpty() ? null  : results.get(0).getValidThrough() ;
+    }
+
+    @Override
+    public void joinGroup(RealmModel realm, String userId, UserGroupMembershipModel member) {
         createIndex(realm, userId);
         FederatedUserGroupMembershipEntity entity = new FederatedUserGroupMembershipEntity();
         entity.setUserId(userId);
         entity.setStorageProviderId(new StorageId(userId).getProviderId());
-        entity.setGroupId(group.getId());
+        entity.setGroupId(member.getGroup().getId());
         entity.setRealmId(realm.getId());
+        entity.setValidThrough(member.getValidThrough());
         em.persist(entity);
-
     }
 
+    @Override
+    public void removeExpiredGroups(RealmModel realm, String userId) {
+        Query query2 = em.createNamedQuery("deleteExpiredFedUserGroupMembership");
+        query2.setParameter("userId", userId);
+        query2.setParameter("date", new Date().getTime());
+        query2.executeUpdate();
+    }
 
     @Override
     public void leaveGroup(RealmModel realm, String userId, GroupModel group) {
@@ -464,6 +483,23 @@ public class JpaUserFederatedStorageProvider implements
         em.flush();
 
     }
+
+    @Override
+    public void updateValidThroughGroup(RealmModel realm, String userId, String groupId, Long validThrough) {
+        if (userId == null || groupId == null) return;
+
+        TypedQuery<FederatedUserGroupMembershipEntity> query = em.createNamedQuery("feduserMemberOf", FederatedUserGroupMembershipEntity.class);
+        query.setParameter("userId", userId);
+        query.setParameter("groupId", groupId);
+        List<FederatedUserGroupMembershipEntity> results = query.getResultList();
+        if (results.size() == 0) return;
+        for (FederatedUserGroupMembershipEntity entity : results) {
+            entity.setValidThrough(validThrough);
+        }
+        em.flush();
+
+    }
+
 
     @Override
     public Stream<String> getMembershipStream(RealmModel realm, GroupModel group, Integer firstResult, Integer max) {

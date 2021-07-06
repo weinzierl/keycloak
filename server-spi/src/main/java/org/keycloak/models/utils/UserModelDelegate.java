@@ -20,11 +20,11 @@ package org.keycloak.models.utils;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -230,15 +230,33 @@ public class UserModelDelegate implements UserModel.Streams {
     }
 
     @Override
-    public void joinGroup(GroupModel group) {
-        delegate.joinGroup(group);
+    public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+        return delegate.getGroupMembershipsStream();
+    }
 
+    @Override
+    public Long getUserGroupMembership(String groupId)  {
+        return delegate.getUserGroupMembership(groupId);
+    }
+
+    @Override
+    public void joinGroup(UserGroupMembershipModel member) {
+            delegate.joinGroup(member);
     }
 
     @Override
     public void leaveGroup(GroupModel group) {
         delegate.leaveGroup(group);
+    }
 
+    @Override
+    public void removeExpiredGroups(){
+        delegate.removeExpiredGroups();
+    }
+
+    @Override
+    public void updateValidThroughGroup(String groupId, Long validThrough) {
+        delegate.updateValidThroughGroup(groupId, validThrough);
     }
 
     @Override

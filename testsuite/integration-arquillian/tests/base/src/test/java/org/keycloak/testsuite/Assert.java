@@ -28,6 +28,8 @@ import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserFederationProviderFactoryRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
+import org.keycloak.representations.idm.UserMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.Arrays;
@@ -92,6 +94,10 @@ public class Assert extends org.junit.Assert {
             return ((ComponentRepresentation) o1).getName();
         } else if (o1 instanceof ClientScopeRepresentation) {
             return ((ClientScopeRepresentation) o1).getName();
+        } else if (o1 instanceof UserGroupMembershipRepresentation) {
+            return ((UserGroupMembershipRepresentation) o1).getGroup().getName();
+        } else if (o1 instanceof UserMembershipRepresentation) {
+            return ((UserMembershipRepresentation) o1).getUser().getUsername();
         }
 
         throw new IllegalArgumentException();

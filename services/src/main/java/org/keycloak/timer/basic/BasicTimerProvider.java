@@ -23,6 +23,7 @@ import org.keycloak.services.scheduled.ScheduledTaskRunner;
 import org.keycloak.timer.ScheduledTask;
 import org.keycloak.timer.TimerProvider;
 
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -53,16 +54,31 @@ public class BasicTimerProvider implements TimerProvider {
                 runnable.run();
             }
         };
+        this.preSchedule(task, runnable, intervalMillis, taskName);
+        logger.debugf("Starting task '%s' with interval '%d'", taskName, intervalMillis);
+        timer.schedule(task, intervalMillis, intervalMillis);
+    }
 
+    @Override
+    public void schedule(final Runnable runnable, final Date startDate, final long intervalMillis, String taskName) {
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        };
+        this.preSchedule(task, runnable, intervalMillis, taskName);
+        logger.debugf("Existing timer task '%s' found. Cancelling it", taskName);
+        timer.scheduleAtFixedRate(task, startDate, intervalMillis);
+    }
+
+    private void preSchedule(TimerTask task, final Runnable runnable, final long intervalMillis, String taskName) {
         TimerTaskContextImpl taskContext = new TimerTaskContextImpl(runnable, task, intervalMillis);
         TimerTaskContextImpl existingTask = factory.putTask(taskName, taskContext);
         if (existingTask != null) {
             logger.debugf("Existing timer task '%s' found. Cancelling it", taskName);
             existingTask.timerTask.cancel();
         }
-
-        logger.debugf("Starting task '%s' with interval '%d'", taskName, intervalMillis);
-        timer.schedule(task, intervalMillis, intervalMillis);
     }
 
     @Override

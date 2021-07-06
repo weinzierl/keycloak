@@ -23,16 +23,19 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModelDefaultMethods;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.RoleUtils;
 import org.keycloak.storage.ReadOnlyException;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -45,7 +48,7 @@ public class InMemoryUserAdapter extends UserModelDefaultMethods.Streams {
     private boolean enabled;
 
     private Set<String> roleIds = new HashSet<>();
-    private Set<String> groupIds = new HashSet<>();
+    private Set<UserGroupMembershipModel> members = new HashSet<>();
 
     private MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     private Set<String> requiredActions = new HashSet<>();
@@ -77,7 +80,7 @@ public class InMemoryUserAdapter extends UserModelDefaultMethods.Streams {
     public void addDefaults() {
         this.grantRole(realm.getDefaultRole());
 
-        realm.getDefaultGroupsStream().forEach(this::joinGroup);
+        realm.getDefaultGroupsStream().forEach(group -> this.joinGroup(new UserGroupMembershipModel(group)));
     }
 
     public void setReadonly(boolean flag) {
@@ -206,28 +209,50 @@ public class InMemoryUserAdapter extends UserModelDefaultMethods.Streams {
 
     @Override
     public Stream<GroupModel> getGroupsStream() {
-        return groupIds.stream().map(realm::getGroupById);
+        return members.stream().map(UserGroupMembershipModel::getGroup);
     }
 
     @Override
-    public void joinGroup(GroupModel group) {
-        checkReadonly();
-        groupIds.add(group.getId());
+    public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+       return members.stream();
+    }
 
+    @Override
+    public Long getUserGroupMembership(String groupId) {
+        return members.stream().filter(member -> groupId.equals(member.getGroup().getId())).findAny().map(UserGroupMembershipModel::getValidThrough).orElse(null);
+    }
+
+    @Override
+    public void joinGroup(UserGroupMembershipModel member) {
+        checkReadonly();
+        members.add(member);
+
+    }
+
+    @Override
+    public void removeExpiredGroups() {
+        members.removeIf(member -> member.getValidThrough() < new Date().getTime());
     }
 
     @Override
     public void leaveGroup(GroupModel group) {
         checkReadonly();
-        groupIds.remove(group.getId());
+        members.removeIf(member -> group.getId().equals(member.getGroup().getId()));
 
     }
 
     @Override
+    public void updateValidThroughGroup(String groupId, Long validThrough) {
+        checkReadonly();
+        members.stream().filter(member -> groupId.equals(member.getGroup().getId())).forEach(member -> member.setValidThrough(validThrough));
+    }
+
+
+    @Override
     public boolean isMemberOf(GroupModel group) {
-        if (groupIds == null) return false;
-        if (groupIds.contains(group.getId())) return true;
-        return RoleUtils.isMember(getGroupsStream(), group);
+        if (members == null) return false;
+        if (members.stream().anyMatch(member -> group.getId().equals(member.getGroup().getId()) )) return true;
+        return RoleUtils.isMember(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), group);
     }
 
     @Override

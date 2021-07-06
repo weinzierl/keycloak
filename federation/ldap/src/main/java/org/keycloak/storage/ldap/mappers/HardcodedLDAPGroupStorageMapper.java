@@ -62,6 +62,23 @@ public class HardcodedLDAPGroupStorageMapper extends AbstractLDAPStorageMapper {
             }
 
             @Override
+            public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+                Stream<UserGroupMembershipModel> groups = super.getGroupMembershipsStream();
+
+                GroupModel group = getGroup(realm);
+                if (group != null) {
+                    return Stream.concat(groups, Stream.of(group).map(gr -> new UserGroupMembershipModel(gr)));
+                }
+
+                return groups;
+            }
+
+            @Override
+            public Long getUserGroupMembership(String groupId)  {
+                return super.getUserGroupMembership(groupId);
+            }
+
+            @Override
             public boolean isMemberOf(GroupModel group) {
                 return super.isMemberOf(group) || group.equals(getGroup(realm));
             }

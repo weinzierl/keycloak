@@ -32,6 +32,7 @@ import org.keycloak.storage.UserStorageProviderModel;
 import org.keycloak.storage.user.ImportedUserValidation;
 import org.keycloak.storage.user.UserLookupProvider;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -123,7 +124,7 @@ public class SSSDFederationProvider implements UserStorageProvider,
             if (group == null) {
                 group = session.groups().createGroup(realm, s);
             }
-            user.joinGroup(group);
+            user.joinGroup(new UserGroupMembershipModel(group));
         }
         user.setFederationLink(model.getId());
         return validateAndProxy(realm, user);

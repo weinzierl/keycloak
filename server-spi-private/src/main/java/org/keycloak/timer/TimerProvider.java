@@ -17,6 +17,8 @@
 
 package org.keycloak.timer;
 
+import java.util.Date;
+
 import org.keycloak.provider.Provider;
 
 /**
@@ -25,6 +27,7 @@ import org.keycloak.provider.Provider;
 public interface TimerProvider extends Provider {
 
     public void schedule(Runnable runnable, long intervalMillis, String taskName);
+    public void schedule(Runnable runnable, Date startDate, long intervalMillis, String taskName);
 
     public void scheduleTask(ScheduledTask scheduledTask, long intervalMillis, String taskName);
 

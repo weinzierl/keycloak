@@ -37,8 +37,10 @@ import org.keycloak.common.Profile;
 import org.keycloak.common.util.KeycloakUriBuilder;
 import org.keycloak.common.util.Time;
 import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RequiredActionProviderRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.services.resources.account.AccountFormService;
 import org.keycloak.testsuite.admin.ApiUtil;
@@ -75,6 +77,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -535,7 +538,17 @@ public abstract class AbstractKeycloakTest {
         user.setEmail(email);
         user.setFirstName(firstName);
         user.setLastName(lastName);
-        user.setGroups(groups);
+        if (groups != null) {
+            List<UserGroupMembershipRepresentation> members = new ArrayList<>();
+            for (String group : groups) {
+                UserGroupMembershipRepresentation member = new UserGroupMembershipRepresentation();
+                GroupRepresentation groupRep = new GroupRepresentation();
+                groupRep.setPath(group);
+                member.setGroup(groupRep);
+                members.add(member);
+            }
+            user.setGroups(members);
+        }
         user.setEnabled(enabled);
         return user;
     }

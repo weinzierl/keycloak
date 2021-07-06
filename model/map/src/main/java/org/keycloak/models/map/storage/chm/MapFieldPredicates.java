@@ -430,10 +430,10 @@ public class MapFieldPredicates {
         Function<MapUserEntity, ?> getter;
         if (op == Operator.IN && values != null && values.length == 1 && (values[0] instanceof Collection)) {
             Collection<?> c = (Collection<?>) values[0];
-            getter = ue -> ue.getGroupsMembership().stream().anyMatch(c::contains);
+            getter = ue -> ue.getGroupsMembership().keySet().stream().anyMatch(c::contains);
         } else {
             String groupIdS = ensureEqSingleValue(UserModel.SearchableFields.ASSIGNED_GROUP, "group_id", op, values);
-            getter = ue -> ue.getGroupsMembership().contains(groupIdS);
+            getter = ue -> ue.getGroupsMembership().containsKey(groupIdS);
         }
 
         return mcb.fieldCompare(Boolean.TRUE::equals, getter);

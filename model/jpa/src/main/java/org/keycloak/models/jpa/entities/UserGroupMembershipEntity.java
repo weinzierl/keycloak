@@ -17,6 +17,8 @@
 
 package org.keycloak.models.jpa.entities;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -27,7 +29,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
-import java.io.Serializable;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -35,7 +36,10 @@ import java.io.Serializable;
  */
 @NamedQueries({
         @NamedQuery(name="userMemberOf", query="select m from UserGroupMembershipEntity m where m.user = :user and m.groupId = :groupId"),
-        @NamedQuery(name="userGroupMembership", query="select m from UserGroupMembershipEntity m where m.user = :user"),
+        @NamedQuery(name="userGroupMembership", query="select m from UserGroupMembershipEntity m join GroupEntity g on m.groupId = g.id where m.user = :user order by g.name ASC"),
+        @NamedQuery(name="deleteExpiredUserGroupMembership", query="delete from UserGroupMembershipEntity m where m.user = :user and m.validThrough < :date "),
+        @NamedQuery(name="userGroupMembershipActiveAndGroup", query="select m from UserGroupMembershipEntity m join GroupEntity g on m.groupId = g.id where m.user = :user and lower(g.name) like :search "),
+        @NamedQuery(name="userGroupMembershipSearchGroup", query="select m from UserGroupMembershipEntity m join GroupEntity g on m.groupId = g.id where m.user = :user and lower(g.name) like :search "),
         @NamedQuery(name="groupMembership", query="select g.user from UserGroupMembershipEntity g where g.groupId = :groupId order by g.user.username"),
         @NamedQuery(name="deleteUserGroupMembershipByRealm", query="delete from  UserGroupMembershipEntity mapping where mapping.user IN (select u from UserEntity u where u.realmId=:realmId)"),
         @NamedQuery(name="deleteUserGroupMembershipsByRealmAndLink", query="delete from  UserGroupMembershipEntity mapping where mapping.user IN (select u from UserEntity u where u.realmId=:realmId and u.federationLink=:link)"),
@@ -59,6 +63,9 @@ public class UserGroupMembershipEntity {
     @Column(name = "GROUP_ID")
     protected String groupId;
 
+    @Column(nullable = true, name = "VALID_THROUGH")
+    protected Long validThrough;
+
     public UserEntity getUser() {
         return user;
     }
@@ -73,6 +80,14 @@ public class UserGroupMembershipEntity {
 
     public void setGroupId(String groupId) {
         this.groupId = groupId;
+    }
+
+    public Long getValidThrough() {
+        return validThrough;
+    }
+
+    public void setValidThrough(Long validThrough) {
+        this.validThrough = validThrough;
     }
 
     public static class Key implements Serializable {

@@ -23,6 +23,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModelDefaultMethods;
 import org.keycloak.models.utils.RoleUtils;
@@ -30,6 +31,7 @@ import org.keycloak.storage.StorageId;
 import org.keycloak.storage.federated.UserFederatedStorageProvider;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -128,16 +130,21 @@ public abstract class AbstractUserAdapterFederatedStorage extends UserModelDefau
      */
     @Override
     public Set<GroupModel> getGroups() {
-        Set<GroupModel> set = new HashSet<>(getFederatedStorage().getGroups(realm, this.getId()));
+        Set<GroupModel> set = new HashSet(getFederatedStorage().getGroupMembersStream(realm, this.getId()).map(UserGroupMembershipModel::getGroup).collect(Collectors.toList()));
         if (appendDefaultGroups()) set.addAll(realm.getDefaultGroupsStream().collect(Collectors.toSet()));
         set.addAll(getGroupsInternal());
         return set;
     }
 
     @Override
-    public void joinGroup(GroupModel group) {
-        getFederatedStorage().joinGroup(realm, this.getId(), group);
+    public void joinGroup(UserGroupMembershipModel member) {
+        getFederatedStorage().joinGroup(realm, this.getId(), member);
 
+    }
+
+    @Override
+    public void removeExpiredGroups(){
+        getFederatedStorage().removeExpiredGroups(realm, this.getId());
     }
 
     @Override
@@ -147,8 +154,14 @@ public abstract class AbstractUserAdapterFederatedStorage extends UserModelDefau
     }
 
     @Override
+    public void updateValidThroughGroup(String groupId, Long validThrough) {
+        getFederatedStorage().updateValidThroughGroup(realm, this.getId(), groupId, validThrough);
+
+    }
+
+    @Override
     public boolean isMemberOf(GroupModel group) {
-        return RoleUtils.isMember(getGroups().stream(), group);
+        return RoleUtils.isMember(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), group);
     }
 
     /**
@@ -181,7 +194,7 @@ public abstract class AbstractUserAdapterFederatedStorage extends UserModelDefau
     @Override
     public boolean hasRole(RoleModel role) {
         return RoleUtils.hasRole(getRoleMappings().stream(), role)
-          || RoleUtils.hasRoleFromGroup(getGroups().stream(), role, true);
+          || RoleUtils.hasRoleFromGroup(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), role, true);
     }
 
     @Override
@@ -401,6 +414,18 @@ public abstract class AbstractUserAdapterFederatedStorage extends UserModelDefau
 
     }
 
+//    @Override
+//    public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+//        Stream<UserGroupMembershipModel> members = getFederatedStorage().getGroupMembersStream(realm, this.getId());
+//        if (appendDefaultGroups()) members = Stream.concat(members, realm.getDefaultGroupsStream().map(group ->new UserGroupMembershipModel( group) ));
+//        return members;
+//    }
+
+    @Override
+    public Long getUserGroupMembership(String groupId)  {
+        return  getFederatedStorage().getUserGroupMembership(realm, this.getId(), groupId);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -462,14 +487,21 @@ public abstract class AbstractUserAdapterFederatedStorage extends UserModelDefau
 
         @Override
         public Stream<GroupModel> getGroupsStream() {
-            Stream<GroupModel> groups = getFederatedStorage().getGroupsStream(realm, this.getId());
+            Stream<GroupModel> groups = getFederatedStorage().getGroupMembersStream(realm, this.getId()).map(UserGroupMembershipModel::getGroup);
             if (appendDefaultGroups()) groups = Stream.concat(groups, realm.getDefaultGroupsStream());
             return Stream.concat(groups, getGroupsInternal().stream());
         }
 
         @Override
+        public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+            Stream<UserGroupMembershipModel> members = getFederatedStorage().getGroupMembersStream(realm, this.getId());
+            if (appendDefaultGroups()) members = Stream.concat(members, realm.getDefaultGroupsStream().map(UserGroupMembershipModel::new));
+            return members;
+        }
+
+        @Override
         public boolean isMemberOf(GroupModel group) {
-            return RoleUtils.isMember(this.getGroupsStream(), group);
+            return RoleUtils.isMember(this.getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), group);
         }
 
         // role-related methods.
@@ -509,7 +541,7 @@ public abstract class AbstractUserAdapterFederatedStorage extends UserModelDefau
         @Override
         public boolean hasRole(RoleModel role) {
             return RoleUtils.hasRole(this.getRoleMappingsStream(), role)
-                    || RoleUtils.hasRoleFromGroup(this.getGroupsStream(), role, true);
+                    || RoleUtils.hasRoleFromGroup(this.getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), role, true);
         }
     }
 }

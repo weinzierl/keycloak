@@ -27,6 +27,7 @@ import org.keycloak.component.ComponentModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.LDAPConstants;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -154,12 +155,12 @@ public class LDAPSpecialCharsTest extends AbstractLDAPTest {
             GroupModel specialGroup = KeycloakModelUtils.findGroupByPath(appRealm, "/group-spec,ia*l_characžter)s");
             Assert.assertNotNull(specialGroup);
 
-            specialUser.joinGroup(specialGroup);
+            specialUser.joinGroup(new UserGroupMembershipModel(specialGroup));
 
             GroupModel groupWithSlashes = KeycloakModelUtils.findGroupByPath(appRealm, "/group/with/three/slashes");
             Assert.assertNotNull(groupWithSlashes);
 
-            specialUser.joinGroup(groupWithSlashes);
+            specialUser.joinGroup(new UserGroupMembershipModel(groupWithSlashes));
 
             // 2 - Check that group mappings are in LDAP and hence available through federation
 

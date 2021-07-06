@@ -22,6 +22,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.cache.CachedUserModel;
 import org.keycloak.models.cache.infinispan.entities.CachedUser;
@@ -295,7 +296,7 @@ public class UserAdapter implements CachedUserModel.Streams {
         if (updated != null) return updated.hasRole(role);
         return cached.getRoleMappings(modelSupplier).contains(role.getId()) ||
                 getRoleMappingsStream().anyMatch(r -> r.hasRole(role)) ||
-                RoleUtils.hasRoleFromGroup(getGroupsStream(), role, true);
+                RoleUtils.hasRoleFromGroup(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), role, true);
     }
 
     @Override
@@ -331,8 +332,8 @@ public class UserAdapter implements CachedUserModel.Streams {
     public Stream<GroupModel> getGroupsStream() {
         if (updated != null) return updated.getGroupsStream();
         Set<GroupModel> groups = new LinkedHashSet<>();
-        for (String id : cached.getGroups(modelSupplier)) {
-            GroupModel groupModel = keycloakSession.groups().getGroupById(realm, id);
+        for (Map.Entry<String,Long> entry : cached.getGroups(modelSupplier).entrySet()) {
+            GroupModel groupModel = keycloakSession.groups().getGroupById(realm, entry.getKey());
             if (groupModel == null) {
                 // chance that role was removed, so just delete to persistence and get user invalidated
                 getDelegateForUpdate();
@@ -345,17 +346,52 @@ public class UserAdapter implements CachedUserModel.Streams {
     }
 
     @Override
-    public long getGroupsCountByNameContaining(String search) {
-        if (updated != null) return updated.getGroupsCountByNameContaining(search);
-        return modelSupplier.get().getGroupsCountByNameContaining(search);
+    public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+        if (updated != null) return updated.getGroupMembershipsStream();
+        Set<UserGroupMembershipModel> groups = new LinkedHashSet<>();
+        for (Map.Entry<String,Long> entry : cached.getGroups(modelSupplier).entrySet()) {
+            GroupModel groupModel = keycloakSession.groups().getGroupById(realm, entry.getKey());
+            if (groupModel == null) {
+                // chance that role was removed, so just delete to persistence and get user invalidated
+                getDelegateForUpdate();
+                return updated.getGroupMembershipsStream();
+            }
+            groups.add(new UserGroupMembershipModel(groupModel, entry.getValue() != 0 ? entry.getValue() : null));
+        }
+        return groups.stream();
     }
 
     @Override
-    public void joinGroup(GroupModel group) {
-        getDelegateForUpdate();
-        updated.joinGroup(group);
-
+    public long getGroupMembersCountByNameContaining(String search) {
+        if (updated != null) return updated.getGroupMembersCountByNameContaining(search);
+        return modelSupplier.get().getGroupMembersCountByNameContaining(search);
     }
+
+    @Override
+    public Long getUserGroupMembership(String groupId)  {
+        if (updated != null) return updated.getUserGroupMembership(groupId);
+        Long validThrough = cached.getGroups(modelSupplier).get(groupId);
+        return validThrough != 0 ? validThrough : null;
+    }
+
+    @Override
+    public void joinGroup(UserGroupMembershipModel member) {
+        getDelegateForUpdate();
+        updated.joinGroup(member);
+    }
+
+    @Override
+    public void removeExpiredGroups(){
+        getDelegateForUpdate();
+        updated.removeExpiredGroups();
+    }
+
+    @Override
+    public void updateValidThroughGroup(String groupId, Long validThrough)  {
+        getDelegateForUpdate();
+        updated.updateValidThroughGroup(groupId, validThrough) ;
+    }
+
 
     @Override
     public void leaveGroup(GroupModel group) {
@@ -366,7 +402,7 @@ public class UserAdapter implements CachedUserModel.Streams {
     @Override
     public boolean isMemberOf(GroupModel group) {
         if (updated != null) return updated.isMemberOf(group);
-        return cached.getGroups(modelSupplier).contains(group.getId()) || RoleUtils.isMember(getGroupsStream(), group);
+        return cached.getGroups(modelSupplier).get(group.getId()) != null || RoleUtils.isMember(getGroupsStream(), group);
     }
 
     @Override

@@ -60,7 +60,7 @@ public class MapUserEntity implements AbstractEntity, UpdatableEntity {
     private final List<String> credentialsOrder = new LinkedList<>();
     private final Map<String, UserFederatedIdentityEntity> federatedIdentities = new HashMap<>();
     private final Map<String, UserConsentEntity> userConsents = new HashMap<>();
-    private Set<String> groupsMembership = new HashSet<>();
+    private final Map<String, UserGroupMembershipEntity> groupsMembership = new HashMap<>();
     private Set<String> rolesMembership = new HashSet<>();
     private String federationLink;
     private String serviceAccountClientLink;
@@ -93,7 +93,8 @@ public class MapUserEntity implements AbstractEntity, UpdatableEntity {
         return this.updated
                 || userConsents.values().stream().anyMatch(UserConsentEntity::isUpdated)
                 || credentials.values().stream().anyMatch(UserCredentialEntity::isUpdated)
-                || federatedIdentities.values().stream().anyMatch(UserFederatedIdentityEntity::isUpdated);
+                || federatedIdentities.values().stream().anyMatch(UserFederatedIdentityEntity::isUpdated)
+                || groupsMembership.values().stream().anyMatch(UserGroupMembershipEntity::isUpdated);
     }
 
     public String getRealmId() {
@@ -305,21 +306,18 @@ public class MapUserEntity implements AbstractEntity, UpdatableEntity {
         return removed;
     }
 
-    public Set<String> getGroupsMembership() {
+    public Map<String, UserGroupMembershipEntity> getGroupsMembership() {
         return groupsMembership;
     }
 
-    public void setGroupsMembership(Set<String> groupsMembership) {
-        this.updated |= Objects.equals(groupsMembership, this.groupsMembership);
-        this.groupsMembership = groupsMembership;
-    }
-    
-    public void addGroupsMembership(String groupId) {
-        this.updated |= this.groupsMembership.add(groupId);
+    public void addGroupsMembership(UserGroupMembershipEntity memberEntity) {
+        this.updated |= !Objects.equals(this.groupsMembership.put(memberEntity.getGroupId(), memberEntity), groupsMembership);
     }
 
-    public void removeGroupsMembership(String groupId) {
-        this.updated |= this.groupsMembership.remove(groupId);
+    public boolean removeGroupsMembership(String groupId) {
+        boolean removed = groupsMembership.remove(groupId) != null;
+        this.updated |= removed;
+        return removed;
     }
 
     public Set<String> getRolesMembership() {

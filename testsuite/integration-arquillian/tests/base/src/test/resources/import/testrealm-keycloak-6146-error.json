@@ -42,7 +42,11 @@
          "attributes":{
 
          },
-        "groups" : [ "/Mobile Users" ]
+        "groups": [
+          {
+            "group" : { "path" :  "/Mobile Users" }
+          }
+        ]
       },
       {
          "username":"user2",
@@ -65,7 +69,11 @@
          "attributes":{
 
          },
-         "groups" : [ "/Mobile Users" ]
+        "groups": [
+          {
+            "group" : { "path" :  "/Mobile Users" }
+          }
+        ]
       },
       {
          "username":"secure-user",
@@ -91,7 +99,14 @@
          "attributes":{
 
          },
-         "groups" : [ "/Mobile Users", "/API Access" ]
+        "groups": [
+          {
+            "group" : { "path" :  "/Mobile Users" }
+          },
+          {
+            "group" : { "path" :  "/API Access" }
+          }
+        ]
       },
       {
          "username":"secure-user2",
@@ -117,7 +132,14 @@
          "attributes":{
 
          },
-         "groups" : [ "/Mobile Users", "/API Access" ]
+        "groups": [
+          {
+            "group" : { "path" :  "/Mobile Users" }
+          },
+          {
+            "group" : { "path" :  "/API Access" }
+          }
+        ]
       },
       {
          "username":"superuser",
@@ -142,7 +164,17 @@
          "attributes":{
 
          },
-         "groups" : [ "/Mobile Users", "/API Access", "Superuser" ]
+        "groups": [
+          {
+            "group" : { "path" :  "/Mobile Users" }
+          },
+          {
+            "group" : { "path" :  "/API Access" }
+          },
+          {
+            "group" : { "path" :  "Superuser" }
+          }
+        ]
       }
    ],
    "clients":[

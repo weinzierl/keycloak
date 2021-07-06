@@ -26,6 +26,7 @@ import org.keycloak.models.LDAPConstants;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserCredentialModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordUserCredentialModel;
 import org.keycloak.storage.ReadOnlyException;
@@ -39,6 +40,7 @@ import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
 import org.keycloak.storage.user.UserRegistrationProvider;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -60,7 +62,7 @@ public class UserMapStorage implements UserLookupProvider.Streams, UserStoragePr
     private static final Logger log = Logger.getLogger(UserMapStorage.class);
     
     protected final Map<String, String> userPasswords;
-    protected final ConcurrentMap<String, Set<String>> userGroups;
+    protected final ConcurrentMap<String, Set<UserGroupMembershipModel>> userGroups;
     protected ComponentModel model;
     protected KeycloakSession session;
     protected EditMode editMode;
@@ -72,7 +74,7 @@ public class UserMapStorage implements UserLookupProvider.Streams, UserStoragePr
     public static final AtomicInteger groupRemovals = new AtomicInteger(0);
     public static final AtomicInteger roleRemovals = new AtomicInteger(0);
 
-    public UserMapStorage(KeycloakSession session, ComponentModel model, Map<String, String> userPasswords, ConcurrentMap<String, Set<String>> userGroups) {
+    public UserMapStorage(KeycloakSession session, ComponentModel model, Map<String, String> userPasswords, ConcurrentMap<String, Set<UserGroupMembershipModel>> userGroups) {
         this.session = session;
         this.model = model;
         this.userPasswords = userPasswords;
@@ -132,9 +134,15 @@ public class UserMapStorage implements UserLookupProvider.Streams, UserStoragePr
                 }
 
                 @Override
-                public void joinGroup(GroupModel group) {
-                    UserMapStorage.this.joinGroup(realm, getUsername(), group);
+                public void joinGroup(UserGroupMembershipModel member) {
+                    UserMapStorage.this.joinGroup(realm, getUsername(), member);
                 }
+
+                @Override
+                public void updateValidThroughGroup(String groupId, Long validThrough) {
+                    UserMapStorage.this.updateValidThroughGroup(realm, getUsername(), groupId, validThrough);
+                }
+
 
                 @Override
                 public String getFederationLink() {
@@ -366,32 +374,54 @@ public class UserMapStorage implements UserLookupProvider.Streams, UserStoragePr
     }
 
     @Override
-    public Stream<GroupModel> getGroupsStream(RealmModel realm, String userId) {
-        Set<String> set = userGroups.get(getUserIdInMap(realm, userId));
+    public Stream<UserGroupMembershipModel> getGroupMembersStream(RealmModel realm, String userId) {
+        Set<UserGroupMembershipModel> set = userGroups.get(getUserIdInMap(realm, userId));
         if (set == null) {
             return Stream.empty();
         }
-        return set.stream().map(realm::getGroupById);
+        return set.stream();
     }
 
     @Override
-    public void joinGroup(RealmModel realm, String userId, GroupModel group) {
-        Set<String> groups = userGroups.computeIfAbsent(getUserIdInMap(realm, userId), userName -> new ConcurrentSkipListSet());
-        groups.add(group.getId());
+    public Long getUserGroupMembership(RealmModel realm, String userId, String groupId) {
+        Set<UserGroupMembershipModel> set = userGroups.get(getUserIdInMap(realm, userId));
+        return set == null ? null : set.stream().filter(member -> groupId.equals(member.getGroup().getId())).findAny().orElse(new UserGroupMembershipModel(null)).getValidThrough();
+    }
+
+    @Override
+    public void joinGroup(RealmModel realm, String userId, UserGroupMembershipModel member) {
+        Set<UserGroupMembershipModel> groups = userGroups.computeIfAbsent(getUserIdInMap(realm, userId), userName -> new ConcurrentSkipListSet());
+        groups.add(member);
+    }
+
+    @Override
+    public void removeExpiredGroups(RealmModel realm, String userId) {
+        Set<UserGroupMembershipModel> set = userGroups.get(getUserIdInMap(realm, userId));
+        if (set != null) {
+            set.removeIf(member -> member.getValidThrough() != null && member.getValidThrough() <  new Date().getTime());
+        }
     }
 
     @Override
     public void leaveGroup(RealmModel realm, String userId, GroupModel group) {
-        Set<String> set = userGroups.get(getUserIdInMap(realm, userId));
+        Set<UserGroupMembershipModel> set = userGroups.get(getUserIdInMap(realm, userId));
         if (set != null) {
-            set.remove(group.getId());
+            set.removeIf(member -> group.getId().equals(member.getGroup().getId()));
+        }
+    }
+
+    @Override
+    public void updateValidThroughGroup(RealmModel realm, String userId, String groupId, Long validThrough) {
+        Set<UserGroupMembershipModel> set = userGroups.get(getUserIdInMap(realm, userId));
+        if (set != null) {
+            set.stream().filter(member -> groupId.equals(member.getGroup().getId())).forEach(member -> member.setValidThrough(validThrough));
         }
     }
 
     @Override
     public Stream<String> getMembershipStream(RealmModel realm, GroupModel group, Integer firstResult, Integer max) {
         Stream<String> userStream = paginatedStream(userGroups.entrySet().stream(), firstResult, max)
-          .filter(me -> me.getValue().contains(group.getId()))
+          .filter(me -> me.getValue().stream().anyMatch(member -> group.getId().equals(member.getGroup().getId())))
           .map(Map.Entry::getKey)
           .filter(realmUser -> realmUser.startsWith(realm.getId()))
           .map(realmUser -> realmUser.substring(realmUser.indexOf("/") + 1));

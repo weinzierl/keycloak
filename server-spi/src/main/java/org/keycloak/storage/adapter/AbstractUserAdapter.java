@@ -23,6 +23,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModelDefaultMethods;
 import org.keycloak.models.utils.RoleUtils;
@@ -30,6 +31,7 @@ import org.keycloak.storage.ReadOnlyException;
 import org.keycloak.storage.StorageId;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -116,22 +118,28 @@ public abstract class AbstractUserAdapter extends UserModelDefaultMethods {
         set.addAll(getGroupsInternal());
         return set;
     }
+    @Override
+    public void removeExpiredGroups(){
+    }
 
     @Override
-    public void joinGroup(GroupModel group) {
+    public void joinGroup(UserGroupMembershipModel member) {
         throw new ReadOnlyException("user is read only for this update");
-
     }
 
     @Override
     public void leaveGroup(GroupModel group) {
         throw new ReadOnlyException("user is read only for this update");
+    }
 
+    @Override
+    public void updateValidThroughGroup(String groupId, Long validThrough) {
+        throw new ReadOnlyException("user is read only for this update");
     }
 
     @Override
     public boolean isMemberOf(GroupModel group) {
-        return RoleUtils.isMember(getGroups().stream(), group);
+        return RoleUtils.isMember(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), group);
     }
 
     @Override
@@ -147,7 +155,7 @@ public abstract class AbstractUserAdapter extends UserModelDefaultMethods {
     @Override
     public boolean hasRole(RoleModel role) {
         return RoleUtils.hasRole(getRoleMappings().stream(), role)
-          || RoleUtils.hasRoleFromGroup(getGroups().stream(), role, true);
+          || RoleUtils.hasRoleFromGroup(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), role, true);
     }
 
     @Override
@@ -421,8 +429,15 @@ public abstract class AbstractUserAdapter extends UserModelDefaultMethods {
         }
 
         @Override
-        public boolean isMemberOf(GroupModel group) {
-            return RoleUtils.isMember(this.getGroupsStream(), group);
+        public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+            Stream<UserGroupMembershipModel> members = getGroupsInternal().stream().map(UserGroupMembershipModel::new);
+            if (appendDefaultGroups()) members = Stream.concat(members, realm.getDefaultGroupsStream().map(UserGroupMembershipModel::new));
+            return members;
+        }
+
+        @Override
+        public Long getUserGroupMembership(String groupId)  {
+            return null;
         }
 
         // role-related methods.
@@ -463,7 +478,7 @@ public abstract class AbstractUserAdapter extends UserModelDefaultMethods {
         @Override
         public boolean hasRole(RoleModel role) {
             return RoleUtils.hasRole(this.getRoleMappingsStream(), role)
-                    || RoleUtils.hasRoleFromGroup(this.getGroupsStream(), role, true);
+                    || RoleUtils.hasRoleFromGroup(this.getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), role, true);
         }
     }
 }

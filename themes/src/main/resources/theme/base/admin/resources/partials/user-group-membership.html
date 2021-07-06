@@ -33,6 +33,7 @@
                                          &nbsp;
                                          <button id="viewAllGroups" class="btn btn-default" ng-click="clearSearchMembership()">{{:: 'view-all-groups' | translate}}</button>
                                          <div class="pull-right" data-ng-show="user.access.manageGroupMembership">
+                                             <button id="updateMember" class="btn btn-default" ng-click="updateValidThrough()">{{:: 'edit' | translate}}</button>
                                              <button id="leaveGroups" class="btn btn-default" ng-click="leaveGroup()">{{:: 'leave' | translate}}</button>
                                          </div>
                                      </div>
@@ -46,8 +47,8 @@
                                              tree-id="membershipTree"
                                              angular-treeview="true"
                                              tree-model="groupMemberships"
-                                             node-id="id"
-                                             node-label="path"
+                                             node-id="group.id"
+                                             node-label="group.path"
                                              node-children="subGroupsMembership" >
                                      </div>
                                  </td>

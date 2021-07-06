@@ -22,6 +22,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RealmProvider;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserProvider;
 import org.keycloak.storage.UserStorageProvider;
@@ -92,7 +93,8 @@ public class UserModelTest extends KeycloakModelTest {
         UserModel user = session.users().addUser(realm, "user-" + i);
 
         IntStream.range(0, NUM_GROUPS / 20).forEach(gIndex -> {
-            user.joinGroup(session.groups().getGroupById(realm, groupIds.get((i + gIndex) % NUM_GROUPS)));
+            UserGroupMembershipModel member = new UserGroupMembershipModel(session.groups().getGroupById(realm, groupIds.get((i + gIndex) % NUM_GROUPS)));
+            user.joinGroup(member);
         });
 
         final UserModel obtainedUser = session.users().getUserById(realm, user.getId());
@@ -130,7 +132,8 @@ public class UserModelTest extends KeycloakModelTest {
         IntStream.range(0, 100).parallel().forEach(index -> inComittedTransaction(index, (session, i) -> {
             final RealmModel realm = session.realms().getRealm(realmId);
             final UserModel user = session.users().addUser(realm, "user-" + i);
-            user.joinGroup(session.groups().getGroupById(realm, groupId));
+            UserGroupMembershipModel member = new UserGroupMembershipModel(session.groups().getGroupById(realm, groupId));
+            user.joinGroup(member);
             userIds.add(user.getId());
             return null;
         }));
@@ -201,7 +204,8 @@ public class UserModelTest extends KeycloakModelTest {
         IntStream.range(0, 100).parallel().forEach(index -> inComittedTransaction(index, (session, i) -> {
             final RealmModel realm = session.realms().getRealm(realmId);
             final UserModel user = session.users().addUser(realm, "user-" + i);
-            user.joinGroup(session.groups().getGroupById(realm, groupId));
+            UserGroupMembershipModel member = new UserGroupMembershipModel(session.groups().getGroupById(realm, groupId));
+            user.joinGroup(member);
             log.infof("Created user with id: %s", user.getId());
             userIds.add(user.getId());
             return null;

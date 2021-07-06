@@ -21,6 +21,7 @@ import org.keycloak.Config;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.storage.UserStorageProviderFactory;
 
@@ -49,7 +50,7 @@ public class UserMapStorageFactory implements UserStorageProviderFactory<UserMap
     }
 
     private final Map<String, String> userPasswords = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, Set<String>> userGroups = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Set<UserGroupMembershipModel>> userGroups = new ConcurrentHashMap<>();
 
     @Override
     public List<ProviderConfigProperty> getConfigProperties() {

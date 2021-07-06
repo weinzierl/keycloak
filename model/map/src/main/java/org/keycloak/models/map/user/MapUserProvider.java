@@ -38,6 +38,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserConsentModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModel.SearchableFields;
 import org.keycloak.models.UserProvider;
@@ -45,10 +46,13 @@ import org.keycloak.models.map.storage.MapKeycloakTransaction;
 import org.keycloak.models.map.storage.MapStorage;
 import org.keycloak.models.map.storage.ModelCriteriaBuilder;
 import org.keycloak.models.map.storage.ModelCriteriaBuilder.Operator;
+import org.keycloak.protocol.openshift.OpenShiftTokenReviewResponseRepresentation;
+import org.keycloak.storage.ReadOnlyException;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.client.ClientStorageProvider;
 
+import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -325,7 +329,7 @@ public class MapUserProvider implements UserProvider.Streams, UserCredentialStor
             userModel.grantRole(realm.getDefaultRole());
 
             // No need to check if user has group as it's new user
-            realm.getDefaultGroupsStream().forEach(userModel::joinGroup);
+            realm.getDefaultGroupsStream().forEach(group -> userModel.joinGroup(new UserGroupMembershipModel(group)));
         }
 
         if (addDefaultRequiredActions){

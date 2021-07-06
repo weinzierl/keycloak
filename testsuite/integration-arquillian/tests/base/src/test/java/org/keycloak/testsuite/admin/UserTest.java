@@ -59,6 +59,7 @@ import org.keycloak.representations.idm.MappingsRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RequiredActionProviderRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.services.resources.RealmsResource;
 import org.keycloak.storage.UserStorageProvider;
@@ -95,6 +96,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,6 +104,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -2379,12 +2383,25 @@ public class UserTest extends AbstractAdminTest {
             
             String groupId = g.id();
             UserResource user = u.resource();
-            user.joinGroup(groupId);
+            Long nowTime =  new Date().getTime();
+            Long validThrough =  nowTime +2000000000;
+            user.joinGroupValidThrough(groupId,validThrough);
             
-            List<GroupRepresentation> userGroups = user.groups(0, 100, false);
+            List<UserGroupMembershipRepresentation> userGroups = user.groups(0, 100, false);
             
             assertFalse(userGroups.isEmpty());
-            assertTrue(userGroups.get(0).getAttributes().containsKey("attribute1"));
+            assertEquals(groupName, userGroups.get(0).getGroup().getName());
+            assertEquals(validThrough, userGroups.get(0).getValidThrough());
+
+            //leave group and test to add invalid validThrough date
+            user.leaveGroup(groupId);
+            List<String> groupIds = user.groups(0, 100).stream().map(member -> member.getGroup().getId()).collect(Collectors.toList());
+            Assert.assertFalse(groupIds.contains(groupId));
+            Response errorResponse= user.joinGroupValidThrough(groupId, nowTime - 2000000000);
+            assertEquals(400, errorResponse.getStatus());
+            errorResponse.close();
+            groupIds = user.groups(0, 100).stream().map(member -> member.getGroup().getId()).collect(Collectors.toList());
+            Assert.assertFalse(groupIds.contains(groupId));
         }
     }
 
@@ -2400,7 +2417,7 @@ public class UserTest extends AbstractAdminTest {
             assertAdminEvents.assertEvent(realmId, OperationType.CREATE, AdminEventPaths.userGroupPath(userId, groupId), group, ResourceType.GROUP_MEMBERSHIP);
         }
 
-        List<GroupRepresentation> groups = realm.users().get(userId).groups(5, 6);
+        List<UserGroupMembershipRepresentation> groups = realm.users().get(userId).groups(5, 6);
         assertEquals(groups.size(), 5);
         assertNames(groups, "group-5","group-6","group-7","group-8","group-9");
     }
@@ -2417,24 +2434,24 @@ public class UserTest extends AbstractAdminTest {
             assertAdminEvents.assertEvent(realmId, OperationType.CREATE, AdminEventPaths.userGroupPath(userId, groupId), group, ResourceType.GROUP_MEMBERSHIP);
         }
 
-        List<GroupRepresentation> groups = realm.users().get(userId).groups("-3", 0, 10);
+        List<UserGroupMembershipRepresentation> groups = realm.users().get(userId).groups("-3", 0, 10);
         assertThat(realm.users().get(userId).groupsCount("-3").get("count"), is(1L));
         assertEquals(1, groups.size());
         assertNames(groups, "group-3");
 
-        List<GroupRepresentation> groups2 = realm.users().get(userId).groups("1", 0, 10);
+        List<UserGroupMembershipRepresentation> groups2 = realm.users().get(userId).groups("1", 0, 10);
         assertThat(realm.users().get(userId).groupsCount("1").get("count"), is(2L));
         assertEquals(2, groups2.size());
         assertNames(groups2, "group-1", "group-10");
 
-        List<GroupRepresentation> groups3 = realm.users().get(userId).groups("1", 2, 10);
+        List<UserGroupMembershipRepresentation> groups3 = realm.users().get(userId).groups("1", 2, 10);
         assertEquals(0, groups3.size());
 
-        List<GroupRepresentation> groups4 = realm.users().get(userId).groups("gr", 2, 10);
+        List<UserGroupMembershipRepresentation> groups4 = realm.users().get(userId).groups("gr", 2, 10);
         assertThat(realm.users().get(userId).groupsCount("gr").get("count"), is(10L));
         assertEquals(8, groups4.size());
 
-        List<GroupRepresentation> groups5 = realm.users().get(userId).groups("Gr", 2, 10);
+        List<UserGroupMembershipRepresentation> groups5 = realm.users().get(userId).groups("Gr", 2, 10);
         assertEquals(8, groups5.size());
     }
 
@@ -2475,12 +2492,13 @@ public class UserTest extends AbstractAdminTest {
                 .build();
 
         //when
-        String userId = createUser(build);
-        List<GroupRepresentation> obtainedGroups = realm.users().get(userId).groups();
+        String userId = createUser(build,false);
+        List<UserGroupMembershipRepresentation> obtainedMembers = realm.users().get(userId).groups();
 
         //then
-        assertEquals(1, obtainedGroups.size());
-        assertEquals(groupToBeAdded, obtainedGroups.get(0).getName());
+        assertEquals(1, obtainedMembers.size());
+        assertEquals(groupToBeAdded, obtainedMembers.get(0).getGroup().getName());
+        Assert.assertNull(obtainedMembers.get(0).getValidThrough());
     }
 
     private GroupRepresentation createGroup(RealmResource realm, GroupRepresentation group) {

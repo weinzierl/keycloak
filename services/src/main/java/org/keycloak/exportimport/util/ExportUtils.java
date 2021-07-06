@@ -63,6 +63,7 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.RolesRepresentation;
 import org.keycloak.representations.idm.ScopeMappingRepresentation;
 import org.keycloak.representations.idm.UserConsentRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.authorization.PolicyRepresentation;
 import org.keycloak.representations.idm.authorization.ResourceOwnerRepresentation;
@@ -526,8 +527,8 @@ public class ExportUtils {
         }
 
         if (options.isGroupsAndRolesIncluded()) {
-            List<String> groups = user.getGroupsStream().map(ModelToRepresentation::buildGroupPath).collect(Collectors.toList());
-            userRep.setGroups(groups);
+            List<UserGroupMembershipRepresentation> members = user.getGroupMembershipsStream().map(ModelToRepresentation::toBriefRepresentation).collect(Collectors.toList());
+            userRep.setGroups(members);
         }
         return userRep;
     }
@@ -679,9 +680,9 @@ public class ExportUtils {
         userRep.setNotBefore(notBefore);
 
         if (options.isGroupsAndRolesIncluded()) {
-            List<String> groups = session.userFederatedStorage().getGroupsStream(realm, id)
-                    .map(ModelToRepresentation::buildGroupPath).collect(Collectors.toList());
-            userRep.setGroups(groups);
+            List<UserGroupMembershipRepresentation> members = session.userFederatedStorage().getGroupMembersStream(realm, id)
+                    .map(ModelToRepresentation::toBriefRepresentation).collect(Collectors.toList());
+            userRep.setGroups(members);
         }
         return userRep;
     }

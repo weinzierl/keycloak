@@ -21,7 +21,6 @@ import org.keycloak.provider.ProviderEvent;
 
 import org.keycloak.storage.SearchableModelField;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -233,64 +232,48 @@ public interface UserModel extends RoleMapperModel {
         return value != null ? value.stream() : Stream.empty();
     }
 
-    /**
-     * @deprecated Use {@link #getGroupsStream(String, Integer, Integer) getGroupsStream} instead.
-     */
-    @Deprecated
-    default Set<GroupModel> getGroups(int first, int max) {
-        return getGroupsStream(null, first, max).collect(Collectors.toSet());
+    default Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+        Set<GroupModel> value = this.getGroups();
+        return value != null ? value.stream().map(UserGroupMembershipModel::new) : Stream.empty();
     }
 
-    /**
-     * @deprecated Use {@link #getGroupsStream(String, Integer, Integer) getGroupsStream} instead.
-     */
-    @Deprecated
-    default Set<GroupModel> getGroups(String search, int first, int max) {
-        return getGroupsStream(search, first, max)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    /**
-     * Returns a paginated stream of groups within this realm with search in the name
-     *
-     * @param search Case insensitive string which will be searched for. Ignored if null.
-     * @param first Index of first group to return. Ignored if negative or {@code null}.
-     * @param max Maximum number of records to return. Ignored if negative or {@code null}.
-     * @return Stream of desired groups. Never returns {@code null}.
-     */
-    default Stream<GroupModel> getGroupsStream(String search, Integer first, Integer max) {
+    default Stream<UserGroupMembershipModel> getGroupMembershipsStream(String search, Integer first, Integer max) {
         if (search != null) search = search.toLowerCase();
         final String finalSearch = search;
-        Stream<GroupModel> groupModelStream = getGroupsStream()
-                .filter(group -> finalSearch == null || group.getName().toLowerCase().contains(finalSearch));
+        Stream<UserGroupMembershipModel> memberStream = getGroupMembershipsStream()
+                .filter(member -> finalSearch == null || member.getGroup().getName().toLowerCase().contains(finalSearch));
 
         if (first != null && first > 0) {
-            groupModelStream = groupModelStream.skip(first);
+            memberStream = memberStream.skip(first);
         }
 
         if (max != null && max >= 0) {
-            groupModelStream = groupModelStream.limit(max);
+            memberStream = memberStream.limit(max);
         }
 
-        return groupModelStream;
+        return memberStream;
     }
 
-    default long getGroupsCount() {
-        return getGroupsCountByNameContaining(null);
+    default long getGroupMembersCount() {
+        return getGroupMembersCountByNameContaining(null);
     }
-    
-    default long getGroupsCountByNameContaining(String search) {
+
+    default long getGroupMembersCountByNameContaining(String search) {
         if (search == null) {
-            return getGroupsStream().count();
+            return getGroupMembershipsStream().count();
         }
 
         String s = search.toLowerCase();
-        return getGroupsStream().filter(group -> group.getName().toLowerCase().contains(s)).count();
+        return getGroupMembershipsStream().filter(member -> member.getGroup().getName().toLowerCase().contains(s)).count();
     }
 
-    void joinGroup(GroupModel group);
+    Long getUserGroupMembership(String groupId) ;
+    void joinGroup(UserGroupMembershipModel member) ;
+    void updateValidThroughGroup(String groupId, Long validThrough) ;
     void leaveGroup(GroupModel group);
     boolean isMemberOf(GroupModel group);
+
+    void removeExpiredGroups();
 
     String getFederationLink();
     void setFederationLink(String link);

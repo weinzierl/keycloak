@@ -1,0 +1,15 @@
+<div class="modal-header">
+    <h4 class="modal-title">{{:: 'group-join-title' | translate}}</h4>
+</div>
+<div class="modal-body">
+    <form>
+        <div>
+            <label class="control-label" for="validThrough">{{:: 'valid-through' | translate}}</label>
+            <input type="date" id="validThrough" data-ng-model="member.validThrough" placeholder="MM/dd/yyyy">
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="submit" class="btn btn-default" ng-click="cancel()">{{:: 'cancel' | translate}}</button>
+    <button type="submit" class="btn btn-primary" ng-click="ok()">{{:: 'join' | translate}}</button>
+</div>

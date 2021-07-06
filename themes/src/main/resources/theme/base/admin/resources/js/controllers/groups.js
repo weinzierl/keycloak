@@ -474,7 +474,7 @@ module.controller('GroupMembersCtrl', function($scope, realm, group, GroupMember
         console.log("query.search: " + $scope.query.search);
         $scope.searchLoaded = false;
 
-        $scope.users = GroupMembership.query($scope.query, function() {
+        $scope.members = GroupMembership.query($scope.query, function() {
             console.log('search loaded');
             $scope.searchLoaded = true;
             $scope.lastSearch = $scope.query.search;

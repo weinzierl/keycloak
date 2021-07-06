@@ -89,6 +89,7 @@ import org.keycloak.models.RoleModel;
 import org.keycloak.models.ScopeContainerModel;
 import org.keycloak.models.UserConsentModel;
 import org.keycloak.models.UserCredentialModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.WebAuthnPolicy;
@@ -126,6 +127,7 @@ import org.keycloak.representations.idm.SocialLinkRepresentation;
 import org.keycloak.representations.idm.UserConsentRepresentation;
 import org.keycloak.representations.idm.UserFederationMapperRepresentation;
 import org.keycloak.representations.idm.UserFederationProviderRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.authorization.AbstractPolicyRepresentation;
 import org.keycloak.representations.idm.authorization.DecisionStrategy;
@@ -1881,13 +1883,13 @@ public class RepresentationToModel {
 
     public static void createGroups(UserRepresentation userRep, RealmModel newRealm, UserModel user) {
         if (userRep.getGroups() != null) {
-            for (String path : userRep.getGroups()) {
-                GroupModel group = KeycloakModelUtils.findGroupByPath(newRealm, path);
+            for (UserGroupMembershipRepresentation member : userRep.getGroups()) {
+                GroupModel group = KeycloakModelUtils.findGroupByPath(newRealm, member.getGroup().getPath());
                 if (group == null) {
-                    throw new RuntimeException("Unable to find group specified by path: " + path);
+                    throw new RuntimeException("Unable to find group specified by path: " + member.getGroup().getPath());
 
                 }
-                user.joinGroup(group);
+                user.joinGroup(new UserGroupMembershipModel(group, member.getValidThrough()));
             }
         }
     }
@@ -2794,13 +2796,13 @@ public class RepresentationToModel {
         createFederatedRoleMappings(federatedStorage, userRep, newRealm);
 
         if (userRep.getGroups() != null) {
-            for (String path : userRep.getGroups()) {
-                GroupModel group = KeycloakModelUtils.findGroupByPath(newRealm, path);
+            for (UserGroupMembershipRepresentation member : userRep.getGroups()) {
+                GroupModel group = KeycloakModelUtils.findGroupByPath(newRealm, member.getGroup().getPath());
                 if (group == null) {
-                    throw new RuntimeException("Unable to find group specified by path: " + path);
+                    throw new RuntimeException("Unable to find group specified by path: " + member.getGroup().getPath());
 
                 }
-                federatedStorage.joinGroup(newRealm, userRep.getId(), group);
+                federatedStorage.joinGroup(newRealm, userRep.getId(),  new UserGroupMembershipModel(group, member.getValidThrough()));
             }
         }
 

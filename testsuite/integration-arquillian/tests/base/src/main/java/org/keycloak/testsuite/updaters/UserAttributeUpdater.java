@@ -6,8 +6,12 @@ import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.models.UserModel;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +19,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
-import static org.keycloak.testsuite.updaters.ServerResourceUpdater.updateViaAddRemove;
 
 /**
  * Updater for user attributes. See {@link ServerResourceUpdater} for further details.
@@ -55,7 +58,7 @@ public class UserAttributeUpdater extends ServerResourceUpdater<UserAttributeUpd
         super(resource,
           () -> {
             UserRepresentation r = resource.toRepresentation();
-            r.setGroups(resource.groups().stream().map(GroupRepresentation::getPath).collect(Collectors.toList()));
+            r.setGroups(resource.groups());
             return r;
           },
           resource::update
@@ -69,7 +72,7 @@ public class UserAttributeUpdater extends ServerResourceUpdater<UserAttributeUpd
     @Override
     protected void performUpdate(UserRepresentation from, UserRepresentation to) {
         super.performUpdate(from, to);
-        updateViaAddRemove(from.getGroups(), to.getGroups(), this::getConversionForGroupPathToId, resource::joinGroup, resource::leaveGroup);
+        updateViaAddRemove(from.getGroups().stream().map(member -> member.getGroup().getPath()).collect(Collectors.toList()), to.getGroups().stream().map(member -> member.getGroup().getPath()).collect(Collectors.toList()), this::getConversionForGroupPathToId, group -> resource.joinGroup(group), resource::leaveGroup);
     }
 
     private Function<String, String> getConversionForGroupPathToId() {
@@ -78,7 +81,7 @@ public class UserAttributeUpdater extends ServerResourceUpdater<UserAttributeUpd
         }
 
         Map<String, String> humanIdToIdMap = realmResource.groups().groups().stream()
-          .collect(Collectors.toMap(GroupRepresentation::getPath, GroupRepresentation::getId));
+            .collect(Collectors.toMap(GroupRepresentation::getPath, GroupRepresentation::getId));
 
         return humanIdToIdMap::get;
     }
@@ -124,7 +127,15 @@ public class UserAttributeUpdater extends ServerResourceUpdater<UserAttributeUpd
      * @return
      */
     public UserAttributeUpdater setGroups(String... groups) {
-        rep.setGroups(Arrays.asList(groups));
+        List<UserGroupMembershipRepresentation> members = new ArrayList<>();
+        for (int i = 0; i < groups.length; i++) {
+            UserGroupMembershipRepresentation member = new UserGroupMembershipRepresentation();
+            GroupRepresentation groupRep = new GroupRepresentation();
+            groupRep.setPath(groups[i]);
+            member.setGroup(groupRep);
+            members.add(member);
+        }
+        rep.setGroups(members);
         return this;
     }
 }

@@ -28,6 +28,8 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
+import org.keycloak.representations.idm.UserMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.storage.CacheableStorageProviderModel.CachePolicy;
 import org.keycloak.storage.StorageId;
@@ -56,6 +58,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -272,8 +275,8 @@ public class UserStorageTest extends AbstractAuthTest {
 
         // check group
         boolean foundGroup = false;
-        for (GroupRepresentation ug : testRealmResource().users().get(thor.getId()).groups()) {
-            if (ug.getId().equals(gid)) {
+        for (UserGroupMembershipRepresentation ug : testRealmResource().users().get(thor.getId()).groups()) {
+            if (ug.getGroup().getId().equals(gid)) {
                 foundGroup = true;
             }
         }
@@ -318,8 +321,8 @@ public class UserStorageTest extends AbstractAuthTest {
         Assert.assertFalse(thor.isEmailVerified());
 
         foundGroup = false;
-        for (GroupRepresentation ug : testRealmResource().users().get(thor.getId()).groups()) {
-            if (ug.getId().equals(gid)) {
+        for (UserGroupMembershipRepresentation ug : testRealmResource().users().get(thor.getId()).groups()) {
+            if (ug.getGroup().getId().equals(gid)) {
                 foundGroup = true;
             }
         }
@@ -445,7 +448,7 @@ public class UserStorageTest extends AbstractAuthTest {
 
         first = 0;
         while (queried.size() < 8) {
-            List<UserRepresentation> results = testRealmResource().groups().group(gid).members(first, 1);
+            List<UserRepresentation> results = testRealmResource().groups().group(gid).members(first, 1).stream().map(UserMembershipRepresentation::getUser).collect(Collectors.toList());
             log.debugf("first=%s, results: %s", first, results.size());
             if (results.isEmpty()) {
                 break;

@@ -21,12 +21,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.keycloak.models.credential.OTPCredentialModel;
 import org.keycloak.models.utils.HmacOTP;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
+import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
 /**
@@ -178,10 +181,15 @@ public class UserBuilder {
     }
 
     public UserBuilder addGroups(String... group) {
-        if (rep.getGroups() == null) {
-            rep.setGroups(new ArrayList<>());
+        List<UserGroupMembershipRepresentation> members = new ArrayList<>();
+        for (int i = 0; i < group.length; i++) {
+            UserGroupMembershipRepresentation member = new UserGroupMembershipRepresentation();
+            GroupRepresentation groupRep = new GroupRepresentation();
+            groupRep.setPath(group[i]);
+            member.setGroup(groupRep);
+            members.add(member);
         }
-        rep.getGroups().addAll(Arrays.asList(group));
+        rep.setGroups(members);
         return this;
     }
 

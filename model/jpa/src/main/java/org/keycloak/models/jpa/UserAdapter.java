@@ -24,6 +24,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.jpa.entities.UserAttributeEntity;
 import org.keycloak.models.jpa.entities.UserEntity;
@@ -32,6 +33,7 @@ import org.keycloak.models.jpa.entities.UserRequiredActionEntity;
 import org.keycloak.models.jpa.entities.UserRoleMappingEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.RoleUtils;
+import org.keycloak.storage.jpa.entity.FederatedUserGroupMembershipEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -41,6 +43,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -341,9 +344,9 @@ public class UserAdapter implements UserModel.Streams, JpaModel<UserEntity> {
         CriteriaQuery<String> queryBuilder = builder.createQuery(String.class);
         Root<UserGroupMembershipEntity> root = queryBuilder.from(UserGroupMembershipEntity.class);
 
+
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(builder.equal(root.get("user"), getEntity()));
-
         queryBuilder.select(root.get("groupId"));
         queryBuilder.where(predicates.toArray(new Predicate[0]));
 
@@ -357,9 +360,9 @@ public class UserAdapter implements UserModel.Streams, JpaModel<UserEntity> {
         CriteriaQuery<Long> queryBuilder = builder.createQuery(Long.class);
         Root<UserGroupMembershipEntity> root = queryBuilder.from(UserGroupMembershipEntity.class);
 
+
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(builder.equal(root.get("user"), getEntity()));
-
         queryBuilder.select(builder.count(root));
         queryBuilder.where(predicates.toArray(new Predicate[0]));
         return em.createQuery(queryBuilder);
@@ -367,40 +370,70 @@ public class UserAdapter implements UserModel.Streams, JpaModel<UserEntity> {
 
     @Override
     public Stream<GroupModel> getGroupsStream() {
-        return getGroupsStream(null, null, null);
+        return session.groups().getGroupsStream(realm, closing(createGetGroupsQuery().getResultStream()), null, null, null);
     }
 
     @Override
-    public Stream<GroupModel> getGroupsStream(String search, Integer first, Integer max) {
-        return session.groups().getGroupsStream(realm, closing(createGetGroupsQuery().getResultStream()), search, first, max);
+    public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+        TypedQuery<UserGroupMembershipEntity> query = em.createNamedQuery("userGroupMembership", UserGroupMembershipEntity.class);
+        query.setParameter("user", user);
+        List<UserGroupMembershipEntity> results = query.getResultList();
+        return results.stream().map(entity ->  new UserGroupMembershipModel(realm.getGroupById(entity.getGroupId()), entity.getValidThrough()));
     }
 
     @Override
-    public long getGroupsCount() {
+    public Stream<UserGroupMembershipModel> getGroupMembershipsStream(String search, Integer first, Integer max) {
+        TypedQuery<UserGroupMembershipEntity> query = em.createNamedQuery("userGroupMembershipSearchGroup", UserGroupMembershipEntity.class);
+        query.setParameter("user", user);
+        query.setParameter("search", "%"+search.toLowerCase()+"%");
+        query.setFirstResult(first);
+        query.setMaxResults(max);
+        List<UserGroupMembershipEntity> results = query.getResultList();
+        return results.stream().map(entity ->  new UserGroupMembershipModel(realm.getGroupById(entity.getGroupId()), entity.getValidThrough()));
+    }
+
+    @Override
+    public long getGroupMembersCount() {
         return createCountGroupsQuery().getSingleResult();
     }
 
     @Override
-    public long getGroupsCountByNameContaining(String search) {
-        if (search == null) return getGroupsCount();
+    public long getGroupMembersCountByNameContaining(String search) {
+        if (search == null) return getGroupMembersCount();
         return session.groups().getGroupsCount(realm, closing(createGetGroupsQuery().getResultStream()), search);
     }
 
     @Override
-    public void joinGroup(GroupModel group) {
-        if (isMemberOf(group)) return;
-        joinGroupImpl(group);
-
+    public Long getUserGroupMembership(String groupId)  {
+        TypedQuery<UserGroupMembershipEntity> query = em.createNamedQuery("userMemberOf", UserGroupMembershipEntity.class);
+        query.setParameter("user", user);
+        query.setParameter("groupId", groupId);
+        UserGroupMembershipEntity entity = query.getSingleResult();
+        return entity ==  null ? null : entity.getValidThrough();
     }
 
-    protected void joinGroupImpl(GroupModel group) {
+
+
+    @Override
+    public void joinGroup(UserGroupMembershipModel member) {
+        if (RoleUtils.isMember(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), member.getGroup())) return;
+        joinGroupImpl(member);
+    }
+
+    protected void joinGroupImpl(UserGroupMembershipModel member) {
         UserGroupMembershipEntity entity = new UserGroupMembershipEntity();
         entity.setUser(getEntity());
-        entity.setGroupId(group.getId());
+        entity.setGroupId(member.getGroup().getId());
+        entity.setValidThrough(member.getValidThrough());
         em.persist(entity);
-        em.flush();
-        em.detach(entity);
+    }
 
+    @Override
+    public void removeExpiredGroups() {
+        Query query = em.createNamedQuery("deleteExpiredUserGroupMembership");
+        query.setParameter("user", user);
+        query.setParameter("date", new Date().getTime());
+        query.executeUpdate();
     }
 
     @Override
@@ -419,8 +452,21 @@ public class UserAdapter implements UserModel.Streams, JpaModel<UserEntity> {
     }
 
     @Override
+    public void updateValidThroughGroup(String groupId, Long validThrough)  {
+        TypedQuery<UserGroupMembershipEntity> query = em.createNamedQuery("userMemberOf", UserGroupMembershipEntity.class);
+        query.setParameter("user", user);
+        query.setParameter("groupId", groupId);
+        List<UserGroupMembershipEntity> results = query.getResultList();
+        if (!results.isEmpty()) {
+            UserGroupMembershipEntity entity = results.get(0);
+            entity.setValidThrough(validThrough);
+            em.flush();
+        }
+    }
+
+    @Override
     public boolean isMemberOf(GroupModel group) {
-        return RoleUtils.isMember(getGroupsStream(), group);
+        return RoleUtils.isMember(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), group);
     }
 
     protected TypedQuery<UserGroupMembershipEntity> getUserGroupMappingQuery(GroupModel group) {
@@ -434,7 +480,7 @@ public class UserAdapter implements UserModel.Streams, JpaModel<UserEntity> {
     @Override
     public boolean hasRole(RoleModel role) {
         return RoleUtils.hasRole(getRoleMappingsStream(), role)
-                || RoleUtils.hasRoleFromGroup(getGroupsStream(), role, true);
+                || RoleUtils.hasRoleFromGroup(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), role, true);
     }
 
     protected TypedQuery<UserRoleMappingEntity> getUserRoleMappingEntityTypedQuery(RoleModel role) {

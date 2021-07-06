@@ -2104,7 +2104,21 @@ module.factory('UserGroupMapping', function($resource) {
     return $resource(authUrl + '/admin/realms/:realm/users/:userId/groups/:groupId', {
         realm : '@realm',
         userId : '@userId',
-        groupId : '@groupId'
+        groupId : '@groupId',
+        validThrough : '@validThrough'
+    }, {
+        update : {
+            method : 'PUT'
+        }
+    });
+});
+
+module.factory('UserGroupUpdate', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/users/:userId/groups/:groupId/update', {
+        realm : '@realm',
+        userId : '@userId',
+        groupId : '@groupId',
+        validThrough : '@validThrough'
     }, {
         update : {
             method : 'PUT'

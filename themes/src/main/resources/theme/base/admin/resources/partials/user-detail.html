@@ -113,19 +113,21 @@
                                 </div>
                             </th>
                         </tr>
-                        <tr data-ng-hide="!selectedGroups || selectedGroups.length == 0">
+                        <tr data-ng-hide="!selectedMembers || selectedMembers.length == 0">
                             <th>{{:: 'groups-joining-path' | translate}}</th>
+                            <th>{{:: 'valid-through' | translate}}</th>
                             <th width="20%">{{:: 'actions' | translate}}</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr ng-repeat="group in selectedGroups">
-                            <td>{{group.path}}</td>
-                            <td class="kc-action-cell" ng-click="removeGroup(selectedGroups, group);" style="vertical-align: middle">
+                        <tr ng-repeat="member in selectedMembers">
+                            <td>{{member.group.path}}</td>
+                            <td><input type="date" data-ng-model="member.validThrough" ></td>
+                            <td class="kc-action-cell" ng-click="removeGroup(selectedMembers, member);" style="vertical-align: middle">
                                 {{:: 'remove' | translate}}
                             </td>
                         </tr>
-                        <tr data-ng-show="!selectedGroups || selectedGroups.length == 0">
+                        <tr data-ng-show="!selectedMembers || selectedMembers.length == 0">
                             <td class="text-muted" colspan="2">{{:: 'groups-joining-no-selected' | translate}}</td>
                         </tr>
                         </tbody>

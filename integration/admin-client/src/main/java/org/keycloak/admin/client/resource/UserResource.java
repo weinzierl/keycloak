@@ -20,6 +20,7 @@ package org.keycloak.admin.client.resource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.UserSessionRepresentation;
 
@@ -56,28 +57,28 @@ public interface UserResource {
 
     @Path("groups")
     @GET
-    List<GroupRepresentation> groups();
+    List<UserGroupMembershipRepresentation> groups();
 
     @Path("groups")
     @GET
-    List<GroupRepresentation> groups(@QueryParam("first") Integer firstResult,
+    List<UserGroupMembershipRepresentation> groups(@QueryParam("first") Integer firstResult,
                                      @QueryParam("max") Integer maxResults);
 
     @Path("groups")
     @GET
-    List<GroupRepresentation> groups(@QueryParam("search") String search,
+    List<UserGroupMembershipRepresentation> groups(@QueryParam("search") String search,
                                      @QueryParam("first") Integer firstResult,
                                      @QueryParam("max") Integer maxResults);
     
     @Path("groups")
     @GET
-    List<GroupRepresentation> groups(@QueryParam("first") Integer firstResult,
+    List<UserGroupMembershipRepresentation> groups(@QueryParam("first") Integer firstResult,
                                      @QueryParam("max") Integer maxResults,
                                      @QueryParam("briefRepresentation") @DefaultValue("true") boolean briefRepresentation);
     
     @Path("groups")
     @GET
-    List<GroupRepresentation> groups(@QueryParam("search") String search,
+    List<UserGroupMembershipRepresentation> groups(@QueryParam("search") String search,
                                      @QueryParam("first") Integer firstResult,
                                      @QueryParam("max") Integer maxResults,
                                      @QueryParam("briefRepresentation") @DefaultValue("true") boolean briefRepresentation);
@@ -89,6 +90,10 @@ public interface UserResource {
     @Path("groups/{groupId}")
     @PUT
     void joinGroup(@PathParam("groupId") String groupId);
+
+    @Path("groups/{groupId}")
+    @PUT
+    Response joinGroupValidThrough(@PathParam("groupId") String groupId, @QueryParam("validThrough") Long validThrough);
 
     @Path("groups/{groupId}")
     @DELETE

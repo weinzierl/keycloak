@@ -34,6 +34,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.LDAPConstants;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.cache.UserCache;
@@ -586,8 +587,8 @@ public class LDAPSyncTest extends AbstractLDAPTest {
             Assert.assertNotNull(user8);
             UserModel user8Bis = session.users().getUserByUsername(appRealm, "user8bis");
             Assert.assertNotNull(user8Bis);
-            Assert.assertTrue("User user8 contains the group", user8.getGroupsStream().collect(Collectors.toSet()).contains(user8Group));
-            Assert.assertFalse("User user8bis does not contain the group", user8Bis.getGroupsStream().collect(Collectors.toSet()).contains(user8Group));
+            Assert.assertTrue("User user8 contains the group", user8.getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup).collect(Collectors.toSet()).contains(user8Group));
+            Assert.assertFalse("User user8bis does not contain the group", user8Bis.getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup).collect(Collectors.toSet()).contains(user8Group));
             List<String> members = session.users().getGroupMembersStream(appRealm, user8Group).map(u -> u.getUsername()).collect(Collectors.toList());
             Assert.assertEquals("Group contains only user8", members, Collections.singletonList("user8"));
         });

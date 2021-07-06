@@ -23,6 +23,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.ModelException;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.RoleUtils;
@@ -576,15 +577,14 @@ public class GroupLDAPStorageMapper extends AbstractLDAPStorageMapper implements
         return membershipType.getGroupMembers(realm, this, ldapGroup, firstResult, maxResults);
     }
 
-    public void addGroupMappingInLDAP(RealmModel realm, GroupModel kcGroup, LDAPObject ldapUser) {
-        String groupName = kcGroup.getName();
-        LDAPObject ldapGroup = loadLDAPGroupByName(groupName);
+    public void addGroupMappingInLDAP(RealmModel realm, UserGroupMembershipModel member, LDAPObject ldapUser) {
+        LDAPObject ldapGroup = loadLDAPGroupByName(member.getGroup().getName());
 
         if (ldapGroup == null) {
             // Needs to partially sync Keycloak groups to LDAP
             if (config.isPreserveGroupsInheritance()) {
                 GroupModel groupsPathGroup = getKcGroupsPathGroup(realm);
-                GroupModel highestGroupToSync = getHighestPredecessorNotExistentInLdap(groupsPathGroup, kcGroup);
+                GroupModel highestGroupToSync = getHighestPredecessorNotExistentInLdap(groupsPathGroup, member.getGroup());
 
                 logger.debugf("Will sync group '%s' and it's subgroups from DB to LDAP", highestGroupToSync.getName());
 
@@ -592,7 +592,7 @@ public class GroupLDAPStorageMapper extends AbstractLDAPStorageMapper implements
                 processKeycloakGroupSyncToLDAP(highestGroupToSync, syncedLDAPGroups, new HashSet<>(), new SynchronizationResult());
                 processKeycloakGroupMembershipsSyncToLDAP(highestGroupToSync, syncedLDAPGroups);
 
-                ldapGroup = loadLDAPGroupByName(groupName);
+                ldapGroup = loadLDAPGroupByName(member.getGroup().getName());
 
                 // Finally update LDAP membership in the parent group
                 if (highestGroupToSync.getParent() != groupsPathGroup) {
@@ -601,9 +601,9 @@ public class GroupLDAPStorageMapper extends AbstractLDAPStorageMapper implements
                 }
             } else {
                 // No care about group inheritance. Let's just sync current group
-                logger.debugf("Will sync group '%s' from DB to LDAP", groupName);
-                processKeycloakGroupSyncToLDAP(kcGroup, new HashMap<>(), new HashSet<>(), new SynchronizationResult());
-                ldapGroup = loadLDAPGroupByName(groupName);
+                logger.debugf("Will sync group '%s' from DB to LDAP", member.getGroup().getName());
+                processKeycloakGroupSyncToLDAP(member.getGroup(), new HashMap<>(), new HashSet<>(), new SynchronizationResult());
+                ldapGroup = loadLDAPGroupByName(member.getGroup().getName());
             }
         }
 
@@ -663,7 +663,7 @@ public class GroupLDAPStorageMapper extends AbstractLDAPStorageMapper implements
                 GroupModel kcGroup = findKcGroupOrSyncFromLDAP(realm, ldapGroup, user);
                 if (kcGroup != null) {
                     logger.debugf("User '%s' joins group '%s' during import from LDAP", user.getUsername(), kcGroup.getName());
-                    user.joinGroup(kcGroup);
+                    user.joinGroup(new UserGroupMembershipModel(kcGroup));
                 }
             }
         }
@@ -692,7 +692,7 @@ public class GroupLDAPStorageMapper extends AbstractLDAPStorageMapper implements
 
         @Override
         public boolean hasRole(RoleModel role) {
-            return super.hasRole(role) || RoleUtils.hasRoleFromGroup(getGroupsStream(), role, true);
+            return super.hasRole(role) || RoleUtils.hasRoleFromGroup(getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup), role, true);
         }
 
         @Override
@@ -708,13 +708,37 @@ public class GroupLDAPStorageMapper extends AbstractLDAPStorageMapper implements
         }
 
         @Override
-        public void joinGroup(GroupModel group) {
+        public Stream<UserGroupMembershipModel> getGroupMembershipsStream() {
+            Stream<GroupModel> ldapGroupMappings = getLDAPGroupMappingsConverted();
+            if (config.getMode() == LDAPGroupMapperMode.LDAP_ONLY) {
+                // Use just group mappings from LDAP
+                return ldapGroupMappings.map(UserGroupMembershipModel::new);
+            } else {
+                // Merge mappings from both DB and LDAP
+                return Stream.concat(ldapGroupMappings.map(UserGroupMembershipModel::new), super.getGroupMembershipsStream());
+            }
+        }
+
+        @Override
+        public Long getUserGroupMembership(String groupId)  {
+            Stream<UserGroupMembershipModel> ldapGroupMappings = getLDAPGroupMappingsConverted().map(group -> new UserGroupMembershipModel(group));
+            if (config.getMode() == LDAPGroupMapperMode.LDAP_ONLY) {
+                // Use just group mappings from LDAP
+                return ldapGroupMappings.filter(member -> groupId.equals(member.getGroup().getId())).findAny().map(UserGroupMembershipModel::getValidThrough).orElse(null);
+            } else {
+                // Merge mappings from both DB and LDAP
+                return Stream.concat(ldapGroupMappings, super.getGroupMembershipsStream()).filter(member -> groupId.equals(member.getGroup().getId())).findAny().map(UserGroupMembershipModel::getValidThrough).orElse(null);
+            }
+        }
+
+        @Override
+        public void joinGroup(UserGroupMembershipModel member) {
             if (config.getMode() == LDAPGroupMapperMode.LDAP_ONLY) {
                 // We need to create new role mappings in LDAP
                 cachedLDAPGroupMappings = null;
-                addGroupMappingInLDAP(realm, group, ldapUser);
+                addGroupMappingInLDAP(realm, member, ldapUser);
             } else {
-                super.joinGroup(group);
+                super.joinGroup(member);
             }
         }
 
@@ -751,7 +775,7 @@ public class GroupLDAPStorageMapper extends AbstractLDAPStorageMapper implements
 
         @Override
         public boolean isMemberOf(GroupModel group) {
-            return getGroupsStream().anyMatch(Predicate.isEqual(group));
+            return getGroupMembershipsStream().map(UserGroupMembershipModel::getGroup).anyMatch(Predicate.isEqual(group));
         }
 
         protected Stream<GroupModel> getLDAPGroupMappingsConverted() {

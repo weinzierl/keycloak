@@ -57,7 +57,9 @@ import org.keycloak.representations.IDToken;
 import org.keycloak.representations.RefreshToken;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.oidc.OIDCClientRepresentation;
 import org.keycloak.services.clientpolicy.ClientPolicyEvent;
@@ -121,7 +123,13 @@ public class ParTest extends AbstractClientPoliciesTest {
         user.setUsername("create-clients");
         user.setCredentials(credentials);
         user.setClientRoles(Collections.singletonMap(Constants.REALM_MANAGEMENT_CLIENT_ID, Collections.singletonList(AdminRoles.CREATE_CLIENT)));
-        user.setGroups(Arrays.asList("topGroup")); // defined in testrealm.json
+        List<UserGroupMembershipRepresentation> members = new ArrayList<>();
+        UserGroupMembershipRepresentation member = new UserGroupMembershipRepresentation();
+        GroupRepresentation groupRep = new GroupRepresentation();
+        groupRep.setPath("topGroup");
+        member.setGroup(groupRep);
+        members.add(member);
+        user.setGroups(members); // defined in testrealm.json
 
         users.add(user);
 

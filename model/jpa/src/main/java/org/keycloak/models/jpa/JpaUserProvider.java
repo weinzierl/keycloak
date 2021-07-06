@@ -35,6 +35,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserConsentModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.jpa.entities.CredentialEntity;
@@ -116,7 +117,11 @@ public class JpaUserProvider implements UserProvider.Streams, UserCredentialStor
             userModel.grantRole(realm.getDefaultRole());
 
             // No need to check if user has group as it's new user
-            realm.getDefaultGroupsStream().forEach(userModel::joinGroupImpl);
+            //member from now, without validThrough
+            realm.getDefaultGroupsStream().map(group -> {
+                UserGroupMembershipModel member = new UserGroupMembershipModel(group);
+                return member;
+            }).forEach(userModel::joinGroupImpl);
         }
 
         if (addDefaultRequiredActions) {

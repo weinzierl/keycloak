@@ -18,6 +18,7 @@ package org.keycloak.models.utils;
 
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.storage.ReadOnlyException;
 
@@ -127,14 +128,20 @@ public class ReadOnlyUserModelDelegate extends UserModelDelegate {
     }
 
     @Override
-    public void joinGroup(GroupModel group) {
-        throw readOnlyException("group mapping for group " + group.getName());
+    public void joinGroup(UserGroupMembershipModel member) {
+        throw readOnlyException("group mapping for group " + member.getGroup().getName());
     }
 
     @Override
     public void leaveGroup(GroupModel group) {
         throw readOnlyException("group mapping for group " + group.getName());
     }
+
+    @Override
+    public void updateValidThroughGroup(String groupId, Long validThrough) {
+        throw new ReadOnlyException("user is read only for this update");
+    }
+
 
     @Override
     public void grantRole(RoleModel role) {

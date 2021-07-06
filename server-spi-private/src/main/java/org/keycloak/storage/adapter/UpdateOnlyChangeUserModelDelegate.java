@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.UserModelDelegate;
 
@@ -169,11 +170,16 @@ public class UpdateOnlyChangeUserModelDelegate extends UserModelDelegate {
     }
 
     @Override
-    public void joinGroup(GroupModel group) {
-        if (!isMemberOf(group)) {
-            delegate.joinGroup(group);
+    public void joinGroup(UserGroupMembershipModel member) {
+        if (!isMemberOf(member.getGroup())) {
+            delegate.joinGroup(member);
         }
 
+    }
+
+    @Override
+    public void removeExpiredGroups() {
+        delegate.removeExpiredGroups();
     }
 
     @Override
@@ -181,6 +187,11 @@ public class UpdateOnlyChangeUserModelDelegate extends UserModelDelegate {
         if (isMemberOf(group)) {
             delegate.leaveGroup(group);
         }
+    }
+
+    @Override
+    public void updateValidThroughGroup(String groupId, Long validThrough) {
+        delegate.updateValidThroughGroup(groupId, validThrough);
     }
 
 

@@ -28,11 +28,13 @@ import org.keycloak.exportimport.ExportImportConfig;
 import org.keycloak.exportimport.ExportImportManager;
 import org.keycloak.exportimport.dir.DirExportProviderFactory;
 import org.keycloak.exportimport.singlefile.SingleFileExportProviderFactory;
+import org.keycloak.federation.sssd.api.Sssd;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.services.managers.RealmManager;
 import org.keycloak.testsuite.AbstractAuthTest;
@@ -42,7 +44,6 @@ import javax.ws.rs.NotFoundException;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.keycloak.testsuite.arquillian.annotation.AuthServerContainerExclude.AuthServer;
@@ -115,7 +116,7 @@ public class FederatedStorageExportImportTest extends AbstractAuthTest {
                     getPasswordPolicy().getHashIterations());
             session.userFederatedStorage().createCredential(realm, userId, credential);
             session.userFederatedStorage().grantRole(realm, userId, role);
-            session.userFederatedStorage().joinGroup(realm, userId, group);
+            session.userFederatedStorage().joinGroup(realm, userId, new UserGroupMembershipModel(group));
         });
 
         final String realmId = testRealmResource().toRepresentation().getId();
@@ -153,7 +154,7 @@ public class FederatedStorageExportImportTest extends AbstractAuthTest {
                     .collect(Collectors.toSet()).contains("UPDATE_PASSWORD"));
             Assert.assertTrue(session.userFederatedStorage().getRoleMappingsStream(realm, userId)
                     .collect(Collectors.toSet()).contains(role));
-            Assert.assertTrue(session.userFederatedStorage().getGroupsStream(realm, userId).collect(Collectors.toSet()).contains(group));
+            Assert.assertTrue(session.userFederatedStorage().getGroupMembersStream(realm, userId).map(UserGroupMembershipModel::getGroup).collect(Collectors.toSet()).contains(group));
             List<CredentialModel> creds = session.userFederatedStorage().getStoredCredentialsStream(realm, userId).collect(Collectors.toList());
             Assert.assertEquals(1, creds.size());
             Assert.assertTrue(FederatedStorageExportImportTest.getHashProvider(session, realm.getPasswordPolicy())
@@ -182,7 +183,7 @@ public class FederatedStorageExportImportTest extends AbstractAuthTest {
                     getPasswordPolicy().getHashIterations());
             session.userFederatedStorage().createCredential(realm, userId, credential);
             session.userFederatedStorage().grantRole(realm, userId, role);
-            session.userFederatedStorage().joinGroup(realm, userId, group);
+            session.userFederatedStorage().joinGroup(realm, userId, new UserGroupMembershipModel(group));
             session.userFederatedStorage().setNotBeforeForUser(realm, userId, 50);
         });
 
@@ -222,7 +223,7 @@ public class FederatedStorageExportImportTest extends AbstractAuthTest {
                     .collect(Collectors.toSet()).contains("UPDATE_PASSWORD"));
             Assert.assertTrue(session.userFederatedStorage().getRoleMappingsStream(realm, userId)
                     .collect(Collectors.toSet()).contains(role));
-            Assert.assertTrue(session.userFederatedStorage().getGroupsStream(realm, userId).collect(Collectors.toSet()).contains(group));
+            Assert.assertTrue(session.userFederatedStorage().getGroupMembersStream(realm, userId).map(UserGroupMembershipModel::getGroup).collect(Collectors.toSet()).contains(group));
             Assert.assertEquals(50, session.userFederatedStorage().getNotBeforeOfUser(realm, userId));
             List<CredentialModel> creds = session.userFederatedStorage().getStoredCredentialsStream(realm, userId).collect(Collectors.toList());
             Assert.assertEquals(1, creds.size());

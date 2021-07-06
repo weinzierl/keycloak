@@ -17,16 +17,24 @@
 
 package org.keycloak.storage.jpa.entity;
 
+import org.hibernate.annotations.SortNatural;
 import org.keycloak.storage.jpa.KeyUtils;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
+import javax.persistence.MapKeyColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -34,8 +42,11 @@ import java.io.Serializable;
  */
 @NamedQueries({
         @NamedQuery(name="feduserMemberOf", query="select m from FederatedUserGroupMembershipEntity m where m.userId = :userId and m.groupId = :groupId"),
-        @NamedQuery(name="feduserGroupMembership", query="select m from FederatedUserGroupMembershipEntity m where m.userId = :userId"),
-        @NamedQuery(name="fedgroupMembership", query="select g.userId from FederatedUserGroupMembershipEntity g where g.groupId = :groupId and g.realmId = :realmId"),
+        @NamedQuery(name="fedUserGroupMembership", query="select m from FederatedUserGroupMembershipEntity m where m.userId = :userId"),
+        @NamedQuery(name="fedUserGroupMembershipActive", query="select m from FederatedUserGroupMembershipEntity m where m.userId = :userId  "),
+        @NamedQuery(name="deleteExpiredFedUserGroupMembership", query="delete from FederatedUserGroupMembershipEntity m where m.userId = :userId and m.validThrough < :date "),
+        @NamedQuery(name="fedUserGroupMembershipActiveAndGroup", query="select m from FederatedUserGroupMembershipEntity m join GroupEntity g on m.groupId = g.id where m.userId = :userId  and lower(g.name) like :search "),
+        @NamedQuery(name="fedgroupMembership", query="select g.userId from FederatedUserGroupMembershipEntity g where g.groupId = :groupId and g.realmId = :realmId "),
         @NamedQuery(name="feduserGroupIds", query="select m.groupId from FederatedUserGroupMembershipEntity m where m.userId = :userId"),
         @NamedQuery(name="deleteFederatedUserGroupMembershipByRealm", query="delete from  FederatedUserGroupMembershipEntity mapping where mapping.realmId=:realmId"),
         @NamedQuery(name="deleteFederatedUserGroupMembershipByStorageProvider", query="delete from FederatedUserGroupMembershipEntity e where e.storageProviderId=:storageProviderId"),
@@ -62,6 +73,9 @@ public class FederatedUserGroupMembershipEntity {
 
     @Column(name = "STORAGE_PROVIDER_ID")
     protected String storageProviderId;
+
+    @Column(nullable = true, name = "VALID_THROUGH")
+    protected Long validThrough;
 
     public String getGroupId() {
         return groupId;
@@ -94,6 +108,14 @@ public class FederatedUserGroupMembershipEntity {
 
     public void setStorageProviderId(String storageProviderId) {
         this.storageProviderId = storageProviderId;
+    }
+
+    public Long getValidThrough() {
+        return validThrough;
+    }
+
+    public void setValidThrough(Long validThrough) {
+        this.validThrough = validThrough;
     }
 
     public static class Key implements Serializable {

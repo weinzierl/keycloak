@@ -369,7 +369,11 @@
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
-    "groups" : [ "/master-test-group" ]
+    "groups": [
+      {
+        "group" : { "path" :  "/master-test-group" }
+      }
+    ]
   } ],
   "scopeMappings" : [ {
     "client" : "admin-cli",
@@ -1769,7 +1773,11 @@
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
-    "groups" : [ "/migration-test-group" ]
+    "groups": [
+      {
+        "group" : { "path" :  "/migration-test-group" }
+      }
+    ]
   },
   {
     "id" : "9aa0d4f7-399e-4520-92df-77403d5d2a33",

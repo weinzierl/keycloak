@@ -18,6 +18,7 @@ package org.keycloak.storage.federated;
 
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserGroupMembershipModel;
 
 import java.util.List;
 import java.util.Set;
@@ -31,10 +32,11 @@ import java.util.stream.Stream;
 public interface UserGroupMembershipFederatedStorage {
 
     /**
-     * @deprecated Use {@link #getGroupsStream(RealmModel, String) getGroupsStream} instead.
+     * @deprecated Use {@link #getGroupMembersStream(RealmModel, String) getGroupsStream} instead.
+     * @return
      */
     @Deprecated
-    Set<GroupModel> getGroups(RealmModel realm, String userId);
+    Set<UserGroupMembershipModel> getGroupMembers(RealmModel realm, String userId);
 
     /**
      * Obtains the groups associated with the federated user.
@@ -43,13 +45,17 @@ public interface UserGroupMembershipFederatedStorage {
      * @param userId the user identifier.
      * @return a non-null {@code Stream} of groups.
      */
-    default Stream<GroupModel> getGroupsStream(RealmModel realm, String userId) {
-        Set<GroupModel> value = this.getGroups(realm, userId);
+    default Stream<UserGroupMembershipModel> getGroupMembersStream(RealmModel realm, String userId) {
+        Set<UserGroupMembershipModel> value = this.getGroupMembers(realm, userId);
         return value != null ? value.stream() : Stream.empty();
     }
 
-    void joinGroup(RealmModel realm, String userId, GroupModel group);
+    Long getUserGroupMembership(RealmModel realm, String userId, String groupId);
+
+    void joinGroup(RealmModel realm, String userId, UserGroupMembershipModel member);
+    void removeExpiredGroups(RealmModel realm, String userId);
     void leaveGroup(RealmModel realm, String userId, GroupModel group);
+    void updateValidThroughGroup(RealmModel realm, String userId, String groupId, Long validThrough);
 
     /**
      * @deprecated Use {@link #getMembershipStream(RealmModel, GroupModel, Integer, Integer) getMembershipStream} instead.
@@ -81,12 +87,12 @@ public interface UserGroupMembershipFederatedStorage {
      */
     interface Streams extends UserGroupMembershipFederatedStorage {
         @Override
-        default Set<GroupModel> getGroups(RealmModel realm, String userId) {
-            return getGroupsStream(realm, userId).collect(Collectors.toSet());
+        default Set<UserGroupMembershipModel> getGroupMembers(RealmModel realm, String userId) {
+            return getGroupMembersStream(realm, userId).collect(Collectors.toSet());
         }
 
         @Override
-        Stream<GroupModel> getGroupsStream(RealmModel realm, String userId);
+        Stream<UserGroupMembershipModel> getGroupMembersStream(RealmModel realm, String userId);
 
         @Override
         default List<String> getMembership(RealmModel realm, GroupModel group, int firstResult, int max) {

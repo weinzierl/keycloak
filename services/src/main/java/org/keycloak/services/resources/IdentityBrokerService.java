@@ -413,8 +413,6 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         ResteasyProviderFactory.getInstance().injectProperties(callback);
         //resourceContext.initResource(brokerService);
         return callback;
-
-
     }
 
     @Path("{provider_id}/token")
@@ -972,8 +970,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         // But for the case when userSession was previously authenticated with broker1 and now is linked to another broker2, we shouldn't override broker1 notes with the broker2 for sure.
         // Maybe broker logout should be rather always skiped in case of broker-linking
         if (userSession.getNote(Details.IDENTITY_PROVIDER) == null) {
-            userSession.setNote(Details.IDENTITY_PROVIDER, context.getIdpConfig().getAlias());
-            userSession.setNote(Details.IDENTITY_PROVIDER_USERNAME, context.getUsername());
+            // userSession.setNote(Details.IDENTITY_PROVIDER, context.getIdpConfig().getAlias());
+            // userSession.setNote(Details.IDENTITY_PROVIDER_USERNAME, context.getUsername());
         }
 
         return Response.status(302).location(UriBuilder.fromUri(authSession.getRedirectUri()).build()).build();

@@ -2,12 +2,15 @@ package org.keycloak.broker.saml.aggregate.metadata;
 
 import static java.util.Objects.isNull;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
 import javax.xml.namespace.QName;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
@@ -17,7 +20,10 @@ import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.w3c.dom.Element;
 
-public class SAMLIdpDescriptor {
+@JsonDeserialize(builder = SAMLIdpDescriptor.Builder.class)
+public class SAMLIdpDescriptor implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private final String entityId;
   private final String displayName;
@@ -85,8 +91,9 @@ public class SAMLIdpDescriptor {
     return new Builder(entityId, descriptor).build();
   }
 
+  @JsonPOJOBuilder
   public static class Builder {
-    private final String entityId;
+    private String entityId;
 
     private String displayName;
 
@@ -121,11 +128,11 @@ public class SAMLIdpDescriptor {
         .findFirst();
 
       if (ssoPbUrl.isPresent()) {
-        singleSignOnServiceUrl = ssoPbUrl.get();
-        postBindingResponse = true;
+        withSingleSignOnServiceUrl(ssoPbUrl.get());
+        withPostBindingResponse(true);
       } else if (ssoRedirectUrl.isPresent()) {
-        singleSignOnServiceUrl = ssoRedirectUrl.get();
-        postBindingResponse = false;
+        withSingleSignOnServiceUrl(ssoRedirectUrl.get());
+        withPostBindingResponse(false);
       } else {
         throw new RuntimeException("No SSO usable binding found for: " + entityId);
       }
@@ -149,11 +156,11 @@ public class SAMLIdpDescriptor {
         .findFirst();
 
       if (sloPbUrl.isPresent()) {
-        singleLogoutServiceUrl = sloPbUrl.get();
-        postBindingLogout = true;
+        withSingleLogoutServiceUrl(sloPbUrl.get());
+        withPostBindingLogout(true);
       } else if (sloRedirectUrl.isPresent()) {
-        singleLogoutServiceUrl = sloRedirectUrl.get();
-        postBindingLogout = false;
+        withSingleLogoutServiceUrl(sloRedirectUrl.get());
+        withPostBindingLogout(false);
       }
     }
 
@@ -168,9 +175,9 @@ public class SAMLIdpDescriptor {
           Element x509KeyInfo =
               DocumentUtil.getChildElement(keyInfo, new QName("dsig", "X509Certificate"));
           if (KeyTypes.SIGNING.equals(keyDescriptorType.getUse())) {
-            signingCertificate = x509KeyInfo.getTextContent();
+            withSigningCertificate(x509KeyInfo.getTextContent());
           } else if (KeyTypes.ENCRYPTION.equals(keyDescriptorType.getUse())) {
-            encryptionKey = x509KeyInfo.getTextContent();
+            withEncryptionKey(x509KeyInfo.getTextContent());
           } else if (keyDescriptorType.getUse() == null) {
             defaultCertificate = x509KeyInfo.getTextContent();
           }
@@ -178,11 +185,11 @@ public class SAMLIdpDescriptor {
 
         if (!isNull(defaultCertificate)) {
           if (isNull(signingCertificate)) {
-            signingCertificate = defaultCertificate;
+            withSigningCertificate(defaultCertificate);
           }
 
           if (isNull(encryptionKey)) {
-            encryptionKey = defaultCertificate;
+            withEncryptionKey(defaultCertificate);
           }
         }
       }
@@ -191,14 +198,14 @@ public class SAMLIdpDescriptor {
     private void initDisplayName() {
       if (!isNull(descriptor.getExtensions())) {
         if (!isNull(descriptor.getExtensions().getUIInfo())) {
-          displayName = descriptor.getExtensions()
+          withDisplayName(descriptor.getExtensions()
             .getUIInfo()
             .getDisplayName()
             .stream()
             .filter(l -> l.getLang().equals("en"))
             .map(LocalizedNameType::getValue)
             .findFirst()
-            .orElse(null);
+            .orElse(null));
         } else {
           System.out.println("null ui info");
         }
@@ -207,9 +214,49 @@ public class SAMLIdpDescriptor {
       }
     }
 
-    public Builder(String entityId, IDPSSODescriptorType descriptor) {
+    public Builder withEntityId(String entityId) {
       this.entityId = entityId;
+      return this;
+    }
+    public Builder withDescriptor(IDPSSODescriptorType descriptor) {
       this.descriptor = descriptor;
+      return this;
+    }
+    public Builder withDisplayName(String displayName) {
+      this.displayName = displayName;
+      return this;
+    }
+    public Builder withPostBindingResponse(Boolean postBindingResponse) {
+      this.postBindingResponse = postBindingResponse;
+      return this;
+    }
+    public Builder withPostBindingLogout(Boolean postBindingLogout) {
+      this.postBindingLogout = postBindingLogout;
+      return this;
+    }
+    public Builder withSingleLogoutServiceUrl(String singleLogoutServiceUrl) {
+      this.singleLogoutServiceUrl = singleLogoutServiceUrl;
+      return this;
+    }
+    public Builder withSingleSignOnServiceUrl(String singleSignOnServiceUrl) {
+      this.singleSignOnServiceUrl = singleSignOnServiceUrl;
+      return this;
+    }
+    public Builder withSigningCertificate(String signingCertificate) {
+      this.signingCertificate = signingCertificate;
+      return this;
+    }
+    public Builder withEncryptionKey(String encryptionKey) {
+      this.encryptionKey = encryptionKey;
+      return this;
+    }
+    public Builder() {
+
+    }
+
+    public Builder(String entityId, IDPSSODescriptorType descriptor) {
+      withEntityId(entityId);
+      withDescriptor(descriptor);
       initSso();
       initCerts();
       initDisplayName();

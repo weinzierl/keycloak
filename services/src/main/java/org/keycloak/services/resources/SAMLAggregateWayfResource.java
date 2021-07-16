@@ -1,6 +1,9 @@
 package org.keycloak.services.resources;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -13,22 +16,30 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
+import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.broker.saml.aggregate.SAMLAggregateIdentityProviderFactory;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLAggregateMetadataStoreProvider;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLIdpDescriptor;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.util.Base64Url;
+import org.keycloak.common.util.KeycloakUriBuilder;
+import org.keycloak.events.Errors;
+import org.keycloak.events.EventBuilder;
+import org.keycloak.events.EventType;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.saml.SAMLAggreateWayfResponseRepresentation;
 import org.keycloak.representations.saml.SAMLAggregateIdpRepresentation;
 import org.keycloak.services.ErrorResponseException;
+import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.managers.RealmManager;
 
 import com.google.common.base.Strings;
@@ -50,12 +61,12 @@ public class SAMLAggregateWayfResource {
 
   private RealmModel init(String realmName) {
     RealmManager realmManager = new RealmManager(session);
-    RealmModel realm = realmManager.getRealmByName(realmName);
-    if (realm == null) {
+    RealmModel realmModel = realmManager.getRealmByName(realmName);
+    if (realmModel == null) {
       throw new NotFoundException("Realm does not exist");
     }
-    session.getContext().setRealm(realm);
-    return realm;
+    session.getContext().setRealm(realmModel);
+    return realmModel;
   }
 
   @GET
@@ -63,18 +74,15 @@ public class SAMLAggregateWayfResource {
   @Produces(MediaType.TEXT_HTML)
   public Response getWayfPage(final @PathParam("realm") String name,
                               @QueryParam("provider") String providerAlias,
-                              @QueryParam("sessionCode") String sessionCode,
-                              @QueryParam("clientId") String clientId) throws IOException, FreeMarkerException {
+                              @QueryParam("clientId") String clientId) {
 
     if (Strings.isNullOrEmpty(providerAlias)) {
       throw new ErrorResponseException("Bad request", "Please specify a provider",
               Response.Status.BAD_REQUEST);
     }
 
-
-    RealmModel realm = init(name);
-
-    IdentityProviderModel idpConfig = realm.getIdentityProviderByAlias(providerAlias);
+    RealmModel realmModel = init(name);
+    IdentityProviderModel idpConfig = realmModel.getIdentityProviderByAlias(providerAlias);
 
     if (Objects.isNull(idpConfig) || !SAMLAggregateIdentityProviderFactory.PROVIDER_ID.equals(idpConfig.getProviderId())) {
       throw new ErrorResponseException("Invalid WAYF provider",
@@ -82,27 +90,74 @@ public class SAMLAggregateWayfResource {
               Response.Status.BAD_REQUEST);
     }
 
-    //final String BASE_URL = "http://dev.local.io:8081/auth/realms/";
     String BASE_URL = request.getUri().getBaseUri().toString();
-    String redirectUri = BASE_URL + "realms/" + name + "/account/login-redirect";
-    String state =  UUID.randomUUID().toString();
-    String actionUrl = BASE_URL + "realms/" + name + "/protocol/openid-connect/auth";
-    String responseType = "code";
-
-    SAMLAggregateMetadataStoreProvider md =
-            session.getProvider(SAMLAggregateMetadataStoreProvider.class);
-    List<SAMLIdpDescriptor> descriptors = md.getEntities(realm, providerAlias);
+    String actionUrl;
 
     LoginFormsProvider loginFormsProvider = session.getProvider(LoginFormsProvider.class);
-    loginFormsProvider.setAttribute("provider", providerAlias);
-    loginFormsProvider.setAttribute("descriptors", descriptors);
-    loginFormsProvider.setAttribute("actionUrl", actionUrl);
+    SAMLAggregateMetadataStoreProvider md = session.getProvider(SAMLAggregateMetadataStoreProvider.class);
+    List<SAMLIdpDescriptor> descriptors = md.getEntities(realmModel, providerAlias);
 
-    loginFormsProvider.setAttribute("clientId", clientId);
-    loginFormsProvider.setAttribute("redirectUri", redirectUri);
-    loginFormsProvider.setAttribute("state", state);
-    loginFormsProvider.setAttribute("responseType", responseType);
-    loginFormsProvider.setAttribute("sessionCode", Base64Url.encode(KeycloakModelUtils.generateSecret()));
+    AuthenticationManager.AuthResult cookieResult = AuthenticationManager.authenticateIdentityCookie(session, realmModel, true);
+
+    if (cookieResult == null) {
+      // not logged in => LOGIN
+      actionUrl = BASE_URL + "realms/" + name + "/protocol/openid-connect/auth";
+
+      String state =  UUID.randomUUID().toString();
+      String responseType = "code";
+
+      loginFormsProvider.setAttribute("isLogin", true);
+      loginFormsProvider.setAttribute("isLinking", false);
+      loginFormsProvider.setAttribute("provider", providerAlias);
+      loginFormsProvider.setAttribute("descriptors", descriptors);
+      loginFormsProvider.setAttribute("actionUrl", actionUrl);
+
+      loginFormsProvider.setAttribute("clientId", clientId);
+      loginFormsProvider.setAttribute("state", state);
+      loginFormsProvider.setAttribute("responseType", responseType);
+      loginFormsProvider.setAttribute("sessionCode", Base64Url.encode(KeycloakModelUtils.generateSecret()));
+
+    } else {
+      // not logged in => IDENTITY LINKING
+      actionUrl = BASE_URL + "realms/" + name + "/account/identity";
+
+      AccessToken token = cookieResult.getToken();
+      String nonce = UUID.randomUUID().toString();
+      MessageDigest messageDigest = null;
+      try {
+        messageDigest = MessageDigest.getInstance("SHA-256");
+      } catch (NoSuchAlgorithmException e) {
+        throw new RuntimeException(e);
+      }
+      String input = nonce + token.getSessionState() + clientId + providerAlias;
+      byte[] check = messageDigest.digest(input.getBytes(StandardCharsets.UTF_8));
+      String hash = Base64Url.encode(check);
+      String redirectUri = BASE_URL + "realms/" + name + "/account/identity";
+      String accountLinkUrl = KeycloakUriBuilder.fromUri(BASE_URL)
+              .path("/realms/" + name + "/broker/" + providerAlias + "/link")
+              .queryParam("nonce", nonce)
+              .queryParam("hash", hash)
+              .queryParam("client_id", clientId)
+              .queryParam("redirect_uri", redirectUri).build(realmModel, providerAlias).toString();
+
+
+      String state =  UUID.randomUUID().toString();
+      String responseType = "code";
+
+      loginFormsProvider.setAttribute("isLinking", true);
+      loginFormsProvider.setAttribute("isLogin", false);
+      loginFormsProvider.setAttribute("provider", providerAlias);
+      loginFormsProvider.setAttribute("descriptors", descriptors);
+      loginFormsProvider.setAttribute("actionUrl", accountLinkUrl);
+      loginFormsProvider.setAttribute("state", state);
+
+      loginFormsProvider.setAttribute("nonce", nonce);
+      loginFormsProvider.setAttribute("hash", hash);
+      loginFormsProvider.setAttribute("client_id", clientId);
+      loginFormsProvider.setAttribute("redirect_uri", redirectUri);
+
+      loginFormsProvider.setAttribute("sessionCode", Base64Url.encode(KeycloakModelUtils.generateSecret()));
+    }
 
     return loginFormsProvider.createSamlWayf();
   }

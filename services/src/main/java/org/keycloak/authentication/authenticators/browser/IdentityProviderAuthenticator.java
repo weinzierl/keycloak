@@ -77,10 +77,6 @@ public class IdentityProviderAuthenticator implements Authenticator {
                 if (context.getAuthenticationSession().getClientNote(OAuth2Constants.DISPLAY) != null) {
                     location = UriBuilder.fromUri(location).queryParam(OAuth2Constants.DISPLAY, context.getAuthenticationSession().getClientNote(OAuth2Constants.DISPLAY)).build();
                 }
-                if (context.getUriInfo().getQueryParameters().containsKey("entity_id")) {
-                    String entityId = context.getUriInfo().getQueryParameters().get("entity_id").get(0);
-                    location = UriBuilder.fromUri(location).queryParam("entity_id", entityId).build();
-                }
                 Response response = Response.seeOther(location)
                         .build();
                 // will forward the request to the IDP with prompt=none if the IDP accepts forwards with prompt=none.

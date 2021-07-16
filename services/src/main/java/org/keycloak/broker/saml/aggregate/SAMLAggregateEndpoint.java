@@ -93,7 +93,6 @@ public class SAMLAggregateEndpoint {
     public static final String SAML_IDP_INITIATED_CLIENT_ID = "SAML_IDP_INITIATED_CLIENT_ID";
     public static final String SAML_AUTHN_STATEMENT = "SAML_AUTHN_STATEMENT";
     public static final String SAML_FEDERATED_SESSION_ENTITY_ID = "SAML_FEDERATED_SESSION_ENTITY_ID";
-    public static final String SAML_FEDERATED_SESSION_PROVIDER_ALIAS = "SAML_FEDERATED_SESSION_PROVIDER_ALIAS";
     protected RealmModel realm;
     protected EventBuilder event;
     protected SAMLAggregateIdentityProviderConfig config;
@@ -470,10 +469,6 @@ public class SAMLAggregateEndpoint {
                  }
                 identity.setCode(relayState);
 
-                // Add session note
-                // identity.getContextData().put("IDP_DESCRIPTOR", idpDescriptor);
-                identity.getContextData().put("PROVIDER_ALIAS", provider.getConfig().getAlias());
-
                 return callback.authenticated(identity);
             } catch (WebApplicationException e) {
                 return e.getResponse();
@@ -481,7 +476,6 @@ public class SAMLAggregateEndpoint {
                 throw new IdentityBrokerException("Could not process response from SAML identity provider.", e);
             }
         }
-
 
         private boolean isSuccessfulSamlResponse(ResponseType responseType) {
             return responseType != null
@@ -556,11 +550,6 @@ public class SAMLAggregateEndpoint {
             }
             return AuthenticationManager.finishBrowserLogout(session, realm, userSession, session.getContext().getUri(), clientConnection, headers);
         }
-
-
-
-
-
     }
 
     protected class PostBinding extends Binding {

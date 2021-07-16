@@ -58,6 +58,7 @@ public class FederatedIdentityEntity {
     @Id
     @Column(name = "IDENTITY_PROVIDER")
     protected String identityProvider;
+    @Id
     @Column(name = "FEDERATED_USER_ID")
     protected String userId;
     @Column(name = "FEDERATED_USERNAME")

@@ -22,6 +22,7 @@ import org.keycloak.common.util.PemUtils;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.crypto.KeyUse;
 import org.keycloak.crypto.KeyWrapper;
+import org.keycloak.enums.AuthProtocol;
 import org.keycloak.models.RealmModel;
 
 import java.security.KeyPair;
@@ -51,7 +52,9 @@ public class ImportedRsaKeyProvider extends AbstractRsaKeyProvider {
 
         KeyUse keyUse = KeyUse.valueOf(model.get(Attributes.KEY_USE, KeyUse.SIG.name()).toUpperCase());
 
-        return createKeyWrapper(keyPair, certificate, keyUse);
+        AuthProtocol authProtocol = AuthProtocol.valueOf(model.get(Attributes.KEY_AUTH_PROTOCOL, AuthProtocol.SAML.name()).toUpperCase());
+
+        return createKeyWrapper(keyPair, certificate, keyUse, authProtocol);
     }
 
 }

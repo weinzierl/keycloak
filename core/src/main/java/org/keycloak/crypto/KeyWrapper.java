@@ -16,6 +16,8 @@
  */
 package org.keycloak.crypto;
 
+import org.keycloak.enums.AuthProtocol;
+
 import java.util.HashMap;
 import java.util.List;
 import javax.crypto.SecretKey;
@@ -41,6 +43,7 @@ public class KeyWrapper {
     private String algorithm;
     private String type;
     private KeyUse use;
+    private AuthProtocol authProtocol;
     private KeyStatus status;
     private SecretKey secretKey;
     private Key publicKey;
@@ -117,6 +120,10 @@ public class KeyWrapper {
     public void setUse(KeyUse use) {
         this.use = use;
     }
+
+    public AuthProtocol getAuthProtocol() { return authProtocol; }
+
+    public void setAuthProtocol(AuthProtocol authProtocol) { this.authProtocol = authProtocol; }
 
     public KeyStatus getStatus() {
         return status;

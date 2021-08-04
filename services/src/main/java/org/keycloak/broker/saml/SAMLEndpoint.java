@@ -26,6 +26,9 @@ import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProvider;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.VerificationException;
+import org.keycloak.crypto.Algorithm;
+import org.keycloak.crypto.KeyUse;
+import org.keycloak.crypto.KeyWrapper;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
 import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
@@ -38,6 +41,7 @@ import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.dom.saml.v2.protocol.StatusResponseType;
+import org.keycloak.enums.AuthProtocol;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
@@ -90,6 +94,8 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.security.Key;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Iterator;
@@ -357,9 +363,10 @@ public class SAMLEndpoint {
                         .relayState(relayState);
             boolean postBinding = config.isPostBindingLogout();
             if (config.isWantAuthnRequestsSigned()) {
-                KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
-                String keyName = config.getXmlSigKeyInfoKeyNameTransformer().getKeyName(keys.getKid(), keys.getCertificate());
-                binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())
+                KeyWrapper key = session.keys().getActiveKey(realm, KeyUse.SIG, Algorithm.RS256, AuthProtocol.SAML);
+
+                String keyName = config.getXmlSigKeyInfoKeyNameTransformer().getKeyName(key.getKid(), key.getCertificate());
+                binding.signWith(keyName, (PrivateKey)key.getPrivateKey(), (PublicKey)key.getPublicKey(), key.getCertificate())
                         .signatureAlgorithm(provider.getSignatureAlgorithm())
                         .signDocument();
                 if (! postBinding && config.isAddExtensionsElementWithKeyInfo()) {    // Only include extension if REDIRECT binding and signing whole SAML protocol message
@@ -415,7 +422,6 @@ public class SAMLEndpoint {
                 }
                 session.getContext().setAuthenticationSession(authSession);
 
-                KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
                 if (! isSuccessfulSamlResponse(responseType)) {
                     String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
                     return callback.error(statusMessage);
@@ -436,8 +442,9 @@ public class SAMLEndpoint {
                 Element assertionElement;
 
                 if (assertionIsEncrypted) {
+                    KeyWrapper key = session.keys().getActiveKey(realm, KeyUse.ENC, Algorithm.RS256, AuthProtocol.SAML);
                     // This methods writes the parsed and decrypted assertion back on the responseType parameter:
-                    assertionElement = AssertionUtil.decryptAssertion(holder, responseType, keys.getPrivateKey());
+                    assertionElement = AssertionUtil.decryptAssertion(holder, responseType, (PrivateKey)key.getPrivateKey());
                 } else {
                     /* We verify the assertion using original document to handle cases where the IdP
                     includes whitespace and/or newlines inside tags. */

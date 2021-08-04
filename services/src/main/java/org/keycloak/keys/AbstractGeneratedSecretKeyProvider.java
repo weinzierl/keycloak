@@ -24,6 +24,7 @@ import org.keycloak.crypto.JavaAlgorithm;
 import org.keycloak.crypto.KeyStatus;
 import org.keycloak.crypto.KeyUse;
 import org.keycloak.crypto.KeyWrapper;
+import org.keycloak.enums.AuthProtocol;
 
 import javax.crypto.SecretKey;
 import java.util.stream.Stream;
@@ -38,16 +39,18 @@ public abstract class AbstractGeneratedSecretKeyProvider implements KeyProvider 
     private final String kid;
     private final SecretKey secretKey;
     private final KeyUse use;
+    private final AuthProtocol authProtocol;
     private String type;
     private final String algorithm;
 
-    public AbstractGeneratedSecretKeyProvider(ComponentModel model, KeyUse use, String type, String algorithm) {
+    public AbstractGeneratedSecretKeyProvider(ComponentModel model, KeyUse use, String type, String algorithm, AuthProtocol authProtocol) {
         this.status = KeyStatus.from(model.get(Attributes.ACTIVE_KEY, true), model.get(Attributes.ENABLED_KEY, true));
         this.kid = model.get(Attributes.KID_KEY);
         this.model = model;
         this.use = use;
         this.type = type;
         this.algorithm = algorithm;
+        this.authProtocol = authProtocol;
 
         if (model.hasNote(SecretKey.class.getName())) {
             secretKey = model.getNote(SecretKey.class.getName());
@@ -70,6 +73,7 @@ public abstract class AbstractGeneratedSecretKeyProvider implements KeyProvider 
         key.setAlgorithm(algorithm);
         key.setStatus(status);
         key.setSecretKey(secretKey);
+        key.setAuthProtocol(authProtocol);
 
         return Stream.of(key);
     }

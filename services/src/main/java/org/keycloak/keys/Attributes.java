@@ -19,6 +19,7 @@ package org.keycloak.keys;
 
 import org.keycloak.crypto.Algorithm;
 import org.keycloak.crypto.KeyUse;
+import org.keycloak.enums.AuthProtocol;
 import org.keycloak.provider.ProviderConfigProperty;
 
 import static org.keycloak.provider.ProviderConfigProperty.*;
@@ -49,6 +50,10 @@ public interface Attributes {
     String KEY_USE = "keyUse";
     ProviderConfigProperty KEY_USE_PROPERTY = new ProviderConfigProperty(KEY_USE, "Key use", "Whether the key should be used for signing or encryption.", LIST_TYPE,
             KeyUse.SIG.getSpecName(), KeyUse.SIG.getSpecName(), KeyUse.ENC.getSpecName());
+
+    String KEY_AUTH_PROTOCOL = "keyAuthProtocol";
+    ProviderConfigProperty KEY_AUTH_PROTOCOL_PROPERTY = new ProviderConfigProperty(KEY_AUTH_PROTOCOL, "Authentication protocol", "Set 'saml' for key use with SAML protocol, 'oidc' for OIDC protocol, or 'other' for any other (generic) key use such as docker, kerberos, etc", LIST_TYPE,
+            AuthProtocol.OTHER.getSpecName(), AuthProtocol.OTHER.getSpecName(), AuthProtocol.SAML.getSpecName(), AuthProtocol.OIDC.getSpecName());
 
     String KID_KEY = "kid";
 

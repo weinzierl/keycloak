@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.keycloak.crypto.KeyUse;
+import org.keycloak.enums.AuthProtocol;
 
 /**
  * @author <a href="mailto:sthorger@redhat.com">Stian Thorgersen</a>
@@ -61,6 +62,7 @@ public class KeysMetadataRepresentation {
         private String publicKey;
         private String certificate;
         private KeyUse use;
+        private AuthProtocol authProtocol;
 
         public String getProviderId() {
             return providerId;
@@ -133,5 +135,10 @@ public class KeysMetadataRepresentation {
         public void setUse(KeyUse use) {
             this.use = use;
         }
+
+        public AuthProtocol getAuthProtocol() { return authProtocol; }
+
+        public void setAuthProtocol(AuthProtocol authProtocol) { this.authProtocol = authProtocol; }
+
     }
 }

@@ -83,6 +83,7 @@ public class KeyResource {
         r.setPublicKey(key.getPublicKey() != null ? PemUtils.encodeKey(key.getPublicKey()) : null);
         r.setCertificate(key.getCertificate() != null ? PemUtils.encodeCertificate(key.getCertificate()) : null);
         r.setUse(key.getUse());
+        r.setAuthProtocol(key.getAuthProtocol());
         return r;
     }
 }

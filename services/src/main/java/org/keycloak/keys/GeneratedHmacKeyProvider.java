@@ -21,6 +21,7 @@ import org.keycloak.component.ComponentModel;
 import org.keycloak.crypto.Algorithm;
 import org.keycloak.crypto.KeyType;
 import org.keycloak.crypto.KeyUse;
+import org.keycloak.enums.AuthProtocol;
 
 
 /**
@@ -29,7 +30,7 @@ import org.keycloak.crypto.KeyUse;
 public class GeneratedHmacKeyProvider extends AbstractGeneratedSecretKeyProvider {
 
     public GeneratedHmacKeyProvider(ComponentModel model) {
-        super(model, KeyUse.SIG, KeyType.OCT, model.get(Attributes.ALGORITHM_KEY, Algorithm.HS256));
+        super(model, KeyUse.SIG, KeyType.OCT, model.get(Attributes.ALGORITHM_KEY, Algorithm.HS256), AuthProtocol.valueOf(model.get(Attributes.KEY_AUTH_PROTOCOL, AuthProtocol.SAML.name()).toUpperCase()));
     }
 
 }

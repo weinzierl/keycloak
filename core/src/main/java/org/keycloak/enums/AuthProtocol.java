@@ -14,22 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.keycloak.crypto;
 
-import org.keycloak.common.VerificationException;
-import org.keycloak.enums.AuthProtocol;
-import org.keycloak.provider.Provider;
+package org.keycloak.enums;
 
-public interface SignatureProvider extends Provider {
 
-    SignatureSignerContext signer(AuthProtocol authProtocol) throws SignatureException;
+public enum AuthProtocol {
 
-    SignatureVerifierContext verifier(String kid) throws VerificationException;
+    OIDC("oidc"),
+    SAML("saml"),
+    OTHER("other");
 
-    boolean isAsymmetricAlgorithm();
+    private String specName;
 
-    @Override
-    default void close() {
+    AuthProtocol(String specName) {
+        this.specName = specName;
     }
 
+    public String getSpecName() {
+        return specName;
+    }
 }

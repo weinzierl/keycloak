@@ -21,6 +21,9 @@ import { HttpResponse } from '../../account-service/account.service';
 import { AccountServiceContext } from '../../account-service/AccountServiceContext';
 import { Msg } from '../../widgets/Msg';
 import parse from '../../util/ParseLink';
+import { Features } from '../../widgets/features';
+
+declare const features: Features;
 
 export interface GroupsPageProps {
 }
@@ -59,6 +62,7 @@ interface GroupJoinRequest {
 export class GroupsPage extends React.Component<GroupsPageProps, GroupsPageState> {
   static contextType = AccountServiceContext;
   context: React.ContextType<typeof AccountServiceContext>;
+  private isJoinGroupsEnabled: boolean = features.isJoinGroupsEnabled;
 
   public constructor(props: GroupsPageProps, context: React.ContextType<typeof AccountServiceContext>) {
     super(props);
@@ -126,7 +130,7 @@ export class GroupsPage extends React.Component<GroupsPageProps, GroupsPageState
   private requestJoinFunction = () => {
 
     const reasonValue = (document.getElementById('reason') as HTMLInputElement).value;
-    const request = {
+    const request : GroupJoinRequest = {
       joinGroups: this.state.joinGroups,
       reason: reasonValue
     };
@@ -340,30 +344,51 @@ export class GroupsPage extends React.Component<GroupsPageProps, GroupsPageState
     )
   }
 
+    private renderJoinButton(): React.ReactNode {
+        return (<DataListCell key='join-group-header' width={5}>
+                        <Button key="joingroup" variant="primary" id="joingroup" onClick={this.handleToggleDialog}>
+                          <Msg msgKey='joingroup' />
+                        </Button>
+                 </DataListCell>)
+    }
+
   public render(): React.ReactNode {
     return (
       <ContentPage title={Msg.localize('groupLabel')}>
         <DataList id="groups-list" aria-label={Msg.localize('groupLabel')} isCompact>
           <DataListItem id="groups-list-header" aria-labelledby="Columns names" >
             <DataListItemRow >
-              <DataListItemCells
+              {this.isJoinGroupsEnabled ? <DataListItemCells
                 dataListCells={[
-                  <DataListCell key='join-group-header' width={1}>
-                    <Button key="joingroup" variant="primary" id="joingroup" onClick={this.handleToggleDialog}>
-                      <Msg msgKey='joingroup' />
-                    </Button>
-                  </DataListCell>,
-                  <DataListCell key='directMembership-header' width={5}>
+                  <DataListCell key='directMembership-header' width={1}>
                     <Checkbox
                       label={Msg.localize('directMembership')}
                       id="directMembership-checkbox"
                       isChecked={this.state.isDirectMembership}
                       onChange={this.changeDirectMembership}
                     />
+                  </DataListCell>,
+                  <DataListCell key='join-group-header' width={5}>
+                                          <Button key="joingroup" variant="primary" id="joingroup" onClick={this.handleToggleDialog}>
+                                            <Msg msgKey='joingroup' />
+                                          </Button>
                   </DataListCell>
                 ]}
               />
-              {this.modal()}
+
+               : <DataListItemCells
+                   dataListCells={[
+                     <DataListCell key='directMembership-header' width={1}>
+                       <Checkbox
+                         label={Msg.localize('directMembership')}
+                         id="directMembership-checkbox"
+                         isChecked={this.state.isDirectMembership}
+                         onChange={this.changeDirectMembership}
+                       />
+                     </DataListCell>
+                 ]}
+               /> }
+                {this.modal()}
             </DataListItemRow>
           </DataListItem>
           <DataListItem id="groups-list-header" aria-labelledby="Columns names">

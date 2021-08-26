@@ -2280,6 +2280,46 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
                 .executeUpdate();
     }
 
+    @Override
+    public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests() {
+        return realm.getUserGroupMembershipRequests().stream().map(this::entityToModel);
+    }
+
+    @Override
+    public UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id) {
+        UserGroupMembershipRequestEntity entity = em.find(UserGroupMembershipRequestEntity.class, id);
+        if (entity == null) return null;
+        if (!entity.getRealm().getId().equals(realm.getId())) return null;
+        return entityToModel(entity);
+    }
+
+    @Override
+    public void addUserGroupMembershipRequest(UserGroupMembershipRequestModel model) {
+        UserGroupMembershipRequestEntity entity = new UserGroupMembershipRequestEntity();
+        entity.setId((KeycloakModelUtils.generateId()));
+        entity.setUserId(model.getUserId());
+        entity.setGroupId(model.getGroupId());
+        entity.setReason(model.getReason());
+        entity.setStatus("PENDING");
+
+        realm.addUserGroupMembershipRequest(entity);
+        em.persist(entity);
+
+        model.setId(entity.getId());
+    }
+
+
+    private UserGroupMembershipRequestModel entityToModel(UserGroupMembershipRequestEntity entity){
+        UserGroupMembershipRequestModel model = new UserGroupMembershipRequestModel();
+        model.setId(entity.getId());
+        model.setUserId(entity.getUserId());
+        model.setGroupId(entity.getGroupId());
+        model.setReason(entity.getReason());
+        model.setStatus(entity.getStatus());
+        model.setViewerId(entity.getViewerId());
+        return model;
+    }
+
     private ClientInitialAccessModel entityToModel(ClientInitialAccessEntity entity) {
         ClientInitialAccessModel model = new ClientInitialAccessModel();
         model.setId(entity.getId());

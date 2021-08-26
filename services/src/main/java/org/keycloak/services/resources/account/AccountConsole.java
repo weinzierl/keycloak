@@ -135,12 +135,15 @@ public class AccountConsole {
             boolean isTotpConfigured = false;
             boolean deleteAccountAllowed = false;
             boolean isViewGroupsEnabled= false;
+            boolean isJoinGroupsEnabled= false;
             if (user != null) {
                 isTotpConfigured = session.userCredentialManager().isConfiguredFor(realm, user, realm.getOTPPolicy().getType());
                 RoleModel deleteAccountRole = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.DELETE_ACCOUNT);
                 deleteAccountAllowed = deleteAccountRole != null && user.hasRole(deleteAccountRole) && realm.getRequiredActionProviderByAlias(DeleteAccount.PROVIDER_ID).isEnabled();
                 RoleModel viewGrouRole = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.VIEW_GROUPS);
                 isViewGroupsEnabled = viewGrouRole != null && user.hasRole(viewGrouRole);
+                RoleModel joinGrouRole = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.JOIN_GROUPS);
+                isJoinGroupsEnabled = joinGrouRole != null && user.hasRole(joinGrouRole);
             }
 
             map.put("isTotpConfigured", isTotpConfigured);
@@ -148,6 +151,8 @@ public class AccountConsole {
             map.put("deleteAccountAllowed", deleteAccountAllowed);
 
             map.put("isViewGroupsEnabled", isViewGroupsEnabled);
+
+            map.put("isJoinGroupsEnabled", isJoinGroupsEnabled);
 
             FreeMarkerUtil freeMarkerUtil = new FreeMarkerUtil();
             String result = freeMarkerUtil.processTemplate(map, "index.ftl", theme);

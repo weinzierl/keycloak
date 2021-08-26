@@ -56,7 +56,7 @@ public class GroupMembershipResource {
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
     public Stream<GroupRepresentation> groupMembership(@QueryParam("briefRepresentation") @DefaultValue("true") boolean briefRepresentation) {
-        auth.require(AccountRoles.VIEW_GROUPS);
+        auth.require(AccountRoles.MANAGE_ACCOUNT);
 
          return ModelToRepresentation.toGroupHierarchy(user, !briefRepresentation);
     }
@@ -68,7 +68,7 @@ public class GroupMembershipResource {
     public Response getGroups(@QueryParam("search") @DefaultValue("") String search,
                               @QueryParam("first") @DefaultValue("0") Integer firstResult,
                               @QueryParam("max") @DefaultValue("10") Integer maxResults) {
-        auth.require(AccountRoles.VIEW_GROUPS);
+        auth.require(AccountRoles.MANAGE_ACCOUNT);
 
         return Response.ok().entity(ModelToRepresentation.searchForAllGroupByName(realm, search.trim(), firstResult, maxResults).collect(Collectors.toList())).links(createPageLinks(firstResult, maxResults, realm.getGroupsCountByNameContaining(search.trim()).intValue())).build();
 
@@ -80,14 +80,26 @@ public class GroupMembershipResource {
     @Path("/join")
     @Consumes(MediaType.APPLICATION_JSON)
     public void requestJoinGroup(JoinGroupRequestRepresentation rep) {
-        auth.require(AccountRoles.VIEW_GROUPS);
+        auth.require(AccountRoles.MANAGE_ACCOUNT);
 
-        try {
-            String link = Urls.userAdminConsoleURi(session.getContext().getUri(UrlType.FRONTEND).getBaseUri(), realm.getName(),user.getId()).replace("%23","#");
-            session.getProvider(EmailTemplateProvider.class).setRealm(realm).setUser(user).sendJoinGroupRequestEmail(link);
-        } catch (EmailException e) {
-            ServicesLogger.LOGGER.failedToSendEmail(e);
-        }
+        rep.getJoinGroups().stream().forEach(groupId -> {
+            GroupModel group = session.groups().getGroupById(realm, groupId);
+            if (group != null) {
+                UserGroupMembershipRequestModel request = new UserGroupMembershipRequestModel();
+                request.setUserId(user.getId());
+                request.setGroupId(groupId);
+                request.setReason(rep.getReason());
+                realm.addUserGroupMembershipRequest(request);
+            }
+        });
+
+        //temporary disabled due to the fact that I do not know which users has specific rights!
+//        try {
+//            String link = Urls.userAdminConsoleURi(session.getContext().getUri(UrlType.FRONTEND).getBaseUri(), realm.getName(),user.getId()).replace("%23","#");
+//            session.getProvider(EmailTemplateProvider.class).setRealm(realm).setUser(user).sendJoinGroupRequestEmail(link,user);
+//        } catch (EmailException e) {
+//            ServicesLogger.LOGGER.failedToSendEmail(e);
+//        }
 
     }
     

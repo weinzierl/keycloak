@@ -29,6 +29,7 @@ import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.UserGroupMembershipRequestModel;
 import org.keycloak.models.OAuth2DeviceConfig;
 import org.keycloak.models.OTPPolicy;
 import org.keycloak.models.ParConfig;
@@ -174,6 +175,8 @@ public class CachedRealm extends AbstractExtendableRevisioned {
 
     protected Map<String, Map<String,String>> realmLocalizationTexts;
 
+    protected List<UserGroupMembershipRequestModel> userGroupMembershipRequests;
+
     public CachedRealm(Long revision, RealmModel model) {
         super(revision, model.getId());
         name = model.getName();
@@ -316,6 +319,8 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         }
 
         realmLocalizationTexts = model.getRealmLocalizationTexts();
+
+        this.userGroupMembershipRequests = model.getUserGroupMembershipRequests().collect(Collectors.toList());
     }
 
     protected void cacheClientScopes(RealmModel model) {
@@ -748,5 +753,9 @@ public class CachedRealm extends AbstractExtendableRevisioned {
 
     public Map<String, Map<String, String>> getRealmLocalizationTexts() {
         return realmLocalizationTexts;
+    }
+
+    public List<UserGroupMembershipRequestModel> getUserGroupMembershipRequests() {
+        return userGroupMembershipRequests;
     }
 }

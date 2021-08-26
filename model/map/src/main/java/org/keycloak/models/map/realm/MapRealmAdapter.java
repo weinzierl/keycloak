@@ -48,6 +48,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.RequiredCredentialModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserGroupMembershipRequestModel;
 import org.keycloak.models.WebAuthnPolicy;
 import org.keycloak.models.map.realm.entity.MapAuthenticationExecutionEntity;
 import org.keycloak.models.map.realm.entity.MapAuthenticationFlowEntity;
@@ -59,6 +60,7 @@ import org.keycloak.models.map.realm.entity.MapIdentityProviderMapperEntity;
 import org.keycloak.models.map.realm.entity.MapOTPPolicyEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredActionProviderEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredCredentialEntity;
+import org.keycloak.models.map.realm.entity.MapUserGroupMembershipRequestEntity;
 import org.keycloak.models.map.realm.entity.MapWebAuthnPolicyEntity;
 import org.keycloak.models.utils.ComponentUtil;
 
@@ -1561,6 +1563,21 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
         MapClientInitialAccessEntity clientInitialAccess = entity.getClientInitialAccess(model.getId());
         clientInitialAccess.setRemainingCount(model.getRemainingCount() - 1);
         entity.updateClientInitialAccess(clientInitialAccess);
+    }
+
+    @Override
+    public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests() {
+        return entity.getUserGroupMembershipRequests().map(MapUserGroupMembershipRequestEntity::toModel);
+    }
+
+    @Override
+    public UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id) {
+        return MapUserGroupMembershipRequestEntity.toModel(entity.getUserGroupMembershipRequest(id));
+    }
+
+    @Override
+    public void addUserGroupMembershipRequest(UserGroupMembershipRequestModel model) {
+        entity.addUserGroupMembershipRequest(MapUserGroupMembershipRequestEntity.fromModel(model));
     }
 
     @Override

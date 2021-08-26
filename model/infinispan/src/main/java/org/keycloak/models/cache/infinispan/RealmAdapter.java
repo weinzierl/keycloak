@@ -1762,6 +1762,24 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
+    public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests() {
+        if (isUpdated()) return updated.getUserGroupMembershipRequests();
+        return cached.getUserGroupMembershipRequests().stream();
+    }
+
+    @Override
+    public UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id) {
+        if (isUpdated()) return updated.getUserGroupMembershipRequest(id);
+        return cached.getUserGroupMembershipRequests().stream().filter(model -> id.equals(model.getId())).findAny().orElse(null);
+    }
+
+    @Override
+    public void addUserGroupMembershipRequest(UserGroupMembershipRequestModel model) {
+        getDelegateForUpdate();
+        updated.addUserGroupMembershipRequest(model);
+    }
+
+    @Override
     public String toString() {
         return String.format("%s@%08x", getId(), hashCode());
     }

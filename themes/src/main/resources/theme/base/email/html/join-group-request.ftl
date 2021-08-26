@@ -1,5 +1,5 @@
 <html>
 <body>
-${kcSanitize(msg("joinGroupRequestBodyHtml",user.getUsername(),user.getFirstName(),user.getLastName(),url))?no_esc}
+${kcSanitize(msg("joinGroupRequestBodyHtml",userRequest.getUsername(),userRequest.getFirstName(),userRequest.getLastName(),url))?no_esc}
 </body>
 </html>

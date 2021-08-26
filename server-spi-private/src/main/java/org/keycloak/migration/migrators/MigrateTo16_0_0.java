@@ -30,6 +30,10 @@ public class MigrateTo16_0_0 implements Migration {
             RoleModel viewAppRole = accountClient.addRole(AccountRoles.VIEW_GROUPS);
             viewAppRole.setDescription("${role_" + AccountRoles.VIEW_GROUPS + "}");
         }
+        if (accountClient != null && accountClient.getRole(AccountRoles.JOIN_GROUPS) == null) {
+            RoleModel joinAppRole = accountClient.addRole(AccountRoles.JOIN_GROUPS);
+            joinAppRole.setDescription("${role_" + AccountRoles.JOIN_GROUPS + "}");
+        }
     }
 
     @Override

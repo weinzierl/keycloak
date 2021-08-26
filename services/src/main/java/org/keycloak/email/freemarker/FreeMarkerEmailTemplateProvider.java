@@ -177,8 +177,8 @@ public class FreeMarkerEmailTemplateProvider implements EmailTemplateProvider {
     }
 
     @Override
-    public void sendJoinGroupRequestEmail(String link) throws EmailException {
-        attributes.put("user", user);
+    public void sendJoinGroupRequestEmail(String link,UserModel userRequest) throws EmailException {
+        attributes.put("userRequest", userRequest);
         attributes.put("url", link);
         send("joinGroupRequestSubject", "join-group-request.ftl", attributes);
     }

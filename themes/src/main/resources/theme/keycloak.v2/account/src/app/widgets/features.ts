@@ -25,6 +25,7 @@
     isTotpConfigured: boolean;
     deleteAccountAllowed: boolean;
     isViewGroupsEnabled: boolean;
+    isJoinGroupsEnabled: boolean;
  }
 
 

@@ -1031,4 +1031,8 @@ public interface RealmModel extends RoleContainerModel {
     void removeClientInitialAccessModel(String id);
     Stream<ClientInitialAccessModel> getClientInitialAccesses();
     void decreaseRemainingCount(ClientInitialAccessModel clientInitialAccess);
+
+    Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests();
+    UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id);
+    void addUserGroupMembershipRequest(UserGroupMembershipRequestModel model);
 }

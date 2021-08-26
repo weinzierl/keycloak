@@ -41,6 +41,7 @@ import org.keycloak.models.map.realm.entity.MapIdentityProviderMapperEntity;
 import org.keycloak.models.map.realm.entity.MapOTPPolicyEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredActionProviderEntity;
 import org.keycloak.models.map.realm.entity.MapRequiredCredentialEntity;
+import org.keycloak.models.map.realm.entity.MapUserGroupMembershipRequestEntity;
 import org.keycloak.models.map.realm.entity.MapWebAuthnPolicyEntity;
 
 public class MapRealmEntity implements AbstractEntity, UpdatableEntity {
@@ -124,6 +125,7 @@ public class MapRealmEntity implements AbstractEntity, UpdatableEntity {
     private final Map<String, MapIdentityProviderEntity> identityProviders = new HashMap<>();
     private final Map<String, MapIdentityProviderMapperEntity> identityProviderMappers = new HashMap<>();
     private final Map<String, MapRequiredActionProviderEntity> requiredActionProviders = new HashMap<>();
+    private final Map<String, MapUserGroupMembershipRequestEntity> userGroupMembershipRequests = new HashMap<>();
 
     /**
      * Flag signalizing that any of the setters has been meaningfully used.
@@ -157,13 +159,14 @@ public class MapRealmEntity implements AbstractEntity, UpdatableEntity {
                 || requiredCredentials.values().stream().anyMatch(MapRequiredCredentialEntity::isUpdated)
                 || otpPolicy.isUpdated()
                 || webAuthnPolicy.isUpdated()
-                || webAuthnPolicyPasswordless.isUpdated();
+                || webAuthnPolicyPasswordless.isUpdated()
+                || userGroupMembershipRequests.values().stream().anyMatch(MapUserGroupMembershipRequestEntity::isUpdated);
     }
 
     public String getName() {
         return name;
     }
-
+;
     public void setName(String name) {
         this.updated |= ! Objects.equals(this.name, name);
         this.name = name;
@@ -1028,4 +1031,22 @@ public class MapRealmEntity implements AbstractEntity, UpdatableEntity {
     public Collection<MapClientInitialAccessEntity> getClientInitialAccesses() {
         return clientInitialAccesses.values();
     }
+
+    public Stream<MapUserGroupMembershipRequestEntity> getUserGroupMembershipRequests() {
+        return userGroupMembershipRequests.values().stream();
+    }
+
+    public MapUserGroupMembershipRequestEntity getUserGroupMembershipRequest(String id) {
+        return userGroupMembershipRequests.get(id);
+    }
+
+    public void addUserGroupMembershipRequest(MapUserGroupMembershipRequestEntity entity) {
+        this.updated = true;
+        userGroupMembershipRequests.put(entity.getId(), entity);
+    }
+
+    public void updateUserGroupMembershipRequest(MapUserGroupMembershipRequestEntity entity) {
+        this.updated |= userGroupMembershipRequests.replace(entity.getId(), entity) != null;
+    }
+
 }

@@ -204,6 +204,9 @@ public class RealmEntity {
     @OneToMany(fetch = FetchType.LAZY, cascade ={CascadeType.ALL}, orphanRemoval = true, mappedBy = "realm")
     Set<ComponentEntity> components;
 
+    @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
+    Set<UserGroupMembershipRequestEntity> userGroupMembershipRequests;
+
     @Column(name="BROWSER_FLOW")
     protected String browserFlow;
 
@@ -711,6 +714,19 @@ public class RealmEntity {
 
     public void setComponents(Set<ComponentEntity> components) {
         this.components = components;
+    }
+
+    public Set<UserGroupMembershipRequestEntity> getUserGroupMembershipRequests() {
+        return userGroupMembershipRequests == null ? new HashSet<>() : userGroupMembershipRequests;
+    }
+
+    public void setUserGroupMembershipRequests(Set<UserGroupMembershipRequestEntity> userGroupMembershipRequests) {
+        this.userGroupMembershipRequests = userGroupMembershipRequests;
+    }
+
+    public void addUserGroupMembershipRequest(UserGroupMembershipRequestEntity entity) {
+        entity.setRealm(this);
+        getUserGroupMembershipRequests().add(entity);
     }
 
     public String getOtpPolicyType() {

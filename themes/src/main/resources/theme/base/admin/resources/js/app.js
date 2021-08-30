@@ -978,6 +978,15 @@ module.config([ '$routeProvider', function($routeProvider) {
             },
             controller : 'UserListCtrl'
         })
+        .when('/realms/:realm/user-group-requests', {
+            templateUrl : resourceUrl + '/partials/user-group-requests.html',
+            resolve : {
+                 realm : function(RealmLoader) {
+                     return RealmLoader();
+                 }
+            },
+            controller : 'UserGroupRequestsCtrl'
+         })
 
         .when('/create/role/:realm', {
             templateUrl : resourceUrl + '/partials/role-detail.html',

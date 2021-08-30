@@ -51,6 +51,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.ws.rs.NotFoundException;
+
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
@@ -200,6 +202,47 @@ public class ModelToRepresentation {
         }
         return group.getSubGroupsStream().findAny().isPresent();
     }
+
+    public static UserGroupMembershipRequestRepresentation toRepresentation(UserGroupMembershipRequestModel model, KeycloakSession session, RealmModel realm) {
+        UserGroupMembershipRequestRepresentation rep = new UserGroupMembershipRequestRepresentation();
+
+        GroupModel group = session.groups().getGroupById(realm, model.getGroupId());
+        if (group == null) {
+            throw new NotFoundException("Group not found");
+        }
+        GroupRepresentation groupRep = new GroupRepresentation();
+        groupRep.setId(group.getId());
+        groupRep.setName(group.getName());
+        groupRep.setPath(buildGroupPath(group));
+        rep.setGroup(groupRep);
+
+        UserModel user = session.users().getUserById(realm, model.getUserId());
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
+        UserRepresentation userRep = new UserRepresentation();
+        userRep.setId(user.getId());
+        userRep.setUsername(user.getUsername());
+        rep.setUser(userRep);
+
+        if ( model.getViewerId() != null) {
+            UserModel viewer = session.users().getUserById(realm, model.getUserId());
+            if (viewer == null) {
+                throw new NotFoundException("Reviewer not found");
+            }
+            UserRepresentation viewerRep = new UserRepresentation();
+            viewerRep.setId(viewer.getId());
+            viewerRep.setUsername(viewer.getUsername());
+            rep.setViewer(viewerRep);
+        }
+
+        rep.setId(model.getId());
+        rep.setReason(model.getReason());
+        rep.setStatus(model.getStatus());
+
+        return rep;
+    }
+
 
     public static UserRepresentation toRepresentation(KeycloakSession session, RealmModel realm, UserModel user) {
         UserRepresentation rep = new UserRepresentation();

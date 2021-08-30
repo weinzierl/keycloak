@@ -2040,3 +2040,39 @@ module.controller('LDAPMapperCreateCtrl', function($scope, realm, provider, mapp
 
 
 });
+
+module.controller('UserGroupRequestsCtrl', function($scope, realm, Notifications, UserGroupRequests, UserGroupRequestsSearchState) {
+
+   $scope.init = function() {
+        $scope.realm = realm;
+
+        UserGroupRequestsSearchState.query.realm = realm.realm;
+        $scope.query = UserGroupRequestsSearchState.query;
+        $scope.requests = UserGroupRequests.query($scope.query);
+    };
+
+    $scope.firstPage = function() {
+        $scope.query.first = 0;
+        $scope.requests = UserGroupRequests.query($scope.query);
+    }
+
+    $scope.previousPage = function() {
+        $scope.query.first -= parseInt($scope.query.max);
+        if ($scope.query.first < 0) {
+            $scope.query.first = 0;
+        }
+        $scope.requests = UserGroupRequests.query($scope.query);
+    }
+
+    $scope.nextPage = function() {
+        $scope.query.first += parseInt($scope.query.max);
+        $scope.requests = UserGroupRequests.query($scope.query);
+    }
+
+   $scope.refreshPage = function(query) {
+        $scope.query = query;
+        $scope.query.first = 0;
+        $scope.requests = UserGroupRequests.query($scope.query);
+   }
+
+});

@@ -603,6 +603,20 @@ module.service('UserSearchState', function() {
     };
 });
 
+module.factory('UserGroupRequests', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/user-group-requests', {
+        realm : '@realm'
+    });
+});
+
+module.service('UserGroupRequestsSearchState', function() {
+    this.query = {
+        max : 5,
+        first : 0,
+        pending : true
+    };
+});
+
 module.service('ClientListSearchState', function() {
     this.isFirstSearch = true;
     this.query = {

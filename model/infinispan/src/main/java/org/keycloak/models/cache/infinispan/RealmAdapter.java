@@ -1768,6 +1768,18 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
+    public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests(Integer firstResult,Integer maxResults) {
+        if (isUpdated()) return updated.getUserGroupMembershipRequests();
+        return cached.getUserGroupMembershipRequests().stream().skip(firstResult).limit(maxResults);
+    }
+
+    @Override
+    public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequestsByStatus(String status, Integer firstResult,Integer maxResults) {
+        if (isUpdated()) return updated.getUserGroupMembershipRequests();
+        return cached.getUserGroupMembershipRequests().stream().filter(r -> "PENDING".equals(r.getStatus())).skip(firstResult).limit(maxResults);
+    }
+
+    @Override
     public UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id) {
         if (isUpdated()) return updated.getUserGroupMembershipRequest(id);
         return cached.getUserGroupMembershipRequests().stream().filter(model -> id.equals(model.getId())).findAny().orElse(null);

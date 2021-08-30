@@ -1571,6 +1571,16 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     }
 
     @Override
+    public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests(Integer firstResult,Integer maxResults) {
+        return entity.getUserGroupMembershipRequests().skip(firstResult).limit(maxResults).map(MapUserGroupMembershipRequestEntity::toModel);
+    }
+
+    @Override
+    public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequestsByStatus(String status, Integer firstResult,Integer maxResults) {
+        return entity.getUserGroupMembershipRequests().filter(r -> "PENDING".equals(r.getStatus())).skip(firstResult).limit(maxResults).map(MapUserGroupMembershipRequestEntity::toModel);
+    }
+
+    @Override
     public UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id) {
         return MapUserGroupMembershipRequestEntity.toModel(entity.getUserGroupMembershipRequest(id));
     }

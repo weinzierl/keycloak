@@ -1,0 +1,66 @@
+<div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2" ng-init="init()">
+
+    <div>
+        <h1>{{:: 'users' | translate}}</h1>
+    </div>
+    <fieldset>
+        <div>
+            <table class="table table-striped table-bordered" id="requests-table">
+                <thead>
+                <tr>
+                    <th colspan="7">
+                        <div class="form-inline">
+                            {{:: 'pending-requests' | translate}}
+                            <input type="checkbox" ng-model="query.pending" name="pending" id="pending" ng-change="refreshPage(query)"/>
+                        </div>
+                    </th>
+                </tr>
+                <tr data-ng-show="requests && requests.length > 0">
+                    <th class="w-15">{{:: 'user' | translate}}</th>
+                    <th class="w-15">{{:: 'group' | translate}}</th>
+                    <th class="w-15">{{:: 'reason' | translate}}</th>
+                    <th class="w-15">{{:: 'status' | translate}}</th>
+                    <th class="w-15">{{:: 'viewer' | translate}}</th>
+                    <th class="w-15" colspan="2">{{:: 'actions' | translate}}</th>
+                </tr>
+                </thead>
+                <tfoot data-ng-show="requests && (requests.length >= query.max || query.first > 0)">
+                <tr>
+                    <td colspan="7">
+                        <div class="table-nav">
+                            <button data-ng-click="firstPage()" class="first" ng-disabled="query.first == 0">{{:: 'first-page' |
+                                translate}}
+                            </button>
+                            <button data-ng-click="previousPage()" class="prev" ng-disabled="query.first == 0">{{::
+                                'previous-page' | translate}}
+                            </button>
+                            <button data-ng-click="nextPage()" class="next" ng-disabled="requests.length < query.max">{{::
+                                'next-page' | translate}}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tfoot>
+                <tbody>
+                <tr ng-repeat="request in requests" data-ng-show="requests && requests.length > 0">
+                    <td class="clip"><a href="#/realms/{{realm.realm}}/users/{{request.user.id}}">{{request.user.username}}</a>
+                    </td>
+                    <td class="clip"><a href="#/realms/{{realm.realm}}/groups/{{request.group.id}}">{{request.group.path}}</a>
+                    </td>
+                    <td class="clip">{{request.reason}}</td>
+                    <td class="clip">{{request.status}}</td>
+                    <td class="clip"><a href="#/realms/{{realm.realm}}/users/{{request.viewer.id}}"
+                                        data-ng-show="request.viewer">{{request.viewer.username}}</a></td>
+                    <td data-ng-show="'PENDING'== request.status" class="kc-action-cell">{{:: 'accept' | translate}}</td>
+                    <td data-ng-show="'PENDING'== request.status" class="kc-action-cell">{{:: 'reject' | translate}}</td>
+                </tr>
+                <tr data-ng-show="!requests || requests.length == 0">
+                    <td class="text-muted">{{:: 'no-results' | translate}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+</div>
+
+<kc-menu></kc-menu>

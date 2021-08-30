@@ -2286,6 +2286,24 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     }
 
     @Override
+    public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests(Integer firstResult,Integer maxResults) {
+        TypedQuery<UserGroupMembershipRequestEntity> query = em.createNamedQuery("getAllRequests", UserGroupMembershipRequestEntity.class);
+        query.setFirstResult(firstResult);
+        query.setMaxResults(maxResults);
+        return  query.getResultStream().map(this::entityToModel);
+    }
+
+    @Override
+    public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequestsByStatus(String status, Integer firstResult,Integer maxResults) {
+        TypedQuery<UserGroupMembershipRequestEntity> query = em.createNamedQuery("getRequestsByStatus", UserGroupMembershipRequestEntity.class);
+        query.setParameter("status",status);
+        query.setFirstResult(firstResult);
+        query.setMaxResults(maxResults);
+        return  query.getResultStream().map(this::entityToModel);
+    }
+
+
+    @Override
     public UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id) {
         UserGroupMembershipRequestEntity entity = em.find(UserGroupMembershipRequestEntity.class, id);
         if (entity == null) return null;

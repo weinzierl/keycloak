@@ -8,10 +8,17 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 @Entity
 @Table(name="USER_GROUP_MEMBERSHIP_REQUEST")
+@NamedQueries({
+        @NamedQuery(name="getAllRequests", query="select u from UserGroupMembershipRequestEntity u"),
+        @NamedQuery(name="getRequestsByStatus", query="select u from UserGroupMembershipRequestEntity u where u.status = :status")
+})
+
 public class UserGroupMembershipRequestEntity {
 
     @Id

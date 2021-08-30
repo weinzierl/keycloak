@@ -1033,6 +1033,8 @@ public interface RealmModel extends RoleContainerModel {
     void decreaseRemainingCount(ClientInitialAccessModel clientInitialAccess);
 
     Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests();
+    Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests(Integer firstResult,Integer maxResults);
+    Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequestsByStatus(String status, Integer firstResult,Integer maxResults);
     UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id);
     void addUserGroupMembershipRequest(UserGroupMembershipRequestModel model);
 }

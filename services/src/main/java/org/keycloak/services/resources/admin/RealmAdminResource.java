@@ -488,6 +488,18 @@ public class RealmAdminResource {
         return users;
     }
 
+    /**
+     * Base path for managing UserGroupMembership Requests.
+     *
+     * @return
+     */
+    @Path("user-group-requests")
+    public UserGroupMembershipRequestsResource requests() {
+        UserGroupMembershipRequestsResource requests = new UserGroupMembershipRequestsResource(realm, auth, adminEvent);
+        ResteasyProviderFactory.getInstance().injectProperties(requests);
+        return requests;
+    }
+
     @NoCache
     @GET
     @Produces(MediaType.APPLICATION_JSON)

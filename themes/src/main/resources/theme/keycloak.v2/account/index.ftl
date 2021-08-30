@@ -47,7 +47,8 @@
                 isMyResourcesEnabled : ${(realm.userManagedAccessAllowed && isAuthorizationEnabled)?c},
                 isTotpConfigured : ${isTotpConfigured?c},
                 deleteAccountAllowed : ${deleteAccountAllowed?c},
-                isViewGroupsEnabled : ${isViewGroupsEnabled?c}
+                isViewGroupsEnabled : ${isViewGroupsEnabled?c},
+                isJoinGroupsEnabled : ${isJoinGroupsEnabled?c}
             }
 
             var availableLocales = [];

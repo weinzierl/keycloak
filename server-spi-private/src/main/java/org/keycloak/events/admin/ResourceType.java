@@ -186,5 +186,9 @@ public enum ResourceType {
     /**
      *
      */
-    , CUSTOM;
+    , CUSTOM
+    /**
+     *
+     */
+    , USER_GROUP_REQUESTS;
 }

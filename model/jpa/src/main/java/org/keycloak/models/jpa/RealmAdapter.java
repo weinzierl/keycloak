@@ -1920,6 +1920,11 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     }
 
     @Override
+    public Long getTopGroupsCountByNameContaining(String search) {
+        return session.groups().getTopGroupsCountByNameContaining(this, search);
+    }
+
+    @Override
     public Long getGroupsCountByNameContaining(String search) {
         return session.groups().getGroupsCountByNameContaining(this, search);
     }

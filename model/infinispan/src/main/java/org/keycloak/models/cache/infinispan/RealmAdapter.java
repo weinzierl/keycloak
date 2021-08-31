@@ -1462,6 +1462,11 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
+    public Long getTopGroupsCountByNameContaining(String search) {
+        return cacheSession.getTopGroupsCountByNameContaining(this, search);
+    }
+
+    @Override
     public Long getGroupsCountByNameContaining(String search) {
         return cacheSession.getGroupsCountByNameContaining(this, search);
     }

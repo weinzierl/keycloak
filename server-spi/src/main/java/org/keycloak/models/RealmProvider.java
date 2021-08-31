@@ -336,7 +336,7 @@ public interface RealmProvider extends Provider /* TODO: Remove in future versio
     /**
      * @deprecated Use the corresponding method from {@link GroupProvider}. */
     @Override
-    Long getGroupsCountByNameContaining(RealmModel realm, String search);
+    Long getTopGroupsCountByNameContaining(RealmModel realm, String search);
 
     /**
      * @deprecated Use the corresponding method from {@link GroupProvider}. */

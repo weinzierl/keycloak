@@ -509,8 +509,16 @@ public class JpaRealmProvider implements RealmProvider, ClientProvider, ClientSc
     }
 
     @Override
-    public Long getGroupsCountByNameContaining(RealmModel realm, String search) {
+    public Long getTopGroupsCountByNameContaining(RealmModel realm, String search) {
         return searchForGroupByNameStream(realm, search, null, null).count();
+    }
+
+    @Override
+    public Long getGroupsCountByNameContaining(RealmModel realm, String search) {
+        TypedQuery<Long> query = em.createNamedQuery("getGroupCountIdsByNameContaining", Long.class)
+                .setParameter("realm", realm.getId())
+                .setParameter("search", search);
+        return query.getSingleResult();
     }
 
     @Override

@@ -930,6 +930,11 @@ public class RealmCacheSession implements CacheRealmProvider {
     }
 
     @Override
+    public Long getTopGroupsCountByNameContaining(RealmModel realm, String search) {
+        return getGroupDelegate().getTopGroupsCountByNameContaining(realm, search);
+    }
+
+    @Override
     public Long getGroupsCountByNameContaining(RealmModel realm, String search) {
         return getGroupDelegate().getGroupsCountByNameContaining(realm, search);
     }

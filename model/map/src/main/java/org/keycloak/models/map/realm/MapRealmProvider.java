@@ -355,6 +355,12 @@ public class MapRealmProvider implements RealmProvider {
 
     @Override
     @Deprecated
+    public Long getTopGroupsCountByNameContaining(RealmModel realm, String search) {
+        return session.groups().getTopGroupsCountByNameContaining(realm, search);
+    }
+
+    @Override
+    @Deprecated
     public Long getGroupsCountByNameContaining(RealmModel realm, String search) {
         return session.groups().getGroupsCountByNameContaining(realm, search);
     }

@@ -878,7 +878,9 @@ public interface RealmModel extends RoleContainerModel {
     Stream<GroupModel> getGroupsStream();
 
     Long getGroupsCount(Boolean onlyTopGroups);
+    Long getTopGroupsCountByNameContaining(String search);
     Long getGroupsCountByNameContaining(String search);
+
 
     /**
      * @deprecated Use {@link #getTopLevelGroups() getTopLevelGroups} instead.

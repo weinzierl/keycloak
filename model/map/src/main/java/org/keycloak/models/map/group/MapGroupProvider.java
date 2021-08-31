@@ -128,10 +128,19 @@ public class MapGroupProvider implements GroupProvider {
     }
 
     @Override
-    public Long getGroupsCountByNameContaining(RealmModel realm, String search) {
+    public Long getTopGroupsCountByNameContaining(RealmModel realm, String search) {
         ModelCriteriaBuilder<GroupModel> mcb = groupStore.createCriteriaBuilder()
           .compare(SearchableFields.REALM_ID, Operator.EQ, realm.getId())
           .compare(SearchableFields.NAME, Operator.ILIKE, "%" + search + "%");
+
+        return tx.getCount(withCriteria(mcb));
+    }
+
+    @Override
+    public Long getGroupsCountByNameContaining(RealmModel realm, String search) {
+        ModelCriteriaBuilder<GroupModel> mcb = groupStore.createCriteriaBuilder()
+                .compare(SearchableFields.REALM_ID, Operator.EQ, realm.getId())
+                .compare(SearchableFields.NAME, Operator.ILIKE, "%" + search + "%");
 
         return tx.getCount(withCriteria(mcb));
     }

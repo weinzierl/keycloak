@@ -94,6 +94,11 @@ public class GroupStorageManager extends AbstractStorageManager<GroupStorageProv
     }
 
     @Override
+    public Long getTopGroupsCountByNameContaining(RealmModel realm, String search) {
+        return session.groupLocalStorage().getTopGroupsCountByNameContaining(realm, search);
+    }
+
+    @Override
     public Long getGroupsCountByNameContaining(RealmModel realm, String search) {
         return session.groupLocalStorage().getGroupsCountByNameContaining(realm, search);
     }

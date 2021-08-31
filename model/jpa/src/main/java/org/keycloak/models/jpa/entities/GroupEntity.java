@@ -31,6 +31,7 @@ import java.util.LinkedList;
         @NamedQuery(name="getGroupIdsByParent", query="select u.id from GroupEntity u where u.parentId = :parent"),
         @NamedQuery(name="getGroupIdsByRealm", query="select u.id from GroupEntity u where u.realm = :realm  order by u.name ASC"),
         @NamedQuery(name="getGroupIdsByNameContaining", query="select u.id from GroupEntity u where u.realm = :realm and u.name like concat('%',:search,'%') order by u.name ASC"),
+        @NamedQuery(name="getGroupCountIdsByNameContaining", query="select count(u) from GroupEntity u where u.realm = :realm and u.name like concat('%',:search,'%')"),
         @NamedQuery(name="getGroupIdsByNameContainingFromIdList", query="select u.id from GroupEntity u where u.realm = :realm and lower(u.name) like lower(concat('%',:search,'%')) and u.id in :ids order by u.name ASC"),
         @NamedQuery(name="getGroupIdsFromIdList", query="select u.id from GroupEntity u where u.realm = :realm and u.id in :ids order by u.name ASC"),
         @NamedQuery(name="getGroupCountByNameContainingFromIdList", query="select count(u) from GroupEntity u where u.realm = :realm and lower(u.name) like lower(concat('%',:search,'%')) and u.id in :ids"),

@@ -1,32 +1,21 @@
 package org.keycloak.services.resources.account;
 
 import org.jboss.resteasy.annotations.cache.NoCache;
-import org.jboss.resteasy.spi.HttpRequest;
 import org.keycloak.common.util.KeycloakUriBuilder;
-import org.keycloak.email.EmailException;
-import org.keycloak.email.EmailTemplateProvider;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.*;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.JoinGroupRequestRepresentation;
-import org.keycloak.services.ServicesLogger;
-import org.keycloak.services.Urls;
 import org.keycloak.services.managers.Auth;
-import org.keycloak.services.resources.RealmsResource;
-import org.keycloak.urls.UrlType;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

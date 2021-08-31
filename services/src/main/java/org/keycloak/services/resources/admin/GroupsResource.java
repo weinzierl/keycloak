@@ -120,7 +120,7 @@ public class GroupsResource {
         Long results;
         Map<String, Long> map = new HashMap<>();
         if (Objects.nonNull(search)) {
-            results = realm.getGroupsCountByNameContaining(search);
+            results = realm.getTopGroupsCountByNameContaining(search);
         } else {
             results = realm.getGroupsCount(onlyTopGroups);
         }

@@ -612,9 +612,16 @@ module.factory('UserGroupRequests', function($resource) {
 module.service('UserGroupRequestsSearchState', function() {
     this.query = {
         max : 5,
-        first : 0,
-        pending : true
+        first : 0
     };
+});
+
+module.factory('UserGroupRequestsAction', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/user-group-requests/:id/action?status=:status', {
+        realm : '@realm',
+        id : '@id',
+        status: '@status'
+    });
 });
 
 module.service('ClientListSearchState', function() {

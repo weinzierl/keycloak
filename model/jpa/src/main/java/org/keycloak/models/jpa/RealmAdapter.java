@@ -32,6 +32,8 @@ import org.keycloak.models.utils.KeycloakModelUtils;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
+import javax.ws.rs.NotFoundException;
+
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -2324,6 +2326,19 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         em.persist(entity);
 
         model.setId(entity.getId());
+    }
+
+    @Override
+    public UserGroupMembershipRequestModel changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
+        UserGroupMembershipRequestEntity entity = em.find(UserGroupMembershipRequestEntity.class,id);
+        if (entity != null) {
+            entity.setViewerId(viewerId);
+            entity.setStatus(status);
+            em.flush();
+            return entityToModel(entity);
+        } else {
+            throw new NotFoundException("UserGroupMembershipRequestEntity not found");
+        }
     }
 
 

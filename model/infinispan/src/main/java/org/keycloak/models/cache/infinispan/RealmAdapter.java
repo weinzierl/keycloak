@@ -1792,6 +1792,13 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
+    public UserGroupMembershipRequestModel changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
+        getDelegateForUpdate();
+        return updated.changeStatusUserGroupMembershipRequest(id, viewerId, status);
+    }
+
+
+    @Override
     public String toString() {
         return String.format("%s@%08x", getId(), hashCode());
     }

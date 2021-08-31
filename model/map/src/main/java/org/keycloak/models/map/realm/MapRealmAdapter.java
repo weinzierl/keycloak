@@ -24,6 +24,9 @@ import static java.util.Objects.nonNull;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.ws.rs.NotFoundException;
+
 import org.keycloak.Config;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.component.ComponentFactory;
@@ -1588,6 +1591,15 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     @Override
     public void addUserGroupMembershipRequest(UserGroupMembershipRequestModel model) {
         entity.addUserGroupMembershipRequest(MapUserGroupMembershipRequestEntity.fromModel(model));
+    }
+
+    @Override
+    public UserGroupMembershipRequestModel changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
+        MapUserGroupMembershipRequestEntity request = entity.getUserGroupMembershipRequests().filter(r -> id.equals(r.getId())).findAny().orElseThrow(() -> new NotFoundException("UserGroupMembershipRequestEntity not found"));
+        request.setViewerId(viewerId);
+        request.setStatus(status);
+        entity.updateUserGroupMembershipRequest(request);
+        return MapUserGroupMembershipRequestEntity.toModel(request);
     }
 
     @Override

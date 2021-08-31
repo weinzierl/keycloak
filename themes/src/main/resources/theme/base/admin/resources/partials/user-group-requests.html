@@ -51,8 +51,8 @@
                     <td class="clip">{{request.status}}</td>
                     <td class="clip"><a href="#/realms/{{realm.realm}}/users/{{request.viewer.id}}"
                                         data-ng-show="request.viewer">{{request.viewer.username}}</a></td>
-                    <td data-ng-show="'PENDING'== request.status" class="kc-action-cell">{{:: 'accept' | translate}}</td>
-                    <td data-ng-show="'PENDING'== request.status" class="kc-action-cell">{{:: 'reject' | translate}}</td>
+                    <td data-ng-show="'PENDING'== request.status" class="kc-action-cell" data-ng-click="changeStatus(request.id,'approved')" >{{:: 'approved' | translate}}</td>
+                    <td data-ng-show="'PENDING'== request.status" class="kc-action-cell" data-ng-click="changeStatus(request.id,'rejected')">{{:: 'reject' | translate}}</td>
                 </tr>
                 <tr data-ng-show="!requests || requests.length == 0">
                     <td class="text-muted">{{:: 'no-results' | translate}}</td>

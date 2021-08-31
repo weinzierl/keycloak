@@ -2041,13 +2041,14 @@ module.controller('LDAPMapperCreateCtrl', function($scope, realm, provider, mapp
 
 });
 
-module.controller('UserGroupRequestsCtrl', function($scope, realm, Notifications, UserGroupRequests, UserGroupRequestsSearchState) {
+module.controller('UserGroupRequestsCtrl', function($scope, realm, Notifications, Dialog, $translate, UserGroupRequests, UserGroupRequestsSearchState, UserGroupRequestsAction) {
 
    $scope.init = function() {
         $scope.realm = realm;
 
         UserGroupRequestsSearchState.query.realm = realm.realm;
         $scope.query = UserGroupRequestsSearchState.query;
+        $scope.query.pending = true;
         $scope.requests = UserGroupRequests.query($scope.query);
     };
 
@@ -2074,5 +2075,21 @@ module.controller('UserGroupRequestsCtrl', function($scope, realm, Notifications
         $scope.query.first = 0;
         $scope.requests = UserGroupRequests.query($scope.query);
    }
+
+   $scope.changeStatus = function(id,status) {
+
+        Dialog.confirmWithButtonText(
+            status + " request",
+            "This will make the join Group request "+status+". Are you sure?",
+            $translate.instant('dialogs.ok'),
+            function() {
+                UserGroupRequestsAction.save({realm: realm.realm, id: id, status: status}, function() {
+                    $scope.requests = UserGroupRequests.query($scope.query);
+                    Notifications.success("Request has been "+status);
+                });
+            },
+            function(){}
+        );
+      }
 
 });

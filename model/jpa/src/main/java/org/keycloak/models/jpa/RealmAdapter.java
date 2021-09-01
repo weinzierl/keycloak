@@ -32,7 +32,6 @@ import org.keycloak.models.utils.KeycloakModelUtils;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
-import javax.ws.rs.NotFoundException;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -2309,6 +2308,12 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         return  query.getResultStream().map(this::entityToModel);
     }
 
+    @Override
+    public Stream<String> getPendingUserGroupMembershipRequestsByUser(String userId) {
+        TypedQuery<String> query = em.createNamedQuery("getGroupsOfRequestsByUser", String.class);
+        query.setParameter("userId",userId);
+        return  query.getResultStream();
+    }
 
     @Override
     public UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id) {
@@ -2316,6 +2321,14 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         if (entity == null) return null;
         if (!entity.getRealm().getId().equals(realm.getId())) return null;
         return entityToModel(entity);
+    }
+
+    @Override
+    public Long countPendingUserGroupMembershipRequestsByUser(String userId, String groupId) {
+        TypedQuery<Long> query = em.createNamedQuery("getRequestsByUserAndGroup", Long.class);
+        query.setParameter("userId",userId);
+        query.setParameter("groupId",groupId);
+        return  query.getSingleResult();
     }
 
     @Override
@@ -2342,7 +2355,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             em.flush();
             return entityToModel(entity);
         } else {
-            throw new NotFoundException("UserGroupMembershipRequestEntity not found");
+            return null;
         }
     }
 

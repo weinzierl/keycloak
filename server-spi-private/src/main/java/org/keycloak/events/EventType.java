@@ -151,7 +151,9 @@ public enum EventType {
 
     // PAR request.
     PUSHED_AUTHORIZATION_REQUEST(false),
-    PUSHED_AUTHORIZATION_REQUEST_ERROR(false);
+    PUSHED_AUTHORIZATION_REQUEST_ERROR(false),
+
+    USER_GROUP_MEMBERSHIP_REQUEST(false);
 
 
     private boolean saveByDefault;

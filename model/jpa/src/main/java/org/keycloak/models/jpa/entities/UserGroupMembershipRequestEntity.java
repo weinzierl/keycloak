@@ -16,7 +16,9 @@ import javax.persistence.Table;
 @Table(name="USER_GROUP_MEMBERSHIP_REQUEST")
 @NamedQueries({
         @NamedQuery(name="getAllRequests", query="select u from UserGroupMembershipRequestEntity u"),
-        @NamedQuery(name="getRequestsByStatus", query="select u from UserGroupMembershipRequestEntity u where u.status = :status")
+        @NamedQuery(name="getRequestsByStatus", query="select u from UserGroupMembershipRequestEntity u where u.status = :status"),
+        @NamedQuery(name="getRequestsByUserAndGroup", query="select count(u) from UserGroupMembershipRequestEntity u where u.status = 'PENDING' and u.userId = :userId and u.groupId = :groupId"),
+        @NamedQuery(name="getGroupsOfRequestsByUser", query="select distinct(u.groupId) from UserGroupMembershipRequestEntity u where u.status = 'PENDING' and u.userId = :userId")
 })
 
 public class UserGroupMembershipRequestEntity {

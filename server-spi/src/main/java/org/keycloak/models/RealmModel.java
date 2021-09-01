@@ -1037,7 +1037,9 @@ public interface RealmModel extends RoleContainerModel {
     Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests();
     Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests(Integer firstResult,Integer maxResults);
     Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequestsByStatus(String status, Integer firstResult,Integer maxResults);
+    Stream<String> getPendingUserGroupMembershipRequestsByUser(String userId);
     UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id);
+    Long countPendingUserGroupMembershipRequestsByUser(String userId, String groupId);
     void addUserGroupMembershipRequest(UserGroupMembershipRequestModel model);
     UserGroupMembershipRequestModel changeStatusUserGroupMembershipRequest(String id, String viewerId, String status);
 }

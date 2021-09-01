@@ -1781,13 +1781,25 @@ public class RealmAdapter implements CachedRealmModel {
     @Override
     public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequestsByStatus(String status, Integer firstResult,Integer maxResults) {
         if (isUpdated()) return updated.getUserGroupMembershipRequests();
-        return cached.getUserGroupMembershipRequests().stream().filter(r -> "PENDING".equals(r.getStatus())).skip(firstResult).limit(maxResults);
+        return cached.getUserGroupMembershipRequests().stream().filter(r -> status.equals(r.getStatus())).skip(firstResult).limit(maxResults);
+    }
+
+    @Override
+    public Stream<String> getPendingUserGroupMembershipRequestsByUser(String userId) {
+        if (isUpdated()) return updated.getPendingUserGroupMembershipRequestsByUser(userId);
+        return cached.getUserGroupMembershipRequests().stream().filter(r -> "PENDING".equals(r.getStatus()) && userId.equals(r.getUserId())).map(UserGroupMembershipRequestModel::getGroupId).distinct();
     }
 
     @Override
     public UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id) {
         if (isUpdated()) return updated.getUserGroupMembershipRequest(id);
         return cached.getUserGroupMembershipRequests().stream().filter(model -> id.equals(model.getId())).findAny().orElse(null);
+    }
+
+    @Override
+    public Long countPendingUserGroupMembershipRequestsByUser(String userId, String groupId) {
+        if (isUpdated()) return updated.countPendingUserGroupMembershipRequestsByUser(userId, groupId) ;
+        return cached.getUserGroupMembershipRequests().stream().filter(r -> "PENDING".equals(r.getStatus()) && userId.equals(r.getUserId()) &&  groupId.equals(r.getGroupId()) && "PENDING".equals(r.getStatus())).count();
     }
 
     @Override

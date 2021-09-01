@@ -3,6 +3,7 @@ package org.keycloak.services.resources.account;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.common.util.KeycloakUriBuilder;
 import org.keycloak.events.EventBuilder;
+import org.keycloak.events.EventType;
 import org.keycloak.models.*;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
@@ -61,8 +62,15 @@ public class GroupMembershipResource {
 
         return Response.ok().entity(ModelToRepresentation.searchForAllGroupByName(realm, search.trim(), firstResult, maxResults).collect(Collectors.toList())).links(createPageLinks(firstResult, maxResults, realm.getGroupsCountByNameContaining(search.trim()).intValue())).build();
 
-        //return ModelToRepresentation.toGroupHierarchy(realm, true);
+    }
 
+    @GET
+    @Path("/requests")
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+    public Stream<String> getUserRequests() {
+        auth.require(AccountRoles.MANAGE_ACCOUNT);
+        return realm.getPendingUserGroupMembershipRequestsByUser(user.getId());
     }
     
     @POST
@@ -73,7 +81,7 @@ public class GroupMembershipResource {
 
         rep.getJoinGroups().stream().forEach(groupId -> {
             GroupModel group = session.groups().getGroupById(realm, groupId);
-            if (group != null) {
+            if (group != null && !user.isMemberOf(group) && (realm.countPendingUserGroupMembershipRequestsByUser(user.getId(), group.getId()) == 0)) {
                 UserGroupMembershipRequestModel request = new UserGroupMembershipRequestModel();
                 request.setUserId(user.getId());
                 request.setGroupId(groupId);
@@ -81,7 +89,7 @@ public class GroupMembershipResource {
                 realm.addUserGroupMembershipRequest(request);
             }
         });
-
+        event.event(EventType.USER_GROUP_MEMBERSHIP_REQUEST).user(user).success();
         //temporary disabled due to the fact that I do not know which users has specific rights!
 //        try {
 //            String link = Urls.userAdminConsoleURi(session.getContext().getUri(UrlType.FRONTEND).getBaseUri(), realm.getName(),user.getId()).replace("%23","#");

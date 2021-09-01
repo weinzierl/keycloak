@@ -1585,12 +1585,22 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
 
     @Override
     public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequestsByStatus(String status, Integer firstResult,Integer maxResults) {
-        return entity.getUserGroupMembershipRequests().filter(r -> "PENDING".equals(r.getStatus())).skip(firstResult).limit(maxResults).map(MapUserGroupMembershipRequestEntity::toModel);
+        return entity.getUserGroupMembershipRequests().filter(r -> status.equals(r.getStatus())).skip(firstResult).limit(maxResults).map(MapUserGroupMembershipRequestEntity::toModel);
+    }
+
+    @Override
+    public Stream<String> getPendingUserGroupMembershipRequestsByUser(String userId) {
+        return entity.getUserGroupMembershipRequests().filter(r -> "PENDING".equals(r.getStatus()) && userId.equals(r.getUserId())).map(MapUserGroupMembershipRequestEntity::getGroupId).distinct();
     }
 
     @Override
     public UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id) {
         return MapUserGroupMembershipRequestEntity.toModel(entity.getUserGroupMembershipRequest(id));
+    }
+
+    @Override
+    public Long countPendingUserGroupMembershipRequestsByUser(String userId, String groupId) {
+        return entity.getUserGroupMembershipRequests().filter(r -> "PENDING".equals(r.getStatus()) && userId.equals(r.getUserId()) &&  groupId.equals(r.getGroupId()) && "PENDING".equals(r.getStatus())).count();
     }
 
     @Override
@@ -1601,6 +1611,8 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     @Override
     public UserGroupMembershipRequestModel changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
         MapUserGroupMembershipRequestEntity request = entity.getUserGroupMembershipRequests().filter(r -> id.equals(r.getId())).findAny().orElseThrow(() -> new NotFoundException("UserGroupMembershipRequestEntity not found"));
+        if ( request == null)
+            return null;
         request.setViewerId(viewerId);
         request.setStatus(status);
         entity.updateUserGroupMembershipRequest(request);

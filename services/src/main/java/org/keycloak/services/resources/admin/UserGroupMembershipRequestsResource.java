@@ -62,6 +62,9 @@ public class UserGroupMembershipRequestsResource {
     public void changeStatus(@PathParam("id") String id, @QueryParam("status") String status) {
         auth.adminAuth().hasRealmRole(AdminRoles.MANAGE_USERS);
         UserGroupMembershipRequestModel request = realm.changeStatusUserGroupMembershipRequest(id,auth.adminAuth().getUser().getId(),status.toUpperCase());
+        if ( request == null)
+            throw new NotFoundException("UserGroupMembershipRequestEntity not found");
+        adminEvent.operation(OperationType.ACTION).representation(ModelToRepresentation.toRepresentation(request, session, realm)).resourcePath(session.getContext().getUri()).success();
         if ( "approved".equals(status)) {
             UserModel user = session.users().getUserById(realm, request.getUserId());
             if (user == null) {

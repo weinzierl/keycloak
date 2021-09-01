@@ -47,6 +47,11 @@
             <column name="REALM_ID" type="VARCHAR(36)"/>
             <column name="STATUS" type="VARCHAR(36)"/>
         </createIndex>
+
+       <createIndex tableName="USER_GROUP_MEMBERSHIP_REQUEST" indexName="USER_GROUP_MEMBERSHIP_REQUEST_INDEX2">
+           <column name="USER_ID" type="VARCHAR(36)"/>
+       </createIndex>
     </changeSet>
+
 
 </databaseChangeLog>

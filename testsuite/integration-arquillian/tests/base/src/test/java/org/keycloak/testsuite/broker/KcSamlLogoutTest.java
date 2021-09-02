@@ -2,6 +2,7 @@ package org.keycloak.testsuite.broker;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
@@ -174,8 +175,8 @@ public class KcSamlLogoutTest extends AbstractInitializedBaseBrokerTest {
     @Test // KEYCLOAK-17495
     public void testProviderInitiatedLogoutCorrectlyLogsOutConsumerClientsWhenPrincipalTypeAttribute() throws Exception {
         try (Closeable idpUpdater = new IdentityProviderAttributeUpdater(identityProviderResource)
-            .setAttribute(SAMLIdentityProviderConfig.PRINCIPAL_TYPE, SamlPrincipalType.ATTRIBUTE.name())
-            .setAttribute(SAMLIdentityProviderConfig.PRINCIPAL_ATTRIBUTE, ATTRIBUTE_TO_MAP_NAME)
+            .setAttribute(SAMLConfigNames.PRINCIPAL_TYPE, SamlPrincipalType.ATTRIBUTE.name())
+            .setAttribute(SAMLConfigNames.PRINCIPAL_ATTRIBUTE, ATTRIBUTE_TO_MAP_NAME)
             .update();
 
              UserAttributeUpdater uau = UserAttributeUpdater.forUserByUsername(adminClient, bc.providerRealmName(), bc.getUserLogin())

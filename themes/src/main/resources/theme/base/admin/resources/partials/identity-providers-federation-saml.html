@@ -182,6 +182,27 @@
 				</div>
 				<kc-tooltip>{{:: 'want-assertions-encrypted.tooltip' |translate}}</kc-tooltip>
 			</div>
+			<div class="form-group">
+				<label class="col-md-2 control-label" for="attributeConsumingServiceIndex">{{:: 'identity-provider.saml.attribute-consuming-service-index' | translate}}</label>
+				<div class="col-md-6">
+					<input class="form-control" string-to-number type="number" min="0" max="65535" step="1" ng-model="identityProvidersFederation.config.attributeConsumingServiceIndex" id="attributeConsumingServiceIndex"/>
+				</div>
+				<kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-index.tooltip' | translate}}</kc-tooltip>
+			</div>
+			<div class="form-group">
+				<label class="col-md-2 control-label" for="attributeConsumingServiceName">{{:: 'identity-provider.saml.attribute-consuming-service-name' | translate}}</label>
+				<div class="col-md-6">
+					<input class="form-control" type="text" ng-model="identityProvidersFederation.config.attributeConsumingServiceName" id="attributeConsumingServiceName"/>
+				</div>
+				<kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-name.tooltip' | translate}}</kc-tooltip>
+			</div>
+			<div class="form-group">
+				<label class="col-md-2 control-label" for="signSpMetadata">{{:: 'identity-provider.saml.sign-sp-metadata' | translate}}</label>
+				<div class="col-md-6">
+					<input ng-model="identityProvidersFederation.config.signSpMetadata" id="signSpMetadata" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+				</div>
+				<kc-tooltip>{{:: 'identity-provider.saml.sign-sp-metadata.tooltip' | translate}}</kc-tooltip>
+			</div>
 	  </fieldset>
 	  <fieldset>
             <legend collapsed><span class="text">{{:: 'whitelist' | translate}}</span>  <kc-tooltip>{{:: 'whitelist' | translate}}</kc-tooltip></legend>

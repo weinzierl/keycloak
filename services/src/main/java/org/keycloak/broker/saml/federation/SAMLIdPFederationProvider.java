@@ -70,11 +70,13 @@ import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.mappers.SamlMetadataDescriptorUpdater;
 import org.keycloak.saml.SPMetadataDescriptor;
+import org.keycloak.saml.SignatureAlgorithm;
 import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.keycloak.saml.common.util.StaxUtil;
+import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 import org.keycloak.saml.processing.api.saml.v2.sig.SAML2Signature;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.saml.processing.core.saml.v2.constants.X500SAMLProfileConstants;
@@ -439,6 +441,14 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		if (identityProviderModel.getConfig().get("multiplePrincipals") == null) {
 			identityProviderModel.getConfig().put("multiplePrincipals", model.getConfig().get("multiplePrincipals"));
 		}
+
+		//attribute consuming service index/name set fedration only during creation
+		if (model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX) != null) {
+			identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX,  model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX));
+		}
+		if (model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_NAME) != null) {
+			identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_NAME,  model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_NAME));
+		}
 	}
 
 
@@ -530,66 +540,66 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(authnBinding, authnBinding, endpoint, endpoint, wantAuthnRequestsSigned,
                 wantAssertionsSigned, wantAssertionsEncrypted, entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
 
-//			// Create the AttributeConsumingService
-//			AttributeConsumingServiceType attributeConsumingService = new AttributeConsumingServiceType(attributeConsumingServiceIndex);
-//			attributeConsumingService.setIsDefault(true);
-//
-//			if (attributeConsumingServiceName != null && attributeConsumingServiceName.length() > 0)
-//			{
-//				String currentLocale = realm.getDefaultLocale() == null ? "en": realm.getDefaultLocale();
-//				LocalizedNameType attributeConsumingServiceNameElement = new LocalizedNameType(currentLocale);
-//				attributeConsumingServiceNameElement.setValue(attributeConsumingServiceName);
-//				attributeConsumingService.addServiceName(attributeConsumingServiceNameElement);
-//			}
-//
-//			// Look for the SP descriptor and add the attribute consuming service
-//			for (EntityDescriptorType.EDTChoiceType choiceType: entityDescriptor.getChoiceType()) {
-//				List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
-//
-//				if (descriptors != null) {
-//					for (EntityDescriptorType.EDTDescriptorChoiceType descriptor: descriptors) {
-//						if (descriptor.getSpDescriptor() != null) {
-//							descriptor.getSpDescriptor().addAttributeConsumerService(attributeConsumingService);
-//						}
-//					}
-//				}
-//			}
+			// Create the AttributeConsumingService
+			int attributeConsumingServiceIndex = model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX) != null ?  Integer.parseInt(model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX)) : 1;
+			String attributeConsumingServiceName = model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_NAME);
+			AttributeConsumingServiceType attributeConsumingService = new AttributeConsumingServiceType(attributeConsumingServiceIndex);
+			attributeConsumingService.setIsDefault(true);
 
-//			// Add the attribute mappers
-//			model.getFederationMapperModels().stream()
-//					.forEach(mapper -> {
-//						IdentityProviderMapper target = (IdentityProviderMapper) session.getKeycloakSessionFactory().getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
-//						if (target instanceof SamlMetadataDescriptorUpdater)
-//						{
-//							SamlMetadataDescriptorUpdater metadataAttrProvider = (SamlMetadataDescriptorUpdater)target;
-//							metadataAttrProvider.updateMetadata(mapper, entityDescriptor);
-//						}
-//					});
+			if (attributeConsumingServiceName != null && attributeConsumingServiceName.length() > 0) {
+				String currentLocale = realm.getDefaultLocale() == null ? "en": realm.getDefaultLocale();
+				LocalizedNameType attributeConsumingServiceNameElement = new LocalizedNameType(currentLocale);
+				attributeConsumingServiceNameElement.setValue(attributeConsumingServiceName);
+				attributeConsumingService.addServiceName(attributeConsumingServiceNameElement);
+			}
+
+			// Look for the SP descriptor and add the attribute consuming service
+			for (EntityDescriptorType.EDTChoiceType choiceType: entityDescriptor.getChoiceType()) {
+				List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
+
+				if (descriptors != null) {
+					for (EntityDescriptorType.EDTDescriptorChoiceType descriptor: descriptors) {
+						if (descriptor.getSpDescriptor() != null) {
+							descriptor.getSpDescriptor().addAttributeConsumerService(attributeConsumingService);
+						}
+					}
+				}
+			}
+
+			// Add the attribute mappers
+			model.getFederationMapperModels().stream()
+					.forEach(mapper -> {
+						IdentityProviderMapper target = (IdentityProviderMapper) session.getKeycloakSessionFactory().getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
+						if (target instanceof SamlMetadataDescriptorUpdater) {
+							SamlMetadataDescriptorUpdater metadataAttrProvider = (SamlMetadataDescriptorUpdater) target;
+							metadataAttrProvider.updateMetadata(new IdentityProviderMapperModel(mapper,null), entityDescriptor);
+						}
+					});
 
 			// Write the metadata and export it to a string
 			metadataWriter.writeEntityDescriptor(entityDescriptor);
 
 			String descriptor = sw.toString();
 
-//			// Metadata signing
-//			if (model.isSignSpMetadata())
-//			{
-//				KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
-//				String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(), activeKey.getCertificate());
-//				KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
-//
-//				Document metadataDocument = DocumentUtil.getDocument(descriptor);
-//				SAML2Signature signatureHelper = new SAML2Signature();
-//				signatureHelper.setSignatureMethod(getSignatureAlgorithm().getXmlSignatureMethod());
-//				signatureHelper.setDigestMethod(getSignatureAlgorithm().getXmlSignatureDigestMethod());
-//
-//				Node nextSibling = metadataDocument.getDocumentElement().getFirstChild();
-//				signatureHelper.setNextSibling(nextSibling);
-//
-//				signatureHelper.signSAMLDocument(metadataDocument, keyName, keyPair, CanonicalizationMethod.EXCLUSIVE);
-//
-//				descriptor = DocumentUtil.getDocumentAsString(metadataDocument);
-//			}
+			// Metadata signing
+			if (model.getConfig().get(SAMLIdentityProviderConfig.SIGN_SP_METADATA) != null && Boolean.parseBoolean(model.getConfig().get(SAMLIdentityProviderConfig.SIGN_SP_METADATA)))
+			{
+				KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
+				String keyName = XmlKeyInfoKeyNameTransformer.NONE.getKeyName(activeKey.getKid(), activeKey.getCertificate());
+				KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
+
+				Document metadataDocument = DocumentUtil.getDocument(descriptor);
+				SAML2Signature signatureHelper = new SAML2Signature();
+				signatureHelper.setSignatureMethod(SignatureAlgorithm.RSA_SHA256.getXmlSignatureMethod());
+				signatureHelper.setDigestMethod(SignatureAlgorithm.RSA_SHA256.getXmlSignatureDigestMethod());
+
+				Node nextSibling = metadataDocument.getDocumentElement().getFirstChild();
+				signatureHelper.setNextSibling(nextSibling);
+
+				signatureHelper.signSAMLDocument(metadataDocument, keyName, keyPair, CanonicalizationMethod.EXCLUSIVE);
+
+				descriptor = DocumentUtil.getDocumentAsString(metadataDocument);
+			}
             return Response.ok(descriptor, MediaType.APPLICATION_XML_TYPE).build();
         } catch (Exception e) {
             logger.warn("Failed to export SAML SP Metadata!", e);

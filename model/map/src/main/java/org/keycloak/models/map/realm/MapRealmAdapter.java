@@ -1252,6 +1252,7 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
 
     @Override
     public boolean removeGroup(GroupModel group) {
+        entity.getUserGroupMembershipRequests().filter(req -> group.getId().equals(req.getGroupId())).forEach(req -> entity.removeUserGroupMembershipRequest(req.getId()));
         return session.groups().removeGroup(this, group);
     }
 
@@ -1600,7 +1601,7 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
 
     @Override
     public Long countPendingUserGroupMembershipRequestsByUser(String userId, String groupId) {
-        return entity.getUserGroupMembershipRequests().filter(r -> "PENDING".equals(r.getStatus()) && userId.equals(r.getUserId()) &&  groupId.equals(r.getGroupId()) && "PENDING".equals(r.getStatus())).count();
+        return entity.getUserGroupMembershipRequests().filter(r -> "PENDING".equals(r.getStatus()) && userId.equals(r.getUserId()) &&  groupId.equals(r.getGroupId())).count();
     }
 
     @Override
@@ -1609,14 +1610,23 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     }
 
     @Override
-    public UserGroupMembershipRequestModel changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
+    public void changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
         MapUserGroupMembershipRequestEntity request = entity.getUserGroupMembershipRequests().filter(r -> id.equals(r.getId())).findAny().orElseThrow(() -> new NotFoundException("UserGroupMembershipRequestEntity not found"));
-        if ( request == null)
-            return null;
-        request.setViewerId(viewerId);
-        request.setStatus(status);
-        entity.updateUserGroupMembershipRequest(request);
-        return MapUserGroupMembershipRequestEntity.toModel(request);
+        if (request != null) {
+            request.setViewerId(viewerId);
+            request.setStatus(status);
+            entity.updateUserGroupMembershipRequest(request);
+        }
+    }
+
+    @Override
+    public void removeUserGroupMembershipRequestByUser(String userId) {
+        entity.getUserGroupMembershipRequests().filter(r -> userId.equals(r.getUserId())).collect(Collectors.toSet()).forEach(r -> entity.removeUserGroupMembershipRequest(r.getId()));
+    }
+
+    @Override
+    public void removePendingUserGroupMembershipRequestsByUserGroup(String userId, String groupId) {
+        entity.getUserGroupMembershipRequests().filter(r -> "PENDING".equals(r.getStatus()) && userId.equals(r.getUserId()) &&  groupId.equals(r.getGroupId())).forEach(r -> entity.removeUserGroupMembershipRequest(r.getId()));
     }
 
     @Override

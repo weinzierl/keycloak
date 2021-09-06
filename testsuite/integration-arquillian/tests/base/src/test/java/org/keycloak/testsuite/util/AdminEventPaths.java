@@ -36,6 +36,7 @@ import org.keycloak.admin.client.resource.RoleByIdResource;
 import org.keycloak.admin.client.resource.RoleMappingResource;
 import org.keycloak.admin.client.resource.RoleResource;
 import org.keycloak.admin.client.resource.RolesResource;
+import org.keycloak.admin.client.resource.UserGroupMembershipRequestsResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 
@@ -472,6 +473,12 @@ public class AdminEventPaths {
         URI uri = UriBuilder.fromUri("").path(RealmResource.class, "attackDetection")
                 .path(AttackDetectionResource.class, "clearAllBruteForce")
                 .build();
+        return uri.toString();
+    }
+
+    //REQUESTS
+    public static String changeRequestStatus(String id) {
+        URI uri =UriBuilder.fromUri("").path(RealmResource.class, "requests").path(UserGroupMembershipRequestsResource.class, "changeStatus").build(id);
         return uri.toString();
     }
 

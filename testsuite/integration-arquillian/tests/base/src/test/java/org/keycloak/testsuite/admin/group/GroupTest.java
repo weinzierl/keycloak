@@ -17,7 +17,10 @@
 
 package org.keycloak.testsuite.admin.group;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Comparators;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
@@ -27,23 +30,29 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.RoleMappingResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.common.Profile;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.Constants;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.account.LinkedAccountRepresentation;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.JoinGroupRequestRepresentation;
 import org.keycloak.representations.idm.MappingsRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRequestRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.testsuite.admin.ApiUtil;
 import org.keycloak.testsuite.arquillian.annotation.AuthServerContainerExclude;
 import org.keycloak.testsuite.util.AdminEventPaths;
 import org.keycloak.testsuite.util.ClientBuilder;
+import org.keycloak.testsuite.util.OAuthClient;
 import org.keycloak.testsuite.util.RoleBuilder;
+import org.keycloak.testsuite.util.TokenUtil;
 import org.keycloak.testsuite.util.URLAssert;
 import org.keycloak.testsuite.util.UserBuilder;
 import org.keycloak.testsuite.utils.tls.TLSUtils;
@@ -61,7 +70,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.core.Response.Status;
 import static org.hamcrest.Matchers.*;
@@ -74,6 +87,8 @@ import org.keycloak.models.AdminRoles;
 import org.keycloak.models.ModelDuplicateException;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
+
+import static org.junit.Assert.assertTrue;
 import static org.keycloak.testsuite.Assert.assertNames;
 import static org.keycloak.testsuite.arquillian.annotation.AuthServerContainerExclude.AuthServer.REMOTE;
 import static org.keycloak.testsuite.util.ServerURLs.getAuthServerContextRoot;
@@ -488,6 +503,16 @@ public class GroupTest extends AbstractGroupTest {
         defaultGroups = realm.getDefaultGroups();
         assertEquals(0, defaultGroups.size());
 
+        //make a request to join to group. This request must be deleted together with group
+        JoinGroupRequestRepresentation request = new JoinGroupRequestRepresentation();
+        request.setJoinGroups(Stream.of(level2Group.getId()).collect(Collectors.toList()));
+        CloseableHttpClient client = HttpClientBuilder.create().build();
+        SimpleHttp.doPost(getAccountUrl("groups/join"), client).json(request).auth(this.accessToken).acceptJson().asResponse();
+        try {
+            client.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         realm.groups().group(topGroup.getId()).remove();
         assertAdminEvents.assertEvent("test", OperationType.DELETE, AdminEventPaths.groupPath(topGroup.getId()), ResourceType.GROUP);
 
@@ -509,7 +534,14 @@ public class GroupTest extends AbstractGroupTest {
         }
         catch (NotFoundException e) {}
 
+        //check that no UserGroupMembership request exist
+        List<UserGroupMembershipRequestRepresentation> requests = realm.requests().getRequests(false, 0, 20);
+        assertTrue(requests.isEmpty());
+
+
+
         Assert.assertNull(login("direct-login", "resource-owner", "secret", user.getId()).getRealmAccess());
+
     }
 
     @Test
@@ -1175,5 +1207,9 @@ public class GroupTest extends AbstractGroupTest {
         Assert.assertTrue(searchResultSubGroups.isEmpty());
         searchResultGroups.remove(0);
         Assert.assertTrue(searchResultGroups.isEmpty());
+    }
+
+    private String getAccountUrl(String resource) {
+        return suiteContext.getAuthServerInfo().getContextRoot().toString() + "/auth/realms/test/account" + (resource != null ? "/" + resource : "");
     }
 }

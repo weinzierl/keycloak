@@ -193,6 +193,7 @@ public class RealmRepresentation {
     protected List<AuthenticationFlowRepresentation> authenticationFlows;
     protected List<AuthenticatorConfigRepresentation> authenticatorConfig;
     protected List<RequiredActionProviderRepresentation> requiredActions;
+    protected List<UserGroupMembershipRequestRepresentation> requests;
     protected String browserFlow;
     protected String registrationFlow;
     protected String directGrantFlow;
@@ -1361,6 +1362,14 @@ public class RealmRepresentation {
 
     public Boolean isUserManagedAccessAllowed() {
         return userManagedAccessAllowed;
+    }
+
+    public List<UserGroupMembershipRequestRepresentation> getRequests() {
+        return requests;
+    }
+
+    public void setRequests(List<UserGroupMembershipRequestRepresentation> requests) {
+        this.requests = requests;
     }
 
     @JsonIgnore

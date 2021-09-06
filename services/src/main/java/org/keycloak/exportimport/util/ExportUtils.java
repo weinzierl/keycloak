@@ -240,6 +240,8 @@ public class ExportUtils {
                 rep.setFederatedUsers(federatedUsers);
             }
 
+            rep.setRequests(realm.getUserGroupMembershipRequests().map(model -> ModelToRepresentation.toRepresentation(model, session, realm)).collect(Collectors.toList()));
+
         } else if (options.isClientsIncluded() && options.isOnlyServiceAccountsIncluded()) {
             List<UserRepresentation> users = new LinkedList<>();
             for (ClientModel app : clients) {

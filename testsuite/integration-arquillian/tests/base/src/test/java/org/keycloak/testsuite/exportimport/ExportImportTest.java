@@ -35,6 +35,7 @@ import org.keycloak.representations.idm.KeysMetadataRepresentation;
 import org.keycloak.representations.idm.RealmEventsConfigRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RequiredActionProviderRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRequestRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.testsuite.AbstractKeycloakTest;
 import org.keycloak.testsuite.Assert;
@@ -217,7 +218,16 @@ public class ExportImportTest extends AbstractKeycloakTest {
 
         RealmResource testRealmRealm = adminClient.realm("test-realm");
 
-        ExportImportUtil.assertDataImportedInRealm(adminClient, testingClient, testRealmRealm.toRepresentation());
+        ExportImportUtil.assertDataImportedInRealm(adminClient, testingClient,testRealmRealm.toRepresentation());
+
+        List<UserGroupMembershipRequestRepresentation> requests = adminClient.realm("test-realm").requests().getRequests(false,0,20);
+        Assert.assertEquals(1, requests.size());
+        UserGroupMembershipRequestRepresentation requestRep = requests.get(0);
+        Assert.assertEquals("wburke", requestRep.getUser().getUsername());
+        Assert.assertEquals("Group A", requestRep.getGroup().getName());
+        Assert.assertEquals("PENDING", requestRep.getStatus());
+        Assert.assertEquals("import-export", requestRep.getReason());
+        Assert.assertNull(requestRep.getViewer());
     }
 
     @Test

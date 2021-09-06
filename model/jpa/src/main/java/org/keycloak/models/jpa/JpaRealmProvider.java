@@ -185,6 +185,9 @@ public class JpaRealmProvider implements RealmProvider, ClientProvider, ClientSc
         num = em.createNamedQuery("removeClientInitialAccessByRealm")
                 .setParameter("realm", realm).executeUpdate();
 
+        num = em.createNamedQuery("deleteUserGroupMembershipsRequestByRealm")
+                .setParameter("realmId", realm.getId()).executeUpdate();
+
         em.remove(realm);
 
         em.flush();
@@ -584,6 +587,7 @@ public class JpaRealmProvider implements RealmProvider, ClientProvider, ClientSc
             return false;
         }
         em.createNamedQuery("deleteGroupRoleMappingsByGroup").setParameter("group", groupEntity).executeUpdate();
+        em.createNamedQuery("deleteUserGroupMembershipsRequestByGroup").setParameter("groupId", groupEntity.getId()).executeUpdate();
 
         em.remove(groupEntity);
         return true;

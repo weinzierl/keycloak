@@ -935,6 +935,7 @@ public class UserResource {
         auth.groups().requireManageMembership(group);
         if (!user.isMemberOf(group)){
             user.joinGroup(group);
+            realm.removePendingUserGroupMembershipRequestsByUserGroup(user.getId(), group.getId());
             adminEvent.operation(OperationType.CREATE).resource(ResourceType.GROUP_MEMBERSHIP).representation(ModelToRepresentation.toRepresentation(group, true)).resourcePath(session.getContext().getUri()).success();
         }
     }

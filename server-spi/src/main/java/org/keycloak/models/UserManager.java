@@ -34,6 +34,7 @@ public class UserManager {
 
     public boolean removeUser(RealmModel realm, UserModel user, UserProvider userProvider) {
         if (userProvider.removeUser(realm, user)) {
+            realm.removeUserGroupMembershipRequestByUser(user.getId());
             session.getKeycloakSessionFactory().publish(new UserModel.UserRemovedEvent() {
 
                 @Override

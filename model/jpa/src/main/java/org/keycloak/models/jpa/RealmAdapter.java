@@ -2288,12 +2288,14 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
     @Override
     public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests() {
-        return realm.getUserGroupMembershipRequests().stream().map(this::entityToModel);
+        TypedQuery<UserGroupMembershipRequestEntity> query = em.createNamedQuery("getAllRequestsByRealm", UserGroupMembershipRequestEntity.class);
+        query.setParameter("realmId",realm.getId());
+        return query.getResultStream().map(this::entityToModel);
     }
 
     @Override
     public Stream<UserGroupMembershipRequestModel> getUserGroupMembershipRequests(Integer firstResult,Integer maxResults) {
-        TypedQuery<UserGroupMembershipRequestEntity> query = em.createNamedQuery("getAllRequests", UserGroupMembershipRequestEntity.class);
+        TypedQuery<UserGroupMembershipRequestEntity> query = em.createNamedQuery("getAllRequestsByRealm", UserGroupMembershipRequestEntity.class);
         query.setFirstResult(firstResult);
         query.setMaxResults(maxResults);
         return  query.getResultStream().map(this::entityToModel);
@@ -2334,30 +2336,40 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     @Override
     public void addUserGroupMembershipRequest(UserGroupMembershipRequestModel model) {
         UserGroupMembershipRequestEntity entity = new UserGroupMembershipRequestEntity();
-        entity.setId((KeycloakModelUtils.generateId()));
+        entity.setId(model.getId() != null ? model.getId() : KeycloakModelUtils.generateId());
         entity.setUserId(model.getUserId());
         entity.setGroupId(model.getGroupId());
         entity.setReason(model.getReason());
-        entity.setStatus("PENDING");
+        entity.setStatus(model.getStatus());
 
-        realm.addUserGroupMembershipRequest(entity);
+        entity.setRealm(realm);
         em.persist(entity);
 
         model.setId(entity.getId());
     }
 
     @Override
-    public UserGroupMembershipRequestModel changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
+    public void changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
         UserGroupMembershipRequestEntity entity = em.find(UserGroupMembershipRequestEntity.class,id);
         if (entity != null) {
             entity.setViewerId(viewerId);
             entity.setStatus(status);
             em.flush();
-            return entityToModel(entity);
-        } else {
-            return null;
         }
     }
+
+    @Override
+    public void removeUserGroupMembershipRequestByUser(String userId) {
+        em.createNamedQuery("deleteUserGroupMembershipsRequestByUser").setParameter("userId", userId).executeUpdate();
+        em.flush();
+    }
+
+    @Override
+    public void removePendingUserGroupMembershipRequestsByUserGroup(String userId, String groupId) {
+        em.createNamedQuery("deletePendingUserGroupMembershipsRequestByUserGroup").setParameter("userId", userId).setParameter("groupId", groupId).executeUpdate();
+        em.flush();
+    }
+
 
 
     private UserGroupMembershipRequestModel entityToModel(UserGroupMembershipRequestEntity entity){

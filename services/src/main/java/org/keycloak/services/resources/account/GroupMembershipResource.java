@@ -86,6 +86,7 @@ public class GroupMembershipResource {
                 request.setUserId(user.getId());
                 request.setGroupId(groupId);
                 request.setReason(rep.getReason());
+                request.setStatus("PENDING");
                 realm.addUserGroupMembershipRequest(request);
             }
         });

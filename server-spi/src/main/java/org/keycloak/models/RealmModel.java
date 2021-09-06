@@ -1041,5 +1041,7 @@ public interface RealmModel extends RoleContainerModel {
     UserGroupMembershipRequestModel getUserGroupMembershipRequest(String id);
     Long countPendingUserGroupMembershipRequestsByUser(String userId, String groupId);
     void addUserGroupMembershipRequest(UserGroupMembershipRequestModel model);
-    UserGroupMembershipRequestModel changeStatusUserGroupMembershipRequest(String id, String viewerId, String status);
+    void removeUserGroupMembershipRequestByUser(String userId);
+    void removePendingUserGroupMembershipRequestsByUserGroup(String userId, String groupId);
+    void changeStatusUserGroupMembershipRequest(String id, String viewerId, String status);
 }

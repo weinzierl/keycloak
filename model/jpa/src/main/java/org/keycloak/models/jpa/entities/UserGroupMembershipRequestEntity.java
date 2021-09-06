@@ -15,10 +15,14 @@ import javax.persistence.Table;
 @Entity
 @Table(name="USER_GROUP_MEMBERSHIP_REQUEST")
 @NamedQueries({
-        @NamedQuery(name="getAllRequests", query="select u from UserGroupMembershipRequestEntity u"),
+        @NamedQuery(name="getAllRequestsByRealm", query="select u from UserGroupMembershipRequestEntity u where u.realm.id = :realmId"),
         @NamedQuery(name="getRequestsByStatus", query="select u from UserGroupMembershipRequestEntity u where u.status = :status"),
         @NamedQuery(name="getRequestsByUserAndGroup", query="select count(u) from UserGroupMembershipRequestEntity u where u.status = 'PENDING' and u.userId = :userId and u.groupId = :groupId"),
-        @NamedQuery(name="getGroupsOfRequestsByUser", query="select distinct(u.groupId) from UserGroupMembershipRequestEntity u where u.status = 'PENDING' and u.userId = :userId")
+        @NamedQuery(name="getGroupsOfRequestsByUser", query="select distinct(u.groupId) from UserGroupMembershipRequestEntity u where u.status = 'PENDING' and u.userId = :userId"),
+        @NamedQuery(name="deletePendingUserGroupMembershipsRequestByUserGroup", query="delete from UserGroupMembershipRequestEntity u where u.status = 'PENDING' and  u .userId = :userId and u.groupId = :groupId"),
+        @NamedQuery(name="deleteUserGroupMembershipsRequestByUser", query="delete from UserGroupMembershipRequestEntity u where u.userId = :userId"),
+        @NamedQuery(name="deleteUserGroupMembershipsRequestByGroup", query="delete from UserGroupMembershipRequestEntity u where u.groupId = :groupId"),
+        @NamedQuery(name="deleteUserGroupMembershipsRequestByRealm", query="delete from UserGroupMembershipRequestEntity u where u.realm.id = :realmId")
 })
 
 public class UserGroupMembershipRequestEntity {

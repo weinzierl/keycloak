@@ -1797,9 +1797,15 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
+    public void removePendingUserGroupMembershipRequestsByUserGroup(String userId, String groupId) {
+        getDelegateForUpdate();
+        updated.removePendingUserGroupMembershipRequestsByUserGroup(userId, groupId);
+    }
+
+    @Override
     public Long countPendingUserGroupMembershipRequestsByUser(String userId, String groupId) {
         if (isUpdated()) return updated.countPendingUserGroupMembershipRequestsByUser(userId, groupId) ;
-        return cached.getUserGroupMembershipRequests().stream().filter(r -> "PENDING".equals(r.getStatus()) && userId.equals(r.getUserId()) &&  groupId.equals(r.getGroupId()) && "PENDING".equals(r.getStatus())).count();
+        return cached.getUserGroupMembershipRequests().stream().filter(r -> "PENDING".equals(r.getStatus()) && userId.equals(r.getUserId()) &&  groupId.equals(r.getGroupId())).count();
     }
 
     @Override
@@ -1809,9 +1815,15 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
-    public UserGroupMembershipRequestModel changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
+    public void changeStatusUserGroupMembershipRequest(String id, String viewerId, String status) {
         getDelegateForUpdate();
-        return updated.changeStatusUserGroupMembershipRequest(id, viewerId, status);
+        updated.changeStatusUserGroupMembershipRequest(id, viewerId, status);
+    }
+
+    @Override
+    public void removeUserGroupMembershipRequestByUser(String userId) {
+        getDelegateForUpdate();
+        updated.removeUserGroupMembershipRequestByUser(userId);
     }
 
 

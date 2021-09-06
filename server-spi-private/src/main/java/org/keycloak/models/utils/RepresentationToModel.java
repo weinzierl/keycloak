@@ -89,6 +89,7 @@ import org.keycloak.models.RoleModel;
 import org.keycloak.models.ScopeContainerModel;
 import org.keycloak.models.UserConsentModel;
 import org.keycloak.models.UserCredentialModel;
+import org.keycloak.models.UserGroupMembershipRequestModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.WebAuthnPolicy;
@@ -126,6 +127,7 @@ import org.keycloak.representations.idm.SocialLinkRepresentation;
 import org.keycloak.representations.idm.UserConsentRepresentation;
 import org.keycloak.representations.idm.UserFederationMapperRepresentation;
 import org.keycloak.representations.idm.UserFederationProviderRepresentation;
+import org.keycloak.representations.idm.UserGroupMembershipRequestRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.authorization.AbstractPolicyRepresentation;
 import org.keycloak.representations.idm.authorization.DecisionStrategy;
@@ -424,6 +426,31 @@ public class RepresentationToModel {
         if (rep.getFederatedUsers() != null) {
             for (UserRepresentation userRep : rep.getFederatedUsers()) {
                 importFederatedUser(session, newRealm, userRep);
+            }
+        }
+
+        if (rep.getRequests() != null) {
+            for (UserGroupMembershipRequestRepresentation request : rep.getRequests()) {
+                if ( request.getUser().getId() == null) {
+                    UserModel user = session.users().getUserByUsername(newRealm, request.getUser().getUsername());
+                    if (user == null)
+                        break;
+                    request.getUser().setId(user.getId());
+                }
+                if ( request.getViewer() != null && request.getViewer().getId() == null) {
+                    UserModel user = session.users().getUserByUsername(newRealm, request.getViewer().getUsername());
+                    if (user == null)
+                        break;
+                    request.getViewer().setId(user.getId());
+                }
+                if ( request.getGroup().getId() == null) {
+                    GroupModel group = KeycloakModelUtils.findGroupByPath(newRealm,  request.getGroup().getPath());
+                    if (group == null)
+                        break;
+                    request.getGroup().setId(group.getId());
+                }
+                UserGroupMembershipRequestModel requestModel = RepresentationToModel.toModel(request);
+                newRealm.addUserGroupMembershipRequest(requestModel);
             }
         }
 
@@ -1933,6 +1960,17 @@ public class RepresentationToModel {
         model.setSecretData(cred.getSecretData());
         model.setCredentialData(cred.getCredentialData());
         model.setId(cred.getId());
+        return model;
+    }
+
+    public static UserGroupMembershipRequestModel toModel(UserGroupMembershipRequestRepresentation rep) {
+        UserGroupMembershipRequestModel model = new UserGroupMembershipRequestModel();
+        model.setId(rep.getId());
+        model.setReason(rep.getReason());
+        model.setGroupId(rep.getGroup().getId());
+        model.setUserId(rep.getUser().getId());
+        model.setViewerId(rep.getViewer() != null ? rep.getViewer().getId() : null);
+        model.setStatus(rep.getStatus());
         return model;
     }
 

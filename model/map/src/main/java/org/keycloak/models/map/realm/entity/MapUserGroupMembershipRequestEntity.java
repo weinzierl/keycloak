@@ -24,7 +24,7 @@ public class MapUserGroupMembershipRequestEntity implements UpdatableEntity {
         if (model == null) return null;
         MapUserGroupMembershipRequestEntity entity = new MapUserGroupMembershipRequestEntity();
 
-        entity.setId(KeycloakModelUtils.generateId());
+        entity.setId(model.getId() != null ? model.getId(): KeycloakModelUtils.generateId());
         entity.setUserId(model.getUserId());
         entity.setGroupId(model.getGroupId());
         entity.setReason(model.getReason());

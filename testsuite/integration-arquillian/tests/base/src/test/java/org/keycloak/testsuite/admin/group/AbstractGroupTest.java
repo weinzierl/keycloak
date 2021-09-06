@@ -49,10 +49,12 @@ public abstract class AbstractGroupTest extends AbstractKeycloakTest {
     @Rule
     public AssertAdminEvents assertAdminEvents = new AssertAdminEvents(this);
 
+    protected String accessToken;
+
     AccessToken login(String login, String clientId, String clientSecret, String userId) throws Exception {
         AccessTokenResponse tokenResponse = oauth.doGrantAccessTokenRequest("test", login, "password", null, clientId, clientSecret);
 
-        String accessToken = tokenResponse.getAccessToken();
+        accessToken = tokenResponse.getAccessToken();
         String refreshToken = tokenResponse.getRefreshToken();
 
         PublicKey publicKey = PemUtils.decodePublicKey(ApiUtil.findActiveSigningKey(adminClient.realm("test")).getPublicKey());

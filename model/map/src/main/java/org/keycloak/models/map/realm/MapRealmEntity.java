@@ -1049,4 +1049,9 @@ public class MapRealmEntity implements AbstractEntity, UpdatableEntity {
         this.updated |= userGroupMembershipRequests.replace(entity.getId(), entity) != null;
     }
 
+    public void removeUserGroupMembershipRequest(String id) {
+        boolean removed = this.userGroupMembershipRequests.remove(id) != null;
+        updated |= removed;
+    }
+
 }

@@ -1,5 +1,7 @@
 package org.keycloak.services.resources.admin;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.ws.rs.DefaultValue;
@@ -15,6 +17,8 @@ import javax.ws.rs.core.MediaType;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
+import org.keycloak.email.EmailException;
+import org.keycloak.email.EmailTemplateProvider;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.AdminRoles;
@@ -25,6 +29,7 @@ import org.keycloak.models.UserGroupMembershipRequestModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.representations.idm.UserGroupMembershipRequestRepresentation;
+import org.keycloak.services.ServicesLogger;
 import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluator;
 
 public class UserGroupMembershipRequestsResource {
@@ -61,27 +66,37 @@ public class UserGroupMembershipRequestsResource {
     @Path("{id}/action")
     public void changeStatus(@PathParam("id") String id, @QueryParam("status") String status) {
         auth.adminAuth().hasRealmRole(AdminRoles.MANAGE_USERS);
-        UserGroupMembershipRequestModel request = realm.changeStatusUserGroupMembershipRequest(id,auth.adminAuth().getUser().getId(),status.toUpperCase());
+        UserGroupMembershipRequestModel request = realm.getUserGroupMembershipRequest(id);
         if ( request == null)
             throw new NotFoundException("UserGroupMembershipRequestEntity not found");
-        adminEvent.operation(OperationType.ACTION).representation(ModelToRepresentation.toRepresentation(request, session, realm)).resourcePath(session.getContext().getUri()).success();
-        if ( "approved".equals(status)) {
-            UserModel user = session.users().getUserById(realm, request.getUserId());
-            if (user == null) {
-                throw new NotFoundException("User not found");
-            }
-            auth.users().requireManageGroupMembership(user);
+        UserModel user = session.users().getUserById(realm, request.getUserId());
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
+        GroupModel group = session.groups().getGroupById(realm, request.getGroupId());
+        if (group == null) {
+            throw new NotFoundException("Group not found");
+        }
 
-            GroupModel group = session.groups().getGroupById(realm, request.getGroupId());
-            if (group == null) {
-                throw new NotFoundException("Group not found");
-            }
+        if ( "approved".equals(status)) {
+            auth.users().requireManageGroupMembership(user);
             auth.groups().requireManageMembership(group);
 
             if (!user.isMemberOf(group)){
                 user.joinGroup(group);
                 adminEvent.operation(OperationType.CREATE).resource(ResourceType.GROUP_MEMBERSHIP).representation(ModelToRepresentation.toRepresentation(group, true)).resourcePath(session.getContext().getUri()).success();
             }
+        }
+
+        realm.changeStatusUserGroupMembershipRequest(id,auth.adminAuth().getUser().getId(),status.toUpperCase());
+        adminEvent.operation(OperationType.ACTION).resource(ResourceType.USER_GROUP_REQUESTS).representation(ModelToRepresentation.toRepresentation(request, session, realm)).resourcePath(session.getContext().getUri()).success();
+
+        try {
+            Map<String, Object> attributes = new HashMap<>();
+            attributes.put("groupName", group.getName());
+            session.getProvider(EmailTemplateProvider.class).setRealm(realm).setUser(user).send("approved".equals(status) ? "approveJoinGroupRequestSubject" : "rejectJoinGroupRequestSubject", "approved".equals(status) ? "approve-join-group-request.ftl" : "reject-join-group-request.ftl", attributes);
+        } catch (EmailException e) {
+            ServicesLogger.LOGGER.failedToSendEmail(e);
         }
     }
 

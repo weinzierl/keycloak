@@ -840,6 +840,11 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     }
 
     @Override
+    public Stream<IdentityProviderModel> getAutoUpdatedIdentityProvidersStream() {
+        return entity.getIdentityProviders().filter(idp -> idp.getConfig() != null && idp.getConfig().get(IdentityProviderModel.METADATA_URL) != null).map(MapIdentityProviderEntity::toModel);
+    }
+
+    @Override
     public IdentityProviderModel getIdentityProviderByAlias(String alias) {
         return entity.getIdentityProviders()
                 .filter(identityProvider -> Objects.equals(identityProvider.getAlias(), alias))

@@ -27,6 +27,7 @@ import org.keycloak.config.ConfigProviderFactory;
 import org.keycloak.exportimport.ExportImportManager;
 import org.keycloak.migration.MigrationModelManager;
 import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.KeycloakSessionTask;
@@ -51,6 +52,7 @@ import org.keycloak.services.managers.ApplianceBootstrap;
 import org.keycloak.services.managers.RealmManager;
 import org.keycloak.services.managers.UserStorageSyncManager;
 import org.keycloak.services.resources.admin.AdminRoot;
+import org.keycloak.services.scheduled.AutoUpdateIdentityProviders;
 import org.keycloak.services.scheduled.ClearExpiredClientInitialAccessTokens;
 import org.keycloak.services.scheduled.ClearExpiredEvents;
 import org.keycloak.services.scheduled.ClearExpiredUserSessions;
@@ -71,6 +73,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -258,6 +261,7 @@ public class KeycloakApplication extends Application {
                     	idpFederationProvider.enableUpdateTask();
                  	}
                 }
+                startIdPScheduledTasks(session, timer);
                 session.getTransactionManager().commit();
 
             } catch (Throwable t) {
@@ -272,9 +276,26 @@ public class KeycloakApplication extends Application {
                 }
             }
             new UserStorageSyncManager().bootstrapPeriodic(sessionFactory, timer);
+
         } finally {
             session.close();
         }
+    }
+
+    /**
+     * fidn autoupdated IdPs in storage and create scheduled tasks based on refreshPeriod and lastRefreshTime
+     * @param session KeycloakSession
+     * @param timer TimerProvider
+     */
+    private static void startIdPScheduledTasks(KeycloakSession session, TimerProvider timer) {
+        session.realms().getRealmsStream().forEach(realm -> realm.getAutoUpdatedIdentityProvidersStream().forEach(idp -> {
+                    AutoUpdateIdentityProviders autoUpdateProvider = new AutoUpdateIdentityProviders(idp.getAlias(), realm.getId());
+                    ClusterAwareScheduledTaskRunner taskRunner = new ClusterAwareScheduledTaskRunner(session.getKeycloakSessionFactory(), autoUpdateProvider, Long.valueOf(idp.getConfig().get(IdentityProviderModel.REFRESH_PERIOD)) * 1000);
+                    long delay = idp.getConfig().get(IdentityProviderModel.LAST_REFRESH_TIME) == null ? Long.parseLong(idp.getConfig().get(IdentityProviderModel.REFRESH_PERIOD)) * 1000 : Long.parseLong(idp.getConfig().get(IdentityProviderModel.LAST_REFRESH_TIME) + Long.parseLong(idp.getConfig().get(IdentityProviderModel.REFRESH_PERIOD)) * 1000) - Instant.now().toEpochMilli();
+                    timer.schedule(taskRunner, delay < 0 ? 0 : delay, Long.valueOf(idp.getConfig().get(IdentityProviderModel.REFRESH_PERIOD)) * 1000, "AutoUpdateIdP" + idp.getAlias());
+                })
+        );
+
     }
 
     public static KeycloakSessionFactory getSessionFactory() {

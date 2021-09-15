@@ -555,6 +555,7 @@ public interface RealmModel extends RoleContainerModel {
      * @return Stream of {@link IdentityProviderModel}. Never returns {@code null}.
      */
     Stream<IdentityProviderModel> getIdentityProvidersStream();
+    Stream<IdentityProviderModel> getAutoUpdatedIdentityProvidersStream();
 
     IdentityProviderModel getIdentityProviderByAlias(String alias);
     void addIdentityProvider(IdentityProviderModel identityProvider);

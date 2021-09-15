@@ -57,6 +57,7 @@ import java.util.Set;
 @NamedQueries({
 		@NamedQuery(name="countIdentityProvidersOfRealm", query="select count(identityProvider.internalId) from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId"),
         @NamedQuery(name="findIdentityProvidersByAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias"),
+@NamedQuery(name="findAutoUpdatedIdentityProviders", query="select i from IdentityProviderEntity i inner join i.config c where i.realm.id = :realmId and KEY(c) = 'refreshPeriod' "),
         @NamedQuery(name="findIdentityProviderByRealm", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId"),
         @NamedQuery(name="findIdentityProviderByRealmAndKeyword", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.realm.id = :realmId and (lower(identityProvider.alias) like :keyword or lower(identityProvider.displayName) like :keyword )"),
         @NamedQuery(name="findIdentityProviderByRealmAndAlias", query="select identityProvider from IdentityProviderEntity identityProvider where identityProvider.alias = :alias and identityProvider.realm.id = :realmId"),

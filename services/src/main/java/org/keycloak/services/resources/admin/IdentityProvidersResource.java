@@ -50,6 +50,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+
+import org.keycloak.services.scheduled.AutoUpdateIdentityProviders;
+import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
+import org.keycloak.timer.TimerProvider;
 import org.keycloak.utils.ReservedCharValidator;
 
 /**
@@ -110,7 +114,7 @@ public class IdentityProvidersResource {
         InputPart file = formDataMap.get("file").get(0);
         InputStream inputStream = file.getBody(InputStream.class, null);
         IdentityProviderFactory providerFactory = getProviderFactorytById(providerId);
-        Map<String, String> config = providerFactory.parseConfig(session, inputStream);
+        Map<String, String> config = providerFactory.parseConfig(session, inputStream, new IdentityProviderModel()).getConfig();
         return config;
     }
 
@@ -138,8 +142,7 @@ public class IdentityProvidersResource {
         InputStream inputStream = session.getProvider(HttpClientProvider.class).get(from);
         try {
             IdentityProviderFactory providerFactory = getProviderFactorytById(providerId);
-            Map<String, String> config;
-            config = providerFactory.parseConfig(session, inputStream);
+            Map<String, String> config = providerFactory.parseConfig(session, inputStream, new IdentityProviderModel()).getConfig();
             return config;
         } finally {
             try {
@@ -222,6 +225,9 @@ public class IdentityProvidersResource {
             this.realm.addIdentityProvider(identityProvider);
 
             representation.setInternalId(identityProvider.getInternalId());
+            //for autoupdated IdPs create schedule task
+            if (identityProvider.getConfig().get(IdentityProviderModel.REFRESH_PERIOD) != null)
+                createScheduleTask(identityProvider.getAlias(), Long.parseLong(identityProvider.getConfig().get(IdentityProviderModel.REFRESH_PERIOD)) * 1000);
             adminEvent.operation(OperationType.CREATE).resourcePath(session.getContext().getUri(), identityProvider.getAlias())
                     .representation(StripSecretsUtils.strip(representation)).success();
             
@@ -237,6 +243,13 @@ public class IdentityProvidersResource {
         } catch (ModelDuplicateException e) {
             return ErrorResponse.exists("Identity Provider " + representation.getAlias() + " already exists");
         }
+    }
+
+    private void createScheduleTask(String alias,long interval) {
+        TimerProvider timer = session.getProvider(TimerProvider.class);
+        AutoUpdateIdentityProviders autoUpdateProvider = new AutoUpdateIdentityProviders(alias, realm.getId());
+        ClusterAwareScheduledTaskRunner taskRunner = new ClusterAwareScheduledTaskRunner(session.getKeycloakSessionFactory(), autoUpdateProvider, interval);
+        timer.schedule(taskRunner, interval, "AutoUpdateIdP-" + alias);
     }
 
     @Path("instances/{alias}")

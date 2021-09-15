@@ -18,6 +18,7 @@
 org.keycloak.broker.provider.HardcodedRoleMapper
 org.keycloak.broker.provider.HardcodedAttributeMapper
 org.keycloak.broker.provider.HardcodedUserSessionAttributeMapper
+org.keycloak.broker.provider.ScriptMapper
 org.keycloak.broker.oidc.mappers.ClaimToRoleMapper
 org.keycloak.broker.oidc.mappers.AdvancedClaimToRoleMapper
 org.keycloak.broker.oidc.mappers.ExternalKeycloakRoleToRoleMapper
@@ -27,7 +28,6 @@ org.keycloak.broker.saml.mappers.AdvancedAttributeToRoleMapper
 org.keycloak.broker.saml.mappers.AttributeToRoleMapper
 org.keycloak.broker.saml.mappers.UserAttributeMapper
 org.keycloak.broker.saml.mappers.UsernameTemplateMapper
-org.keycloak.broker.saml.mappers.ScriptMapper
 org.keycloak.social.facebook.FacebookUserAttributeMapper
 org.keycloak.social.github.GitHubUserAttributeMapper
 org.keycloak.social.paypal.PayPalUserAttributeMapper

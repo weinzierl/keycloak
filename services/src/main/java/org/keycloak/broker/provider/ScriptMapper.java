@@ -1,33 +1,31 @@
-package org.keycloak.broker.saml.mappers;
+package org.keycloak.broker.provider;
 
 import org.jboss.logging.Logger;
-import org.keycloak.broker.provider.AbstractIdentityProviderMapper;
-import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.saml.SAMLIdentityProviderFactory;
-import org.keycloak.common.util.CollectionUtil;
-import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
-import org.keycloak.dom.saml.v2.assertion.AttributeType;
-import org.keycloak.models.*;
-import org.keycloak.protocol.ProtocolMapperConfigException;
-import org.keycloak.protocol.saml.mappers.AbstractSAMLProtocolMapper;
-import org.keycloak.protocol.saml.mappers.AttributeStatementHelper;
-import org.keycloak.protocol.saml.mappers.SAMLAttributeStatementMapper;
+import org.keycloak.models.IdentityProviderMapperModel;
+import org.keycloak.models.IdentityProviderSyncMode;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.ScriptModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.provider.ProviderConfigProperty;
-import org.keycloak.saml.common.util.StringUtil;
 import org.keycloak.scripting.EvaluatableScriptAdapter;
-import org.keycloak.scripting.ScriptCompilationException;
 import org.keycloak.scripting.ScriptingProvider;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 public class ScriptMapper extends AbstractIdentityProviderMapper {
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<>();
-    public static final String PROVIDER_ID = "saml-javascript-idp-mapper";
+    public static final String PROVIDER_ID = "javascript-idp-mapper";
     public static final String SINGLE_VALUE_ATTRIBUTE = "single";
     private static final Logger LOGGER = Logger.getLogger(ScriptMapper.class);
-    public static final String[] COMPATIBLE_PROVIDERS = {SAMLIdentityProviderFactory.PROVIDER_ID};
+    public static final String[] COMPATIBLE_PROVIDERS = {ANY_PROVIDER};
     private static final Set<IdentityProviderSyncMode> IDENTITY_PROVIDER_SYNC_MODES = new HashSet<>(Arrays.asList(IdentityProviderSyncMode.values()));
 
 

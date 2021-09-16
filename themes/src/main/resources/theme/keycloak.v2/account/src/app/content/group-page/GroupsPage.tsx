@@ -47,7 +47,6 @@ interface PaginatedGroups {
   data: Group[];
 }
 
-
 interface Group {
   id?: string;
   name: string;

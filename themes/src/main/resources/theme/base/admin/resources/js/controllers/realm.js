@@ -1637,22 +1637,8 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
          }
 	}
 
-	
-//	$scope.importFrom = function() {
-//        
-//        var input = {
-//            fromUrl: $scope.identityProvidersFederation.url,
-//            providerId: providerId
-//        }
-//        $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/import-config', input)
-//            .then(function(response) {
-//            	$scope.allIdps = response.data;
-//            	$scope.identityProvidersFederation.providerId = providerId;
-//                Notifications.success("Loaded federation configuration from the url.");
-//            }).catch(function() {
-//                Notifications.error("Config can not be loaded. Please verify the url.");
-//            });
-//    };
+	$scope.callbackUrl = authServerUrl + "/realms/" + realm.realm + "/broker/federation/";
+
 	$scope.addNewMultiplePrincipal = function() {
         $scope.multiplePrincipals.push($scope.newMultiplePrincipal);
         $scope.newMultiplePrincipal = {};
@@ -1955,22 +1941,6 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
         	}
         }
 
-});
-
-
-module.controller('IdentityProvidersFederationsExportCtrl', function(realm, Dialog, $scope, identityProvidersFederation, IdentityProvidersFederationExport, Current, Notifications, $location, $http) {
-
-	$scope.realm = realm;
-	$scope.identityProvidersFederation = identityProvidersFederation;
-
-	var url = IdentityProvidersFederationExport.url({realm: realm.realm, alias: identityProvidersFederation.alias}) ;
-	$http.get(url).then(function(response) {
-	    $scope.exportedType = response.headers('Content-Type');
-	    $scope.exported = response.data;
-	});
-	
-	$scope.staticLink = window.location.origin + "/auth/realms/master/broker/federation/" + identityProvidersFederation.internalId + "/endpoint/descriptor";
-	
 });
 
 module.controller('IdentityProvidersFederationsMappersCtrl', function(realm, $scope, providerId, internalId,alias, identityProvidersFederationMappers, mapperTypes, Current,Dialog ,Notifications, $http) {

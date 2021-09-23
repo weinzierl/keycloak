@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 
+import org.apache.tools.ant.filters.StringInputStream;
 import org.jboss.logging.Logger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -22,6 +23,9 @@ import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
+import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
+import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
+import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 import org.keycloak.protocol.saml.SamlPrincipalType;
@@ -30,6 +34,8 @@ import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
+import org.keycloak.saml.common.exceptions.ParsingException;
+import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.testsuite.Assert;
 import org.keycloak.testsuite.util.AdminEventPaths;
 
@@ -267,6 +273,65 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
     }
 
     @Test
+    public void testCreateAndExportWithoutMappers() throws IOException, ParsingException {
+
+        String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
+                new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
+
+        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
+                .getIdentityProviderFederation(internalId);
+        Assert.assertNotNull(representation);
+        String spDescriptorString = realm.identityProvidersFederation().export(representation.getAlias()).readEntity(String.class);
+        SAMLParser parser = SAMLParser.getInstance();
+        EntityDescriptorType o = (EntityDescriptorType) parser.parse(new StringInputStream(spDescriptorString));
+        SPSSODescriptorType spDescriptor = o.getChoiceType().get(0).getDescriptors().get(0).getSpDescriptor();
+
+        //attribute mappers do  exists-  AttributeConsumingService exist
+        Assert.assertEquals(spDescriptor.getAssertionConsumerService().size(),1);
+        Assert.assertEquals(spDescriptor.getSingleLogoutService().size(),1);
+        Assert.assertEquals(spDescriptor.getNameIDFormat().size(),1);
+        Assert.assertEquals(spDescriptor.getNameIDFormat().get(0),"urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");
+        Assert.assertTrue(spDescriptor.getAttributeConsumingService().isEmpty());
+
+        removeFederation(internalId);
+
+    }
+
+    @Test
+    public void testCreateAndExportWithMappers() throws IOException, ParsingException {
+
+        String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
+                new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
+        createMapper(internalId);
+
+        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
+                .getIdentityProviderFederation(internalId);
+        Assert.assertNotNull(representation);
+        String spDescriptorString = realm.identityProvidersFederation().export(representation.getAlias()).readEntity(String.class);
+        SAMLParser parser = SAMLParser.getInstance();
+        EntityDescriptorType o = (EntityDescriptorType) parser.parse(new StringInputStream(spDescriptorString));
+        SPSSODescriptorType spDescriptor = o.getChoiceType().get(0).getDescriptors().get(0).getSpDescriptor();
+
+        //attribute mappers do not exist- no AttributeConsumingService
+        Assert.assertEquals(spDescriptor.getAssertionConsumerService().size(),1);
+        Assert.assertEquals(spDescriptor.getSingleLogoutService().size(),1);
+        Assert.assertEquals(spDescriptor.getNameIDFormat().size(),1);
+        Assert.assertEquals(spDescriptor.getNameIDFormat().get(0),"urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");
+        Assert.assertFalse(spDescriptor.getAttributeConsumingService().isEmpty());
+        AttributeConsumingServiceType attributeConsuming = spDescriptor.getAttributeConsumingService().get(0);
+        Assert.assertEquals(attributeConsuming.getIndex(), 3);
+        Assert.assertFalse(attributeConsuming.getRequestedAttribute().isEmpty());
+        Assert.assertEquals(attributeConsuming.getRequestedAttribute().get(0).getName(), "givenname");
+        Assert.assertEquals(attributeConsuming.getRequestedAttribute().get(0).getFriendlyName(), "given name");
+        Assert.assertEquals(attributeConsuming.getRequestedAttribute().get(0).getNameFormat(), JBossSAMLURIConstants.ATTRIBUTE_FORMAT_URI.get());
+        Assert.assertTrue(attributeConsuming.getServiceName() != null);
+        Assert.assertEquals(attributeConsuming.getServiceName().get(0).getValue(), "federation");
+
+        removeFederation(internalId);
+
+    }
+
+    @Test
     public void testFederationMappers() throws IOException {
 
         String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
@@ -421,6 +486,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         config.put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
         config.put("wantAssertionsEncrypted","true");
         config.put("wantAssertionsSigned","true");
+        config.put("attributeConsumingServiceIndex","3");
+        config.put("attributeConsumingServiceName","federation");
         representation.setConfig(config);
 
         Response response = realm.identityProvidersFederation().create(representation);
@@ -468,7 +535,9 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         mapper.setIdentityProviderMapper("saml-user-attribute-idp-mapper");
         Map<String,String> config = new HashMap<>();
         config.put("attribute.name","givenname");
+        config.put("attribute.friendly.name","given name");
         config.put("user.attribute","firstname");
+        config.put("attribute.name.format",JBossSAMLURIConstants.ATTRIBUTE_FORMAT_URI.name());
         mapper.setConfig(config);
 
         Response response = realm.identityProvidersFederation().createMapper(federatedId,mapper);

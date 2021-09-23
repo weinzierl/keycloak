@@ -540,41 +540,36 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(authnBinding, authnBinding, endpoint, endpoint, wantAuthnRequestsSigned,
                 wantAssertionsSigned, wantAssertionsEncrypted, entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
 
-			// Create the AttributeConsumingService
-			int attributeConsumingServiceIndex = model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX) != null ?  Integer.parseInt(model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX)) : 1;
-			String attributeConsumingServiceName = model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_NAME);
-			AttributeConsumingServiceType attributeConsumingService = new AttributeConsumingServiceType(attributeConsumingServiceIndex);
-			attributeConsumingService.setIsDefault(true);
+			// Create the AttributeConsumingService if at least one attribute importer mapper exists
+			List<FederationMapperModel> mappers = model.getFederationMapperModels().stream().filter(mapper -> "saml-user-attribute-idp-mapper".equals(mapper.getIdentityProviderMapper())).collect(Collectors.toList());
+			if (!mappers.isEmpty()) {
+				int attributeConsumingServiceIndex = model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX) != null ?  Integer.parseInt(model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX)) : 1;
+				String attributeConsumingServiceName = model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_NAME);
+				//default value for attributeConsumingServiceName
+				if (attributeConsumingServiceName == null)
+					attributeConsumingServiceName = realm.getDisplayName() != null ? realm.getDisplayName() : realm.getName() ;
+				AttributeConsumingServiceType attributeConsumingService = new AttributeConsumingServiceType(attributeConsumingServiceIndex);
+				attributeConsumingService.setIsDefault(true);
 
-			if (attributeConsumingServiceName != null && attributeConsumingServiceName.length() > 0) {
-				String currentLocale = realm.getDefaultLocale() == null ? "en": realm.getDefaultLocale();
+				String currentLocale = realm.getDefaultLocale() == null ? "en" : realm.getDefaultLocale();
 				LocalizedNameType attributeConsumingServiceNameElement = new LocalizedNameType(currentLocale);
 				attributeConsumingServiceNameElement.setValue(attributeConsumingServiceName);
 				attributeConsumingService.addServiceName(attributeConsumingServiceNameElement);
-			}
 
-			// Look for the SP descriptor and add the attribute consuming service
-			for (EntityDescriptorType.EDTChoiceType choiceType: entityDescriptor.getChoiceType()) {
-				List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
-
-				if (descriptors != null) {
-					for (EntityDescriptorType.EDTDescriptorChoiceType descriptor: descriptors) {
-						if (descriptor.getSpDescriptor() != null) {
-							descriptor.getSpDescriptor().addAttributeConsumerService(attributeConsumingService);
-						}
+				// Look for the SP descriptor and add the attribute consuming service
+				for (EntityDescriptorType.EDTChoiceType choiceType : entityDescriptor.getChoiceType()) {
+					List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
+					for (EntityDescriptorType.EDTDescriptorChoiceType descriptor : descriptors) {
+						descriptor.getSpDescriptor().addAttributeConsumerService(attributeConsumingService);
 					}
 				}
-			}
 
-			// Add the attribute mappers
-			model.getFederationMapperModels().stream()
-					.forEach(mapper -> {
-						IdentityProviderMapper target = (IdentityProviderMapper) session.getKeycloakSessionFactory().getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
-						if (target instanceof SamlMetadataDescriptorUpdater) {
-							SamlMetadataDescriptorUpdater metadataAttrProvider = (SamlMetadataDescriptorUpdater) target;
-							metadataAttrProvider.updateMetadata(new IdentityProviderMapperModel(mapper,null), entityDescriptor);
-						}
-					});
+				// Add the attribute mappers
+				mappers.forEach(mapper -> {
+					SamlMetadataDescriptorUpdater metadataAttrProvider = (SamlMetadataDescriptorUpdater)  session.getKeycloakSessionFactory().getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
+					metadataAttrProvider.updateMetadata(new IdentityProviderMapperModel(mapper,null), entityDescriptor);
+				});
+			}
 
 			// Write the metadata and export it to a string
 			metadataWriter.writeEntityDescriptor(entityDescriptor);

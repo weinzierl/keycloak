@@ -15,6 +15,10 @@ import org.keycloak.representations.idm.IdentityProvidersFederationRepresentatio
 
 public interface IdentityProvidersFederationResource {
 
+    @GET
+    @Path("instances/{alias}/export")
+    public Response export( @PathParam("alias") String alias);
+
     @POST
     @Path("instances")
     @Consumes(MediaType.APPLICATION_JSON)

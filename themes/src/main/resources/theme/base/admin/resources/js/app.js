@@ -775,22 +775,7 @@ module.config([ '$routeProvider', function($routeProvider) {
             },
             controller : 'IdentityProvidersFederationConfigCtrl'
         })
-        
-        
-        
-        .when('/realms/:realm/identity-providers-federation/:providerId/:internalId/export', {
-            templateUrl : function(params){ return resourceUrl + '/partials/identity-providers-federation-export.html'; },
-            resolve : {
-            	realm : function(RealmLoader) {
-                    return RealmLoader();
-                },
-                identityProvidersFederation : function(IdentityProvidersFederationExportLoader) {
-                    return IdentityProvidersFederationExportLoader();
-                }
-            },
-            controller : 'IdentityProvidersFederationsExportCtrl'
-        })
-        
+
         .when('/realms/:realm/identity-providers-federation/:providerId/:internalId/:alias/mappers', {
             templateUrl : function(params){ return resourceUrl + '/partials/identity-providers-federation-mappers.html'; },
             resolve : {

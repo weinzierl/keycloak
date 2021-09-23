@@ -8,7 +8,6 @@
 
     <ul class="nav nav-tabs">
         <li class="active"><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
-        <li data-ng-show="identityProvidersFederation.internalId"><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}/export">{{:: 'identity-providers-federation-export' | translate}}</a></li>
         <li data-ng-show="identityProvidersFederation.internalId"><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}/{{identityProvidersFederation.alias}}/mappers">{{:: 'mappers' | translate}}</a></li>
     </ul>
 
@@ -74,6 +73,14 @@
 						   readonly>
 				</div>
 				<kc-tooltip>{{:: 'valid-until.tooltip' |translate}}</kc-tooltip>
+			</div>
+
+			<div class="form-group" data-ng-show="identityProvidersFederation.internalId">
+				<label class="col-md-2 control-label">{{:: 'endpoints' | translate}}</label>
+				<div class="col-md-6">
+					<a class="form-control" ng-href="{{callbackUrl}}{{identityProvidersFederation.alias}}/endpoint/descriptor" target="_blank">{{:: 'identity-provider.saml.protocol-endpoints.saml' | translate}}</a>
+				</div>
+				<kc-tooltip>{{:: 'identity-provider.saml.protocol-endpoints.saml.tooltip' | translate}}</kc-tooltip>
 			</div>
 
 			<div class="form-group clearfix">

@@ -88,7 +88,7 @@ public class UserAttributeMapper extends AbstractIdentityProviderMapper implemen
         property = new ProviderConfigProperty();
         property.setName(ATTRIBUTE_NAME_FORMAT);
         property.setLabel("Name Format");
-        property.setHelpText("Name format of attribute to search for in assertion. Default to basic format.");
+        property.setHelpText("Name format of attribute to specify in the RequestedAttribute element. Default to basic format.");
         property.setType(ProviderConfigProperty.LIST_TYPE);
         property.setOptions(NAME_FORMATS);
         property.setDefaultValue(JBossSAMLURIConstants.ATTRIBUTE_FORMAT_BASIC.name());

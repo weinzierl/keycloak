@@ -20,7 +20,6 @@ package org.keycloak.testsuite.federation.ldap;
 
 import org.jboss.arquillian.graphene.page.Page;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -30,13 +29,16 @@ import org.keycloak.events.EventType;
 import org.keycloak.models.LDAPConstants;
 import org.keycloak.models.RealmModel;
 import org.keycloak.OAuth2Constants;
+import org.keycloak.models.ModelException;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.storage.ldap.idm.model.LDAPObject;
+import org.keycloak.testsuite.arquillian.annotation.AuthServerContainerExclude;
 import org.keycloak.testsuite.arquillian.annotation.EnableVault;
 import org.keycloak.testsuite.Assert;
 import org.keycloak.testsuite.AssertEvents;
 import org.keycloak.testsuite.pages.AppPage;
 import org.keycloak.testsuite.pages.LoginPage;
+import org.keycloak.testsuite.runonserver.RunOnServerException;
 import org.keycloak.testsuite.util.LDAPRule;
 import org.keycloak.testsuite.util.LDAPRule.LDAPConnectionParameters;
 import org.keycloak.testsuite.util.LDAPTestConfiguration;
@@ -46,6 +48,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
+import java.util.Objects;
+import org.junit.Assume;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -108,26 +112,34 @@ public class LDAPUserLoginTest extends AbstractLDAPTest {
 
     @Override
     protected void afterImportTestRealm() {
-        getTestingClient().server().run(session -> {
-            LDAPTestContext ctx = LDAPTestContext.init(session);
-            RealmModel appRealm = ctx.getRealm();
+        try {
+            getTestingClient().server().run(session -> {
+                LDAPTestContext ctx = LDAPTestContext.init(session);
+                RealmModel appRealm = ctx.getRealm();
 
-            // Delete all LDAP users
-            LDAPTestUtils.removeAllLDAPUsers(ctx.getLdapProvider(), appRealm);
-            // Add some new LDAP users for testing
-            LDAPObject john = LDAPTestUtils.addLDAPUser
-            (
-                ctx.getLdapProvider(),
-                appRealm,
-                DEFAULT_TEST_USERS.get("VALID_USER_NAME"),
-                DEFAULT_TEST_USERS.get("VALID_USER_FIRST_NAME"),
-                DEFAULT_TEST_USERS.get("VALID_USER_LAST_NAME"),
-                DEFAULT_TEST_USERS.get("VALID_USER_EMAIL"),
-                DEFAULT_TEST_USERS.get("VALID_USER_STREET"),
-                DEFAULT_TEST_USERS.get("VALID_USER_POSTAL_CODE")
-            );
-            LDAPTestUtils.updateLDAPPassword(ctx.getLdapProvider(), john, DEFAULT_TEST_USERS.get("VALID_USER_PASSWORD"));
-        });
+                // Delete all LDAP users
+                LDAPTestUtils.removeAllLDAPUsers(ctx.getLdapProvider(), appRealm);
+                // Add some new LDAP users for testing
+                LDAPObject john = LDAPTestUtils.addLDAPUser
+                (
+                    ctx.getLdapProvider(),
+                    appRealm,
+                    DEFAULT_TEST_USERS.get("VALID_USER_NAME"),
+                    DEFAULT_TEST_USERS.get("VALID_USER_FIRST_NAME"),
+                    DEFAULT_TEST_USERS.get("VALID_USER_LAST_NAME"),
+                    DEFAULT_TEST_USERS.get("VALID_USER_EMAIL"),
+                    DEFAULT_TEST_USERS.get("VALID_USER_STREET"),
+                    DEFAULT_TEST_USERS.get("VALID_USER_POSTAL_CODE")
+                );
+                LDAPTestUtils.updateLDAPPassword(ctx.getLdapProvider(), john, DEFAULT_TEST_USERS.get("VALID_USER_PASSWORD"));
+            });
+        } catch (RunOnServerException ex) {
+            Assume.assumeFalse("Work around JDK-8214440",
+                 ex.getCause() instanceof ModelException
+              && ex.getCause().getCause() instanceof ModelException
+              && ex.getCause().getCause().getCause() instanceof javax.naming.AuthenticationException
+              && Objects.equals(ex.getCause().getCause().getCause().getMessage(), "Could not negotiate TLS"));
+        }
     }
 
     @Page
@@ -152,7 +164,7 @@ public class LDAPUserLoginTest extends AbstractLDAPTest {
         // Run the test actions
         loginPage.open();
         loginPage.login(username, password);
-        Assert.assertEquals("Invalid username or password.", loginPage.getError());
+        Assert.assertEquals("Invalid username or password.", loginPage.getInputError());
 
         if (username.equals(DEFAULT_TEST_USERS.get("INVALID_USER_EMAIL")) || username.equals(DEFAULT_TEST_USERS.get("INVALID_USER_NAME"))) {
 
@@ -215,6 +227,8 @@ public class LDAPUserLoginTest extends AbstractLDAPTest {
     // Test variant: Bind credential set to vault
     @Test
     @LDAPConnectionParameters(bindCredential=LDAPConnectionParameters.BindCredential.VAULT, bindType=LDAPConnectionParameters.BindType.SIMPLE, encryption=LDAPConnectionParameters.Encryption.NONE)
+    @AuthServerContainerExclude(value = {AuthServerContainerExclude.AuthServer.QUARKUS, AuthServerContainerExclude.AuthServer.REMOTE}, details =
+            "java.io.NotSerializableException: com.sun.jndi.ldap.LdapCtx")
     public void loginLDAPUserCredentialVaultAuthenticationSimpleEncryptionNone() {
         verifyConnectionUrlProtocolPrefix("ldap://");
         runLDAPLoginTest();
@@ -233,6 +247,8 @@ public class LDAPUserLoginTest extends AbstractLDAPTest {
     // Test variant: Bind credential set to vault
     @Test
     @LDAPConnectionParameters(bindCredential=LDAPConnectionParameters.BindCredential.VAULT, bindType=LDAPConnectionParameters.BindType.SIMPLE, encryption=LDAPConnectionParameters.Encryption.SSL)
+    @AuthServerContainerExclude(value = {AuthServerContainerExclude.AuthServer.QUARKUS, AuthServerContainerExclude.AuthServer.REMOTE}, details =
+            "java.io.NotSerializableException: com.sun.jndi.ldap.LdapCtx")
     public void loginLDAPUserCredentialVaultAuthenticationSimpleEncryptionSSL() {
         verifyConnectionUrlProtocolPrefix("ldaps://");
         runLDAPLoginTest();
@@ -240,9 +256,6 @@ public class LDAPUserLoginTest extends AbstractLDAPTest {
 
     // Check LDAP federated user (in)valid login(s) with simple authentication & startTLS encryption enabled
     // Test variant: Bind credential set to secret (default)
-    // KEYCLOAK-14358 - Disable the StartTLS LDAP tests till KEYCLOAK-14343 & KEYCLOAK-14354 are corrected
-    //                  since they don't work properly with auth server Wildfly due these bugs
-    @Ignore
     @Test
     @LDAPConnectionParameters(bindType=LDAPConnectionParameters.BindType.SIMPLE, encryption=LDAPConnectionParameters.Encryption.STARTTLS)
     public void loginLDAPUserAuthenticationSimpleEncryptionStartTLS() {
@@ -252,11 +265,10 @@ public class LDAPUserLoginTest extends AbstractLDAPTest {
 
     // Check LDAP federated user (in)valid login(s) with simple authentication & startTLS encryption enabled
     // Test variant: Bind credential set to vault
-    // KEYCLOAK-14358 - Disable the StartTLS LDAP tests till KEYCLOAK-14343 & KEYCLOAK-14354 are corrected
-    //                  since they don't work properly with auth server Wildfly due these bugs
-    @Ignore
     @Test
     @LDAPConnectionParameters(bindCredential=LDAPConnectionParameters.BindCredential.VAULT, bindType=LDAPConnectionParameters.BindType.SIMPLE, encryption=LDAPConnectionParameters.Encryption.STARTTLS)
+    @AuthServerContainerExclude(value = {AuthServerContainerExclude.AuthServer.QUARKUS, AuthServerContainerExclude.AuthServer.REMOTE}, details =
+            "java.io.NotSerializableException: com.sun.jndi.ldap.LdapCtx")
     public void loginLDAPUserCredentialVaultAuthenticationSimpleEncryptionStartTLS() {
         verifyConnectionUrlProtocolPrefix("ldap://");
         runLDAPLoginTest();
@@ -300,9 +312,6 @@ public class LDAPUserLoginTest extends AbstractLDAPTest {
 
     // Check LDAP federated user (in)valid login(s) with anonymous authentication & startTLS encryption enabled
     // Test variant: Bind credential set to secret (default)
-    // KEYCLOAK-14358 - Disable the StartTLS LDAP tests till KEYCLOAK-14343 & KEYCLOAK-14354 are corrected
-    //                  since they don't work properly with auth server Wildfly due these bugs
-    @Ignore
     @Test
     @LDAPConnectionParameters(bindType=LDAPConnectionParameters.BindType.NONE, encryption=LDAPConnectionParameters.Encryption.STARTTLS)
     public void loginLDAPUserAuthenticationNoneEncryptionStartTLS() {
@@ -312,9 +321,6 @@ public class LDAPUserLoginTest extends AbstractLDAPTest {
 
     // Check LDAP federated user (in)valid login(s) with anonymous authentication & startTLS encryption enabled
     // Test variant: Bind credential set to vault
-    // KEYCLOAK-14358 - Disable the StartTLS LDAP tests till KEYCLOAK-14343 & KEYCLOAK-14354 are corrected
-    //                  since they don't work properly with auth server Wildfly due these bugs
-    @Ignore
     @Test
     @LDAPConnectionParameters(bindCredential=LDAPConnectionParameters.BindCredential.VAULT, bindType=LDAPConnectionParameters.BindType.NONE, encryption=LDAPConnectionParameters.Encryption.STARTTLS)
     public void loginLDAPUserCredentialVaultAuthenticationNoneEncryptionStartTLS() {

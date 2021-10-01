@@ -1,6 +1,7 @@
 package org.keycloak.services.resources;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +22,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.OAuth2Constants;
 import org.keycloak.broker.saml.aggregate.SAMLAggregateIdentityProviderFactory;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLAggregateMetadataStoreProvider;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLIdpDescriptor;
@@ -35,6 +37,7 @@ import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.protocol.oidc.utils.PkceUtils;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.saml.SAMLAggreateWayfResponseRepresentation;
 import org.keycloak.representations.saml.SAMLAggregateIdpRepresentation;
@@ -49,6 +52,8 @@ import org.keycloak.theme.FreeMarkerException;
 public class SAMLAggregateWayfResource {
 
   protected static final Logger LOG = Logger.getLogger(SAMLAggregateWayfResource.class);
+
+  private final String PKCE_METHOD = "S256";
 
   @Context
   protected KeycloakSession session;
@@ -101,10 +106,15 @@ public class SAMLAggregateWayfResource {
 
     if (cookieResult == null) {
       // not logged in => LOGIN
+
       actionUrl = BASE_URL + "realms/" + name + "/protocol/openid-connect/auth";
 
       String state =  UUID.randomUUID().toString();
       String responseType = "code";
+
+      String codeVerifier = PkceUtils.generateCodeVerifier();
+      String codeChallenge = PkceUtils.encodeCodeChallenge(codeVerifier, PKCE_METHOD);
+
 
       loginFormsProvider.setAttribute("isLogin", true);
       loginFormsProvider.setAttribute("isLinking", false);
@@ -112,6 +122,8 @@ public class SAMLAggregateWayfResource {
       loginFormsProvider.setAttribute("descriptors", descriptors);
       loginFormsProvider.setAttribute("actionUrl", actionUrl);
 
+      loginFormsProvider.setAttribute("code_challenge", codeChallenge);
+      loginFormsProvider.setAttribute("code_challenge_method", PKCE_METHOD);
       loginFormsProvider.setAttribute("clientId", clientId);
       loginFormsProvider.setAttribute("state", state);
       loginFormsProvider.setAttribute("responseType", responseType);
@@ -132,7 +144,7 @@ public class SAMLAggregateWayfResource {
       String input = nonce + token.getSessionState() + clientId + providerAlias;
       byte[] check = messageDigest.digest(input.getBytes(StandardCharsets.UTF_8));
       String hash = Base64Url.encode(check);
-      String redirectUri = BASE_URL + "realms/" + name + "/account/identity";
+      String redirectUri = BASE_URL + "realms/" + name + "/account";
       String accountLinkUrl = KeycloakUriBuilder.fromUri(BASE_URL)
               .path("/realms/" + name + "/broker/" + providerAlias + "/link")
               .queryParam("nonce", nonce)

@@ -16,6 +16,9 @@
  */
 package org.keycloak.saml.processing.core.parsers.saml.metadata;
 
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.events.StartElement;
+
 import org.keycloak.dom.saml.v2.metadata.ExtensionsType;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
 import org.keycloak.dom.saml.v2.metadata.LocalizedURIType;
@@ -24,13 +27,7 @@ import org.keycloak.dom.saml.v2.metadata.UIInfoType;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.common.util.StaxParserUtil;
 
-import static org.keycloak.saml.processing.core.parsers.saml.metadata.SAMLMetadataQNames.ATTR_REGEXP;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.events.StartElement;
+import org.keycloak.saml.processing.core.parsers.saml.mdattr.SAMLEntityAttributesParser;
 
 /**
  * Parses &lt;samlp:Extensions&gt; SAML2 element into series of DOM nodes.
@@ -59,7 +56,7 @@ public class SAMLExtensionsParser extends AbstractStaxSamlMetadataParser<Extensi
         
     	switch (element) {
     		case SCOPE:
-    			ScopeType scope = new ScopeType(StaxParserUtil.getAttributeValue(elementDetail, ATTR_REGEXP));
+    			ScopeType scope = new ScopeType(StaxParserUtil.getAttributeValue(elementDetail, SAMLMetadataQNames.ATTR_REGEXP));
     			StaxParserUtil.advance(xmlEventReader);
     			scope.setValue(StaxParserUtil.getElementText(xmlEventReader));
     			target.addScope(scope);
@@ -70,9 +67,13 @@ public class SAMLExtensionsParser extends AbstractStaxSamlMetadataParser<Extensi
     		case ENTITY_ATTRIBUTES:
     			target.setEntityAttributes(SAMLEntityAttributesParser.getInstance().parse(xmlEventReader));
     			break;
+    			/**
+            case ENTITY_ATTRIBUTES:
+                target.addExtension(SAMLEntityAttributesParser.getInstance().parse(xmlEventReader));
+                break;
+    			 */
     		default:
     			target.addExtension(StaxParserUtil.getDOMElement(xmlEventReader));
     	}
-
     }
 }

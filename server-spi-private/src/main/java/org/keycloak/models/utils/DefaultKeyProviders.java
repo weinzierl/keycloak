@@ -20,10 +20,11 @@ package org.keycloak.models.utils;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.crypto.Algorithm;
+import org.keycloak.crypto.KeyUse;
 import org.keycloak.keys.KeyProvider;
 import org.keycloak.models.RealmModel;
 
-import java.util.List;
+import java.util.Objects;
 
 /**
  * @author <a href="mailto:sthorger@redhat.com">Stian Thorgersen</a>
@@ -32,21 +33,27 @@ public class DefaultKeyProviders {
 
     public static void createProviders(RealmModel realm) {
         if (!hasProvider(realm, "rsa-generated")) {
-            ComponentModel generated = new ComponentModel();
-            generated.setName("rsa-generated");
-            generated.setParentId(realm.getId());
-            generated.setProviderId("rsa-generated");
-            generated.setProviderType(KeyProvider.class.getName());
-
-            MultivaluedHashMap<String, String> config = new MultivaluedHashMap<>();
-            config.putSingle("priority", "100");
-            generated.setConfig(config);
-
-            realm.addComponentModel(generated);
+            createRsaKeyProvider("rsa-generated", KeyUse.SIG, realm);
+            createRsaKeyProvider("rsa-enc-generated", KeyUse.ENC, realm);
         }
 
         createSecretProvider(realm);
         createAesProvider(realm);
+    }
+
+    private static void createRsaKeyProvider(String name, KeyUse keyUse, RealmModel realm) {
+        ComponentModel generated = new ComponentModel();
+        generated.setName(name);
+        generated.setParentId(realm.getId());
+        generated.setProviderId("rsa-generated");
+        generated.setProviderType(KeyProvider.class.getName());
+
+        MultivaluedHashMap<String, String> config = new MultivaluedHashMap<>();
+        config.putSingle("priority", "100");
+        config.putSingle("keyUse", keyUse.getSpecName());
+        generated.setConfig(config);
+
+        realm.addComponentModel(generated);
     }
 
     public static void createSecretProvider(RealmModel realm) {
@@ -81,13 +88,8 @@ public class DefaultKeyProviders {
     }
 
     protected static boolean hasProvider(RealmModel realm, String providerId) {
-        List<ComponentModel> currentComponents = realm.getComponents(realm.getId(), KeyProvider.class.getName());
-        for (ComponentModel current : currentComponents) {
-            if (current.getProviderId().equals(providerId)) {
-                return true;
-            }
-        }
-        return false;
+        return realm.getComponentsStream(realm.getId(), KeyProvider.class.getName())
+                .anyMatch(component -> Objects.equals(component.getProviderId(), providerId));
     }
 
     public static void createProviders(RealmModel realm, String privateKeyPem, String certificatePem) {

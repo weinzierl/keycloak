@@ -17,21 +17,22 @@
 
 package org.keycloak.testsuite;
 
-import org.keycloak.common.util.Resteasy;
-import org.keycloak.models.KeycloakSessionFactory;
-import org.keycloak.platform.PlatformProvider;
-import org.keycloak.services.resources.KeycloakApplication;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
-import javax.servlet.ServletContext;
+import org.jboss.logging.Logger;
+import org.keycloak.platform.PlatformProvider;
 
 public class TestPlatform implements PlatformProvider {
+
+    private static final Logger log = Logger.getLogger(TestPlatform.class);
+
+    private File tmpDir;
 
     @Override
     public void onStartup(Runnable startupHook) {
         startupHook.run();
-        KeycloakApplication keycloakApplication = Resteasy.getContextData(KeycloakApplication.class);
-        ServletContext context = Resteasy.getContextData(ServletContext.class);
-        context.setAttribute(KeycloakSessionFactory.class.getName(),  keycloakApplication.getSessionFactory());
     }
 
     @Override
@@ -43,4 +44,30 @@ public class TestPlatform implements PlatformProvider {
         throw new RuntimeException(cause);
     }
 
+    @Override
+    public File getTmpDirectory() {
+        if (tmpDir == null) {
+            String projectBuildDir = System.getProperty("project.build.directory");
+            File tmpDir;
+            if (projectBuildDir != null) {
+                tmpDir = new File(projectBuildDir, "server-tmp");
+                tmpDir.mkdir();
+            } else {
+                try {
+                    tmpDir = Files.createTempDirectory("keycloak-server-").toFile();
+                    tmpDir.deleteOnExit();
+                } catch (IOException ioe) {
+                    throw new RuntimeException("Could not create temporary directory", ioe);
+                }
+            }
+
+            if (tmpDir.isDirectory()) {
+                this.tmpDir = tmpDir;
+                log.infof("Using server tmp directory: %s", tmpDir.getAbsolutePath());
+            } else {
+                throw new RuntimeException("Directory " + tmpDir + " was not created and does not exists");
+            }
+        }
+        return tmpDir;
+    }
 }

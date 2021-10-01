@@ -29,8 +29,12 @@ import org.keycloak.storage.ldap.idm.query.EscapeStrategy;
 import org.keycloak.storage.ldap.idm.query.internal.EqualCondition;
 import org.keycloak.storage.ldap.idm.query.internal.LDAPQuery;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Mapper useful for the LDAP deployments when some attribute (usually CN) is mapped to full name of user
@@ -96,7 +100,7 @@ public class FullNameLDAPStorageMapper extends AbstractLDAPStorageMapper {
 
                 @Override
                 public String getFirstName() {
-                    return firstName != null? firstName : super.getFirstName();
+                    return firstName != null ? firstName : super.getFirstName();
                 }
 
                 @Override
@@ -105,18 +109,61 @@ public class FullNameLDAPStorageMapper extends AbstractLDAPStorageMapper {
                 }
 
                 @Override
-                public void setFirstName(String firstName) {
-                    this.firstName = firstName;
-                    setFullNameToLDAPObject();
-                    super.setFirstName(firstName);
+                public Stream<String> getAttributeStream(String name) {
+                    if (UserModel.FIRST_NAME.equals(name)) {
+                        return firstName != null ? Stream.of(firstName) : super.getAttributeStream(name);
+                    } else if (UserModel.LAST_NAME.equals(name)) {
+                        return lastName != null ? Stream.of(lastName) : super.getAttributeStream(name);
+                    }
+                    return super.getAttributeStream(name);
                 }
 
                 @Override
-                public void setLastName(String lastName) {
-                    this.lastName = lastName;
-                    setFullNameToLDAPObject();
-                    super.setLastName(lastName);
+                public String getFirstAttribute(String name) {
+                    if (UserModel.FIRST_NAME.equals(name)) {
+                        return firstName != null ? firstName : super.getFirstAttribute(name);
+                    } else if (UserModel.LAST_NAME.equals(name)) {
+                        return lastName != null ? lastName : super.getFirstAttribute(name);
+                    }
+                    return super.getFirstAttribute(name);
                 }
+
+                @Override
+                public void setSingleAttribute(String name, String value) {
+                    if (UserModel.FIRST_NAME.equals(name)) {
+                        this.firstName = value;
+                        setFullNameToLDAPObject();
+                    } else if (UserModel.LAST_NAME.equals(name)) {
+                        this.lastName = value;
+                        setFullNameToLDAPObject();
+                    }
+                    super.setSingleAttribute(name, value);
+                }
+
+                @Override
+                public void setAttribute(String name, List<String> values) {
+                    String valueToSet = (values != null && values.size() > 0) ? values.get(0) : null;
+                    if (UserModel.FIRST_NAME.equals(name)) {
+                        this.firstName = valueToSet;
+                        setFullNameToLDAPObject();
+                    } else if (UserModel.LAST_NAME.equals(name)) {
+                        this.lastName = valueToSet;
+                        setFullNameToLDAPObject();
+                    }
+                    super.setSingleAttribute(name, valueToSet);
+                }
+
+                @Override
+                public Map<String, List<String>> getAttributes() {
+                    Map<String, List<String>> attributes = delegate.getAttributes();
+                    if (firstName != null) {
+                        attributes.put(UserModel.FIRST_NAME, Collections.singletonList(firstName));
+                    } else if (lastName != null) {
+                        attributes.put(UserModel.FIRST_NAME, Collections.singletonList(lastName));
+                    }
+                    return attributes;
+                }
+
 
                 private void setFullNameToLDAPObject() {
                     String fullName = getFullNameForWriteToLDAP(getFirstName(), getLastName(), getUsername());
@@ -130,7 +177,6 @@ public class FullNameLDAPStorageMapper extends AbstractLDAPStorageMapper {
                     String ldapFullNameAttrName = getLdapFullNameAttrName();
                     ldapUser.setSingleAttribute(ldapFullNameAttrName, fullName);
                 }
-
             };
 
             return txDelegate;
@@ -183,7 +229,7 @@ public class FullNameLDAPStorageMapper extends AbstractLDAPStorageMapper {
             return;
         }
 
-        EscapeStrategy escapeStrategy = firstNameCondition!=null ? firstNameCondition.getEscapeStrategy() : lastNameCondition.getEscapeStrategy();
+        EscapeStrategy escapeStrategy = firstNameCondition != null ? firstNameCondition.getEscapeStrategy() : lastNameCondition.getEscapeStrategy();
 
         EqualCondition fullNameCondition = new EqualCondition(ldapFullNameAttrName, fullName, escapeStrategy);
         query.addWhereCondition(fullNameCondition);

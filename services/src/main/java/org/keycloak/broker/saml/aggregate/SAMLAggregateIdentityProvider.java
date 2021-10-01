@@ -1,5 +1,6 @@
 package org.keycloak.broker.saml.aggregate;
 
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -10,20 +11,31 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.jboss.logging.Logger;
 import org.keycloak.broker.provider.*;
+import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.broker.saml.SAMLDataMarshaller;
+import org.keycloak.broker.saml.SAMLEndpoint;
+import org.keycloak.broker.saml.SAMLIdentityProvider;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLAggregateMetadataStoreProvider;
 import org.keycloak.broker.saml.aggregate.metadata.SAMLIdpDescriptor;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.common.util.ServerCookie;
+import org.keycloak.crypto.Algorithm;
 import org.keycloak.crypto.KeyStatus;
+import org.keycloak.crypto.KeyUse;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
+import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
+import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
+import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
@@ -32,19 +44,30 @@ import org.keycloak.events.EventBuilder;
 import org.keycloak.keys.RsaKeyMetadata;
 import org.keycloak.models.*;
 import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
+import org.keycloak.protocol.saml.SamlProtocol;
+import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.SamlSessionUtils;
+import org.keycloak.protocol.saml.mappers.SamlMetadataDescriptorUpdater;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
 import org.keycloak.saml.*;
 import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder.NodeGenerator;
+import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
+import org.keycloak.saml.common.util.DocumentUtil;
+import org.keycloak.saml.common.util.StaxUtil;
 import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
+import org.keycloak.saml.processing.api.saml.v2.sig.SAML2Signature;
+import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.util.CookieHelper;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.utils.MediaType;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAMLAggregateIdentityProviderConfig> {
 
@@ -58,8 +81,11 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
 
     public enum RequestType {
         LOGIN,
-        LINKING;
+        LINKING,
+        LOGOUT;
     }
+
+    //private final List<SAMLIdentityProvider> idps;
 
     protected static final Logger logger =
         Logger.getLogger(SAMLAggregateIdentityProviderConfig.class);
@@ -108,6 +134,7 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
             // not logged in
             requestType = RequestType.LOGIN;
         } else {
+            // linking or logout?
             // logged in => linking account
             requestType = RequestType.LINKING;
         }
@@ -176,6 +203,13 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
                 authnRequest = it.next().beforeSendingLoginRequest(authnRequest, request.getAuthenticationSession());
             }
 
+            if (authnRequest.getDestination() != null) {
+                destinationUrl = authnRequest.getDestination().toString();
+            }
+
+            // Save the current RequestID in the Auth Session as we need to verify it against the ID returned from the IdP
+            request.getAuthenticationSession().setClientNote(SamlProtocol.SAML_REQUEST_ID, authnRequest.getID());
+
             if (postBinding) {
                 return binding.postBinding(authnRequestBuilder.toDocument()).request(destinationUrl);
             } else {
@@ -209,8 +243,10 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
             case LINKING:
                 expireCookie(SAML_AGGREGATE_LINKING_COOKIE_NAME_PREFIX + getConfig().getAlias(), "/", 0, false, false);
                 break;
-            default:
+            case LOGIN:
                 expireCookie(SAML_AGGREGATE_LOGIN_COOKIE_NAME_PREFIX + getConfig().getAlias(), "/", 0, false, false);
+                break;
+            default:
         }
     }
 
@@ -244,14 +280,22 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
         return Optional.empty();
     }
 
+    private String getLoginCookieName() {
+        return SAML_AGGREGATE_LOGIN_COOKIE_NAME_PREFIX + getConfig().getAlias() + CookieHelper.LEGACY_COOKIE;
+    }
+
+    private String getLinkingCookieName() {
+        return SAML_AGGREGATE_LINKING_COOKIE_NAME_PREFIX + getConfig().getAlias() + CookieHelper.LEGACY_COOKIE;
+    }
+
     private Optional<String> getEntityIdFromCookie(RequestType requestType) {
         String legacyName;
         switch (requestType) {
             case LINKING:
-                legacyName = SAML_AGGREGATE_LINKING_COOKIE_NAME_PREFIX + getConfig().getAlias() + CookieHelper.LEGACY_COOKIE;
+                legacyName = getLinkingCookieName();
                 break;
             default:
-                legacyName = SAML_AGGREGATE_LOGIN_COOKIE_NAME_PREFIX + getConfig().getAlias() + CookieHelper.LEGACY_COOKIE;
+                legacyName = getLoginCookieName();
         }
         Cookie c = session.getContext().getRequestHeaders().getCookies().get(legacyName);
         if (c != null) {
@@ -284,10 +328,19 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
             // not logged in
             requestType = RequestType.LOGIN;
         } else {
-            // logged in => linking account
-            requestType = RequestType.LINKING;
+            if (cookieResult.getSession().getNotes().get(Details.IDENTITY_PROVIDER) != null) {
+                requestType = RequestType.LOGOUT;
+            } else {
+                // logged in => linking account === OR LOGOUT!
+                requestType = RequestType.LINKING;
+            }
         }
-        Optional<String> entityId = getEntityIdFromCookie(requestType);
+        Optional<String> entityId;
+        if (RequestType.LOGOUT.equals(requestType)) {
+            entityId = Optional.ofNullable(cookieResult.getSession().getNote(SAMLAggregateEndpoint.SAML_FEDERATED_SESSION_ENTITY_ID));
+        } else {
+            entityId = getEntityIdFromCookie(requestType);
+        }
         if (!entityId.isPresent()) {
             throw new RuntimeException("Cookie not found!");
         }
@@ -328,17 +381,48 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
         String singleLogoutServiceUrl = idp.getSingleLogoutServiceUrl();
         if (singleLogoutServiceUrl == null || singleLogoutServiceUrl.trim().equals("")) return null;
 
+        if (getConfig().isBackchannelSupported()) {
+            backchannelLogout(session, userSession, uriInfo, realm);
+            return null;
+        } else {
+            try {
+                LogoutRequestType logoutRequest = buildLogoutRequest(userSession, uriInfo, realm, singleLogoutServiceUrl);
+                if (logoutRequest.getDestination() != null) {
+                    singleLogoutServiceUrl = logoutRequest.getDestination().toString();
+                }
+                JaxrsSAML2BindingBuilder binding = buildLogoutBinding(session, userSession, realm);
+                if (idp.isPostBindingLogout()) {
+                    return binding.postBinding(SAML2Request.convert(logoutRequest)).request(singleLogoutServiceUrl);
+                } else {
+                    return binding.redirectBinding(SAML2Request.convert(logoutRequest)).request(singleLogoutServiceUrl);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
+    public void backchannelLogout(KeycloakSession session, UserSessionModel userSession, UriInfo uriInfo, RealmModel realm) {
+        String singleLogoutServiceUrl = getConfig().getSingleLogoutServiceUrl();
+        if (singleLogoutServiceUrl == null || singleLogoutServiceUrl.trim().equals("") || !getConfig().isBackchannelSupported()) return;
+        JaxrsSAML2BindingBuilder binding = buildLogoutBinding(session, userSession, realm);
         try {
             LogoutRequestType logoutRequest = buildLogoutRequest(userSession, uriInfo, realm, singleLogoutServiceUrl);
-            JaxrsSAML2BindingBuilder binding = buildLogoutBinding(session, userSession, realm);
-            if (idp.isPostBindingLogout()) {
-                return binding.postBinding(SAML2Request.convert(logoutRequest)).request(singleLogoutServiceUrl);
-            } else {
-                return binding.redirectBinding(SAML2Request.convert(logoutRequest)).request(singleLogoutServiceUrl);
+            if (logoutRequest.getDestination() != null) {
+                singleLogoutServiceUrl = logoutRequest.getDestination().toString();
+            }
+            int status = SimpleHttp.doPost(singleLogoutServiceUrl, session)
+                    .param(GeneralConstants.SAML_REQUEST_KEY, binding.postBinding(SAML2Request.convert(logoutRequest)).encoded())
+                    .param(GeneralConstants.RELAY_STATE, userSession.getId()).asStatus();
+            boolean success = status >=200 && status < 400;
+            if (!success) {
+                logger.warn("Failed saml backchannel broker logout to: " + singleLogoutServiceUrl);
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.warn("Failed saml backchannel broker logout to: " + singleLogoutServiceUrl, e);
         }
+
     }
 
     protected LogoutRequestType buildLogoutRequest(UserSessionModel userSession, UriInfo uriInfo, RealmModel realm, String singleLogoutServiceUrl, NodeGenerator... extensions) throws ConfigurationException {
@@ -361,6 +445,13 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
     private JaxrsSAML2BindingBuilder buildLogoutBinding(KeycloakSession session, UserSessionModel userSession, RealmModel realm) {
         JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
                 .relayState(userSession.getId());
+        if (getConfig().isWantAuthnRequestsSigned()) {
+            KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
+            String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(keys.getKid(), keys.getCertificate());
+            binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())
+                    .signatureAlgorithm(getSignatureAlgorithm())
+                    .signDocument();
+        }
         return binding;
     }
 
@@ -374,63 +465,15 @@ public class SAMLAggregateIdentityProvider extends AbstractIdentityProvider<SAML
     }
 
     @Override
-    public Response export(UriInfo uriInfo, RealmModel realm, String format) {
-
-        String authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get();
-
-        if (getConfig().isPostBindingAuthnRequest()) {
-            authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
-        }
-
-        String endpoint = uriInfo.getBaseUriBuilder()
-                .path("realms").path(realm.getName())
-                .path("broker")
-                .path(getConfig().getProviderId())
-                .path("endpoint")
-                .build().toString();
-
-        boolean wantAuthnRequestsSigned = getConfig().isWantAuthnRequestsSigned();
-        boolean wantAssertionsSigned = getConfig().isWantAssertionsSigned();
-        boolean wantAssertionsEncrypted = getConfig().isWantAssertionsEncrypted();
-        String entityId = getEntityId(uriInfo, realm);
-        String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
-
-        StringBuilder signingKeysString = new StringBuilder();
-        StringBuilder encryptionKeysString = new StringBuilder();
-        Set<RsaKeyMetadata> keys = new TreeSet<>((o1, o2) -> o1.getStatus() == o2.getStatus() // Status can be only PASSIVE OR ACTIVE, push PASSIVE to end of list
-                ? (int) (o2.getProviderPriority() - o1.getProviderPriority())
-                : (o1.getStatus() == KeyStatus.PASSIVE ? 1 : -1));
-        keys.addAll(session.keys().getRsaKeys(realm));
-        for (RsaKeyMetadata key : keys) {
-            addKeyInfo(signingKeysString, key, KeyTypes.SIGNING.value());
-
-            if (key.getStatus() == KeyStatus.ACTIVE) {
-                addKeyInfo(encryptionKeysString, key, KeyTypes.ENCRYPTION.value());
-            }
-        }
-        String descriptor = SPMetadataDescriptor.getSPDescriptor(authnBinding, endpoint, endpoint,
-                wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
-                entityId, nameIDPolicyFormat, signingKeysString.toString(), encryptionKeysString.toString());
-
-        return Response.ok(descriptor, javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE).build();
-    }
-
-    private static void addKeyInfo(StringBuilder target, RsaKeyMetadata key, String purpose) {
-        if (key == null) {
-            return;
-        }
-
-        target.append(SPMetadataDescriptor.xmlKeyInfo("        ", key.getKid(), PemUtils.encodeCertificate(key.getCertificate()), purpose, true));
-    }
-
-    @Override
     public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context) {
         ResponseType responseType = (ResponseType) context.getContextData().get(SAMLAggregateEndpoint.SAML_LOGIN_RESPONSE);
         AssertionType assertion = (AssertionType) context.getContextData().get(SAMLAggregateEndpoint.SAML_ASSERTION);
         SubjectType subject = assertion.getSubject();
         SubjectType.STSubType subType = subject.getSubType();
-        NameIDType subjectNameID = (NameIDType) subType.getBaseID();
-        authSession.setUserSessionNote(SAMLAggregateEndpoint.SAML_FEDERATED_SUBJECT_NAMEID, subjectNameID.serializeAsString());
+        if (subType != null) {
+            NameIDType subjectNameID = (NameIDType) subType.getBaseID();
+            authSession.setUserSessionNote(SAMLAggregateEndpoint.SAML_FEDERATED_SUBJECT_NAMEID, subjectNameID.serializeAsString());
+        }
         AuthnStatementType authn = (AuthnStatementType) context.getContextData().get(SAMLAggregateEndpoint.SAML_AUTHN_STATEMENT);
         if (authn != null && authn.getSessionIndex() != null) {
             authSession.setUserSessionNote(SAMLAggregateEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());

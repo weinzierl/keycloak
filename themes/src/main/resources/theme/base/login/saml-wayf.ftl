@@ -19,6 +19,9 @@
                 </div>
 
                 <div class="${properties.kcFormGroupClass!}">
+                   <input type="hidden" name="code_challenge" value="${code_challenge}" />
+                   <input type="hidden" name="code_challenge_method" value="${code_challenge_method}" />
+
                    <input type="hidden" name="provider" value="${provider}" />
                    <input type="hidden" name="client_id" value="${clientId}" />
                    <input type="hidden" name="state" value="${state}" />

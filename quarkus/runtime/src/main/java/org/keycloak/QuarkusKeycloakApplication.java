@@ -1,8 +1,6 @@
 package org.keycloak;
 
-import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.enterprise.inject.Instance;
@@ -11,6 +9,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.ApplicationPath;
 
 import org.keycloak.models.utils.PostMigrationEvent;
+import org.keycloak.provider.quarkus.QuarkusPlatform;
 import org.keycloak.services.resources.KeycloakApplication;
 import org.keycloak.services.resources.QuarkusWelcomeResource;
 import org.keycloak.services.resources.WelcomeResource;
@@ -18,24 +17,29 @@ import org.keycloak.services.resources.WelcomeResource;
 @ApplicationPath("/")
 public class QuarkusKeycloakApplication extends KeycloakApplication {
 
+    private static boolean filterSingletons(Object o) {
+        return !WelcomeResource.class.isInstance(o);
+    }
+
     @Inject
     Instance<EntityManagerFactory> entityManagerFactory;
-    
+
     @Override
     protected void startup() {
-        forceEntityManagerInitialization();
-        initializeKeycloakSessionFactory();
-        setupScheduledTasks(sessionFactory);
+        try {
+            forceEntityManagerInitialization();
+            initializeKeycloakSessionFactory();
+            setupScheduledTasks(sessionFactory);
+        } catch (Throwable cause) {
+            QuarkusPlatform.exitOnError(cause);
+        }
     }
 
     @Override
     public Set<Object> getSingletons() {
-        HashSet<Object> singletons = new HashSet<>(super.getSingletons().stream().filter(new Predicate<Object>() {
-            @Override
-            public boolean test(Object o) {
-                return !WelcomeResource.class.isInstance(o);
-            }
-        }).collect(Collectors.toSet()));
+        Set<Object> singletons = super.getSingletons().stream()
+                .filter(QuarkusKeycloakApplication::filterSingletons)
+                .collect(Collectors.toSet());
 
         singletons.add(new QuarkusWelcomeResource());
 

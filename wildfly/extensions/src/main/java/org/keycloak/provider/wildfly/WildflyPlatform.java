@@ -17,24 +17,23 @@
 
 package org.keycloak.provider.wildfly;
 
-import org.keycloak.common.util.Resteasy;
-import org.keycloak.models.KeycloakSessionFactory;
+import java.io.File;
+
+import org.jboss.logging.Logger;
 import org.keycloak.platform.PlatformProvider;
 import org.keycloak.services.ServicesLogger;
-import org.keycloak.services.resources.KeycloakApplication;
-
-import javax.servlet.ServletContext;
 
 public class WildflyPlatform implements PlatformProvider {
 
+    private static final Logger log = Logger.getLogger(WildflyPlatform.class);
+
     Runnable shutdownHook;
+
+    private File tmpDir;
 
     @Override
     public void onStartup(Runnable startupHook) {
         startupHook.run();
-        KeycloakApplication keycloakApplication = Resteasy.getContextData(KeycloakApplication.class);
-        ServletContext context = Resteasy.getContextData(ServletContext.class);
-        context.setAttribute(KeycloakSessionFactory.class.getName(),  keycloakApplication.getSessionFactory());
     }
 
     @Override
@@ -44,7 +43,7 @@ public class WildflyPlatform implements PlatformProvider {
 
     @Override
     public void exit(Throwable cause) {
-        ServicesLogger.LOGGER.fatal(cause);
+        ServicesLogger.LOGGER.fatal("Error during startup", cause);
         exit(1);
     }
 
@@ -57,4 +56,22 @@ public class WildflyPlatform implements PlatformProvider {
         }.start();
     }
 
+    @Override
+    public File getTmpDirectory() {
+        if (tmpDir == null) {
+            String tmpDirName = System.getProperty("jboss.server.temp.dir");
+            if (tmpDirName == null) {
+                throw new RuntimeException("System property jboss.server.temp.dir not set");
+            }
+
+            File tmpDir = new File(tmpDirName);
+            if (tmpDir.isDirectory()) {
+                this.tmpDir = tmpDir;
+                log.debugf("Using server tmp directory: %s", tmpDir.getAbsolutePath());
+            } else {
+                throw new RuntimeException("Wildfly temp directory not exists under path: " + tmpDirName);
+            }
+        }
+        return tmpDir;
+    }
 }

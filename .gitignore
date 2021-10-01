@@ -51,9 +51,14 @@ nbproject
 *.tar
 *.zip
 
+# Python byte-compiled files #
+##############################
+*.pyc
+
 # Logs and databases #
 ######################
 *.log
+.attach_pid*
 
 # Maven #
 #########
@@ -78,3 +83,7 @@ target
 
 # STS 4 cache
 *.sts4-cache
+
+# Quarkus ephemeral data #
+##########################
+quarkus/data/*.db

@@ -13,6 +13,7 @@ public class SAMLAggregateIdentityProviderConfig extends IdentityProviderModel {
   public static final XmlKeyInfoKeyNameTransformer DEFAULT_XML_KEY_INFO_KEY_NAME_TRANSFORMER = XmlKeyInfoKeyNameTransformer.NONE;
 
   public static final String ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO = "addExtensionsElementWithKeyInfo";
+  public static final String BACKCHANNEL_SUPPORTED = "backchannelSupported";
   public static final String FORCE_AUTHN = "forceAuthn";
   public static final String METADATA_URL = "metadataUrl";
   public static final String NAME_ID_POLICY_FORMAT = "nameIDPolicyFormat";
@@ -29,6 +30,7 @@ public class SAMLAggregateIdentityProviderConfig extends IdentityProviderModel {
   public static final String WANT_ASSERTIONS_SIGNED = "wantAssertionsSigned";
   public static final String WANT_AUTHN_REQUESTS_SIGNED = "wantAuthnRequestsSigned";
   public static final String XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER = "xmlSigKeyInfoKeyNameTransformer";
+  public static final String SIGN_SP_METADATA = "signSpMetadata";
 
   private static final long serialVersionUID = 1L;
 
@@ -48,6 +50,14 @@ public class SAMLAggregateIdentityProviderConfig extends IdentityProviderModel {
 
   public void setAddExtensionsElementWithKeyInfo(boolean addExtensionsElementWithKeyInfo) {
     getConfig().put(ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO, String.valueOf(addExtensionsElementWithKeyInfo));
+  }
+
+  public boolean isSignSpMetadata() {
+    return Boolean.valueOf(getConfig().get(SIGN_SP_METADATA));
+  }
+
+  public void setSignSpMetadata(boolean signSpMetadata) {
+    getConfig().put(SIGN_SP_METADATA, String.valueOf(signSpMetadata));
   }
 
   public int getAllowedClockSkew() {
@@ -128,6 +138,15 @@ public class SAMLAggregateIdentityProviderConfig extends IdentityProviderModel {
     getConfig().put(POST_BINDING_RESPONSE, String.valueOf(postBindingResponse));
   }
 
+  public boolean isBackchannelSupported() {
+    return Boolean.valueOf(getConfig().get(BACKCHANNEL_SUPPORTED));
+  }
+
+  public void setBackchannelSupported(boolean backchannel) {
+    getConfig().put(BACKCHANNEL_SUPPORTED, String.valueOf(backchannel));
+  }
+
+
   public String getPrincipalAttribute() {
     return getConfig().get(PRINCIPAL_ATTRIBUTE);
   }
@@ -157,7 +176,6 @@ public class SAMLAggregateIdentityProviderConfig extends IdentityProviderModel {
 
   /**
    * @deprecated Prefer {@link #getSigningCertificates()}}
-   * @param signingCertificate
    */
   public String getSigningCertificate() {
     return getConfig().get(SIGNING_CERTIFICATE_KEY);

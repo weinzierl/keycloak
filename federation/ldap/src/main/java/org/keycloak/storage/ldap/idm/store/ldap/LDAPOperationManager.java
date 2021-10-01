@@ -27,6 +27,7 @@ import org.keycloak.storage.ldap.idm.model.LDAPDn;
 import org.keycloak.storage.ldap.idm.query.internal.LDAPQuery;
 import org.keycloak.storage.ldap.idm.store.ldap.extended.PasswordModifyRequest;
 import org.keycloak.storage.ldap.mappers.LDAPOperationDecorator;
+import org.keycloak.truststore.TruststoreProvider;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Binding;
@@ -47,6 +48,8 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.PagedResultsControl;
 import javax.naming.ldap.PagedResultsResponseControl;
 import javax.naming.ldap.StartTlsResponse;
+import javax.net.ssl.SSLSocketFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -317,6 +320,14 @@ public class LDAPOperationManager {
                                     identityQuery.getPaginationContext().setCookie(cookie);
                                 }
                             }
+                        } else {
+                            /*
+                             * This ensures that PaginationContext#hasNextPage() will return false if we don't get ResponseControls back
+                             * from the LDAP query response. This helps to avoid an infinite loop in org.keycloak.storage.ldap.LDAPUtils.loadAllLDAPObjects
+                             * See KEYCLOAK-19036
+                             */
+                            identityQuery.getPaginationContext().setCookie(null);
+                            logger.warnf("Did not receive response controls for paginated query using DN [%s], filter [%s]. Did you hit a query result size limit?", baseDN, filter);
                         }
 
                         return result;
@@ -362,33 +373,12 @@ public class LDAPOperationManager {
         String filter = null;
 
         if (this.config.isObjectGUID()) {
-            final String strObjectGUID = "<GUID=" + id + ">";
+            byte[] objectGUID = LDAPUtil.encodeObjectGUID(id);
 
-            try {
-                Attributes attributes = execute(new LdapOperation<Attributes>() {
+            filter = "(&(objectClass=*)(" + getUuidAttributeName() + LDAPConstants.EQUAL + LDAPUtil.convertObjectGUIDToByteString(objectGUID) + "))";
 
-                    @Override
-                    public Attributes execute(LdapContext context) throws NamingException {
-                        return context.getAttributes(strObjectGUID);
-                    }
-
-
-                    @Override
-                    public String toString() {
-                        return new StringBuilder("LdapOperation: GUIDResolve\n")
-                                .append(" strObjectGUID: ").append(strObjectGUID)
-                                .toString();
-                    }
-
-
-                });
-
-                byte[] objectGUID = (byte[]) attributes.get(LDAPConstants.OBJECT_GUID).get();
-
-                filter = "(&(objectClass=*)(" + getUuidAttributeName() + LDAPConstants.EQUAL + LDAPUtil.convertObjectGUIDToByteString(objectGUID) + "))";
-            } catch (NamingException ne) {
-                filter = null;
-            }
+        } else if (this.config.isEdirectoryGUID()) {
+            filter = "(&(objectClass=*)(" + getUuidAttributeName().toUpperCase() + LDAPConstants.EQUAL + LDAPUtil.convertGUIDToEdirectoryHexString(id) + "))";
         }
 
         if (filter == null) {
@@ -511,7 +501,14 @@ public class LDAPOperationManager {
 
             authCtx = new InitialLdapContext(env, null);
             if (config.isStartTls()) {
-                tlsResponse = LDAPContextManager.startTLS(authCtx, "simple", dn, password.toCharArray());
+                SSLSocketFactory sslSocketFactory = null;
+                String useTruststoreSpi = config.getUseTruststoreSpi();
+                if (useTruststoreSpi != null && useTruststoreSpi.equals(LDAPConstants.USE_TRUSTSTORE_ALWAYS)) {
+                    TruststoreProvider provider = session.getProvider(TruststoreProvider.class);
+                    sslSocketFactory = provider.getSSLSocketFactory();
+                }
+
+                tlsResponse = LDAPContextManager.startTLS(authCtx, "simple", dn, password.toCharArray(), sslSocketFactory);
 
                 // Exception should be already thrown by LDAPContextManager.startTLS if "startTLS" could not be established, but rather do some additional check
                 if (tlsResponse == null) {

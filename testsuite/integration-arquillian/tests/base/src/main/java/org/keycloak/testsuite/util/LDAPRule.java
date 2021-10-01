@@ -227,9 +227,6 @@ public class LDAPRule extends ExternalResource {
             case VAULT_EXPRESSION:
                 config.put(LDAPConstants.BIND_CREDENTIAL, VAULT_EXPRESSION);
                 break;
-            default:
-                // Default to secret as the bind credential
-                config.put(LDAPConstants.BIND_CREDENTIAL, "secret");
         }
         switch (defaultProperties.getProperty(LDAPEmbeddedServer.PROPERTY_ENABLE_ANONYMOUS_ACCESS)) {
             case "true":
@@ -242,10 +239,14 @@ public class LDAPRule extends ExternalResource {
         switch (defaultProperties.getProperty(LDAPEmbeddedServer.PROPERTY_ENABLE_STARTTLS)) {
             case "true":
                 config.put(LDAPConstants.START_TLS, "true");
+                // Use truststore from TruststoreSPI also for StartTLS connections
+                config.put(LDAPConstants.USE_TRUSTSTORE_SPI, LDAPConstants.USE_TRUSTSTORE_ALWAYS);
                 break;
             default:
                 // Default to startTLS disabled
                 config.put(LDAPConstants.START_TLS, "false");
+                // By default use truststore from TruststoreSPI only for LDAP over SSL connections
+                config.put(LDAPConstants.USE_TRUSTSTORE_SPI, LDAPConstants.USE_TRUSTSTORE_LDAPS_ONLY);
         }
         switch (defaultProperties.getProperty(LDAPEmbeddedServer.PROPERTY_SET_CONFIDENTIALITY_REQUIRED)) {
             case "true":
@@ -260,6 +261,10 @@ public class LDAPRule extends ExternalResource {
 
     public int getSleepTime() {
         return ldapTestConfiguration.getSleepTime();
+    }
+
+    public LDAPEmbeddedServer getLdapEmbeddedServer() {
+        return ldapEmbeddedServer;
     }
 
     /** Allows to run particular LDAP test just under specific conditions (eg. some test running just on Active Directory) **/

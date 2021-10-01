@@ -17,37 +17,40 @@
 
 package org.keycloak.provider.quarkus;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.infinispan.commons.util.FileLookupFactory;
 import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
 import org.infinispan.configuration.parsing.ParserRegistry;
+import org.infinispan.jboss.marshalling.core.JBossUserMarshaller;
 import org.infinispan.manager.DefaultCacheManager;
 import org.jboss.logging.Logger;
-import org.keycloak.Config;
 import org.keycloak.cluster.ManagedCacheManagerProvider;
+import org.keycloak.Config;
+import org.keycloak.util.Environment;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Igor</a>
  */
 public final class QuarkusCacheManagerProvider implements ManagedCacheManagerProvider {
 
-    private static final Logger log = Logger.getLogger(QuarkusCacheManagerProvider.class); 
-    
-    private static final String DEFAULT_CONFIGURATION_FILE_NAME = "cluster.xml";
+    private static final Logger log = Logger.getLogger(QuarkusCacheManagerProvider.class);
 
     @Override
     public <C> C getCacheManager(Config.Scope config) {
         try {
-            InputStream configurationStream = loadConfiguration(config);
-            ConfigurationBuilderHolder builder = new ParserRegistry().parse(configurationStream);
+            ConfigurationBuilderHolder builder = new ParserRegistry().parse(loadConfiguration(config));
 
             if (builder.getNamedConfigurationBuilders().get("sessions").clustering().cacheMode().isClustered()) {
                 configureTransportStack(config, builder);
             }
+
+            // For Infinispan 10, we go with the JBoss marshalling.
+            // TODO: This should be replaced later with the marshalling recommended by infinispan. Probably protostream.
+            // See https://infinispan.org/docs/stable/titles/developing/developing.html#marshalling for the details
+            builder.getGlobalConfigurationBuilder().serialization().marshaller(new JBossUserMarshaller());
 
             return (C) new DefaultCacheManager(builder, false);
         } catch (Exception e) {
@@ -55,43 +58,40 @@ public final class QuarkusCacheManagerProvider implements ManagedCacheManagerPro
         }
     }
 
-    private InputStream loadConfiguration(Config.Scope config) throws FileNotFoundException {
-        String homeDir = System.getProperty("keycloak.home.dir");
+    private URL loadConfiguration(Config.Scope config) {
+        String pathPrefix;
+        String homeDir = Environment.getHomeDir();
         
         if (homeDir == null) {
-            log.warn("Keycloak home directory not set.");
-            return loadDefaultConfiguration(config);
+            log.warn("Keycloak home directory not set");
+            pathPrefix = "";
+        } else {
+            pathPrefix = homeDir + "/conf/";
         }
 
-        Path configPath = Paths.get(homeDir + "/conf/" + getConfigFileName(config));
-        
-        if (configPath.toFile().exists()) {
-            log.debugf("Loading cluster configuration from %s", configPath);
-            return FileLookupFactory.newInstance()
-                    .lookupFileStrict(configPath.toUri(), Thread.currentThread().getContextClassLoader());
-        }
-
-        log.infof("Clustering configuration file not found at %s.", configPath);
-
-        return loadDefaultConfiguration(config);
-    }
-
-    private InputStream loadDefaultConfiguration(Config.Scope config) throws FileNotFoundException {
-        if (config.getBoolean("clustered", false)) {
-            log.debugf("Using default clustered cache configuration.");
-            return FileLookupFactory.newInstance()
-                    .lookupFileStrict("default-clustered-cache.xml", Thread.currentThread().getContextClassLoader());    
-        }
-
-        log.debug("Using default local cache configuration.");
-
-        return FileLookupFactory.newInstance()
-                .lookupFileStrict("default-local-cache.xml", Thread.currentThread().getContextClassLoader());
-    }
-
-    private String getConfigFileName(Config.Scope config) {
+        // Always try to use "configFile" if explicitly specified
         String configFile = config.get("configFile");
-        return configFile == null ? DEFAULT_CONFIGURATION_FILE_NAME : configFile;
+        if (configFile != null) {
+            Path configPath = Paths.get(pathPrefix + configFile);
+            String path;
+
+            if (configPath.toFile().exists()) {
+                path = configPath.toFile().getAbsolutePath();
+            } else {
+                path = configPath.getFileName().toString();
+            }
+
+            log.infof("Loading cluster configuration from %s", configPath);
+            URL url = FileLookupFactory.newInstance().lookupFileLocation(path, Thread.currentThread().getContextClassLoader());
+            
+            if (url == null) {
+                throw new IllegalArgumentException("Could not load cluster configuration file at [" + configPath + "]");
+            }
+
+            return url;
+        } else {
+            throw new IllegalArgumentException("Option 'configFile' needs to be specified");
+        }
     }
 
     private void configureTransportStack(Config.Scope config, ConfigurationBuilderHolder builder) {

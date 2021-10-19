@@ -51,7 +51,7 @@ public abstract class AbstractJsonUserAttributeMapper extends AbstractIdentityPr
 
 	protected static final Logger LOGGER_DUMP_USER_PROFILE = Logger.getLogger("org.keycloak.social.user_profile_dump");
 
-	private static final String JSON_PATH_DELIMITER = ".";
+	protected static final String JSON_PATH_DELIMITER = ".";
 
 	/**
 	 * Config param where name of mapping source JSON User Profile field is stored.
@@ -60,6 +60,7 @@ public abstract class AbstractJsonUserAttributeMapper extends AbstractIdentityPr
 	/**
 	 * Config param where name of mapping target USer attribute is stored.
 	 */
+
 	public static final String CONF_USER_ATTRIBUTE = "userAttribute";
 
 	/**
@@ -176,7 +177,7 @@ public abstract class AbstractJsonUserAttributeMapper extends AbstractIdentityPr
 		return attribute;
 	}
 
-	protected static Object getJsonValue(IdentityProviderMapperModel mapperModel, BrokeredIdentityContext context) {
+	protected Object getJsonValue(IdentityProviderMapperModel mapperModel, BrokeredIdentityContext context) {
 
 		String jsonField = mapperModel.getConfig().get(CONF_JSON_FIELD);
 		if (jsonField == null || jsonField.trim().isEmpty()) {

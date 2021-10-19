@@ -5,6 +5,7 @@ import org.keycloak.models.IdentityProviderModel;
 
 public class OrcidIdentityProviderConfig extends OAuth2IdentityProviderConfig {
     private static final String BASE_URL = "baseUrl";
+    private static final String CONDITIONAL_TRUST_EMAIL = "conditionalTrustEmail";
     private static final String DEFAULT_BASE_URL = "https://orcid.org/oauth";
     public static final String DEFAULT_PROFILE_URL = "https://pub.orcid.org/v3.0";
 
@@ -21,6 +22,14 @@ public class OrcidIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 
     public void setBaseUrl(String baseUrl) {
         getConfig().put(BASE_URL, trimTrailingSlash(baseUrl));
+    }
+
+    public boolean isConditionalTrustEmail() {
+        return Boolean.valueOf(getConfig().get(CONDITIONAL_TRUST_EMAIL)) ;
+    }
+
+    public void setConditionalTrustEmail(boolean conditionalTrustEmail) {
+        getConfig().put(CONDITIONAL_TRUST_EMAIL,String.valueOf(conditionalTrustEmail));
     }
 
     private String trimTrailingSlash(String baseUrl) {

@@ -172,6 +172,9 @@ public class UserAdapter implements UserModel.Streams, JpaModel<UserEntity> {
         } else if (UserModel.USERNAME.equals(name)) {
             setUsername(valueToSet);
             return;
+        } else if (UserModel.EMAIL_VERIFIED.equals(name)) {
+            setEmailVerified(Boolean.valueOf(valueToSet));
+            return;
         }
         // Remove all existing
         removeAttribute(name);

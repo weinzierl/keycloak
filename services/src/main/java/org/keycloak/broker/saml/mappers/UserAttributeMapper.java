@@ -66,6 +66,7 @@ public class UserAttributeMapper extends AbstractIdentityProviderMapper implemen
     public static final String ATTRIBUTE_NAME_FORMAT = "attribute.name.format";
     public static final String USER_ATTRIBUTE = "user.attribute";
     private static final String EMAIL = "email";
+    public static final String EMAIL_VERIFIED = "emailVerified";
     private static final String FIRST_NAME = "firstName";
     private static final String LAST_NAME = "lastName";
     private static final Set<IdentityProviderSyncMode> IDENTITY_PROVIDER_SYNC_MODES = new HashSet<>(Arrays.asList(IdentityProviderSyncMode.values()));
@@ -149,6 +150,9 @@ public class UserAttributeMapper extends AbstractIdentityProviderMapper implemen
                 setIfNotEmpty(context::setFirstName, attributeValuesInContext);
             } else if (attribute.equalsIgnoreCase(LAST_NAME)) {
                 setIfNotEmpty(context::setLastName, attributeValuesInContext);
+            } else if (attribute.equalsIgnoreCase(EMAIL_VERIFIED)) {
+                Boolean verified =  Boolean.valueOf(attributeValuesInContext.get(0));
+                context.setEmailVerified(verified);
             } else {
                 context.setUserAttribute(attribute, attributeValuesInContext);
             }
@@ -210,7 +214,9 @@ public class UserAttributeMapper extends AbstractIdentityProviderMapper implemen
             setIfNotEmptyAndDifferent(user::setFirstName, user::getFirstName, attributeValuesInContext);
         } else if (attribute.equalsIgnoreCase(LAST_NAME)) {
             setIfNotEmptyAndDifferent(user::setLastName, user::getLastName, attributeValuesInContext);
-        } else {
+        } else if (attribute.equalsIgnoreCase(EMAIL_VERIFIED) && !attributeValuesInContext.isEmpty()) {
+            user.setEmailVerified( Boolean.valueOf(attributeValuesInContext.get(0)));
+        } else if (!attribute.equalsIgnoreCase(EMAIL_VERIFIED)){
             List<String> currentAttributeValues = user.getAttributes().get(attribute);
             if (attributeValuesInContext == null) {
                 // attribute no longer sent by brokered idp, remove it

@@ -113,7 +113,7 @@ public class UserAttributeMapper extends AbstractClaimMapper {
         }
         Object value = getClaimValue(mapperModel, context);
         if (EMAIL_VERIFIED.equalsIgnoreCase(attribute)) {
-            Boolean verified = value == null ? null : Boolean.valueOf(value.toString());
+            boolean verified = value == null ? false : Boolean.valueOf(value.toString());
             context.setEmailVerified(verified);
         } else {
             List<String> values = toList(value);

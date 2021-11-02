@@ -2077,12 +2077,12 @@ public class RepresentationToModel {
     	model.setLastMetadataRefreshTimestamp(representation.getLastMetadataRefreshTimestamp());
     	model.setProviderId(representation.getProviderId());
     	model.setUpdateFrequencyInMins(representation.getUpdateFrequencyInMins());
-    	model.setEntityIdBlackList(representation.getEntityIdBlackList());
-    	model.setEntityIdWhiteList(representation.getEntityIdWhiteList());
-    	model.setRegistrationAuthorityBlackList(representation.getRegistrationAuthorityBlackList());
-        model.setRegistrationAuthorityWhiteList(representation.getRegistrationAuthorityWhiteList());
-        model.setCategoryBlackList(representation.getCategoryBlackList());
-        model.setCategoryWhiteList(representation.getCategoryWhiteList());
+    	model.setEntityIdDenyList(representation.getEntityIdDenyList());
+    	model.setEntityIdAllowList(representation.getEntityIdAllowList());
+    	model.setRegistrationAuthorityDenyList(representation.getRegistrationAuthorityDenyList());
+        model.setRegistrationAuthorityAllowList(representation.getRegistrationAuthorityAllowList());
+        model.setCategoryDenyList(representation.getCategoryDenyList());
+        model.setCategoryAllowList(representation.getCategoryAllowList());
     	model.setUrl(representation.getUrl());
     	model.setValidUntilTimestamp(representation.getValidUntilTimestamp());
     	model.setConfig(removeEmptyString(representation.getConfig()));

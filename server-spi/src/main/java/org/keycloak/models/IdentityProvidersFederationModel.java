@@ -48,19 +48,19 @@ public class IdentityProvidersFederationModel implements Serializable {
     
     private Long lastMetadataRefreshTimestamp;
 
-    private Set<String> entityIdBlackList;
+    private Set<String> entityIdDenyList;
     
-    private Set<String> entityIdWhiteList;
+    private Set<String> entityIdAllowList;
     
-    private Set<String> registrationAuthorityBlackList;
+    private Set<String> registrationAuthorityDenyList;
     
-    private Set<String> registrationAuthorityWhiteList;
+    private Set<String> registrationAuthorityAllowList;
     
     private Map<String, String> config;
     
-    private Map<String, List<String>> categoryBlackList;
+    private Map<String, List<String>> categoryDenyList;
     
-    private Map<String, List<String>> categoryWhiteList;
+    private Map<String, List<String>> categoryAllowList;
     
     private List<FederationMapperModel> federationMapperModels = new ArrayList<>();
     
@@ -69,7 +69,7 @@ public class IdentityProvidersFederationModel implements Serializable {
 
     public IdentityProvidersFederationModel() {
 		super();
-		this.entityIdBlackList = new HashSet<String>();
+		this.entityIdDenyList = new HashSet<String>();
 	}
 
     public IdentityProvidersFederationModel(IdentityProvidersFederationModel model) {
@@ -80,12 +80,12 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.setUrl(model.getUrl());
 		this.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
 		this.setDisplayName(model.getDisplayName());
-		this.setEntityIdBlackList(model.getEntityIdBlackList() != null ? model.getEntityIdBlackList() : new HashSet<String>());
-		this.setEntityIdWhiteList(model.getEntityIdWhiteList() != null ? model.getEntityIdWhiteList() : new HashSet<String>());
-		this.setRegistrationAuthorityBlackList(model.getRegistrationAuthorityBlackList() != null ? model.getRegistrationAuthorityBlackList() : new HashSet<String>());
-        this.setRegistrationAuthorityWhiteList(model.getRegistrationAuthorityWhiteList() != null ? model.getRegistrationAuthorityWhiteList() : new HashSet<String>());
-        this.setCategoryBlackList(model.getRegistrationAuthorityBlackList() != null ? model.getCategoryBlackList() : new HashMap<String,List<String>>());
-        this.setCategoryWhiteList(model.getRegistrationAuthorityWhiteList() != null ? model.getCategoryWhiteList() : new HashMap<String,List<String>>());
+		this.setEntityIdDenyList(model.getEntityIdDenyList() != null ? model.getEntityIdDenyList() : new HashSet<String>());
+		this.setEntityIdAllowList(model.getEntityIdAllowList() != null ? model.getEntityIdAllowList() : new HashSet<String>());
+		this.setRegistrationAuthorityDenyList(model.getRegistrationAuthorityDenyList() != null ? model.getRegistrationAuthorityDenyList() : new HashSet<String>());
+        this.setRegistrationAuthorityAllowList(model.getRegistrationAuthorityAllowList() != null ? model.getRegistrationAuthorityAllowList() : new HashSet<String>());
+        this.setCategoryDenyList(model.getRegistrationAuthorityDenyList() != null ? model.getCategoryDenyList() : new HashMap<String,List<String>>());
+        this.setCategoryAllowList(model.getRegistrationAuthorityAllowList() != null ? model.getCategoryAllowList() : new HashMap<String,List<String>>());
 		this.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
         this.setValidUntilTimestamp(model.getValidUntilTimestamp());
 		this.setConfig(model.getConfig());
@@ -151,36 +151,36 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp;
 	}
 
-	public Set<String> getEntityIdBlackList() {
-		return entityIdBlackList;
+	public Set<String> getEntityIdDenyList() {
+		return entityIdDenyList;
 	}
 
-	public void setEntityIdBlackList(Set<String> entityIdBlackList) {
-		this.entityIdBlackList = entityIdBlackList;
+	public void setEntityIdDenyList(Set<String> entityIdDenyList) {
+		this.entityIdDenyList = entityIdDenyList;
 	}
 
-	public Set<String> getEntityIdWhiteList() {
-        return entityIdWhiteList;
+	public Set<String> getEntityIdAllowList() {
+        return entityIdAllowList;
     }
 
-    public void setEntityIdWhiteList(Set<String> entityIdWhiteList) {
-        this.entityIdWhiteList = entityIdWhiteList;
+    public void setEntityIdAllowList(Set<String> entityIdAllowList) {
+        this.entityIdAllowList = entityIdAllowList;
     }
 
-    public Set<String> getRegistrationAuthorityBlackList() {
-        return registrationAuthorityBlackList;
+    public Set<String> getRegistrationAuthorityDenyList() {
+        return registrationAuthorityDenyList;
     }
 
-    public void setRegistrationAuthorityBlackList(Set<String> registrationAuthorityBlackList) {
-        this.registrationAuthorityBlackList = registrationAuthorityBlackList;
+    public void setRegistrationAuthorityDenyList(Set<String> registrationAuthorityDenyList) {
+        this.registrationAuthorityDenyList = registrationAuthorityDenyList;
     }
 
-    public Set<String> getRegistrationAuthorityWhiteList() {
-        return registrationAuthorityWhiteList;
+    public Set<String> getRegistrationAuthorityAllowList() {
+        return registrationAuthorityAllowList;
     }
 
-    public void setRegistrationAuthorityWhiteList(Set<String> registrationAuthorityWhiteList) {
-        this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
+    public void setRegistrationAuthorityAllowList(Set<String> registrationAuthorityAllowList) {
+        this.registrationAuthorityAllowList = registrationAuthorityAllowList;
     }
 
 	public Long getValidUntilTimestamp() {
@@ -199,20 +199,20 @@ public class IdentityProvidersFederationModel implements Serializable {
 		this.config = config;
 	}
 
-    public Map<String, List<String>> getCategoryBlackList() {
-        return categoryBlackList;
+    public Map<String, List<String>> getCategoryDenyList() {
+        return categoryDenyList;
     }
 
-    public void setCategoryBlackList(Map<String, List<String>> categoryBlackList) {
-        this.categoryBlackList = categoryBlackList;
+    public void setCategoryDenyList(Map<String, List<String>> categoryDenyList) {
+        this.categoryDenyList = categoryDenyList;
     }
 
-    public Map<String, List<String>> getCategoryWhiteList() {
-        return categoryWhiteList;
+    public Map<String, List<String>> getCategoryAllowList() {
+        return categoryAllowList;
     }
 
-    public void setCategoryWhiteList(Map<String, List<String>> categoryWhiteList) {
-        this.categoryWhiteList = categoryWhiteList;
+    public void setCategoryAllowList(Map<String, List<String>> categoryAllowList) {
+        this.categoryAllowList = categoryAllowList;
     }
 
     public List<FederationMapperModel> getFederationMapperModels() {

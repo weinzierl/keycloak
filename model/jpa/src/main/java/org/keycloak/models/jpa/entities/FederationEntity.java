@@ -17,7 +17,6 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.NamedQueries;
@@ -76,26 +75,26 @@ public class FederationEntity {
 	@BatchSize(size = 50)
 	@ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
-    @CollectionTable(name="ENTITYID_BLACKLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
-    private Set<String> entityIdBlackList = new HashSet<String>();
+    @CollectionTable(name="ENTITYID_DENYLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    private Set<String> entityIdDenyList = new HashSet<String>();
 
 	@BatchSize(size = 50)
 	@ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
-    @CollectionTable(name="ENTITYID_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
-    private Set<String> entityIdWhiteList = new HashSet<String>();
+    @CollectionTable(name="ENTITYID_ALLOWLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    private Set<String> entityIdAllowList = new HashSet<String>();
 
 	@BatchSize(size = 50)
 	@ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
-    @CollectionTable(name="REGISTRATION_AUTHORITY_BLACKLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
-    private Set<String> registrationAuthorityBlackList = new HashSet<String>();
+    @CollectionTable(name="REGISTRATION_AUTHORITY_DENYLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    private Set<String> registrationAuthorityDenyList = new HashSet<String>();
 
 	@BatchSize(size = 50)
     @ElementCollection
     @Column(name="VALUE", columnDefinition = "TEXT")
-    @CollectionTable(name="REGISTRATION_AUTHORITY_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
-    private Set<String> registrationAuthorityWhiteList = new HashSet<String>();
+    @CollectionTable(name="REGISTRATION_AUTHORITY_ALLOWLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    private Set<String> registrationAuthorityAllowList = new HashSet<String>();
 	
 //	@ManyToMany(mappedBy = "federations")
 //	private Set<IdentityProviderEntity> identityproviders = new HashSet<IdentityProviderEntity>();
@@ -104,17 +103,17 @@ public class FederationEntity {
 	@ElementCollection
     @MapKeyColumn(name="NAME")
     @Column(name="VALUE", columnDefinition = "TEXT")
-    @CollectionTable(name="ENTITY_CATEGORY_BLACKLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    @CollectionTable(name="ENTITY_CATEGORY_DENYLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
 	@Convert(converter = ListJsonConverter.class, attributeName = "value")
-    private Map<String, List<String>> categoryBlackList;
+    private Map<String, List<String>> categoryDenyList;
 
 	@BatchSize(size = 50)
 	@ElementCollection
     @MapKeyColumn(name="NAME")
     @Column(name="VALUE", columnDefinition = "TEXT")
-    @CollectionTable(name="ENTITY_CATEGORY_WHITELIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
+    @CollectionTable(name="ENTITY_CATEGORY_ALLOWLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
     @Convert(converter = ListJsonConverter.class, attributeName = "value")
-    private Map<String, List<String>> categoryWhiteList;
+    private Map<String, List<String>> categoryAllowList;
 
 	@BatchSize(size = 50)
 	@OneToMany(cascade =CascadeType.REMOVE,  mappedBy = "federation")
@@ -184,36 +183,36 @@ public class FederationEntity {
 		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp ;
 	}
 
-	public Set<String> getEntityIdBlackList() {
-		return entityIdBlackList;
+	public Set<String> getEntityIdDenyList() {
+		return entityIdDenyList;
 	}
 
-	public void setEntityIdBlackList(Set<String> entityIdBlackList) {
-		this.entityIdBlackList = entityIdBlackList;
+	public void setEntityIdDenyList(Set<String> entityIdDenyList) {
+		this.entityIdDenyList = entityIdDenyList;
 	}
 
-	public Set<String> getEntityIdWhiteList() {
-        return entityIdWhiteList;
+	public Set<String> getEntityIdAllowList() {
+        return entityIdAllowList;
     }
 
-    public void setEntityIdWhiteList(Set<String> entityIdWhiteList) {
-        this.entityIdWhiteList = entityIdWhiteList;
+    public void setEntityIdAllowList(Set<String> entityIdAllowList) {
+        this.entityIdAllowList = entityIdAllowList;
     }
 
-    public Set<String> getRegistrationAuthorityBlackList() {
-        return registrationAuthorityBlackList;
+    public Set<String> getRegistrationAuthorityDenyList() {
+        return registrationAuthorityDenyList;
     }
 
-    public void setRegistrationAuthorityBlackList(Set<String> registrationAuthorityBlackList) {
-        this.registrationAuthorityBlackList = registrationAuthorityBlackList;
+    public void setRegistrationAuthorityDenyList(Set<String> registrationAuthorityDenyList) {
+        this.registrationAuthorityDenyList = registrationAuthorityDenyList;
     }
 
-    public Set<String> getRegistrationAuthorityWhiteList() {
-        return registrationAuthorityWhiteList;
+    public Set<String> getRegistrationAuthorityAllowList() {
+        return registrationAuthorityAllowList;
     }
 
-    public void setRegistrationAuthorityWhiteList(Set<String> registrationAuthorityWhiteList) {
-        this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
+    public void setRegistrationAuthorityAllowList(Set<String> registrationAuthorityAllowList) {
+        this.registrationAuthorityAllowList = registrationAuthorityAllowList;
     }
 
 	public String getProviderId() {
@@ -232,20 +231,20 @@ public class FederationEntity {
 		this.validUntilTimestamp = validUntilTimestamp;
 	}
 
-	public Map<String, List<String>> getCategoryBlackList() {
-        return categoryBlackList;
+	public Map<String, List<String>> getCategoryDenyList() {
+        return categoryDenyList;
     }
 
-    public void setCategoryBlackList(Map<String, List<String>> categoryBlackList) {
-        this.categoryBlackList = categoryBlackList;
+    public void setCategoryDenyList(Map<String, List<String>> categoryDenyList) {
+        this.categoryDenyList = categoryDenyList;
     }
     
-    public Map<String, List<String>> getCategoryWhiteList() {
-        return categoryWhiteList;
+    public Map<String, List<String>> getCategoryAllowList() {
+        return categoryAllowList;
     }
 
-    public void setCategoryWhiteList(Map<String, List<String>> categoryWhiteList) {
-        this.categoryWhiteList = categoryWhiteList;
+    public void setCategoryAllowList(Map<String, List<String>> categoryAllowList) {
+        this.categoryAllowList = categoryAllowList;
     }
 
     public List<FederationMapperEntity> getFederationMapperEntities() {

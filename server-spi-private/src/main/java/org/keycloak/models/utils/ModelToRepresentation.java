@@ -40,9 +40,6 @@ import org.keycloak.representations.idm.authorization.*;
 import org.keycloak.storage.StorageId;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -728,12 +725,12 @@ public class ModelToRepresentation {
     	representation.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
     	representation.setProviderId(model.getProviderId());
     	representation.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
-    	representation.setEntityIdBlackList(model.getEntityIdBlackList());
-    	representation.setEntityIdWhiteList(model.getEntityIdWhiteList());
-    	representation.setRegistrationAuthorityBlackList(model.getRegistrationAuthorityBlackList());
-        representation.setRegistrationAuthorityWhiteList(model.getRegistrationAuthorityWhiteList());
-        representation.setCategoryBlackList(model.getCategoryBlackList());
-        representation.setCategoryWhiteList(model.getCategoryWhiteList());
+    	representation.setEntityIdDenyList(model.getEntityIdDenyList());
+    	representation.setEntityIdAllowList(model.getEntityIdAllowList());
+    	representation.setRegistrationAuthorityDenyList(model.getRegistrationAuthorityDenyList());
+        representation.setRegistrationAuthorityAllowList(model.getRegistrationAuthorityAllowList());
+        representation.setCategoryDenyList(model.getCategoryDenyList());
+        representation.setCategoryAllowList(model.getCategoryAllowList());
     	representation.setUrl(model.getUrl());
     	representation.setValidUntilTimestamp(model.getValidUntilTimestamp());
     	representation.setConfig(model.getConfig());

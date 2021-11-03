@@ -288,9 +288,9 @@ public class AccountRestService {
         UserConsentModel consentModel = consents.get(model.getClientId());
         if(consentModel != null) {
             representation.setConsent(modelToRepresentation(consentModel));
-            representation.setLogoUri(model.getAttribute("logoUri"));
-            representation.setPolicyUri(model.getAttribute("policyUri"));
-            representation.setTosUri(model.getAttribute("tosUri"));
+            representation.setLogoUri(model.getAttribute(ClientScopeModel.LOGO_URI));
+            representation.setPolicyUri(model.getAttribute(ClientScopeModel.POLICY_URI));
+            representation.setTosUri(model.getAttribute(ClientScopeModel.TOS_URI));
         }
         return representation;
     }

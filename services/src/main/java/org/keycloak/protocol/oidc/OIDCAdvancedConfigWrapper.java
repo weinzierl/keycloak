@@ -20,6 +20,7 @@ package org.keycloak.protocol.oidc;
 import org.keycloak.authentication.authenticators.client.X509ClientAuthenticator;
 import org.keycloak.jose.jws.Algorithm;
 import org.keycloak.models.ClientModel;
+import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.Constants;
 import org.keycloak.representations.idm.ClientRepresentation;
 
@@ -270,15 +271,15 @@ public class OIDCAdvancedConfigWrapper {
     }
 
     public void setLogoUri(String logoUri) {
-        setAttribute(OIDCConfigAttributes.LOGO_URI, logoUri);
+        setAttribute(ClientScopeModel.LOGO_URI, logoUri);
     }
 
     public void setPolicyUri(String policyUri) {
-        setAttribute(OIDCConfigAttributes.POLICY_URI, policyUri);
+        setAttribute(ClientScopeModel.POLICY_URI, policyUri);
     }
 
     public void setTosUri(String tosUri) {
-        setAttribute(OIDCConfigAttributes.TOS_URI, tosUri);
+        setAttribute(ClientScopeModel.TOS_URI, tosUri);
     }
 
     private String getAttribute(String attrKey) {

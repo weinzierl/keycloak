@@ -31,6 +31,7 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.common.Profile;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
+import org.keycloak.models.ClientScopeModel;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ClientScopeRepresentation;
 import org.keycloak.representations.idm.EventRepresentation;
@@ -477,9 +478,9 @@ public class ConsentsTest extends AbstractKeycloakTest {
 
         ClientRepresentation clientRepresentation = accountClient.toRepresentation();
         clientRepresentation.setConsentRequired(true);
-        clientRepresentation.getAttributes().put("logoUri","https://www.keycloak.org/resources/images/keycloak_logo_480x108.png");
-        clientRepresentation.getAttributes().put("policyUri","https://www.keycloak.org/policy");
-        clientRepresentation.getAttributes().put("tosUri","https://www.keycloak.org/tos");
+        clientRepresentation.getAttributes().put(ClientScopeModel.LOGO_URI,"https://www.keycloak.org/resources/images/keycloak_logo_480x108.png");
+        clientRepresentation.getAttributes().put(ClientScopeModel.POLICY_URI,"https://www.keycloak.org/policy");
+        clientRepresentation.getAttributes().put(ClientScopeModel.TOS_URI,"https://www.keycloak.org/tos");
         accountClient.update(clientRepresentation);
 
         // setup correct realm

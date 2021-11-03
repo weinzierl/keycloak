@@ -17,6 +17,7 @@
 package org.keycloak.validation;
 
 import org.keycloak.models.ClientModel;
+import org.keycloak.models.ClientScopeModel;
 import org.keycloak.protocol.ProtocolMapperConfigException;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCConfigAttributes;
@@ -60,17 +61,17 @@ public class DefaultClientValidationProvider implements ClientValidationProvider
                 null, null,
                 "Backchannel logout URL uses an illegal scheme", "backchannelLogoutUrlIllegalSchemeError"),
 
-        LOGO_URI("logoUri",
+        LOGO_URI(ClientScopeModel.LOGO_URI,
                 "Logo URL is not a valid URL", "logoURLInvalid",
                 null, null,
                 "Logo URL uses an illegal scheme", "logoURLIllegalSchemeError"),
 
-        POLICY_URI("policyUri",
+        POLICY_URI(ClientScopeModel.POLICY_URI,
                 "Policy URL is not a valid URL", "policyURLInvalid",
                 null, null,
                 "Policy URL uses an illegal scheme", "policyURLIllegalSchemeError"),
 
-        TOS_URI("tosUri",
+        TOS_URI(ClientScopeModel.TOS_URI,
                 "Terms of service URL is not a valid URL", "tosURLInvalid",
                 null, null,
                 "Terms of service URL uses an illegal scheme", "tosURLIllegalSchemeError");
@@ -165,9 +166,9 @@ public class DefaultClientValidationProvider implements ClientValidationProvider
         client.getRedirectUris().stream()
                 .map(u -> ResolveRelative.resolveRelativeUri(authServerUrl, authServerUrl, rootUrl, u))
                 .forEach(u -> checkUri(FieldMessages.REDIRECT_URIS, u, context, false, true));
-        checkUriLogo(FieldMessages.LOGO_URI, client.getAttribute(OIDCConfigAttributes.LOGO_URI), context);
-        checkUri(FieldMessages.POLICY_URI, client.getAttribute(OIDCConfigAttributes.POLICY_URI), context, true, false);
-        checkUri(FieldMessages.TOS_URI, client.getAttribute(OIDCConfigAttributes.TOS_URI), context, true, false);
+        checkUriLogo(FieldMessages.LOGO_URI, client.getAttribute(ClientScopeModel.LOGO_URI), context);
+        checkUri(FieldMessages.POLICY_URI, client.getAttribute(ClientScopeModel.POLICY_URI), context, true, false);
+        checkUri(FieldMessages.TOS_URI, client.getAttribute(ClientScopeModel.TOS_URI), context, true, false);
     }
 
     private void checkUri(FieldMessages field, String url, ValidationContext<ClientModel> context, boolean checkValidUrl, boolean checkFragment) {

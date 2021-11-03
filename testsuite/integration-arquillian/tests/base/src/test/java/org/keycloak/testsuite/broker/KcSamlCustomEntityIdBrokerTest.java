@@ -66,7 +66,7 @@ public final class KcSamlCustomEntityIdBrokerTest extends AbstractBrokerTest {
     public void testCustomEntityIdSet() throws Exception {
         // Comparison type set, no classrefs, no declrefs -> No RequestedAuthnContext
         try (Closeable idpUpdater = new IdentityProviderAttributeUpdater(identityProviderResource)
-            .setAttribute(SAMLIdentityProviderConfig.ENTITY_ID, "http://my.custom.entity.id")
+            .setAttribute(SAMLIdentityProviderConfig.SP_ENTITY_ID, "http://my.custom.entity.id")
             .update())
         {
             // Build the login request document

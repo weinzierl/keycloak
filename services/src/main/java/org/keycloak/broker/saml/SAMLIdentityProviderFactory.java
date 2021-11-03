@@ -102,6 +102,7 @@ public class SAMLIdentityProviderFactory extends AbstractIdentityProviderFactory
                     String singleSignOnServiceUrl = null;
                     boolean postBindingResponse = false;
                     boolean postBindingLogout = false;
+                    samlIdentityProviderConfig.setEntityId(entityType.getEntityID());
                     for (EndpointType endpoint : idpDescriptor.getSingleSignOnService()) {
                         if (endpoint.getBinding().toString().equals(JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get())) {
                             singleSignOnServiceUrl = endpoint.getLocation().toString();

@@ -39,6 +39,7 @@ public interface Details {
     String AUTH_METHOD = "auth_method";
     String IDENTITY_PROVIDER = "identity_provider";
     String IDENTITY_PROVIDER_USERNAME = "identity_provider_identity";
+    String IDENTITY_PROVIDER_ENTITYID = "identity_provider_entityId";
     String REGISTER_METHOD = "register_method";
     String USERNAME = "username";
     String FIRST_NAME = "first_name";

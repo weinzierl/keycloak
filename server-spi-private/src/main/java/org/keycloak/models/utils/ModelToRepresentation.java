@@ -452,14 +452,6 @@ public class ModelToRepresentation {
             rep.setRequiredCredentials(reqCredentials);
         }
 
-        List<IdentityProviderRepresentation> identityProviders = realm.getIdentityProvidersStream()
-                .map(provider -> toRepresentation(realm, provider)).collect(Collectors.toList());
-        rep.setIdentityProviders(identityProviders);
-
-        List<IdentityProviderMapperRepresentation> identityProviderMappers = realm.getIdentityProviderMappersStream()
-                .map(ModelToRepresentation::toRepresentation).collect(Collectors.toList());
-        rep.setIdentityProviderMappers(identityProviderMappers);
-
        rep.setIdentityProvidersFederations(realm.getIdentityProviderFederations().stream().map(obj -> {
             IdentityProvidersFederationRepresentation representation = toRepresentation(obj);
             representation.setFederationMappers(

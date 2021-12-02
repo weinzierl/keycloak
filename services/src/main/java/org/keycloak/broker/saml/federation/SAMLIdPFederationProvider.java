@@ -234,8 +234,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                     config.put("signatureAlgorithm", "RSA_SHA256");
                     config.put("xmlSigKeyInfoKeyNameTransformer", "KEY_ID");
 
-					//config.put("principalType", "SUBJECT");
-                    config.put(IdentityProviderModel.SYNC_MODE, "IMPORT");
+                    config.put(IdentityProviderModel.SYNC_MODE, model.getConfig().get(IdentityProviderModel.SYNC_MODE));
                     config.put("loginHint", "false");
 
 					identityProviderModel.getConfig().put("wantAssertionsEncrypted", String.valueOf(model.isWantAssertionsEncrypted()));
@@ -438,7 +437,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			identityProviderModel.getConfig().put("multiplePrincipals", model.getConfig().get("multiplePrincipals"));
 		}
 
-		//attribute consuming service index/name set fedration only during creation
+		//attribute consuming service index/name set federation only during creation
 		if (model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX) != null) {
 			identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX,  model.getConfig().get(SAMLIdentityProviderConfig.ATTRIBUTE_CONSUMING_SERVICE_INDEX));
 		}

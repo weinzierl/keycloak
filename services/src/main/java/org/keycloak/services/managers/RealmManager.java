@@ -431,6 +431,10 @@ public class RealmManager {
             manageAccountLinks.setDescription("${role_" + AccountRoles.MANAGE_ACCOUNT_LINKS + "}");
             RoleModel manageAccount = accountClient.getRole(AccountRoles.MANAGE_ACCOUNT);
             manageAccount.addCompositeRole(manageAccountLinks);
+            RoleModel manageAccountEmail = accountClient.getRole(AccountRoles.MANAGE_ACCOUNT_EMAIL);
+            manageAccountEmail.addCompositeRole(manageAccountLinks);
+            RoleModel manageAccountName = accountClient.getRole(AccountRoles.MANAGE_ACCOUNT_NAME);
+            manageAccountName.addCompositeRole(manageAccountLinks);
             RoleModel viewAppRole = accountClient.addRole(AccountRoles.VIEW_APPLICATIONS);
             viewAppRole.setDescription("${role_" + AccountRoles.VIEW_APPLICATIONS + "}");
             RoleModel viewConsentRole = accountClient.addRole(AccountRoles.VIEW_CONSENT);

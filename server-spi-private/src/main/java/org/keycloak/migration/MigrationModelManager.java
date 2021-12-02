@@ -24,6 +24,7 @@ import org.jboss.logging.Logger;
 import org.keycloak.common.Version;
 import org.keycloak.migration.migrators.MigrateTo12_0_0;
 import org.keycloak.migration.migrators.MigrateTo14_0_0;
+import org.keycloak.migration.migrators.MigrateTo16_0_0;
 import org.keycloak.migration.migrators.MigrateTo1_2_0;
 import org.keycloak.migration.migrators.MigrateTo1_3_0;
 import org.keycloak.migration.migrators.MigrateTo1_4_0;

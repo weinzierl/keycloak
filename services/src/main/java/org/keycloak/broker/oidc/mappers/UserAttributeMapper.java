@@ -158,23 +158,19 @@ public class UserAttributeMapper extends AbstractClaimMapper {
             return;
         }
         Object value = getClaimValue(mapperModel, context);
-        if (EMAIL_VERIFIED.equalsIgnoreCase(attribute) &&  value != null) {
-            user.setEmailVerified(Boolean.valueOf(value.toString()));
-        } else if (!EMAIL_VERIFIED.equalsIgnoreCase(attribute)){
-            List<String> values = toList(value);
-            if (EMAIL.equalsIgnoreCase(attribute)) {
-                setIfNotEmpty(user::setEmail, values);
-            } else if (FIRST_NAME.equalsIgnoreCase(attribute)) {
-                setIfNotEmpty(user::setFirstName, values);
-            } else if (LAST_NAME.equalsIgnoreCase(attribute)) {
-                setIfNotEmpty(user::setLastName, values);
-            } else {
-                List<String> current = user.getAttributeStream(attribute).collect(Collectors.toList());
-                if (!CollectionUtil.collectionEquals(values, current)) {
-                    user.setAttribute(attribute, values);
-                } else if (values.isEmpty()) {
-                    user.removeAttribute(attribute);
-                }
+        List<String> values = toList(value);
+        if (EMAIL.equalsIgnoreCase(attribute)) {
+            setIfNotEmpty(user::setEmail, values);
+        } else if (FIRST_NAME.equalsIgnoreCase(attribute)) {
+            setIfNotEmpty(user::setFirstName, values);
+        } else if (LAST_NAME.equalsIgnoreCase(attribute)) {
+            setIfNotEmpty(user::setLastName, values);
+        } else {
+            List<String> current = user.getAttributeStream(attribute).collect(Collectors.toList());
+            if (!CollectionUtil.collectionEquals(values, current)) {
+                user.setAttribute(attribute, values);
+            } else if (values.isEmpty()) {
+                user.removeAttribute(attribute);
             }
         }
     }

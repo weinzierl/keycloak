@@ -160,16 +160,12 @@ public abstract class AbstractJsonUserAttributeMapper extends AbstractIdentityPr
 		}
 
 		Object value = getJsonValue(mapperModel, context);
-		if (EMAIL_VERIFIED.equalsIgnoreCase(attribute) && value != null) {
-			user.setEmailVerified(Boolean.valueOf(value.toString()));
+		if (value == null) {
+			user.removeAttribute(attribute);
+		} else if (value instanceof List) {
+			user.setAttribute(attribute, (List<String>) value);
 		} else {
-			if (value == null) {
-				user.removeAttribute(attribute);
-			} else if (value instanceof List) {
-				user.setAttribute(attribute, (List<String>) value);
-			} else {
-				user.setSingleAttribute(attribute, value.toString());
-			}
+			user.setSingleAttribute(attribute, value.toString());
 		}
 	}
 

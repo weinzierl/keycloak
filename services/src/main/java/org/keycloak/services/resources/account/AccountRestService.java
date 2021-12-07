@@ -502,6 +502,21 @@ public class AccountRestService {
                 .map(client -> modelToRepresentation(client, inUseClients, offlineClients, consentModels));
     }
 
+    @Path("/attributes")
+    @GET
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String,List<String>> getAttributes() {
+        auth.requireOneOf(AccountRoles.MANAGE_ACCOUNT, AccountRoles.VIEW_ATTRIBUTES);
+        Map<String,List<String>> attributes = user.getAttributes();
+        attributes.remove(UserModel.LAST_NAME);
+        attributes.remove(UserModel.FIRST_NAME);
+        attributes.remove(UserModel.EMAIL);
+        attributes.remove(UserModel.USERNAME);
+        return attributes;
+    }
+
+
     private boolean matches(ClientModel client, String name) {
         if(name == null)
             return true;

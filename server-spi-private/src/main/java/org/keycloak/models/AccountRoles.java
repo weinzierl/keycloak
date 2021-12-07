@@ -23,6 +23,7 @@ package org.keycloak.models;
 public interface AccountRoles {
 
     String VIEW_PROFILE = "view-profile";
+    String VIEW_ATTRIBUTES = "view-attributes";
     String MANAGE_ACCOUNT = "manage-account";
     String MANAGE_ACCOUNT_LINKS = "manage-account-links";
     String VIEW_APPLICATIONS = "view-applications";

@@ -4,9 +4,24 @@
     "path": "personal-info",
     "icon": "pf-icon-user",
     "label": "personalInfoHtmlTitle",
-    "descriptionLabel": "personalInfoIntroMessage",
-    "modulePath": "/content/account-page/AccountPage.js",
-    "componentName": "AccountPage"
+    "descriptionLabel": "personalInfoGeneralMessage",
+    "content": [
+      {
+        "id": "manage",
+        "path": "personal-info/manage",
+        "label": "personalInfoIntroMessage",
+        "modulePath": "/content/account-page/AccountPage.js",
+        "componentName": "AccountPage"
+      },
+      {
+        "id": "view-attributes",
+        "path": "personal-info/view-attributes",
+        "label": "viewAttributes",
+        "modulePath": "/content/account-page/ViewAttributesPage.js",
+        "componentName": "ViewAttributes",
+        "hidden": "!features.viewAttributes"
+      }
+    ]
   },
   {
     "id": "security",

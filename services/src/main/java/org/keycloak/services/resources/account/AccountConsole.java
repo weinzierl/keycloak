@@ -134,15 +134,20 @@ public class AccountConsole {
             
             boolean isTotpConfigured = false;
             boolean deleteAccountAllowed = false;
+            boolean viewAttributes = false;
             if (user != null) {
                 isTotpConfigured = session.userCredentialManager().isConfiguredFor(realm, user, realm.getOTPPolicy().getType());
                 RoleModel deleteAccountRole = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.DELETE_ACCOUNT);
                 deleteAccountAllowed = deleteAccountRole != null && user.hasRole(deleteAccountRole) && realm.getRequiredActionProviderByAlias(DeleteAccount.PROVIDER_ID).isEnabled();
+                RoleModel viewAttributesRole = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.VIEW_ATTRIBUTES);
+                viewAttributes = viewAttributesRole != null && user.hasRole(viewAttributesRole);
             }
 
             map.put("isTotpConfigured", isTotpConfigured);
 
             map.put("deleteAccountAllowed", deleteAccountAllowed);
+
+            map.put("viewAttributes", viewAttributes);
 
             FreeMarkerUtil freeMarkerUtil = new FreeMarkerUtil();
             String result = freeMarkerUtil.processTemplate(map, "index.ftl", theme);

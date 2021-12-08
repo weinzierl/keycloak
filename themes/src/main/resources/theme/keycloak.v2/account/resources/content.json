@@ -1,14 +1,14 @@
 [
   {
-    "id": "personal-info",
-    "path": "personal-info",
+    "id": "user-info",
+    "path": "user-info",
     "icon": "pf-icon-user",
     "label": "personalInfoHtmlTitle",
     "descriptionLabel": "personalInfoGeneralMessage",
     "content": [
       {
-        "id": "manage",
-        "path": "personal-info/manage",
+        "id": "personal-info",
+        "path": "personal-info",
         "label": "personalInfoIntroMessage",
         "modulePath": "/content/account-page/AccountPage.js",
         "componentName": "AccountPage"

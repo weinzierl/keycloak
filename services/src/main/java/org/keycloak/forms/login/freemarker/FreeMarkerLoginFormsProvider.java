@@ -225,9 +225,6 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
                         logger.error("Failed to add identity providers summary", e);
                     }
                 }
-                else {
-                    attributes.put("uriInfo", uriInfo);
-                }
         		break;
             case LOGIN_CONFIG_TOTP:
                 attributes.put("totp", new TotpBean(session, realm, user, uriInfo.getRequestUriBuilder()));
@@ -457,6 +454,8 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
             attributes.put("client", new ClientBean(session, client));
         }
 
+        attributes.put("uriInfo", uriInfo);
+
         if (realm != null) {
             attributes.put("realm", new RealmBean(realm));
 
@@ -465,7 +464,7 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
                         .filterIdentityProviders(realm.getIdentityProvidersStream(), session, context);
                 attributes.put("social", new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
             }
-            else{
+            else {
                 attributes.put("idpLoginFullUrl", Urls.identityProviderAuthnRequest(baseUriWithCodeAndClientId, "_", realm.getName()));
             }
 

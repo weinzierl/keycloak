@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/release_notes/index.html.
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. For example [Keycloak jira issue for 15.0.2 version](https://issues.redhat.com/browse/KEYCLOAK-19161?jql=project%20%3D%20keycloak%20and%20fixVersion%20%3D%2015.0.2)
 
+## [v15.0.2-r1.0.6] - 10-12-2021
+### Added
+- SAML Federation sync mode [EOSC-KC-144](https://github.com/eosc-kc/keycloak/issues/144)
+
+###Changed
+- Increase User Attribute Value length to 4000 [EOSC-KC-132](https://github.com/eosc-kc/keycloak/issues/132)
+- Improve implementation in attribute Identity Provider mapper taking into account emailVerified User field. [EOSC-KC-70](https://github.com/eosc-kc/keycloak/issues/70)
+- FreeMarkerLoginFormsProvider now has an additional common attribute passed to the ftl templates, the "uriInfo"
+
+### Fixed
+- Fixed SAML principals tooltip
+
+## [v15.0.2-r1.0.5] - 16-11-2021
+### Added
+-the idpLoginFullUrl common attribute passed to the ftl templates for any theme except from the default
+
 ## [v15.0.2-r1.0.4] - 4-11-2021
 ### Added
 - Attribute Identity Provider mapper taking into account emailVerified User field. [EOSC-KC-70](https://github.com/eosc-kc/keycloak/issues/70)

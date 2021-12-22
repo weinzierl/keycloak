@@ -17,16 +17,30 @@
  */
 package org.keycloak.protocol.oidc;
 
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.keycloak.TokenVerifier;
 import org.keycloak.common.VerificationException;
 import org.keycloak.crypto.SignatureProvider;
 import org.keycloak.crypto.SignatureVerifierContext;
+import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.UserSessionModel;
+import org.keycloak.protocol.ProtocolMapper;
+import org.keycloak.protocol.ProtocolMapperUtils;
+import org.keycloak.protocol.oidc.mappers.OIDCIntrospectionMapper;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.services.Urls;
+import org.keycloak.services.managers.UserSessionCrossDCManager;
+import org.keycloak.services.util.ClientContextUtils;
 import org.keycloak.util.JsonSerialization;
 
 import javax.ws.rs.core.MediaType;
@@ -95,7 +109,40 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
 
         RealmModel realm = this.session.getContext().getRealm();
 
-        return tokenManager.checkTokenValidForIntrospection(session, realm, accessToken, false) ? accessToken : null;
+        return tokenManager.checkTokenValidForIntrospection(session, realm, accessToken, false) ? transformAccessToken(accessToken) : null;
+    }
+
+    private AccessToken transformAccessToken(AccessToken token) {
+
+        //client - user exist - otherwise validation failed before
+        ClientModel client = realm.getClientByClientId(token.getIssuedFor());
+        UserModel user = getUserFromToken(token, client);
+        ClientContextUtils ccu= new ClientContextUtils(client,token.getScope(),session,user);
+
+        AtomicReference<AccessToken> finalToken = new AtomicReference<>(token);
+        //must find another way
+       ccu.getProtocolMappersStream().flatMap(mapperModel -> {
+            ProtocolMapper mapper = (ProtocolMapper) session.getKeycloakSessionFactory().getProviderFactory(ProtocolMapper.class, mapperModel.getProtocolMapper());
+            if (mapper == null)
+                return null;
+            Map<ProtocolMapperModel, ProtocolMapper> protocolMapperMap = new HashMap<>();
+            protocolMapperMap.put(mapperModel, mapper);
+            return protocolMapperMap.entrySet().stream();
+        }).filter(Objects::nonNull)
+                .sorted(Comparator.comparing(ProtocolMapperUtils::compare))
+                .filter(mapper -> mapper.getValue() instanceof OIDCIntrospectionMapper)
+                .forEach(mapper -> finalToken.set(((OIDCIntrospectionMapper) mapper.getValue())
+                        .transformAccessTokenForIntrospection(finalToken.get(), mapper.getKey(), user)));
+        return finalToken.get();
+    }
+
+    private UserModel getUserFromToken(AccessToken token, ClientModel client){
+        UserModel user = tokenManager.lookupUserFromStatelessToken(session, realm, token);
+        //if can not get user from token, search user from token sessionState
+        if (user == null) {
+            user = new UserSessionCrossDCManager(session).getUserSessionWithClient(realm, token.getSessionState(), false, client.getId()).getUser();
+        }
+        return user;
     }
 
     @Override

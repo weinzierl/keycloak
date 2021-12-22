@@ -31,11 +31,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.OAuthErrorException;
+import org.keycloak.admin.client.resource.ClientScopeResource;
 import org.keycloak.admin.client.resource.ClientScopesResource;
+import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.crypto.Algorithm;
 import org.keycloak.events.Errors;
 import org.keycloak.jose.jws.JWSInput;
+import org.keycloak.models.ProtocolMapperModel;
+import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
+import org.keycloak.protocol.oidc.mappers.HardcodedClaim;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ClientScopeRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -58,9 +63,11 @@ import org.keycloak.testsuite.util.TokenSignatureUtil;
 import org.keycloak.util.BasicAuthHelper;
 import org.keycloak.util.JsonSerialization;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -312,6 +319,45 @@ public class TokenIntrospectionTest extends AbstractTestRealmKeycloakTest {
 
         // Assert expected scope
         AbstractOIDCScopeTest.assertScopes("openid email profile", rep.getScope());
+    }
+
+    @Test
+    public void testIntrospectAccessTokenWithMapperOnlyForIntrospect() throws Exception {
+        ClientScopeRepresentation rep = new ClientScopeRepresentation();
+        rep.setName("scope");
+        rep.setProtocol("openid-connect");
+        Response response = testRealm().clientScopes().create(rep);
+        assertEquals(201, response.getStatus());
+        URI scopeUri = response.getLocation();
+        String clientScopeId = ApiUtil.getCreatedId(response);
+        response.close();
+        ClientScopeResource clientScopeResource = adminClient.proxy(ClientScopeResource.class, scopeUri);
+        ProtocolMapperModel hard = HardcodedClaim.create("hard", "hard", "coded", "String", false, true, true);
+        ProtocolMapperRepresentation mapper = ModelToRepresentation.toRepresentation(hard);
+        response = clientScopeResource.getProtocolMappers().createMapper(mapper);
+        assertEquals(201, response.getStatus());
+        response.close();
+
+        ClientRepresentation clientRep = ApiUtil.findClientByClientId(testRealm(), "test-app").toRepresentation();
+        testRealm().clients().get(clientRep.getId()).addDefaultClientScope(clientScopeId);
+
+        oauth.doLogin("test-user@localhost", "password");
+        String code = oauth.getCurrentQuery().get(OAuth2Constants.CODE);
+        EventRepresentation loginEvent = events.expectLogin().assertEvent();
+        AccessTokenResponse accessTokenResponse = oauth.doAccessTokenRequest(code, "password");
+        String tokenResponse = oauth.introspectAccessTokenWithClientCredential("confidential-cli", "secret1", accessTokenResponse.getAccessToken());
+        TokenMetadataRepresentation tokenRep = JsonSerialization.readValue(tokenResponse, TokenMetadataRepresentation.class);
+
+        assertTrue(tokenRep.isActive());
+        assertEquals("test-user@localhost", tokenRep.getUserName());
+        assertEquals("test-app", tokenRep.getClientId());
+        assertEquals(loginEvent.getUserId(), tokenRep.getSubject());
+
+        // Assert expected scope
+        AbstractOIDCScopeTest.assertScopes("openid email profile scope", tokenRep.getScope());
+        assertEquals("coded", tokenRep.getOtherClaims().get("hard"));
+
+        clientScopeResource.remove();
     }
 
 

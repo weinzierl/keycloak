@@ -20,6 +20,7 @@ package org.keycloak.protocol.oidc.mappers;
 import org.keycloak.models.ClientSessionContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ProtocolMapperModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.provider.ProviderConfigProperty;
@@ -37,7 +38,7 @@ import java.util.Map;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public class HardcodedClaim extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper,
+public class HardcodedClaim extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIntrospectionMapper, OIDCIDTokenMapper, UserInfoTokenMapper,
         OIDCAccessTokenResponseMapper {
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
@@ -85,8 +86,17 @@ public class HardcodedClaim extends AbstractOIDCProtocolMapper implements OIDCAc
         return "Hardcode a claim into the token.";
     }
 
+    @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession) {
+        commonClaim(token, mappingModel);
+    }
 
+    @Override
+    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserModel user) {
+        commonClaim(token, mappingModel);
+    }
+
+    private void commonClaim(IDToken token, ProtocolMapperModel mappingModel){
         String attributeValue = mappingModel.getConfig().get(CLAIM_VALUE);
         if (attributeValue == null) return;
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, attributeValue);
@@ -116,6 +126,16 @@ public class HardcodedClaim extends AbstractOIDCProtocolMapper implements OIDCAc
         if (accessToken) config.put(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, "true");
         if (idToken) config.put(OIDCAttributeMapperHelper.INCLUDE_IN_ID_TOKEN, "true");
         mapper.setConfig(config);
+        return mapper;
+    }
+
+    public static ProtocolMapperModel create(String name,
+                                             String hardcodedName,
+                                             String hardcodedValue, String claimType,
+                                             boolean accessToken, boolean idToken, boolean introspectToken) {
+        ProtocolMapperModel mapper = create(name, hardcodedName, hardcodedValue, claimType, accessToken, idToken);
+        if (introspectToken)
+            mapper.getConfig().put(OIDCAttributeMapperHelper.INCLUDE_IN_INTROSPECTION_RESPONSE, "true");
         return mapper;
     }
 

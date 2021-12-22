@@ -19,6 +19,7 @@ package org.keycloak.protocol.oidc.mappers;
 
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.ProtocolMapperModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public class GroupMembershipMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
+public class GroupMembershipMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIntrospectionMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
 
@@ -93,10 +94,16 @@ public class GroupMembershipMapper extends AbstractOIDCProtocolMapper implements
      * @param mappingModel
      * @param userSession
      */
+    @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession) {
+        setClaim(token, mappingModel, userSession.getUser());
+    }
+
+    @Override
+    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserModel user) {
         Function<GroupModel, String> toGroupRepresentation = useFullPath(mappingModel) ?
                 ModelToRepresentation::buildGroupPath : GroupModel::getName;
-        List<String> membership = userSession.getUser().getGroupsStream().map(toGroupRepresentation).collect(Collectors.toList());
+        List<String> membership = user.getGroupsStream().map(toGroupRepresentation).collect(Collectors.toList());
 
         String protocolClaim = mappingModel.getConfig().get(OIDCAttributeMapperHelper.TOKEN_CLAIM_NAME);
 

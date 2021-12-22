@@ -35,7 +35,7 @@ import java.util.List;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public class UserPropertyMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
+public class UserPropertyMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIntrospectionMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
 
     static {
@@ -76,8 +76,13 @@ public class UserPropertyMapper extends AbstractOIDCProtocolMapper implements OI
         return "Map a built in user property (email, firstName, lastName) to a token claim.";
     }
 
+    @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession) {
-        UserModel user = userSession.getUser();
+        setClaim(token, mappingModel, userSession.getUser());
+    }
+
+    @Override
+    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserModel user) {
         String propertyName = mappingModel.getConfig().get(ProtocolMapperUtils.USER_ATTRIBUTE);
 
         if (propertyName == null || propertyName.trim().isEmpty()) return;

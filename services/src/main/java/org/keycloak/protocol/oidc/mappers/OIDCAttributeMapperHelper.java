@@ -49,6 +49,9 @@ public class OIDCAttributeMapperHelper {
     public static final String INCLUDE_IN_ACCESS_TOKEN = "access.token.claim";
     public static final String INCLUDE_IN_ACCESS_TOKEN_LABEL = "includeInAccessToken.label";
     public static final String INCLUDE_IN_ACCESS_TOKEN_HELP_TEXT = "includeInAccessToken.tooltip";
+    public static final String INCLUDE_IN_INTROSPECTION_RESPONSE = "introspection.response.claim";
+    public static final String INCLUDE_IN_INTROSPECTION_RESPONSE_LABEL = "includeInIntrospectionResponse.label";
+    public static final String INCLUDE_IN_INTROSPECTION_RESPONSE_HELP_TEXT = "includeInIntrospectionResponse.tooltip";
     public static final String INCLUDE_IN_ID_TOKEN = "id.token.claim";
     public static final String INCLUDE_IN_ID_TOKEN_LABEL = "includeInIdToken.label";
     public static final String INCLUDE_IN_ID_TOKEN_HELP_TEXT = "includeInIdToken.tooltip";
@@ -370,6 +373,11 @@ public class OIDCAttributeMapperHelper {
         return "true".equals(mappingModel.getConfig().get(INCLUDE_IN_ACCESS_TOKEN));
     }
 
+    public static boolean includeInIntrospectionResponse(ProtocolMapperModel mappingModel) {
+        return "true".equals(mappingModel.getConfig().get(INCLUDE_IN_INTROSPECTION_RESPONSE));
+    }
+
+
     public static boolean includeInAccessTokenResponse(ProtocolMapperModel mappingModel) {
         return "true".equals(mappingModel.getConfig().get(INCLUDE_IN_ACCESS_TOKEN_RESPONSE));
     }
@@ -439,6 +447,16 @@ public class OIDCAttributeMapperHelper {
             property.setType(ProviderConfigProperty.BOOLEAN_TYPE);
             property.setDefaultValue("true");
             property.setHelpText(INCLUDE_IN_ACCESS_TOKEN_HELP_TEXT);
+            configProperties.add(property);
+        }
+
+        if (OIDCIntrospectionMapper.class.isAssignableFrom(protocolMapperClass)) {
+            ProviderConfigProperty property = new ProviderConfigProperty();
+            property.setName(INCLUDE_IN_INTROSPECTION_RESPONSE);
+            property.setLabel(INCLUDE_IN_INTROSPECTION_RESPONSE_LABEL);
+            property.setType(ProviderConfigProperty.BOOLEAN_TYPE);
+            property.setDefaultValue("false");
+            property.setHelpText(INCLUDE_IN_INTROSPECTION_RESPONSE_HELP_TEXT);
             configProperties.add(property);
         }
 

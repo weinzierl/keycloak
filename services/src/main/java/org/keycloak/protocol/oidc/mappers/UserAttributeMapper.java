@@ -37,7 +37,7 @@ import java.util.List;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public class UserAttributeMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
+public class UserAttributeMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIntrospectionMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
 
@@ -93,9 +93,14 @@ public class UserAttributeMapper extends AbstractOIDCProtocolMapper implements O
         return "Map a custom user attribute to a token claim.";
     }
 
+    @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession) {
+        setClaim(token, mappingModel, userSession.getUser());
+    }
 
-        UserModel user = userSession.getUser();
+    @Override
+    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserModel user) {
+
         String attributeName = mappingModel.getConfig().get(ProtocolMapperUtils.USER_ATTRIBUTE);
         boolean aggregateAttrs = Boolean.valueOf(mappingModel.getConfig().get(ProtocolMapperUtils.AGGREGATE_ATTRS));
         Collection<String> attributeValue = KeycloakModelUtils.resolveAttribute(user, attributeName, aggregateAttrs);

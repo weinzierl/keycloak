@@ -22,6 +22,7 @@ import org.keycloak.models.ClientSessionContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.ProtocolMapperModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.ProtocolMapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
@@ -83,6 +84,15 @@ public abstract class AbstractOIDCProtocolMapper implements ProtocolMapper {
         return token;
     }
 
+    public AccessToken transformAccessTokenForIntrospection(AccessToken token, ProtocolMapperModel mappingModel, UserModel user) {
+
+        if (OIDCAttributeMapperHelper.includeInAccessToken(mappingModel) || !OIDCAttributeMapperHelper.includeInIntrospectionResponse(mappingModel)){
+            return token;
+        }
+        setClaim(token, mappingModel, user);
+        return token;
+    }
+
     public IDToken transformIDToken(IDToken token, ProtocolMapperModel mappingModel, KeycloakSession session,
                                     UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
 
@@ -116,6 +126,9 @@ public abstract class AbstractOIDCProtocolMapper implements ProtocolMapper {
      */
     @Deprecated
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession) {
+    }
+
+    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserModel user) {
     }
 
     /**

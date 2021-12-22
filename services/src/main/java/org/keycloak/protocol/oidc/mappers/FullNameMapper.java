@@ -37,7 +37,7 @@ import java.util.Optional;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public class FullNameMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
+public class FullNameMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIntrospectionMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<>();
 
@@ -73,8 +73,13 @@ public class FullNameMapper extends AbstractOIDCProtocolMapper implements OIDCAc
         return "Maps the user's first and last name to the OpenID Connect 'name' claim. Format is <first> + ' ' + <last>";
     }
 
+    @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession) {
-        UserModel user = userSession.getUser();
+        setClaim(token, mappingModel, userSession.getUser());
+    }
+
+    @Override
+    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserModel user) {
         List<String> parts = new LinkedList<>();
         Optional.ofNullable(user.getFirstName()).filter(s -> !s.isEmpty()).ifPresent(parts::add);
         Optional.ofNullable(user.getLastName()).filter(s -> !s.isEmpty()).ifPresent(parts::add);

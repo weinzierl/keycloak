@@ -9,7 +9,7 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version. For e
 
 ## [v15.0.2-r1.0.7] - 2021-12-23
 ### Fixed
-- Verify fine-grained admin permissions feature is enabled before checking fine-grained permissions when creating users
+- Verify fine-grained admin permissions feature is enabled before checking fine-grained permissions when creating users. [KEYCLOAK CVE-2021-4133](https://www.keycloak.org/2021/12/cve.html)
 
 ## [v15.0.2-r1.0.6] - 2021-12-10
 ### Added

@@ -419,6 +419,7 @@ public class SamlProtocol implements LoginProtocol {
         String nameIdFormat = getNameIdFormat(samlClient, authSession);
 
         int assertionLifespan = samlClient.getAssertionLifespan();
+        SAMLAcrUtils samlAcrUtils = new SAMLAcrUtils();
         SAML2LoginResponseBuilder builder = new SAML2LoginResponseBuilder();
         builder.requestID(requestID)
                 .destination(redirectUri)
@@ -427,7 +428,7 @@ public class SamlProtocol implements LoginProtocol {
                 .subjectExpiration(assertionLifespan <= 0? realm.getAccessTokenLifespan() : assertionLifespan)
                 .sessionExpiration(realm.getSsoSessionMaxLifespan())
                 .requestIssuer(clientSession.getClient().getClientId())
-                .authMethod(JBossSAMLURIConstants.AC_UNSPECIFIED.get());
+                .authMethod(samlAcrUtils.getLoaAuthedicated(authSession,client));
 
         String sessionIndex = SamlSessionUtils.getSessionIndex(clientSession);
         builder.sessionIndex(sessionIndex);

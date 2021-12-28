@@ -51,6 +51,7 @@ import org.keycloak.testsuite.util.SamlClientBuilder;
 import org.keycloak.testsuite.util.saml.CreateLogoutRequestStepBuilder;
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -363,7 +364,7 @@ public class LogoutTest extends AbstractSamlTest {
             nameId.setSPProvidedID(SP_PROVIDED_ID);
 
             return res;
-        } catch (ConfigurationException | ProcessingException ex) {
+        } catch (ConfigurationException | ProcessingException | URISyntaxException ex) {
             throw new RuntimeException(ex);
         }
     }

@@ -17,6 +17,7 @@
 package org.keycloak.testsuite.util;
 
 import org.keycloak.dom.saml.v2.SAML2Object;
+import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.saml.processing.core.saml.v2.common.SAMLDocumentHolder;
 import org.keycloak.testsuite.client.KeycloakTestingClient;
 import org.keycloak.testsuite.page.AbstractPage;
@@ -165,6 +166,11 @@ public class SamlClientBuilder {
     public CreateAuthnRequestStepBuilder authnRequest(URI authServerSamlUrl, String issuer, String assertionConsumerURL, Binding requestBinding) {
         return addStepBuilder(new CreateAuthnRequestStepBuilder(authServerSamlUrl, issuer, assertionConsumerURL, requestBinding, this));
     }
+
+    public CreateAuthnRequestStepBuilder authnRequest(URI authServerSamlUrl, String issuer, String assertionConsumerURL, Binding requestBinding, AuthnContextComparisonType comparison, List<String> requestedAuthnValues) {
+        return addStepBuilder(new CreateAuthnRequestStepBuilder(authServerSamlUrl, issuer, assertionConsumerURL, requestBinding, this,comparison,requestedAuthnValues));
+    }
+
 
     /** Issues the given AuthnRequest to the SAML endpoint */
     public CreateAuthnRequestStepBuilder authnRequest(URI authServerSamlUrl, Document authnRequestDocument, Binding requestBinding) {

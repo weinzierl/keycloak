@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.authentication.authenticators.browser.PasswordFormFactory;
 import org.keycloak.authentication.authenticators.browser.UsernameFormFactory;
+import org.keycloak.authentication.authenticators.conditional.ConditionalLoaAuthenticator;
 import org.keycloak.authentication.authenticators.conditional.ConditionalLoaAuthenticatorFactory;
 import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
@@ -45,13 +46,9 @@ import static org.junit.Assert.assertThat;
 
 public class LevelOfAssuranceFlowSamlTest extends AbstractSamlTest {
 
-    private static final String CONFIG_CONDITION_LEVEL = "loa-condition-level";
-    private static final String CONFIG_SET_LEVEL = "loa-level";
-    private static final String CONFIG_STORE_IN_USER_SESSION = "loa-store-in-user-session";
     private static final String FIRST_LEVEL_LOA = "https://refeds.org/profile/sfa";
     private static final String SECOND_LEVEL_LOA = "https://refeds.org/profile/mfa";
     private static final String DEFAULT_FIRST_LOA = "https://refeds.org/profile/1";
-    private static final String DEFAULT_SECOND_LOA = "https://refeds.org/profile/2";
 
     @Before
     public void setupFlow() {
@@ -64,8 +61,8 @@ public class LevelOfAssuranceFlowSamlTest extends AbstractSamlTest {
                         .addSubFlowExecution(AuthenticationExecutionModel.Requirement.CONDITIONAL, subFlow -> {
                             subFlow.addAuthenticatorExecution(AuthenticationExecutionModel.Requirement.REQUIRED, ConditionalLoaAuthenticatorFactory.PROVIDER_ID,
                                     config -> {
-                                        config.getConfig().put(CONFIG_CONDITION_LEVEL, "1");
-                                        config.getConfig().put(CONFIG_STORE_IN_USER_SESSION, "true");
+                                        config.getConfig().put(ConditionalLoaAuthenticator.LEVEL, "1");
+                                        config.getConfig().put(ConditionalLoaAuthenticator.STORE_IN_USER_SESSION, "true");
                                     });
 
                             // username input for level 2
@@ -77,8 +74,8 @@ public class LevelOfAssuranceFlowSamlTest extends AbstractSamlTest {
                         .addSubFlowExecution(AuthenticationExecutionModel.Requirement.CONDITIONAL, subFlow -> {
                             subFlow.addAuthenticatorExecution(AuthenticationExecutionModel.Requirement.REQUIRED, ConditionalLoaAuthenticatorFactory.PROVIDER_ID,
                                     config -> {
-                                        config.getConfig().put(CONFIG_CONDITION_LEVEL, "2");
-                                        config.getConfig().put(CONFIG_STORE_IN_USER_SESSION, "true");
+                                        config.getConfig().put(ConditionalLoaAuthenticator.LEVEL, "2");
+                                        config.getConfig().put(ConditionalLoaAuthenticator.STORE_IN_USER_SESSION, "true");
                                     });
 
                             // password required for level 2

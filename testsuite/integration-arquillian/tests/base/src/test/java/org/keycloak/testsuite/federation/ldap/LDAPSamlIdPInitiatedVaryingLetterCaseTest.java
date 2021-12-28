@@ -56,6 +56,7 @@ import org.keycloak.testsuite.util.SamlClient.Binding;
 import org.keycloak.testsuite.util.SamlClientBuilder;
 import com.google.common.collect.ImmutableMap;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
@@ -283,7 +284,7 @@ public class LDAPSamlIdPInitiatedVaryingLetterCaseTest extends AbstractLDAPTest 
         assertThat(testRealm().users().search(USER_NAME_LDAP, Boolean.TRUE), hasSize(1));
     }
 
-    private ResponseType prepareResponseForIdPInitiatedFlow(final URI destination, String userName) throws ConfigurationException, ProcessingException {
+    private ResponseType prepareResponseForIdPInitiatedFlow(final URI destination, String userName) throws ConfigurationException, ProcessingException, URISyntaxException {
         // Prepare Response for IdP-initiated flow
         return new SAML2LoginResponseBuilder()
           .requestID(UUID.randomUUID().toString())

@@ -46,6 +46,7 @@ import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.NameIDPolicyType;
 import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
+import org.keycloak.dom.saml.v2.protocol.RequestedAuthnContextType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.dom.saml.v2.protocol.StatusResponseType;
 import org.keycloak.events.Details;
@@ -496,6 +497,18 @@ public class SamlService extends AuthorizationEndpointBase {
 
             for(Iterator<SamlAuthenticationPreprocessor> it = SamlSessionUtils.getSamlAuthenticationPreprocessorIterator(session); it.hasNext();) {
                 requestAbstractType = it.next().beforeProcessingLoginRequest(requestAbstractType, authSession);
+            }
+            RequestedAuthnContextType requestedAuthn = requestAbstractType.getRequestedAuthnContext();
+            //def ref???
+            if (requestedAuthn != null && requestedAuthn.getAuthnContextClassRef().size() > 0) {
+                try {
+                    SAMLAcrUtils samlAcrUtils = new SAMLAcrUtils(client);
+                    samlAcrUtils.setLoaFromRequestedAuthn(requestedAuthn, authSession);
+                } catch ( ProcessingException e ) {
+                    event.detail(Details.REASON, Errors.UNSUPPORTED_AUTHENTICATION_CONTEXTS);
+                    event.error(Errors.INVALID_SAML_AUTHN_REQUEST);
+                    return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.UNSUPPORTED_AUTHENTICATION_CONTEXTS);
+                }
             }
 
             //If unset we fall back to default "false"

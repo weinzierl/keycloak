@@ -40,8 +40,10 @@ import org.keycloak.common.VerificationException;
 import org.keycloak.common.util.KeyUtils;
 import org.keycloak.dom.saml.v2.SAML2Object;
 import org.keycloak.dom.saml.v2.protocol.ArtifactResponseType;
+import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
+import org.keycloak.dom.saml.v2.protocol.RequestedAuthnContextType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.protocol.saml.SamlProtocolUtils;
 import org.keycloak.protocol.saml.profile.util.Soap;
@@ -734,6 +736,24 @@ public class SamlClient {
             throw new RuntimeException(ex);
         }
     }
+
+    public static AuthnRequestType createLoginRequestDocument(String issuer, String assertionConsumerURL, URI destination, AuthnContextComparisonType comparison, List<String> requestedAuthnValues) {
+        try {
+            SAML2Request samlReq = new SAML2Request();
+            AuthnRequestType loginReq = samlReq.createAuthnRequestType(UUID.randomUUID().toString(), assertionConsumerURL,
+                    destination == null ? null : destination.toString(), issuer);
+            if ( comparison != null) {
+                RequestedAuthnContextType requestedAuthn = new RequestedAuthnContextType();
+                requestedAuthn.setComparison(comparison);
+                requestedAuthnValues.stream().forEach(val -> requestedAuthn.addAuthnContextClassRef(val));
+                loginReq.setRequestedAuthnContext(requestedAuthn);
+            }
+            return loginReq;
+        } catch (ConfigurationException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
 
     public void execute(Step... steps) {
         executeAndTransform(resp -> null, Arrays.asList(steps));

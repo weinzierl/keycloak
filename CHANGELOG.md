@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/release_notes/index.html.
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. For example [Keycloak jira issue for 15.0.2 version](https://issues.redhat.com/browse/KEYCLOAK-19161?jql=project%20%3D%20keycloak%20and%20fixVersion%20%3D%2015.0.2)
 
+## [v15.0.2-rc1.0.8] - 2022-01-05
+### Added
+- Include claim in token introspection response only [RCIAM-742](https://jira.argo.grnet.gr/browse/RCIAM-742)
+
 ## [v15.0.2-r1.0.7] - 2021-12-23
 ### Fixed
 - Verify fine-grained admin permissions feature is enabled before checking fine-grained permissions when creating users. [KEYCLOAK CVE-2021-4133](https://www.keycloak.org/2021/12/cve.html)

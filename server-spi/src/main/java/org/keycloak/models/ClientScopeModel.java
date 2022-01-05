@@ -67,9 +67,6 @@ public interface ClientScopeModel extends ProtocolMapperContainerModel, ScopeCon
     String CONSENT_SCREEN_TEXT = "consent.screen.text";
     String GUI_ORDER = "gui.order";
     String INCLUDE_IN_TOKEN_SCOPE = "include.in.token.scope";
-    String LOGO_URI ="logoUri";
-    String POLICY_URI ="policyUri";
-    String TOS_URI ="tosUri";
 
     default boolean isDisplayOnConsentScreen() {
         String displayVal = getAttribute(DISPLAY_ON_CONSENT_SCREEN);

@@ -205,7 +205,6 @@ public class DescriptionConverter {
         }
 
         // CIBA
-
         String backchannelTokenDeliveryMode = clientOIDC.getBackchannelTokenDeliveryMode();
         if (backchannelTokenDeliveryMode != null) {
             Map<String, String> attr = Optional.ofNullable(client.getAttributes()).orElse(new HashMap<>());

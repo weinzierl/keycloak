@@ -77,13 +77,6 @@ public final class OIDCConfigAttributes {
     public static final String AUTHORIZATION_ENCRYPTED_RESPONSE_ENC = "authorization.encrypted.response.enc";
     public static final String FRONT_CHANNEL_LOGOUT_URI = "frontchannel.logout.url";
 
-    public static final String LOGO_URI = "logoUri";
-
-    public static final String POLICY_URI = "policyUri";
-
-    public static final String TOS_URI = "tosUri";
-
-
     private OIDCConfigAttributes() {
     }
 

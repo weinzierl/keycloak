@@ -1633,7 +1633,6 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.registrationAuthorityBlackList = [];
 		 $scope.identityProvidersFederation.registrationAuthorityWhiteList = [];
 		 $scope.identityProvidersFederation.categoryWhiteList = {};
-		 $scope.identityProvidersFederation.xsltOverride = '';
 		 $scope.newCategoryWhiteList = {};
 		 $scope.newCategoryWhiteList.key='';
 		 $scope.newCategoryWhiteList.value = [];
@@ -1644,6 +1643,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.config = {};
 		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
          $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+		 $scope.identityProvidersFederation.config.xsltOverride = '';
          $scope.multiplePrincipals= [];
           $scope.newMultiplePrincipal={};
 	} else {

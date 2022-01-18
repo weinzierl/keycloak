@@ -1640,6 +1640,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.config = {};
 		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
          $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+		 $scope.identityProvidersFederation.config.xsltOverride = '';
          $scope.multiplePrincipals= [];
           $scope.newMultiplePrincipal={};
 	} else {
@@ -1657,6 +1658,8 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
              $scope.newMultiplePrincipal={};
          }
 	}
+
+    $scope.showXsltOverride = false;
 
 	$scope.callbackUrl = authServerUrl + "/realms/" + realm.realm + "/broker/federation/";
 
@@ -1749,7 +1752,16 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     			$scope.changed = false;
     	}, 
     true);
-	
+
+	$scope.$watch('identityProvidersFederation.config.xsltOverride',
+        function (newValue, oldValue, scope) {
+            if(newValue != initValues.config.xsltOverride)
+                $scope.changed = true;
+            else
+                $scope.changed = false;
+        },
+    true);
+
     
     if(initValues.config == null) 
     	initValues.config = {};	

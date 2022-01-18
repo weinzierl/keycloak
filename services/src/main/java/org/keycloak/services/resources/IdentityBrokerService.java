@@ -114,6 +114,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -478,7 +484,18 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
     	if (idpFederationModel == null)
             throw new IdentityBrokerException("Could not find any federation for the identifier: " + providerId);
     	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, idpFederationModel.getProviderId()).create(session, idpFederationModel, realmModel.getId());
-    	return idpFederationProvider.export(session.getContext().getUri(), realmModel);
+        Response response = idpFederationProvider.export(session.getContext().getUri(), realmModel);
+    	String xsltOverride = idpFederationModel.getConfig().get("xsltOverride");
+    	if(xsltOverride == null || xsltOverride.isEmpty())
+            return response;
+    	// xslt is not null or empty, thus, apply the xslt before returning it
+        try {
+            return Response.ok(transform((String)response.getEntity(), xsltOverride), MediaType.APPLICATION_XML_TYPE).build();
+        }
+        catch (TransformerException e) {
+            logger.error("Tried to apply the configured xslt on the federation " + idpFederationModel.getAlias() + " exported SPSSODescriptor", e);
+            return response;
+        }
     }
 
 
@@ -1349,6 +1366,14 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         if (this.session.getTransactionManager().isActive()) {
             this.session.getTransactionManager().rollback();
         }
+    }
+
+    private String transform(String xml, String xslt) throws TransformerException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        TransformerFactory.newInstance()
+                .newTransformer(new StreamSource(new ByteArrayInputStream(xslt.getBytes())))
+                .transform(new StreamSource(new ByteArrayInputStream(xml.getBytes())), new StreamResult(output));
+        return output.toString();
     }
 
 }

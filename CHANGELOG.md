@@ -29,4 +29,5 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 - FreeMarkerLoginFormsProvider now has an additional common attribute passed to the ftl templates, the "uriInfo"
 
 ### Fixed
-- Configure attribute name format in SAML UserAttribute mapper. [EOSC-KC-121](https://github.com/eosc-kc/keycloak/issues/121)
+- Configure attribute name format in SAML UserAttribute mapper [EOSC-KC-121](https://github.com/eosc-kc/keycloak/issues/121)
+- Fix scope bug in device authorization request [RCIAM-783](https://jira.argo.grnet.gr/browse/RCIAM-783)

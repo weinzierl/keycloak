@@ -40,6 +40,31 @@
                     </#if>
                 </h3>
             </#if>
+            <#if client.description??>
+                <h3>
+                    ${msg("consentDescription",advancedMsg(client.description))}
+                </h3>
+            </#if>
+            <#if client.baseUrl??>
+                <h3>
+                    ${msg("consentBaseUrl",client.baseUrl)}
+                </h3>
+            </#if>
+            <#if client.attributes.contacts??>
+                <h3>
+                    ${msg("consentContacts",client.attributes.contacts)}
+                </h3>
+            </#if>
+            <#if client.attributes.country??>
+                <h3>
+                    ${msg("consentCountry",oauth.countryName)}
+                </h3>
+            </#if>
+            <h3>
+                ${msg("revokeConsentMsg",advancedMsg(client.name))}
+                <a href="${oauth.applicationConsoleUrl}" target="_blank">${msg("applicationConsoleMsg")}</a>
+            </h3>
+
 
             <form class="form-actions" action="${url.oauthAction}" method="POST">
                 <input type="hidden" name="code" value="${oauth.code}">

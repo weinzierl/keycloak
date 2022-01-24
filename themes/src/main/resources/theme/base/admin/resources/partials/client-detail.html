@@ -390,6 +390,23 @@
                 </div>
                 <kc-tooltip>{{:: 'tos-uri.tooltip' | translate}}</kc-tooltip>
             </div>
+            <div class="form-group" data-ng-show="protocol == 'saml' || protocol == 'openid-connect'">
+                <label class="col-md-2 control-label" for="contacts">{{:: 'contacts' | translate}}</label>
+                <div class="col-sm-6">
+                    <input class="form-control" type="text" name="contacts" id="contacts" data-ng-model="clientEdit.attributes.contacts">
+                </div>
+                <kc-tooltip>{{:: 'contacts.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group" data-ng-show="protocol == 'saml' || protocol == 'openid-connect'">
+                <label class="col-md-2 control-label" for="country">{{:: 'country' | translate}}</label>
+                <div class="col-sm-6">
+                    <select class="form-control" id="country"
+                            ng-model="clientEdit.attributes.country" ng-options="key as value for (key, value) in countries">
+                        <option value=""></option>
+                    </select>
+                </div>
+                <kc-tooltip>{{:: 'country.tooltip' | translate}}</kc-tooltip>
+            </div>
             <div class="form-group clearfix block" data-ng-show="protocol == 'saml'">
                 <label class="col-md-2 control-label" for="idpInitiatedRelayState">{{:: 'idp-sso-relay-state' | translate}}</label>
                 <div class="col-sm-6">

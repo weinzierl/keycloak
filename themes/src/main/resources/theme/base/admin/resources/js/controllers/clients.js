@@ -1090,7 +1090,7 @@ module.controller('ClientInstallationCtrl', function($scope, realm, client, serv
 });
 
 
-module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $route, serverInfo, Client, ClientDescriptionConverter, Components, ClientStorageOperations, $location, $modal, Dialog, Notifications, TimeUnit2) {
+module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $route, serverInfo, Client, ClientDescriptionConverter, Components, ClientStorageOperations, $location, $modal, Dialog, Notifications, TimeUnit2, countries) {
     $scope.serverInfo = serverInfo;
     $scope.flows = [];
     $scope.clientFlows = [];
@@ -1107,7 +1107,7 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
     }
     $scope.flows.push(emptyFlow)
     $scope.clientFlows.push(emptyFlow)
-
+    $scope.countries= countries;
 
 
     $scope.accessTypes = [

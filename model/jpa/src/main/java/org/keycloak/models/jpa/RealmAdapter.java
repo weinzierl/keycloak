@@ -1298,7 +1298,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         identityProvider.setInternalId(entity.getInternalId());
 
         em.persist(entity);
-        em.flush();
+
     }
 
     @Override
@@ -1374,8 +1374,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
                 return fed;
             }).collect(Collectors.toSet()));
         }
-
-        em.flush();
 
         session.getKeycloakSessionFactory().publish(new RealmModel.IdentityProviderUpdatedEvent() {
 

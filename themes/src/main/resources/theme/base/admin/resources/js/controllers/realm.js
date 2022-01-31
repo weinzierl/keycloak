@@ -1636,22 +1636,26 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
              $scope.newMultiplePrincipal={};
          }
 	}
+	$scope.changed = false;
 
 	$scope.callbackUrl = authServerUrl + "/realms/" + realm.realm + "/broker/federation/";
 
 	$scope.addNewMultiplePrincipal = function() {
         $scope.multiplePrincipals.push($scope.newMultiplePrincipal);
         $scope.newMultiplePrincipal = {};
+        $scope.changed = true;
     }
 
     $scope.removeMultiplePrincipal = function(index) {
         $scope.multiplePrincipals.splice(index, 1);
+        $scope.changed = true;
     }
 
     $scope.movePrincipalUp = function(index) {
          var tempPr = $scope.multiplePrincipals[index-1];
          $scope.multiplePrincipals[index-1] =$scope.multiplePrincipals[index];
          $scope.multiplePrincipals[index] = tempPr;
+         $scope.changed = true;
     }
        
     $scope.cancel = function() {
@@ -1691,10 +1695,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
             Notifications.success("The " + $scope.identityProvidersFederation.alias + " provider has been created.");
         });
     }
-    
-    
-    $scope.changed = false;
-    
+
     var initValues = angular.copy($scope.identityProvidersFederation);
     
     if(initValues==null) 
@@ -1728,7 +1729,15 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     			$scope.changed = false;
     	}, 
     true);
-	
+
+	$scope.$watch('identityProvidersFederation.config.syncMode',
+        	function (newValue, oldValue, scope) {
+        		if(newValue != initValues.config.syncMode)
+        			$scope.changed = true;
+        		else
+        			$scope.changed = false;
+        	},
+        true);
     
     if(initValues.config == null) 
     	initValues.config = {};	
@@ -1742,24 +1751,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     	}, 
     true);
     
-    $scope.$watch('identityProvidersFederation.config.principalType', 
-        	function (newValue, oldValue, scope) {
-        		if(newValue != initValues.config.principalType) 
-        			$scope.changed = true;
-        		else 
-        			$scope.changed = false;
-        	}, 
-        true);
-    
-    $scope.$watch('identityProvidersFederation.config.principalAttribute', 
-        	function (newValue, oldValue, scope) {
-        		if(newValue != initValues.config.principalAttribute) 
-        			$scope.changed = true;
-        		else 
-        			$scope.changed = false;
-        	}, 
-        true);
-    
+
     $scope.$watch('identityProvidersFederation.config.postBindingAuthnRequest', 
     	function (newValue, oldValue, scope) {
     		if(newValue != initValues.config.postBindingAuthnRequest) 
@@ -1795,7 +1787,34 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 				$scope.changed = false;
 		}, 
 	true);
-    
+
+	$scope.$watch('identityProvidersFederation.config.attributeConsumingServiceIndex',
+    	function (newValue, oldValue, scope) {
+    		if(newValue != initValues.config.attributeConsumingServiceIndex)
+    			$scope.changed = true;
+    		else
+    			$scope.changed = false;
+    	},
+    true);
+
+    $scope.$watch('identityProvidersFederation.config.attributeConsumingServiceName',
+        	function (newValue, oldValue, scope) {
+        		if(newValue != initValues.config.attributeConsumingServiceName)
+        			$scope.changed = true;
+        		else
+        			$scope.changed = false;
+        	},
+    true);
+
+    $scope.$watch('identityProvidersFederation.config.signSpMetadata',
+            function (newValue, oldValue, scope) {
+            	if(newValue != initValues.config.signSpMetadata)
+            		$scope.changed = true;
+            	else
+            		$scope.changed = false;
+            },
+    true);
+
     $scope.$watch('newEntityIdDenyList',
     		function (newValue, oldValue, scope) {
     			if(newValue != initValues.denyList)

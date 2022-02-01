@@ -266,7 +266,7 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
         }
 
         ClientModel client = realm.getClientByClientId(deviceCode.getClientId());
-        AuthenticationSessionModel authenticationSession = createAuthenticationSession(client);
+        AuthenticationSessionModel authenticationSession = createAuthenticationSession(client, deviceCode.getScope());
 
         // Verification OK
         authenticationSession.setClientNote(DeviceGrantType.OAUTH2_DEVICE_VERIFIED_USER_CODE, userCode);
@@ -354,13 +354,15 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
         return client;
     }
 
-    protected AuthenticationSessionModel createAuthenticationSession(ClientModel client) {
+    protected AuthenticationSessionModel createAuthenticationSession(ClientModel client, String scope) {
         AuthenticationSessionModel authenticationSession = super.createAuthenticationSession(client, null);
 
         authenticationSession.setProtocol(OIDCLoginProtocol.LOGIN_PROTOCOL);
         authenticationSession.setAction(AuthenticationSessionModel.Action.AUTHENTICATE.name());
         authenticationSession.setClientNote(OIDCLoginProtocol.ISSUER,
             Urls.realmIssuer(session.getContext().getUri().getBaseUri(), realm.getName()));
+        if ( scope != null)
+            authenticationSession.setClientNote(OIDCLoginProtocol.SCOPE_PARAM, scope);
 
         return authenticationSession;
     }

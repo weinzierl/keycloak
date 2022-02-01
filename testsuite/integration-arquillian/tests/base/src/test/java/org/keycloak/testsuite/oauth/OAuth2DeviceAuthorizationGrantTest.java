@@ -27,11 +27,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.OAuth2DeviceConfig;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCConfigAttributes;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.UserInfo;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -99,6 +101,7 @@ public class OAuth2DeviceAuthorizationGrantTest extends AbstractKeycloakTest {
                 .username("device-login")
                 .email("device-login@localhost")
                 .password("password")
+                .addAttribute("phoneNumber","211211211")
                 .build();
         realm.user(user);
 
@@ -191,6 +194,58 @@ public class OAuth2DeviceAuthorizationGrantTest extends AbstractKeycloakTest {
 
         assertNotNull(token);
     }
+
+    @Test
+    public void testPublicClientOptionalScope() throws Exception {
+        // Device Authorization Request from device - check giving optional scope phone
+        oauth.realm(REALM_NAME);
+        oauth.clientId(DEVICE_APP_PUBLIC);
+        OAuthClient.DeviceAuthorizationResponse response = null;
+        try {
+            oauth.scope("phone");
+            response = oauth.doDeviceAuthorizationRequest(DEVICE_APP_PUBLIC, null);
+        } finally {
+            oauth.scope(null);
+        }
+
+        Assert.assertEquals(200, response.getStatusCode());
+        assertNotNull(response.getDeviceCode());
+        assertNotNull(response.getUserCode());
+        assertNotNull(response.getVerificationUri());
+        assertNotNull(response.getVerificationUriComplete());
+        Assert.assertEquals(60, response.getExpiresIn());
+        Assert.assertEquals(5, response.getInterval());
+
+        openVerificationPage(response.getVerificationUriComplete());
+
+        // Do Login
+        oauth.fillLoginForm("device-login", "password");
+
+        // Consent
+        grantPage.assertCurrent();
+        grantPage.assertGrants(OAuthGrantPage.PROFILE_CONSENT_TEXT, OAuthGrantPage.EMAIL_CONSENT_TEXT, OAuthGrantPage.ROLES_CONSENT_TEXT, OAuthGrantPage.PHONE_CONSENT_TEXT);
+        grantPage.accept();
+
+        // Token request from device
+        OAuthClient.AccessTokenResponse tokenResponse = oauth.doDeviceTokenRequest(DEVICE_APP_PUBLIC, null, response.getDeviceCode());
+
+        Assert.assertEquals(200, tokenResponse.getStatusCode());
+
+        String tokenString = tokenResponse.getAccessToken();
+        assertNotNull(tokenString);
+        AccessToken token = oauth.verifyToken(tokenString);
+
+        assertNotNull(token);
+
+        UserInfo userInfo = oauth.doUserInfoRequest(tokenString);
+        assertNotNull(userInfo);
+        //UserInfo consists preferredUsername, email( required scopes) and phoneNumber(given optional scope)
+        Assert.assertEquals("device-login", userInfo.getPreferredUsername());
+        Assert.assertEquals("device-login@localhost", userInfo.getEmail());
+        Assert.assertEquals("211211211", userInfo.getPhoneNumber());
+    }
+
+
 
     @Test
     public void testNoRefreshToken() throws Exception {

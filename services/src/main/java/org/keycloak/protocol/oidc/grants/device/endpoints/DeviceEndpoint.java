@@ -42,6 +42,7 @@ import org.keycloak.models.utils.SystemClientUtil;
 import org.keycloak.protocol.AuthorizationEndpointBase;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
+import org.keycloak.protocol.oidc.endpoints.AuthorizationEndpointChecker;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor;
 import org.keycloak.protocol.oidc.grants.device.DeviceGrantType;
@@ -121,12 +122,25 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
                 "Client not allowed for OAuth 2.0 Device Authorization Grant", Response.Status.BAD_REQUEST);
         }
 
+        // https://tools.ietf.org/html/rfc7636#section-4
+        AuthorizationEndpointChecker checker = new AuthorizationEndpointChecker()
+                .event(event)
+                .client(client)
+                .request(request);
+
+        try {
+            checker.checkPKCEParams();
+        } catch (AuthorizationEndpointChecker.AuthorizationCheckException ex) {
+            throw new ErrorResponseException(ex.getError(), ex.getErrorDescription(), Response.Status.BAD_REQUEST);
+        }
+
+
         int expiresIn = realm.getOAuth2DeviceConfig().getLifespan(client);
         int interval = realm.getOAuth2DeviceConfig().getPoolingInterval(client);
 
         OAuth2DeviceCodeModel deviceCode = OAuth2DeviceCodeModel.create(realm, client,
             Base64Url.encode(KeycloakModelUtils.generateSecret()), request.getScope(), request.getNonce(), expiresIn, interval, null, null,
-            request.getAdditionalReqParams());
+                request.getAdditionalReqParams(), request.getCodeChallenge(), request.getCodeChallengeMethod());
         OAuth2DeviceUserCodeProvider userCodeProvider = session.getProvider(OAuth2DeviceUserCodeProvider.class);
         String secret = userCodeProvider.generate();
         OAuth2DeviceUserCodeModel userCode = new OAuth2DeviceUserCodeModel(realm, deviceCode.getDeviceCode(), secret);
@@ -187,6 +201,7 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
                 return createVerificationPage(Messages.OAUTH2_DEVICE_INVALID_USER_CODE);
             }
 
+            
             if (deviceCode.isExpired()) {
                 event.error(Errors.INVALID_OAUTH2_USER_CODE);
                 return createVerificationPage(Messages.OAUTH2_DEVICE_EXPIRED_USER_CODE);

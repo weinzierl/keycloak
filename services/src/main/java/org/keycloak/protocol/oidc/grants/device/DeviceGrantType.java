@@ -43,6 +43,7 @@ import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint;
 import org.keycloak.protocol.oidc.endpoints.TokenEndpoint;
 import org.keycloak.protocol.oidc.grants.device.endpoints.DeviceEndpoint;
+import org.keycloak.protocol.oidc.utils.PkceUtils;
 import org.keycloak.services.CorsErrorResponseException;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.managers.UserSessionCrossDCManager;
@@ -208,6 +209,18 @@ public class DeviceGrantType {
         if (deviceCodeModel.isPending()) {
             throw new CorsErrorResponseException(cors, OAuthErrorException.AUTHORIZATION_PENDING,
                 "The authorization request is still pending", Response.Status.BAD_REQUEST);
+        }
+
+        // https://tools.ietf.org/html/rfc7636#section-4.6
+        String codeVerifier = formParams.getFirst(OAuth2Constants.CODE_VERIFIER);
+        String codeChallenge = deviceCodeModel.getCodeChallenge();
+        String codeChallengeMethod = deviceCodeModel.getCodeChallengeMethod();
+
+        if (codeChallengeMethod != null && !codeChallengeMethod.isEmpty()) {
+            PkceUtils.checkParamsForPkceEnforcedClient(codeVerifier, codeChallenge, codeChallengeMethod, null, null, event, cors);
+        } else {
+            // PKCE Activation is OFF, execute the codes implemented in KEYCLOAK-2604
+            PkceUtils.checkParamsForPkceNotEnforcedClient(codeVerifier, codeChallenge, codeChallengeMethod, null, null, event, cors);
         }
 
         // Approved

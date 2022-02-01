@@ -54,7 +54,6 @@ public enum SAMLMetadataQNames implements HasQName {
     SP_SSO_DESCRIPTOR("SPSSODescriptor"),
     SURNAME("SurName"),
     TELEPHONE_NUMBER("TelephoneNumber"),
-
     //mdui elements
     DESCRIPTION(JBossSAMLURIConstants.METADATA_UI, "Description"),
     DISPLAY_NAME(JBossSAMLURIConstants.METADATA_UI, "DisplayName"),

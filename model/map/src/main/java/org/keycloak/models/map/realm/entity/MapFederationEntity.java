@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.keycloak.models.FederationMapperModel;
-import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.map.common.UpdatableEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
@@ -26,12 +25,12 @@ public class MapFederationEntity implements UpdatableEntity {
     private Long validUntilTimestamp;
     private Long lastMetadataRefreshTimestamp;
     private Map<String, String> config;
-    private Set<String> entityIdBlackList= new HashSet<>();
-    private Set<String> entityIdWhiteList= new HashSet<>();
-    private Set<String> registrationAuthorityBlackList= new HashSet<>();
-    private Set<String> registrationAuthorityWhiteList= new HashSet<>();
-    private Map<String, List<String>> categoryBlackList= new HashMap<>();
-    private Map<String, List<String>> categoryWhiteList= new HashMap<>();
+    private Set<String> entityIdDenyList = new HashSet<>();
+    private Set<String> entityIdAllowList = new HashSet<>();
+    private Set<String> registrationAuthorityDenyList = new HashSet<>();
+    private Set<String> registrationAuthorityAllowList = new HashSet<>();
+    private Map<String, List<String>> categoryDenyList = new HashMap<>();
+    private Map<String, List<String>> categoryAllowList = new HashMap<>();
     private List<MapFederationMapperEntity> federationMappers = new ArrayList<>();
     private List<String> idps = new ArrayList<>();
 
@@ -52,12 +51,12 @@ public class MapFederationEntity implements UpdatableEntity {
         entity.setUrl(model.getUrl());
         entity.setValidUntilTimestamp(model.getValidUntilTimestamp());
         entity.setConfig(model.getConfig());
-        entity.setEntityIdBlackList(model.getEntityIdBlackList());
-        entity.setEntityIdWhiteList(model.getEntityIdWhiteList());
-        entity.setCategoryBlackList(model.getCategoryBlackList());
-        entity.setCategoryWhiteList(model.getCategoryWhiteList());
-        entity.setRegistrationAuthorityBlackList(model.getRegistrationAuthorityBlackList());
-        entity.setRegistrationAuthorityWhiteList(model.getRegistrationAuthorityWhiteList());
+        entity.setEntityIdDenyList(model.getEntityIdDenyList());
+        entity.setEntityIdAllowList(model.getEntityIdAllowList());
+        entity.setCategoryDenyList(model.getCategoryDenyList());
+        entity.setCategoryAllowList(model.getCategoryAllowList());
+        entity.setRegistrationAuthorityDenyList(model.getRegistrationAuthorityDenyList());
+        entity.setRegistrationAuthorityAllowList(model.getRegistrationAuthorityAllowList());
         entity.setFederationMappers(model.getFederationMapperModels().stream().map(MapFederationMapperEntity::fromModel).collect(Collectors.toList()));
         entity.setIdps(model.getIdps());
 
@@ -77,12 +76,12 @@ public class MapFederationEntity implements UpdatableEntity {
         model.setUrl(entity.getUrl());
         model.setValidUntilTimestamp(entity.getValidUntilTimestamp());
         model.setConfig(entity.getConfig());
-        model.setEntityIdBlackList(entity.getEntityIdBlackList());
-        model.setEntityIdWhiteList(entity.getEntityIdWhiteList());
-        model.setCategoryBlackList(entity.getCategoryBlackList());
-        model.setCategoryWhiteList(entity.getCategoryWhiteList());
-        model.setRegistrationAuthorityBlackList(entity.getRegistrationAuthorityBlackList());
-        model.setRegistrationAuthorityWhiteList(entity.getRegistrationAuthorityWhiteList());
+        model.setEntityIdDenyList(entity.getEntityIdDenyList());
+        model.setEntityIdAllowList(entity.getEntityIdAllowList());
+        model.setCategoryDenyList(entity.getCategoryDenyList());
+        model.setCategoryAllowList(entity.getCategoryAllowList());
+        model.setRegistrationAuthorityDenyList(entity.getRegistrationAuthorityDenyList());
+        model.setRegistrationAuthorityAllowList(entity.getRegistrationAuthorityAllowList());
         model.setFederationMapperModels(entity.getFederationMappers().stream().map(
             mapper -> {
                FederationMapperModel mapperModel = MapFederationMapperEntity.toModel(mapper);
@@ -175,58 +174,58 @@ public class MapFederationEntity implements UpdatableEntity {
         this.config = config;
     }
 
-    public Set<String> getEntityIdBlackList() {
-        return entityIdBlackList;
+    public Set<String> getEntityIdDenyList() {
+        return entityIdDenyList;
     }
 
-    public void setEntityIdBlackList(Set<String> entityIdBlackList) {
-        this.updated = !Objects.equals(this.entityIdBlackList, entityIdBlackList);
-        this.entityIdBlackList = entityIdBlackList;
+    public void setEntityIdDenyList(Set<String> entityIdDenyList) {
+        this.updated = !Objects.equals(this.entityIdDenyList, entityIdDenyList);
+        this.entityIdDenyList = entityIdDenyList;
     }
 
-    public Set<String> getEntityIdWhiteList() {
-        return entityIdWhiteList;
+    public Set<String> getEntityIdAllowList() {
+        return entityIdAllowList;
     }
 
-    public void setEntityIdWhiteList(Set<String> entityIdWhiteList) {
-        this.updated = !Objects.equals(this.entityIdWhiteList, entityIdWhiteList);
-        this.entityIdWhiteList = entityIdWhiteList;
+    public void setEntityIdAllowList(Set<String> entityIdAllowList) {
+        this.updated = !Objects.equals(this.entityIdAllowList, entityIdAllowList);
+        this.entityIdAllowList = entityIdAllowList;
     }
 
-    public Set<String> getRegistrationAuthorityBlackList() {
-        return registrationAuthorityBlackList;
+    public Set<String> getRegistrationAuthorityDenyList() {
+        return registrationAuthorityDenyList;
     }
 
-    public void setRegistrationAuthorityBlackList(Set<String> registrationAuthorityBlackList) {
-        this.updated = !Objects.equals(this.registrationAuthorityBlackList, registrationAuthorityBlackList);
-        this.registrationAuthorityBlackList = registrationAuthorityBlackList;
+    public void setRegistrationAuthorityDenyList(Set<String> registrationAuthorityDenyList) {
+        this.updated = !Objects.equals(this.registrationAuthorityDenyList, registrationAuthorityDenyList);
+        this.registrationAuthorityDenyList = registrationAuthorityDenyList;
     }
 
-    public Set<String> getRegistrationAuthorityWhiteList() {
-        return registrationAuthorityWhiteList;
+    public Set<String> getRegistrationAuthorityAllowList() {
+        return registrationAuthorityAllowList;
     }
 
-    public void setRegistrationAuthorityWhiteList(Set<String> registrationAuthorityWhiteList) {
-        this.updated = !Objects.equals(this.registrationAuthorityWhiteList, registrationAuthorityWhiteList);
-        this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
+    public void setRegistrationAuthorityAllowList(Set<String> registrationAuthorityAllowList) {
+        this.updated = !Objects.equals(this.registrationAuthorityAllowList, registrationAuthorityAllowList);
+        this.registrationAuthorityAllowList = registrationAuthorityAllowList;
     }
 
-    public Map<String, List<String>> getCategoryBlackList() {
-        return categoryBlackList;
+    public Map<String, List<String>> getCategoryDenyList() {
+        return categoryDenyList;
     }
 
-    public void setCategoryBlackList(Map<String, List<String>> categoryBlackList) {
-        this.updated = !Objects.equals(this.categoryBlackList, categoryBlackList);
-        this.categoryBlackList = categoryBlackList;
+    public void setCategoryDenyList(Map<String, List<String>> categoryDenyList) {
+        this.updated = !Objects.equals(this.categoryDenyList, categoryDenyList);
+        this.categoryDenyList = categoryDenyList;
     }
 
-    public Map<String, List<String>> getCategoryWhiteList() {
-        return categoryWhiteList;
+    public Map<String, List<String>> getCategoryAllowList() {
+        return categoryAllowList;
     }
 
-    public void setCategoryWhiteList(Map<String, List<String>> categoryWhiteList) {
-        this.updated = !Objects.equals(this.categoryWhiteList, categoryWhiteList);
-        this.categoryWhiteList = categoryWhiteList;
+    public void setCategoryAllowList(Map<String, List<String>> categoryAllowList) {
+        this.updated = !Objects.equals(this.categoryAllowList, categoryAllowList);
+        this.categoryAllowList = categoryAllowList;
     }
 
     public List<MapFederationMapperEntity> getFederationMappers() {

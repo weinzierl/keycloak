@@ -151,16 +151,16 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
     }
 
 	@Test
-	public void testCreateWithBlackListandRemove() throws IOException {
+	public void testCreateWithDenyListandRemove() throws IOException {
 	    //blacklist entityIdIdP entity id and registrationAuthority="http://aai.grnet.gr/"
 
 		//create with excluding one idp
-		Set<String> entityIdBlackList = new HashSet<>();
-		entityIdBlackList.add(entityIdIdP);
-		Set<String> authorityBlackList = new HashSet<>();
-		authorityBlackList.add(authority);
+		Set<String> entityIdDenyList = new HashSet<>();
+		entityIdDenyList.add(entityIdIdP);
+		Set<String> authorityDenyList = new HashSet<>();
+		authorityDenyList.add(authority);
 		String internalId = createFederation("edugain-sample",
-				"http://localhost:8880/edugain-sample-test.xml",entityIdBlackList,new HashSet<>(),authorityBlackList,new HashSet<>(), new HashMap<>());
+				"http://localhost:8880/edugain-sample-test.xml",entityIdDenyList,new HashSet<>(),authorityDenyList,new HashSet<>(), new HashMap<>());
 
 		sleep(90000);
 		// first execute trigger update idps and then get identity providers federation
@@ -192,16 +192,16 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 	}
 	
 	@Test
-    public void testCreateWithWhiteListandRemove() throws IOException {
+    public void testCreateWithAllowListandRemove() throws IOException {
 	  //whitelist entityIdIdP entity id and registrationAuthority="http://aai.grnet.gr/"
 	    
         //create with excluding one idp
-        Set<String> entityIdWhiteList = new HashSet<>();
-        entityIdWhiteList.add(entityIdIdP);
-        Set<String> authorityWhiteList = new HashSet<>();
-        authorityWhiteList.add(authority);
+        Set<String> entityIdAllowList = new HashSet<>();
+        entityIdAllowList.add(entityIdIdP);
+        Set<String> authorityAllowList = new HashSet<>();
+        authorityAllowList.add(authority);
         String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
-            entityIdWhiteList, new HashSet<>(), authorityWhiteList, new HashMap<>());
+            entityIdAllowList, new HashSet<>(), authorityAllowList, new HashMap<>());
 
         sleep(90000);
         // first execute trigger update idps and then get identity providers federation
@@ -234,7 +234,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
     }
 	
 	@Test
-    public void testCreateWithCategoryBlackListandRemove() throws IOException {
+    public void testCreateWithCategoryDenyListandRemove() throws IOException {
       //blacklist with attributeName and attributeValue exclude only hashEntityIdIdP
         
         Map<String,List<String>> blackMap =  new HashMap<>();
@@ -455,18 +455,18 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
 
 
-    private String createFederation(String alias, String url, Set<String> blackList, Set<String> whitelist,
-        Set<String> registrationAuthorityBlackList, Set<String> registrationAuthorityWhitelist, Map<String,List<String>> categoryBlackList) throws IOException {
+    private String createFederation(String alias, String url, Set<String> denyList, Set<String> whitelist,
+        Set<String> registrationAuthorityDenyList, Set<String> registrationAuthorityWhitelist, Map<String,List<String>> categoryDenyList) throws IOException {
         IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
         representation.setAlias(alias);
         representation.setProviderId("saml");
         representation.setUpdateFrequencyInMins(60);
         representation.setUrl(url);
-        representation.setEntityIdBlackList(blackList);
-        representation.setEntityIdWhiteList(whitelist);
-        representation.setRegistrationAuthorityBlackList(registrationAuthorityBlackList);
-        representation.setRegistrationAuthorityWhiteList(registrationAuthorityWhitelist);
-        representation.setCategoryBlackList(categoryBlackList);
+        representation.setEntityIdDenyList(denyList);
+        representation.setEntityIdAllowList(whitelist);
+        representation.setRegistrationAuthorityDenyList(registrationAuthorityDenyList);
+        representation.setRegistrationAuthorityAllowList(registrationAuthorityWhitelist);
+        representation.setCategoryDenyList(categoryDenyList);
 
         Map<String,String> config = new HashMap<>();
         config.put("nameIDPolicyFormat","urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");

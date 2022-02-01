@@ -16,9 +16,6 @@
  */
 package org.keycloak.saml.processing.core.parsers.saml.metadata;
 
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.events.StartElement;
-
 import org.keycloak.dom.saml.v2.metadata.ExtensionsType;
 import org.keycloak.dom.saml.v2.metadata.ScopeType;
 import org.keycloak.saml.common.exceptions.ParsingException;
@@ -55,13 +52,9 @@ public class SAMLExtensionsParser extends AbstractStaxSamlMetadataParser<Extensi
     }
 
     @Override
-    protected void processSubElement(XMLEventReader xmlEventReader, ExtensionsType target, SAMLMetadataQNames element,
-        StartElement elementDetail) throws ParsingException {
-
-        switch (element) {
-            case UIINFO:
-                target.addExtension(SAMLUIInfoParser.getInstance().parse(xmlEventReader));
-                break;
+    protected void processSubElement(XMLEventReader xmlEventReader, ExtensionsType target, SAMLMetadataQNames element, StartElement elementDetail) throws ParsingException {
+        
+    	switch (element) {
             case ENTITY_ATTRIBUTES:
                 target.addExtension(SAMLEntityAttributesParser.getInstance().parse(xmlEventReader));
                 break;
@@ -71,12 +64,15 @@ public class SAMLExtensionsParser extends AbstractStaxSamlMetadataParser<Extensi
                 scope.setValue(StaxParserUtil.getElementText(xmlEventReader));
                 target.addExtension(scope);
                 break;
+            case UIINFO:
+                target.addExtension(SAMLUIInfoParser.getInstance().parse(xmlEventReader));
+                break;
             case REGISTRATION_INFO:
                 target.addExtension(SAMLRegistrationInfoParser.getInstance().parse(xmlEventReader));
                 break;
             default:
                 target.addExtension(StaxParserUtil.getDOMElement(xmlEventReader));
-        }
+    	}
 
     }
 }

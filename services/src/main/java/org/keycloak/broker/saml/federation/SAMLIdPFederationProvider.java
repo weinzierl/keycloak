@@ -44,7 +44,6 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamWriter;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.jboss.logging.Logger;
 import org.keycloak.broker.federation.AbstractIdPFederationProvider;
 import org.keycloak.broker.provider.IdentityProviderMapper;
@@ -66,7 +65,6 @@ import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
 import org.keycloak.models.*;
 import org.keycloak.models.utils.DefaultAuthenticationFlows;
 import org.keycloak.models.utils.KeycloakModelUtils;
-import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.mappers.SamlMetadataDescriptorUpdater;
 import org.keycloak.saml.SPMetadataDescriptor;
@@ -79,12 +77,10 @@ import org.keycloak.saml.common.util.StaxUtil;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 import org.keycloak.saml.processing.api.saml.v2.sig.SAML2Signature;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
-import org.keycloak.saml.processing.core.saml.v2.constants.X500SAMLProfileConstants;
 import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
 import org.keycloak.services.scheduled.UpdateFederationIdentityProviders;
 import org.keycloak.timer.TimerProvider;
-import org.keycloak.util.JsonSerialization;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -284,18 +280,18 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             authority = entity.getExtensions().getRegistrationInfo().getRegistrationAuthority().toString();
         }
 
-        return model.getEntityIdWhiteList().contains(entity.getEntityID())
-            || (authority != null && model.getRegistrationAuthorityWhiteList().contains(authority))
-            || (model.getCategoryWhiteList() != null && entity.getExtensions().getEntityAttributes() != null
-                && containsAttribute(model.getCategoryWhiteList(), entity.getExtensions().getEntityAttributes().getAttribute()))
-            || (model.getEntityIdWhiteList().isEmpty() && model.getRegistrationAuthorityWhiteList().isEmpty()
-                && model.getCategoryWhiteList().isEmpty()
-                && (model.getEntityIdBlackList().isEmpty() || !model.getEntityIdBlackList().contains(entity.getEntityID()))
-                && (model.getCategoryBlackList().isEmpty() || entity.getExtensions().getEntityAttributes() == null
-                    || !containsAttribute(model.getCategoryBlackList(),
+        return model.getEntityIdAllowList().contains(entity.getEntityID())
+            || (authority != null && model.getRegistrationAuthorityAllowList().contains(authority))
+            || (model.getCategoryAllowList() != null && entity.getExtensions().getEntityAttributes() != null
+                && containsAttribute(model.getCategoryAllowList(), entity.getExtensions().getEntityAttributes().getAttribute()))
+            || (model.getEntityIdAllowList().isEmpty() && model.getRegistrationAuthorityAllowList().isEmpty()
+                && model.getCategoryAllowList().isEmpty()
+                && (model.getEntityIdDenyList().isEmpty() || !model.getEntityIdDenyList().contains(entity.getEntityID()))
+                && (model.getCategoryDenyList().isEmpty() || entity.getExtensions().getEntityAttributes() == null
+                    || !containsAttribute(model.getCategoryDenyList(),
                         entity.getExtensions().getEntityAttributes().getAttribute()))
-                && (model.getRegistrationAuthorityBlackList().isEmpty()
-                    || !model.getRegistrationAuthorityBlackList().contains(authority)));
+                && (model.getRegistrationAuthorityDenyList().isEmpty()
+                    || !model.getRegistrationAuthorityDenyList().contains(authority)));
     }
 
     private boolean containsAttribute(Map<String, List<String>> map, List<AttributeType> attributes) {

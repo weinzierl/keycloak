@@ -25,24 +25,24 @@ public class IdentityProvidersFederationRepresentation {
     
     private Long lastMetadataRefreshTimestamp;
 
-    private Set<String> entityIdBlackList;
+    private Set<String> entityIdDenyList;
     
-    private Set<String> entityIdWhiteList;
+    private Set<String> entityIdAllowList;
     
-    private Set<String> registrationAuthorityBlackList;
+    private Set<String> registrationAuthorityDenyList;
     
-    private Set<String> registrationAuthorityWhiteList;
+    private Set<String> registrationAuthorityAllowList;
     
     private Map<String, String> config;
     
-    private Map<String, List<String>> categoryBlackList;
+    private Map<String, List<String>> categoryDenyList;
     
-    private Map<String, List<String>> categoryWhiteList;
+    private Map<String, List<String>> categoryAllowList;
     
     private List<FederationMapperRepresentation> federationMappers = new ArrayList<>();
     
     public IdentityProvidersFederationRepresentation() {
-    	this.entityIdBlackList = new HashSet<String>();
+    	this.entityIdDenyList = new HashSet<String>();
     }
 
 	public String getInternalId() {
@@ -101,36 +101,36 @@ public class IdentityProvidersFederationRepresentation {
 		this.lastMetadataRefreshTimestamp = lastMetadataRefreshTimestamp;
 	}
 
-	public Set<String> getEntityIdBlackList() {
-		return entityIdBlackList;
+	public Set<String> getEntityIdDenyList() {
+		return entityIdDenyList;
 	}
 
-	public void setEntityIdBlackList(Set<String> entityIdBlackList) {
-		this.entityIdBlackList = entityIdBlackList;
+	public void setEntityIdDenyList(Set<String> entityIdDenyList) {
+		this.entityIdDenyList = entityIdDenyList;
 	}	
 	
-	public Set<String> getEntityIdWhiteList() {
-        return entityIdWhiteList;
+	public Set<String> getEntityIdAllowList() {
+        return entityIdAllowList;
     }
 
-    public void setEntityIdWhiteList(Set<String> entityIdWhiteList) {
-        this.entityIdWhiteList = entityIdWhiteList;
+    public void setEntityIdAllowList(Set<String> entityIdAllowList) {
+        this.entityIdAllowList = entityIdAllowList;
     }
 
-    public Set<String> getRegistrationAuthorityBlackList() {
-        return registrationAuthorityBlackList;
+    public Set<String> getRegistrationAuthorityDenyList() {
+        return registrationAuthorityDenyList;
     }
 
-    public void setRegistrationAuthorityBlackList(Set<String> registrationAuthorityBlackList) {
-        this.registrationAuthorityBlackList = registrationAuthorityBlackList;
+    public void setRegistrationAuthorityDenyList(Set<String> registrationAuthorityDenyList) {
+        this.registrationAuthorityDenyList = registrationAuthorityDenyList;
     }
 
-    public Set<String> getRegistrationAuthorityWhiteList() {
-        return registrationAuthorityWhiteList;
+    public Set<String> getRegistrationAuthorityAllowList() {
+        return registrationAuthorityAllowList;
     }
 
-    public void setRegistrationAuthorityWhiteList(Set<String> registrationAuthorityWhiteList) {
-        this.registrationAuthorityWhiteList = registrationAuthorityWhiteList;
+    public void setRegistrationAuthorityAllowList(Set<String> registrationAuthorityAllowList) {
+        this.registrationAuthorityAllowList = registrationAuthorityAllowList;
     }
 	
 	public Long getValidUntilTimestamp() {
@@ -149,20 +149,20 @@ public class IdentityProvidersFederationRepresentation {
 		this.config = config;
 	}
 
-    public Map<String, List<String>> getCategoryBlackList() {
-        return categoryBlackList;
+    public Map<String, List<String>> getCategoryDenyList() {
+        return categoryDenyList;
     }
 
-    public void setCategoryBlackList(Map<String, List<String>> categoryBlackList) {
-        this.categoryBlackList = categoryBlackList;
+    public void setCategoryDenyList(Map<String, List<String>> categoryDenyList) {
+        this.categoryDenyList = categoryDenyList;
     }
 
-    public Map<String, List<String>> getCategoryWhiteList() {
-        return categoryWhiteList;
+    public Map<String, List<String>> getCategoryAllowList() {
+        return categoryAllowList;
     }
 
-    public void setCategoryWhiteList(Map<String, List<String>> categoryWhiteList) {
-        this.categoryWhiteList = categoryWhiteList;
+    public void setCategoryAllowList(Map<String, List<String>> categoryAllowList) {
+        this.categoryAllowList = categoryAllowList;
     }
 
     public List<FederationMapperRepresentation> getFederationMappers() {

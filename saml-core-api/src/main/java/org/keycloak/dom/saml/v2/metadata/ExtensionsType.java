@@ -113,7 +113,7 @@ public class ExtensionsType extends TypeWithOtherAttributes {
         }
         return null;
     }
-
+    
     public RegistrationInfoType getRegistrationInfo() {
         for (Object o : this.any) {
             if (o instanceof RegistrationInfoType) {

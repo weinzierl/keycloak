@@ -1612,7 +1612,8 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.registrationAuthorityDenyList = [];
 		 $scope.identityProvidersFederation.registrationAuthorityAllowList = [];
 		 $scope.identityProvidersFederation.categoryAllowList = {};
-		 $scope.newCategoryAllowList = {};
+                 $scope.identityProvidersFederation.xsltOverride = '';		 
+                 $scope.newCategoryAllowList = {};
 		 $scope.newCategoryAllowList.key='';
 		 $scope.newCategoryAllowList.value = [];
 		 $scope.identityProvidersFederation.categoryDenyList = {};
@@ -1640,6 +1641,8 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
          }
 	}
 	$scope.changed = false;
+
+    $scope.showXsltOverride = false;
 
 	$scope.callbackUrl = authServerUrl + "/realms/" + realm.realm + "/broker/federation/";
 

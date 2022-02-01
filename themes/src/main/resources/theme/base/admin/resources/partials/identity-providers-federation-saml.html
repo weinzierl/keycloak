@@ -77,8 +77,11 @@
 
 			<div class="form-group" data-ng-show="identityProvidersFederation.internalId">
 				<label class="col-md-2 control-label">{{:: 'endpoints' | translate}}</label>
-				<div class="col-md-6">
+				<div class="col-md-3">
 					<a class="form-control" ng-href="{{callbackUrl}}{{identityProvidersFederation.alias}}/endpoint/descriptor" target="_blank">{{:: 'identity-provider.saml.protocol-endpoints.saml' | translate}}</a>
+				</div>
+				<div class="col-md-3">
+					<a href data-ng-click="showXsltOverride = !showXsltOverride;">Override with XSLT</a>
 				</div>
 				<kc-tooltip>{{:: 'identity-provider.saml.protocol-endpoints.saml.tooltip' | translate}}</kc-tooltip>
 			</div>
@@ -492,7 +495,13 @@
             <kc-tooltip>{{:: 'denylist.category.tooltip'| translate}}</kc-tooltip>
             </div>         
 		</fieldset>
-		
+
+		<div data-ng-show="identityProvidersFederation.internalId && showXsltOverride" style="position:fixed; z-index:1; padding-top:100px; left:0;	top:0; width:100vw; height:100vh; overflow:auto; background-color:rgb(0,0,0); background-color:rgba(0,0,0,0.4);">
+			<div class="modal-content" style="background-color:#fefefe; margin:auto; padding:20px; border:1px solid #888; width:80%; height:80%;">
+				<span class="close" data-ng-click="showXsltOverride = !showXsltOverride;">&times;</span>
+				<textarea ng-model="identityProvidersFederation.config.xsltOverride" style="width:95%; height:95%; overflow-y:auto; resize: none;"></textarea>
+			</div>
+		</div>
 
 		<div class="form-group">
             <div class="col-md-10 col-md-offset-2">

@@ -40,28 +40,32 @@
                     </#if>
                 </h3>
             </#if>
-            <#if client.description??>
+            <#if client.description?has_content>
                 <h3>
                     ${msg("consentDescription",advancedMsg(client.description))}
                 </h3>
             </#if>
-            <#if client.baseUrl??>
+            <#if client.baseUrl?has_content>
                 <h3>
                     ${msg("consentBaseUrl",client.baseUrl)}
                 </h3>
             </#if>
-            <#if client.attributes.contacts??>
+            <#if client.attributes.contacts?has_content>
                 <h3>
                     ${msg("consentContacts",client.attributes.contacts)}
                 </h3>
             </#if>
-            <#if client.attributes.country??>
+            <#if client.attributes.country?has_content>
                 <h3>
                     ${msg("consentCountry",oauth.countryName)}
                 </h3>
             </#if>
             <h3>
-                ${msg("revokeConsentMsg",advancedMsg(client.name))}
+                <#if client.name?has_content>
+                    ${msg("revokeConsentMsg",advancedMsg(client.name))}
+                <#else>
+                    ${msg("revokeConsentMsg",client.clientId)}
+                </#if>
                 <a href="${oauth.applicationConsoleUrl}" target="_blank">${msg("applicationConsoleMsg")}</a>
             </h3>
 

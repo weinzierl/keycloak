@@ -157,6 +157,7 @@ public class SAMLIdentityProvider extends AbstractIdentityProvider<SAMLIdentityP
                     .assertionConsumerUrl(assertionConsumerServiceUrl)
                     .destination(destinationUrl)
                     .issuer(issuerURL)
+                    .scoping(issuerURL,"account")
                     .forceAuthn(getConfig().isForceAuthn())
                     .protocolBinding(protocolBinding)
                     .nameIdPolicy(SAML2NameIDPolicyBuilder

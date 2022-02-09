@@ -25,6 +25,7 @@ import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationDataType;
 import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
+import org.keycloak.dom.saml.v2.protocol.ScopingType;
 import org.keycloak.dom.xmlsec.w3.xmldsig.KeyInfoType;
 import org.keycloak.saml.common.PicketLinkLogger;
 import org.keycloak.saml.common.PicketLinkLoggerFactory;
@@ -115,6 +116,28 @@ public class BaseWriter {
 
         StaxUtil.writeEndElement(writer);
         StaxUtil.flush(writer);
+    }
+
+    //do not use IDPListType idpList -> so do not write it
+    public void write(ScopingType scopingType, QName tag) throws ProcessingException {
+        StaxUtil.writeStartElement(writer, tag.getPrefix(), tag.getLocalPart(), tag.getNamespaceURI());
+
+        if (scopingType.getProxyCount() != null)
+            StaxUtil.writeAttribute(writer, JBossSAMLConstants.PROXY_COUNT.get(), scopingType.getProxyCount().toString());
+
+        for (URI requesterID : scopingType.getRequesterID()) {
+            writeRequesterID(requesterID);
+        }
+
+        StaxUtil.writeEndElement(writer);
+        StaxUtil.flush(writer);
+    }
+
+    private void writeRequesterID(URI requesterID) throws ProcessingException {
+        QName tag = new QName(PROTOCOL_NSURI.get(), JBossSAMLConstants.REQUESTERID.get(), PROTOCOL_PREFIX);
+        StaxUtil.writeStartElement(writer, tag.getPrefix(), tag.getLocalPart(), tag.getNamespaceURI());
+        StaxUtil.writeCharacters(writer, requesterID.toString());
+        StaxUtil.writeEndElement(writer);
     }
 
     /**

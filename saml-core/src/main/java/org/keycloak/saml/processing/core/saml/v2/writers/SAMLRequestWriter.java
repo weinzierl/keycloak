@@ -123,6 +123,10 @@ public class SAMLRequestWriter extends BaseWriter {
             write(issuer, new QName(ASSERTION_NSURI.get(), JBossSAMLConstants.ISSUER.get(), ASSERTION_PREFIX), false);
         }
 
+        if (request.getScoping() != null) {
+            write(request.getScoping(), new QName(PROTOCOL_NSURI.get(), JBossSAMLConstants.SCOPING.get(), PROTOCOL_PREFIX));
+        }
+
         SubjectType subject = request.getSubject();
         if (subject != null) {
             write(subject);

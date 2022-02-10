@@ -71,6 +71,8 @@ interface Application {
   logoUri: string;
   policyUri: string;
   tosUri: string;
+  contacts: string;
+  country: string;
 }
 
 export class ApplicationsPage extends React.Component<ApplicationsPageProps, ApplicationsPageState> {
@@ -201,6 +203,8 @@ export class ApplicationsPage extends React.Component<ApplicationsPageProps, App
                           })}
                           {application.tosUri && <GridItem><strong>{Msg.localize('termsOfService') + ': '}</strong>{application.tosUri}</GridItem>}
                           {application.policyUri && <GridItem><strong>{Msg.localize('policy') + ': '}</strong>{application.policyUri}</GridItem>}
+                          {application.contacts && <GridItem><strong>{Msg.localize('contacts') + ': '}</strong>{application.contacts}</GridItem>}
+                          {application.country && <GridItem><strong>{Msg.localize('country') + ': '}</strong>{application.country}</GridItem>}
                           <GridItem><strong>{Msg.localize('accessGrantedOn') + ': '}</strong>
                             {new Intl.DateTimeFormat(locale, {
                               year: 'numeric',

@@ -22,6 +22,7 @@ import org.keycloak.models.OrderedModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author <a href="mailto:vrockai@redhat.com">Viliam Rockai</a>
@@ -33,15 +34,21 @@ public class OAuthGrantBean {
     private List<ClientScopeEntry> clientScopesRequested = new ArrayList<>();
     private String code;
     private ClientModel client;
+    private String applicationConsoleUrl;
+    private String countryName;
 
-    public OAuthGrantBean(String code, ClientModel client, List<ClientScopeModel> clientScopesRequested) {
+    public OAuthGrantBean(String code, ClientModel client, List<ClientScopeModel> clientScopesRequested, String baseUrl, String realmName, Locale locale) {
         this.code = code;
         this.client = client;
+        this.applicationConsoleUrl = baseUrl+"realms/"+realmName+"/account/#/applications";
 
         for (ClientScopeModel clientScope : clientScopesRequested) {
             this.clientScopesRequested.add(new ClientScopeEntry(clientScope.getConsentScreenText(), clientScope.getGuiOrder()));
         }
         this.clientScopesRequested.sort(COMPARATOR_INSTANCE);
+        if (client.getAttribute(ClientModel.COUNTRY)!= null)
+            countryName= new Locale("", client.getAttribute(ClientModel.COUNTRY)).getDisplayCountry(locale);
+
     }
 
     public String getCode() {
@@ -58,6 +65,13 @@ public class OAuthGrantBean {
         return clientScopesRequested;
     }
 
+    public String getApplicationConsoleUrl() {
+        return applicationConsoleUrl;
+    }
+
+    public String getCountryName() {
+        return countryName;
+    }
 
     // Converting ClientScopeModel due the freemarker limitations. It's not able to read "getConsentScreenText" default method defined on interface
     public static class ClientScopeEntry implements OrderedModel {

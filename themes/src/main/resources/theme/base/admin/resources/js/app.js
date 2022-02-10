@@ -1815,6 +1815,9 @@ module.config([ '$routeProvider', function($routeProvider) {
                 },
                 serverInfo : function(ServerInfoLoader) {
                     return ServerInfoLoader();
+                },
+                countries : function(CountriesLoader) {
+                    return CountriesLoader();
                 }
             },
             controller : 'ClientDetailCtrl'

@@ -8,6 +8,10 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 [Keycloak announcement for version 16.1.0](https://www.keycloak.org/2021/12/keycloak-1610-released)
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
+## [v16.1.0-rc1.0.1] - 2022-02-15
+### Changed
+- offline_access scope return always refresh_token [RCIAM-744](https://jira.argo.grnet.gr/browse/RCIAM-744)
+
 ## [v16.1.0-rc1.0.0] - 2022-02-14
 ### Added
 - Support for SAML IdP Federation

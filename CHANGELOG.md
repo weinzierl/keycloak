@@ -10,7 +10,8 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 
 ## [v16.1.0-rc1.0.1] - 2022-02-15
 ### Changed
-- offline_access scope return always refresh_token [RCIAM-744](https://jira.argo.grnet.gr/browse/RCIAM-744)
+- Offline_access scope return always refresh_token [RCIAM-744](https://jira.argo.grnet.gr/browse/RCIAM-744)
+- Correct messages for consent extension [RCIAM-791](https://jira.argo.grnet.gr/browse/RCIAM-791)
 
 ## [v16.1.0-rc1.0.0] - 2022-02-14
 ### Added

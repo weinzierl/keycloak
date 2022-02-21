@@ -62,6 +62,8 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -194,6 +196,16 @@ public class ClientTokenExchangeTest extends AbstractKeycloakTest {
         noRefreshToken.setFullScopeAllowed(false);
         noRefreshToken.getAttributes().put(OIDCConfigAttributes.USE_REFRESH_TOKEN, "false");
 
+        ClientModel differentScopeClient = realm.addClient("different-scope-client");
+        differentScopeClient.setClientId("different-scope-client");
+        differentScopeClient.setPublicClient(false);
+        differentScopeClient.setDirectAccessGrantsEnabled(true);
+        differentScopeClient.setEnabled(true);
+        differentScopeClient.setSecret("secret");
+        differentScopeClient.setProtocol(OIDCLoginProtocol.LOGIN_PROTOCOL);
+        differentScopeClient.setFullScopeAllowed(false);
+        differentScopeClient.removeClientScope(realm.getClientScopesStream().filter(scope->"email".equals(scope.getName())).findAny().get());
+
         // permission for client to client exchange to "target" client
         ClientPolicyRepresentation clientRep = new ClientPolicyRepresentation();
         clientRep.setName("to");
@@ -201,6 +213,7 @@ public class ClientTokenExchangeTest extends AbstractKeycloakTest {
         clientRep.addClient(legal.getId());
         clientRep.addClient(directLegal.getId());
         clientRep.addClient(noRefreshToken.getId());
+        clientRep.addClient(differentScopeClient.getId());
 
         ResourceServer server = management.realmResourceServer();
         Policy clientPolicy = management.authz().getStoreFactory().getPolicyStore().create(clientRep, server);
@@ -274,6 +287,89 @@ public class ClientTokenExchangeTest extends AbstractKeycloakTest {
         {
             response = oauth.doTokenExchange(TEST, accessToken, "target", "illegal", "secret");
             Assert.assertEquals(403, response.getStatusCode());
+        }
+    }
+
+
+    @Test
+    @UncaughtServerErrorExpected
+    public void testExchangeDifferentScopes() throws Exception {
+        testingClient.server().run(ClientTokenExchangeTest::setupRealm);
+
+        oauth.realm(TEST);
+        oauth.clientId("client-exchanger");
+        OAuthClient.AccessTokenResponse response = oauth.doGrantAccessTokenRequest("secret", "user", "password");
+        String accessToken = response.getAccessToken();
+        TokenVerifier<AccessToken> accessTokenVerifier = TokenVerifier.create(accessToken, AccessToken.class);
+        AccessToken token = accessTokenVerifier.parse().getToken();
+        Assert.assertEquals(token.getPreferredUsername(), "user");
+        Assert.assertTrue(token.getRealmAccess() == null || !token.getRealmAccess().isUserInRole("example"));
+
+        {
+            response = oauth.doTokenExchange(TEST, accessToken, null, "different-scope-client", "secret");
+            String exchangedTokenString = response.getAccessToken();
+            TokenVerifier<AccessToken> verifier = TokenVerifier.create(exchangedTokenString, AccessToken.class);
+            AccessToken exchangedToken = verifier.parse().getToken();
+            Assert.assertEquals("different-scope-client", exchangedToken.getIssuedFor());
+            Assert.assertNull(exchangedToken.getAudience());
+            Assert.assertEquals(exchangedToken.getPreferredUsername(), "user");
+            Assert.assertNames(Arrays.asList(exchangedToken.getScope().split(" ")),"profile","openid");
+            Assert.assertNull(exchangedToken.getEmailVerified());
+        }
+
+        {
+            response = oauth.doTokenExchange(TEST, accessToken, "target", "different-scope-client", "secret");
+            String exchangedTokenString = response.getAccessToken();
+            TokenVerifier<AccessToken> verifier = TokenVerifier.create(exchangedTokenString, AccessToken.class);
+            AccessToken exchangedToken = verifier.parse().getToken();
+            Assert.assertEquals("different-scope-client", exchangedToken.getIssuedFor());
+            Assert.assertEquals("target", exchangedToken.getAudience()[0]);
+            Assert.assertEquals(exchangedToken.getPreferredUsername(), "user");
+            Assert.assertTrue(exchangedToken.getRealmAccess().isUserInRole("example"));
+            Assert.assertNames(Arrays.asList(exchangedToken.getScope().split(" ")),"profile","email","openid");
+            Assert.assertFalse(exchangedToken.getEmailVerified());
+        }
+
+    }
+
+    @Test
+    @UncaughtServerErrorExpected
+    public void testExchangeDifferentScopesWithScopeParameter() throws Exception {
+        testingClient.server().run(ClientTokenExchangeTest::setupRealm);
+
+        oauth.realm(TEST);
+        oauth.clientId("client-exchanger");
+        oauth.scope("profile email phone");
+        OAuthClient.AccessTokenResponse response = oauth.doGrantAccessTokenRequest("secret", "user", "password");
+        String accessToken = response.getAccessToken();
+        TokenVerifier<AccessToken> accessTokenVerifier = TokenVerifier.create(accessToken, AccessToken.class);
+        AccessToken token = accessTokenVerifier.parse().getToken();
+        Assert.assertEquals(token.getPreferredUsername(), "user");
+        Assert.assertTrue(token.getRealmAccess() == null || !token.getRealmAccess().isUserInRole("example"));
+
+        {
+            response = oauth.doTokenExchange(TEST, accessToken, null, "different-scope-client", "secret");
+            String exchangedTokenString = response.getAccessToken();
+            TokenVerifier<AccessToken> verifier = TokenVerifier.create(exchangedTokenString, AccessToken.class);
+            AccessToken exchangedToken = verifier.parse().getToken();
+            Assert.assertEquals("different-scope-client", exchangedToken.getIssuedFor());
+            Assert.assertNull(exchangedToken.getAudience());
+            Assert.assertEquals(exchangedToken.getPreferredUsername(), "user");
+            Assert.assertNames(Arrays.asList(exchangedToken.getScope().split(" ")),"profile","phone","openid");
+            Assert.assertNull(exchangedToken.getEmailVerified());
+        }
+
+        {
+            response = oauth.doTokenExchange(TEST, accessToken, "target", "different-scope-client", "secret");
+            String exchangedTokenString = response.getAccessToken();
+            TokenVerifier<AccessToken> verifier = TokenVerifier.create(exchangedTokenString, AccessToken.class);
+            AccessToken exchangedToken = verifier.parse().getToken();
+            Assert.assertEquals("different-scope-client", exchangedToken.getIssuedFor());
+            Assert.assertEquals("target", exchangedToken.getAudience()[0]);
+            Assert.assertEquals(exchangedToken.getPreferredUsername(), "user");
+            Assert.assertTrue(exchangedToken.getRealmAccess().isUserInRole("example"));
+            Assert.assertNames(Arrays.asList(exchangedToken.getScope().split(" ")),"profile","email","phone","openid");
+            Assert.assertFalse(exchangedToken.getEmailVerified());
         }
     }
 

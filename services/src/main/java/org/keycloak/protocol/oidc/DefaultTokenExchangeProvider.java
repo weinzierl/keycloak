@@ -21,6 +21,7 @@ import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.OAuthErrorException;
+import org.keycloak.TokenVerifier;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.ExchangeExternalToken;
 import org.keycloak.broker.provider.ExchangeTokenToIdentityProviderToken;
@@ -29,6 +30,7 @@ import org.keycloak.broker.provider.IdentityProviderFactory;
 import org.keycloak.broker.provider.IdentityProviderMapper;
 import org.keycloak.broker.provider.IdentityProviderMapperSyncModeDelegate;
 import org.keycloak.common.ClientConnection;
+import org.keycloak.common.VerificationException;
 import org.keycloak.common.util.Base64Url;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
@@ -74,6 +76,8 @@ import static org.keycloak.authentication.authenticators.util.AuthenticatorUtils
 import static org.keycloak.models.ImpersonationSessionNote.IMPERSONATOR_ID;
 import static org.keycloak.models.ImpersonationSessionNote.IMPERSONATOR_USERNAME;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -133,6 +137,7 @@ public class DefaultTokenExchangeProvider implements TokenExchangeProvider {
         UserModel tokenUser = null;
         UserSessionModel tokenSession = null;
         AccessToken token = null;
+        String subjectTokenScopes = null;
 
         String subjectToken = formParams.getFirst(OAuth2Constants.SUBJECT_TOKEN);
         if (subjectToken != null) {
@@ -176,6 +181,7 @@ public class DefaultTokenExchangeProvider implements TokenExchangeProvider {
             tokenUser = authResult.getUser();
             tokenSession = authResult.getSession();
             token = authResult.getToken();
+            subjectTokenScopes = token.getScope();
         }
 
         String requestedSubject = formParams.getFirst(OAuth2Constants.REQUESTED_SUBJECT);
@@ -231,7 +237,7 @@ public class DefaultTokenExchangeProvider implements TokenExchangeProvider {
 
         String requestedIssuer = formParams.getFirst(OAuth2Constants.REQUESTED_ISSUER);
         if (requestedIssuer == null) {
-            return exchangeClientToClient(tokenUser, tokenSession);
+            return exchangeClientToClient(tokenUser, tokenSession, subjectTokenScopes);
         } else {
             try {
                 return exchangeToIdentityProvider(tokenUser, tokenSession, requestedIssuer);
@@ -272,7 +278,7 @@ public class DefaultTokenExchangeProvider implements TokenExchangeProvider {
 
     }
 
-    protected Response exchangeClientToClient(UserModel targetUser, UserSessionModel targetUserSession) {
+    protected Response exchangeClientToClient(UserModel targetUser, UserSessionModel targetUserSession, String subjectTokenScopes) {
         String requestedTokenType = formParams.getFirst(OAuth2Constants.REQUESTED_TOKEN_TYPE);
         if (requestedTokenType == null) {
             requestedTokenType = OAuth2Constants.REFRESH_TOKEN_TYPE;
@@ -310,6 +316,18 @@ public class DefaultTokenExchangeProvider implements TokenExchangeProvider {
 
         String scope = formParams.getFirst(OAuth2Constants.SCOPE);
 
+        if (scope != null || subjectTokenScopes != null) {
+            if (scope == null) {
+                scope = subjectTokenScopes;
+            } else if (subjectTokenScopes != null) {
+                scope = Arrays.stream(scope.split(" ")).filter(s -> subjectTokenScopes.contains(s)).collect(Collectors.joining(" "));
+            }
+            Set<String> targetClientScopes = new HashSet<String>();
+            targetClientScopes.addAll(targetClient.getClientScopes(true).keySet());
+            targetClientScopes.addAll(targetClient.getClientScopes(false).keySet());
+            //from return scope remove scopes that are not default or optional scopes for targetClient
+            scope = Arrays.stream(scope.split(" ")).filter(s -> targetClientScopes.contains(s)).collect(Collectors.joining(" "));
+        }
         switch (requestedTokenType) {
             case OAuth2Constants.ACCESS_TOKEN_TYPE:
             case OAuth2Constants.REFRESH_TOKEN_TYPE:
@@ -325,6 +343,9 @@ public class DefaultTokenExchangeProvider implements TokenExchangeProvider {
                                                   ClientModel targetClient, String audience, String scope) {
         RootAuthenticationSessionModel rootAuthSession = new AuthenticationSessionManager(session).createAuthenticationSession(realm, false);
         AuthenticationSessionModel authSession = rootAuthSession.createAuthenticationSession(targetClient);
+
+        if ( scope != null && !scope.contains("openid"))
+            scope += " openid";
 
         authSession.setAuthenticatedUser(targetUser);
         authSession.setProtocol(OIDCLoginProtocol.LOGIN_PROTOCOL);
@@ -458,7 +479,15 @@ public class DefaultTokenExchangeProvider implements TokenExchangeProvider {
         userSession.setNote(IdentityProvider.EXTERNAL_IDENTITY_PROVIDER, externalIdpModel.get().getAlias());
         userSession.setNote(IdentityProvider.FEDERATED_ACCESS_TOKEN, subjectToken);
 
-        return exchangeClientToClient(user, userSession);
+        String subjectTokenScopes=null;
+        TokenVerifier<AccessToken> accessTokenVerifier = TokenVerifier.create(subjectToken, AccessToken.class);
+        try {
+            subjectTokenScopes = accessTokenVerifier.parse().getToken().getScope();
+        } catch (VerificationException e) {
+            e.printStackTrace();
+        }
+
+        return exchangeClientToClient(user, userSession, subjectTokenScopes);
     }
 
     protected UserModel importUserFromExternalIdentity(BrokeredIdentityContext context) {

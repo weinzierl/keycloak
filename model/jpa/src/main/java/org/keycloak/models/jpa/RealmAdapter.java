@@ -1543,10 +1543,21 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         addIdPs.stream().forEach(idp -> {
             this.addIdentityProvider(idp);
             //add mappers from federation for new identity providers
-            identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(this::addIdentityProviderMapper);
+            identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(mapper ->{
+                try {
+                    this.addIdentityProviderMapper(mapper);
+                } catch (RuntimeException e ) {
+                    e.printStackTrace();
+                    logger.warn("Previously removed IdP mapper with alias "+mapper.getIdentityProviderAlias()+ " and name "+mapper.getName()+" still exists!" );
+                }
+            });
         });
         updatedIdPs.stream().forEach(this::updateIdentityProviderFromFed);
-        removedIdPs.stream().forEach(alias -> this.removeFederationIdp(identityProvidersFederationModel, alias));
+        removedIdPs.stream().forEach(alias -> {
+            //remove mappers also
+            this.removeFederationIdp(identityProvidersFederationModel, alias);
+            this.getIdentityProviderMappersByAliasStream(alias).forEach(this::removeIdentityProviderMapper);
+        });
         this.updateIdentityProvidersFederation(identityProvidersFederationModel);
     }
 

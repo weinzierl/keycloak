@@ -270,6 +270,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		}
 
 		model.setLastMetadataRefreshTimestamp(new Date().getTime());
+		//preremove users for deleted IdPs
+		existingIdps.stream().forEach(idpAlias -> session.users().preRemove(realm, realm.getIdentityProviderByAlias(idpAlias))); ;
 		realm.taskExecutionFederation(model, addedIdps, updatedIdps, existingIdps);
 
 		logger.info("Finished updating IdPs of federation (id): " + model.getInternalId());

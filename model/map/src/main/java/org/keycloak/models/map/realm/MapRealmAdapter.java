@@ -991,10 +991,20 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
         addIdPs.stream().forEach(idp -> {
             this.addIdentityProvider(idp);
-            identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(this::addIdentityProviderMapper);
+            identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(mapper -> {
+                try {
+                    this.addIdentityProviderMapper(mapper);
+                } catch (RuntimeException e ) {
+                    e.printStackTrace();
+                }
+            });
         });
         updatedIdPs.stream().forEach(this::updateIdentityProvider);
-        removedIdPs.stream().forEach(alias -> this.removeFederationIdp(identityProvidersFederationModel, alias));
+        removedIdPs.stream().forEach(alias ->{
+            //remove mappers also
+            this.removeFederationIdp(identityProvidersFederationModel, alias);
+            this.getIdentityProviderMappersByAliasStream(alias).forEach(this::removeIdentityProviderMapper);
+        } );
         addIdPs.addAll(updatedIdPs);
         identityProvidersFederationModel.setIdps(addIdPs.stream().map(IdentityProviderModel::getAlias).collect(Collectors.toList()));
         this.updateIdentityProvidersFederation(identityProvidersFederationModel);

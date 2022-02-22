@@ -11,6 +11,8 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ## [v16.1.0-rc1.0.2] - 2022-02-28
 ### Added
 - add scope parameter to token exchange [RCIAM-843](https://jira.argo.grnet.gr/browse/RCIAM-843)
+### Fixed
+- Fix scope bug in device authorization request [RCIAM-858](https://jira.argo.grnet.gr/browse/RCIAM-858)
 
 ## [v16.1.0-rc1.0.1] - 2022-02-15
 ### Changed

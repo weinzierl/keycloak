@@ -3331,6 +3331,12 @@ module.controller('ClientScopeDetailCtrl', function($scope, realm, clientScope, 
         } else {
             $scope.includeInTokenScope = true;
         }
+
+        if ($scope.clientScope.attributes["hide.from.openID.provider.metadata"] && $scope.clientScope.attributes["hide.from.openID.provider.metadata"] == "true") {
+            $scope.hideFromOpenIDProviderMetadata = true;
+        } else {
+            $scope.hideFromOpenIDProviderMetadata= false;
+        }
     }
 
     if (!$scope.create) {
@@ -3392,6 +3398,12 @@ module.controller('ClientScopeDetailCtrl', function($scope, realm, clientScope, 
             $scope.clientScope.attributes["include.in.token.scope"] = "true";
         } else {
             $scope.clientScope.attributes["include.in.token.scope"] = "false";
+        }
+
+        if ($scope.hideFromOpenIDProviderMetadata == true) {
+            $scope.clientScope.attributes["hide.from.openID.provider.metadata"] = "true";
+        } else {
+            $scope.clientScope.attributes["hide.from.openID.provider.metadata"] = "false";
         }
 
         if ($scope.create) {

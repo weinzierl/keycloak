@@ -35,8 +35,10 @@ import { ContinueCancelModal } from '../../widgets/ContinueCancelModal';
 import { HttpResponse } from '../../account-service/account.service';
 import { AccountServiceContext } from '../../account-service/AccountServiceContext';
 import { Msg } from '../../widgets/Msg';
+import { Features } from '../../widgets/features';
 
 declare const locale: string;
+declare const features: Features;
 
 export interface ApplicationsPageProps {
 }
@@ -216,7 +218,7 @@ export class ApplicationsPage extends React.Component<ApplicationsPageProps, App
                     </div>
                     {application.logoUri && <div className='pf-c-content'><img src={application.logoUri} /></div> }
                   </Grid>
-                  {(application.consent || application.offlineAccess) &&
+                  {(application.consent || application.offlineAccess) && (features.manageAccountAllowed || features.manageConsentAllowed) &&
                     <Grid gutter='sm'>
                       <hr />
                       <GridItem>

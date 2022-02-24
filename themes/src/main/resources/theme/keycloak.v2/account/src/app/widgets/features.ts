@@ -24,6 +24,9 @@
     isMyResourcesEnabled: boolean;
     isTotpConfigured: boolean;
     deleteAccountAllowed: boolean;
+    manageAccountAllowed: boolean;
+    manageAccountLinkAllowed: boolean;
+    manageConsentAllowed: boolean;
  }
 
 

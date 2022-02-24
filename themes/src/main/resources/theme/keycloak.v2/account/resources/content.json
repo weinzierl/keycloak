@@ -19,7 +19,8 @@
         "path": "security/signingin",
         "label": "signingIn",
         "modulePath": "/content/signingin-page/SigningInPage.js",
-        "componentName": "SigningInPage"
+        "componentName": "SigningInPage",
+        "hidden": "!features.manageAccountAllowed"
       },
       {
         "id": "device-activity",

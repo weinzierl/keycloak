@@ -134,15 +134,27 @@ public class AccountConsole {
             
             boolean isTotpConfigured = false;
             boolean deleteAccountAllowed = false;
+            boolean manageAccountAllowed = false;
+            boolean manageAccountLinkAllowed = false;
+            boolean manageConsentAllowed = false;
             if (user != null) {
                 isTotpConfigured = session.userCredentialManager().isConfiguredFor(realm, user, realm.getOTPPolicy().getType());
                 RoleModel deleteAccountRole = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.DELETE_ACCOUNT);
                 deleteAccountAllowed = deleteAccountRole != null && user.hasRole(deleteAccountRole) && realm.getRequiredActionProviderByAlias(DeleteAccount.PROVIDER_ID).isEnabled();
+                RoleModel manageAccount = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_ACCOUNT);
+                manageAccountAllowed = manageAccount != null && user.hasRole(manageAccount);
+                RoleModel manageAccountLink = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_ACCOUNT_LINKS);
+                manageAccountLinkAllowed = manageAccountLink != null && user.hasRole(manageAccountLink);
+                RoleModel manageConsent = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_CONSENT);
+                manageConsentAllowed = manageConsent != null && user.hasRole(manageConsent);
             }
 
             map.put("isTotpConfigured", isTotpConfigured);
 
             map.put("deleteAccountAllowed", deleteAccountAllowed);
+            map.put("manageAccountAllowed", manageAccountAllowed);
+            map.put("manageAccountLinkAllowed", manageAccountLinkAllowed);
+            map.put("manageConsentAllowed", manageConsentAllowed);
 
             FreeMarkerUtil freeMarkerUtil = new FreeMarkerUtil();
             String result = freeMarkerUtil.processTemplate(map, "index.ftl", theme);

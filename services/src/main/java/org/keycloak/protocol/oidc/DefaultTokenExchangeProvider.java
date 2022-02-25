@@ -366,13 +366,13 @@ public class DefaultTokenExchangeProvider implements TokenExchangeProvider {
             responseBuilder.getAccessToken().addAudience(audience);
         }
 
-        if (requestedTokenType.equals(OAuth2Constants.REFRESH_TOKEN_TYPE)
-            && OIDCAdvancedConfigWrapper.fromClientModel(client).isUseRefreshToken()) {
+        String scopeParam = clientSessionCtx.getClientSession().getNote(OAuth2Constants.SCOPE);
+        if ( (requestedTokenType.equals(OAuth2Constants.REFRESH_TOKEN_TYPE)
+            && OIDCAdvancedConfigWrapper.fromClientModel(client).isUseRefreshToken() ) || TokenUtil.hasScope(scopeParam, OAuth2Constants.OFFLINE_ACCESS )) {
             responseBuilder.generateRefreshToken();
             responseBuilder.getRefreshToken().issuedFor(client.getClientId());
         }
 
-        String scopeParam = clientSessionCtx.getClientSession().getNote(OAuth2Constants.SCOPE);
         if (TokenUtil.isOIDCRequest(scopeParam)) {
             responseBuilder.generateIDToken().generateAccessTokenHash();
         }

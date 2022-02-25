@@ -155,8 +155,8 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                             helperTextInvalid={this.state.errors.username}
                             isValid={this.state.errors.username === ''}
                         >
-                            {this.isEditUserNameAllowed && <this.UsernameInput />}
-                            {!this.isEditUserNameAllowed && <this.RestrictedUsernameInput />}
+                            {this.isEditUserNameAllowed && features.manageAccountAllowed && <this.UsernameInput />}
+                            {(!this.isEditUserNameAllowed || !features.manageAccountAllowed) && <this.RestrictedUsernameInput />}
                         </FormGroup>
                     }
                     <FormGroup
@@ -166,7 +166,7 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                         helperTextInvalid={this.state.errors.email}
                         isValid={this.state.errors.email === ''}
                     >
-                        <TextInput
+                       {features.manageAccountAllowed && <TextInput
                             isRequired
                             type="email"
                             id="email-address"
@@ -176,7 +176,15 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                             onChange={this.handleChange}
                             isValid={this.state.errors.email === ''}
                         >
-                        </TextInput>
+                        </TextInput> }
+                        {!features.manageAccountAllowed && <TextInput
+                            isDisabled
+                            type="email"
+                            id="email-address"
+                            name="email"
+                            value={fields.email}
+                        >
+                        </TextInput>}
                     </FormGroup>
                     <FormGroup
                         label={Msg.localize('firstName')}
@@ -185,7 +193,7 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                         helperTextInvalid={this.state.errors.firstName}
                         isValid={this.state.errors.firstName === ''}
                     >
-                        <TextInput
+                        {features.manageAccountAllowed && <TextInput
                             isRequired
                             type="text"
                             id="first-name"
@@ -195,7 +203,15 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                             onChange={this.handleChange}
                             isValid={this.state.errors.firstName === ''}
                         >
-                        </TextInput>
+                        </TextInput>}
+                        {!features.manageAccountAllowed && <TextInput
+                            isDisabled
+                            type="text"
+                            id="first-name"
+                            name="firstName"
+                            value={fields.firstName}
+                        >
+                        </TextInput>}
                     </FormGroup>
                     <FormGroup
                         label={Msg.localize('lastName')}
@@ -204,7 +220,7 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                         helperTextInvalid={this.state.errors.lastName}
                         isValid={this.state.errors.lastName === ''}
                     >
-                        <TextInput
+                        {features.manageAccountAllowed && <TextInput
                             isRequired
                             type="text"
                             id="last-name"
@@ -214,7 +230,15 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                             onChange={this.handleChange}
                             isValid={this.state.errors.lastName === ''}
                         >
-                        </TextInput>
+                        </TextInput>}
+                        {!features.manageAccountAllowed && <TextInput
+                             isDisabled
+                             type="text"
+                             id="last-name"
+                             name="lastName"
+                             value={fields.lastName}
+                        >
+                        </TextInput>}
                     </FormGroup>
                     {features.isInternationalizationEnabled && <FormGroup
                         label={Msg.localize('selectLocale')}
@@ -229,23 +253,24 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                             })}
                         />
                     </FormGroup>}
-                    <ActionGroup>
-                        <Button
-                            type="submit"
-                            id="save-btn"
-                            variant="primary"
-                            isDisabled={Object.values(this.state.errors).filter(e => e !== '').length !== 0}
-                        >
-                            <Msg msgKey="doSave" />
-                        </Button>
-                        <Button
-                            id="cancel-btn"
-                            variant="secondary"
-                            onClick={this.handleCancel}
-                        >
-                            <Msg msgKey="doCancel" />
-                        </Button>
-                    </ActionGroup>
+                    {features.manageAccountAllowed &&
+                        <ActionGroup>
+                            <Button
+                                type="submit"
+                                id="save-btn"
+                                variant="primary"
+                                isDisabled={Object.values(this.state.errors).filter(e => e !== '').length !== 0}
+                            >
+                                <Msg msgKey="doSave" />
+                            </Button>
+                            <Button
+                                id="cancel-btn"
+                                variant="secondary"
+                                onClick={this.handleCancel}
+                            >
+                                <Msg msgKey="doCancel" />
+                            </Button>
+                        </ActionGroup> }
                 </Form>
 
            { this.isDeleteAccountAllowed && 

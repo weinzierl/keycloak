@@ -8,13 +8,14 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 [Keycloak announcement for version 16.1.0](https://www.keycloak.org/2021/12/keycloak-1610-released)
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
-## [v16.1.0-rc1.0.2] - 2022-02-28
+## [v16.1.0-rc1.0.2] - 2022-02-25
 ### Added
 - Add scope parameter to token exchange [RCIAM-843](https://jira.argo.grnet.gr/browse/RCIAM-843)
 - Hide scopes from scopes_supported in discovery endpoint [RCIAM-859](https://jira.argo.grnet.gr/browse/RCIAM-859)
 - Refresh token for offline_access [RCIAM-849](https://jira.argo.grnet.gr/browse/RCIAM-849)
 ### Fixed
 - Fix scope bug in device authorization request [RCIAM-858](https://jira.argo.grnet.gr/browse/RCIAM-858)
+- Changes in account console and account rest service [RCIAM-860](https://jira.argo.grnet.gr/browse/RCIAM-860)
 
 ## [v16.1.0-rc1.0.1] - 2022-02-15
 ### Changed

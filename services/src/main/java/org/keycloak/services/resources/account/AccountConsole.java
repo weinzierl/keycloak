@@ -135,15 +135,39 @@ public class AccountConsole {
             
             boolean isTotpConfigured = false;
             boolean deleteAccountAllowed = false;
+            boolean manageAccountAllowed = false;
+            boolean manageAccountLinkAllowed = false;
+            boolean manageConsentAllowed = false;
+            boolean manageAccountBasicAuthAllowed = false;
+            boolean manageAccount2faAllowed = false;
+            boolean viewApplicationAllowed = false;
             if (user != null) {
                 isTotpConfigured = session.userCredentialManager().isConfiguredFor(realm, user, realm.getOTPPolicy().getType());
                 RoleModel deleteAccountRole = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.DELETE_ACCOUNT);
                 deleteAccountAllowed = deleteAccountRole != null && user.hasRole(deleteAccountRole) && realm.getRequiredActionProviderByAlias(DeleteAccount.PROVIDER_ID).isEnabled();
+                RoleModel manageAccount = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_ACCOUNT);
+                manageAccountAllowed = manageAccount != null && user.hasRole(manageAccount);
+                RoleModel manageAccountLink = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_ACCOUNT_LINKS);
+                manageAccountLinkAllowed = manageAccountLink != null && user.hasRole(manageAccountLink);
+                RoleModel manageConsent = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_CONSENT);
+                manageConsentAllowed = manageConsent != null && user.hasRole(manageConsent);
+                RoleModel manageAccountBasicAuth = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_ACCOUNT_BASIC_AUTH);
+                manageAccountBasicAuthAllowed = manageAccountBasicAuth != null && user.hasRole(manageAccountBasicAuth);
+                RoleModel manageAccount2fa = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_ACCOUNT_2FA);
+                manageAccount2faAllowed = manageAccount2fa != null && user.hasRole(manageAccount2fa);
+                RoleModel viewApplication = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.VIEW_APPLICATIONS);
+                viewApplicationAllowed = viewApplication != null && user.hasRole(viewApplication);
             }
 
             map.put("isTotpConfigured", isTotpConfigured);
 
             map.put("deleteAccountAllowed", deleteAccountAllowed);
+            map.put("manageAccountAllowed", manageAccountAllowed);
+            map.put("manageAccountLinkAllowed", manageAccountLinkAllowed || manageAccountAllowed);
+            map.put("manageConsentAllowed", manageConsentAllowed || manageAccountAllowed);
+            map.put("manageAccountBasicAuthAllowed", manageAccountBasicAuthAllowed || manageAccountAllowed);
+            map.put("manageAccount2faAllowed", manageAccount2faAllowed || manageAccountAllowed);
+            map.put("viewApplicationAllowed", viewApplicationAllowed || manageConsentAllowed || manageAccountAllowed);
 
             FreeMarkerUtil freeMarkerUtil = new FreeMarkerUtil();
             String result = freeMarkerUtil.processTemplate(map, "index.ftl", theme);

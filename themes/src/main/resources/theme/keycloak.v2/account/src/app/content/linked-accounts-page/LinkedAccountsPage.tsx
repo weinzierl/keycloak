@@ -55,6 +55,9 @@ import {AccountServiceContext} from '../../account-service/AccountServiceContext
 import {Msg} from '../../widgets/Msg';
 import {ContentPage} from '../ContentPage';
 import {createRedirect} from '../../util/RedirectUri';
+import { Features } from '../../widgets/features';
+
+declare const features: Features;
 
 interface LinkedAccount {
     connected: boolean;
@@ -138,14 +141,16 @@ class LinkedAccountsPage extends React.Component<LinkedAccountsPageProps, Linked
                         </DataList>
                     </StackItem>
                     <StackItem isFilled/>
-                    <StackItem isFilled>
-                        <Title headingLevel={TitleLevel.h2} size='2xl'>
-                            <Msg msgKey='unlinkedLoginProviders'/>
-                        </Title>
-                        <DataList id="unlinked-idps" aria-label='foo'>
-                            {this.makeRows(this.state.unLinkedAccounts, false)}
-                        </DataList>
-                    </StackItem>
+                    {features.manageAccountLinkAllowed &&
+                        <StackItem isFilled>
+                            <Title headingLevel={TitleLevel.h2} size='2xl'>
+                                <Msg msgKey='unlinkedLoginProviders'/>
+                            </Title>
+                            <DataList id="unlinked-idps" aria-label='foo'>
+                                {this.makeRows(this.state.unLinkedAccounts, false)}
+                            </DataList>
+                        </StackItem>
+                    }
                 </Stack>
             </ContentPage>
         );
@@ -188,7 +193,7 @@ class LinkedAccountsPage extends React.Component<LinkedAccountsPageProps, Linked
                                     <DataListCell key='username'><Stack><StackItem isFilled/><StackItem id={`${account.providerAlias}-idp-username`} isFilled>{account.linkedUsername}</StackItem></Stack></DataListCell>,
                                 ]}/>
                             <DataListAction aria-labelledby='foo' aria-label='foo action' id='setPasswordAction'>
-                                {isLinked && <Button id={`${account.providerAlias}-idp-unlink`} variant='link' onClick={() => this.unLinkAccount(account)}><UnlinkIcon size='sm'/> <Msg msgKey='unLink'/></Button>}
+                                {isLinked && features.manageAccountLinkAllowed && <Button id={`${account.providerAlias}-idp-unlink`} variant='link' onClick={() => this.unLinkAccount(account)}><UnlinkIcon size='sm'/> <Msg msgKey='unLink'/></Button>}
                                 {!isLinked && <Button id={`${account.providerAlias}-idp-link`} variant='link' onClick={() => this.linkAccount(account)}><LinkIcon size='sm'/> <Msg msgKey='link'/></Button>}
                             </DataListAction>
                         </DataListItemRow>

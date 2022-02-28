@@ -100,6 +100,7 @@ import org.keycloak.util.JsonSerialization;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
@@ -449,7 +450,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Path(ENDPOINT_PATH)
     public void getIdpFederationEndpointPOST(@FormParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse) {
-    	byte[] samlBytes = PostBindingUtil.base64Decode(samlResponse);
+        checkForNullSamlResponse(samlResponse);
+        byte[] samlBytes = PostBindingUtil.base64Decode(samlResponse);
         SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseDocument(samlBytes);
         StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
@@ -464,13 +466,32 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Path(ENDPOINT_PATH)
     public void getIdpFederationEndpointGET(@QueryParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse) {
-    	SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseRedirectBinding(samlResponse);
+        checkForNullSamlResponse(samlResponse);
+        SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseRedirectBinding(samlResponse);
         StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
         String alias = SAMLIdPFederationProvider.getHash(issuer);
         String path = request.getUri().getPath();
         path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
         request.forward(path);
+    }
+
+    private void checkForNullSamlResponse(String samlResponse){
+        if (samlResponse == null) {
+            event.event(EventType.LOGIN);
+            event.error(Errors.INVALID_REQUEST);
+            String path = request.getUri().getPath();
+            path = path.replace(ENDPOINT_PATH, "/endpoint/saml-federation/error");
+            request.setHttpMethod(HttpMethod.GET);
+            request.forward(path);
+        }
+    }
+
+    @GET
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Path("/endpoint/saml-federation/error")
+    public Response getSamlFederationError(){
+        return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
     }
 
     @GET

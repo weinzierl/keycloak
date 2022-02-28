@@ -1612,8 +1612,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.registrationAuthorityDenyList = [];
 		 $scope.identityProvidersFederation.registrationAuthorityAllowList = [];
 		 $scope.identityProvidersFederation.categoryAllowList = {};
-                 $scope.identityProvidersFederation.xsltOverride = '';		 
-                 $scope.newCategoryAllowList = {};
+         $scope.newCategoryAllowList = {};
 		 $scope.newCategoryAllowList.key='';
 		 $scope.newCategoryAllowList.value = [];
 		 $scope.identityProvidersFederation.categoryDenyList = {};
@@ -1623,8 +1622,9 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.config = {};
 		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
          $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+         $scope.identityProvidersFederation.config.xsltOverride = '';
          $scope.multiplePrincipals= [];
-          $scope.newMultiplePrincipal={};
+         $scope.newMultiplePrincipal={};
 	} else {
 		 $scope.newCategoryAllowList = {};
 		 $scope.newCategoryAllowList.key='';

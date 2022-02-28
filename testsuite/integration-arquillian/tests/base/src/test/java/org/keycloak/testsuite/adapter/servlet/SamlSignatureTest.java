@@ -250,6 +250,7 @@ public class SamlSignatureTest extends AbstractAdapterTest {
             .setAttribute(SAMLConfigNames.SIGNING_CERTIFICATE_KEY, REALM_SIGNING_CERTIFICATE)
             .setAttribute(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, "true")
             .setAttribute(SAMLConfigNames.VALIDATE_SIGNATURE, "true")
+            .setAttribute(SAMLConfigNames.NAME_ID_POLICY_FORMAT, "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent")
           )
           .roles(RolesBuilder.create().realmRole(REQUIRED_ROLE))
           .build()

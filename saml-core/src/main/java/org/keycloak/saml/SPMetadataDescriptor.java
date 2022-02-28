@@ -53,7 +53,8 @@ public class SPMetadataDescriptor {
         SPSSODescriptorType spSSODescriptor = new SPSSODescriptorType(Arrays.asList(PROTOCOL_NSURI.get()));
         spSSODescriptor.setAuthnRequestsSigned(wantAuthnRequestsSigned);
         spSSODescriptor.setWantAssertionsSigned(wantAssertionsSigned);
-        spSSODescriptor.addNameIDFormat(nameIDPolicyFormat);
+        if ( nameIDPolicyFormat!= null)
+            spSSODescriptor.addNameIDFormat(nameIDPolicyFormat);
         spSSODescriptor.addSingleLogoutService(new EndpointType(logoutBinding, logoutEndpoint));
 
         if (wantAuthnRequestsSigned && signingCerts != null) {

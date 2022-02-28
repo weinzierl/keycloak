@@ -27,6 +27,8 @@
     manageAccountAllowed: boolean;
     manageAccountLinkAllowed: boolean;
     manageConsentAllowed: boolean;
+    manageAccountBasicAuthAllowed: boolean;
+    manageAccount2faAllowed: boolean;
  }
 
 

@@ -49,7 +49,9 @@
                 deleteAccountAllowed : ${deleteAccountAllowed?c},
                 manageAccountAllowed : ${manageAccountAllowed?c},
                 manageAccountLinkAllowed : ${manageAccountLinkAllowed?c},
-                manageConsentAllowed : ${manageConsentAllowed?c}
+                manageConsentAllowed : ${manageConsentAllowed?c},
+                manageAccountBasicAuthAllowed : ${manageAccountBasicAuthAllowed?c},
+                manageAccount2faAllowed : ${manageAccount2faAllowed?c}
             }
 
             var availableLocales = [];

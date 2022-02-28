@@ -136,7 +136,7 @@ public class AddUserTest extends AbstractKeycloakTest {
 
             assertTrue(userResource.roles().clientLevel(accountId).listAll().isEmpty());
             List<RoleRepresentation> accountRoles = userResource.roles().clientLevel(accountId).listEffective();
-            assertRoles(accountRoles, "view-profile", "manage-account", "manage-account-links");
+            assertRoles(accountRoles, "view-profile", "manage-account", "manage-account-links", "manage-account-basic-auth", "manage-account-2fa");
         } finally {
             userResource.remove();
         }

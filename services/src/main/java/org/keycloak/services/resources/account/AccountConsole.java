@@ -137,6 +137,8 @@ public class AccountConsole {
             boolean manageAccountAllowed = false;
             boolean manageAccountLinkAllowed = false;
             boolean manageConsentAllowed = false;
+            boolean manageAccountBasicAuthAllowed = false;
+            boolean manageAccount2faAllowed = false;
             if (user != null) {
                 isTotpConfigured = session.userCredentialManager().isConfiguredFor(realm, user, realm.getOTPPolicy().getType());
                 RoleModel deleteAccountRole = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.DELETE_ACCOUNT);
@@ -147,6 +149,10 @@ public class AccountConsole {
                 manageAccountLinkAllowed = manageAccountLink != null && user.hasRole(manageAccountLink);
                 RoleModel manageConsent = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_CONSENT);
                 manageConsentAllowed = manageConsent != null && user.hasRole(manageConsent);
+                RoleModel manageAccountBasicAuth = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_ACCOUNT_BASIC_AUTH);
+                manageAccountBasicAuthAllowed = manageAccountBasicAuth != null && user.hasRole(manageAccountBasicAuth);
+                RoleModel manageAccount2fa = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_ACCOUNT_2FA);
+                manageAccount2faAllowed = manageAccount2fa != null && user.hasRole(manageAccount2fa);
             }
 
             map.put("isTotpConfigured", isTotpConfigured);
@@ -155,6 +161,8 @@ public class AccountConsole {
             map.put("manageAccountAllowed", manageAccountAllowed);
             map.put("manageAccountLinkAllowed", manageAccountLinkAllowed);
             map.put("manageConsentAllowed", manageConsentAllowed);
+            map.put("manageAccountBasicAuthAllowed", manageAccountBasicAuthAllowed);
+            map.put("manageAccount2faAllowed", manageAccount2faAllowed);
 
             FreeMarkerUtil freeMarkerUtil = new FreeMarkerUtil();
             String result = freeMarkerUtil.processTemplate(map, "index.ftl", theme);

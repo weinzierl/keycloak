@@ -20,7 +20,7 @@
         "label": "signingIn",
         "modulePath": "/content/signingin-page/SigningInPage.js",
         "componentName": "SigningInPage",
-        "hidden": "!features.manageAccountAllowed"
+        "hidden": "!(features.manageAccountAllowed || features.manageAccountBasicAuthAllowed || features.manageAccount2faAllowed)"
       },
       {
         "id": "device-activity",

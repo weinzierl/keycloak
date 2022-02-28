@@ -107,6 +107,7 @@
 					<select id="nameIDPolicyFormat"
 						ng-model="identityProvidersFederation.config.nameIDPolicyFormat"
 						ng-options="nameFormat.format as nameFormat.name for nameFormat in nameIdFormats">
+						<option value="" selected></option>
 					</select>
 				</div>
 				<kc-tooltip>{{:: 'nameid-policy-format.federation.tooltip' |	translate}}</kc-tooltip>

@@ -215,8 +215,8 @@
                 <div class="col-md-6">
                     <select id="nameIDPolicyFormat" ng-model="identityProvider.config.nameIDPolicyFormat"
                             ng-options="nameFormat.format as nameFormat.name for nameFormat in nameIdFormats">
-                     </select>
-                    <!-- <input class="form-control" id="nameIDPolicyFormat" type="text" ng-model="identityProvider.config.nameIDPolicyFormat"> -->
+                        <option value="" selected></option>
+                    </select>
                 </div>
                 <kc-tooltip>{{:: 'nameid-policy-format.tooltip' | translate}}</kc-tooltip>
             </div>

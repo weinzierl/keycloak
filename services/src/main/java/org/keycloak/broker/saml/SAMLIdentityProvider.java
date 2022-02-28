@@ -125,9 +125,9 @@ public class SAMLIdentityProvider extends AbstractIdentityProvider<SAMLIdentityP
             String destinationUrl = getConfig().getSingleSignOnServiceUrl();
             String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
 
-            if (nameIDPolicyFormat == null) {
-                nameIDPolicyFormat =  JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get();
-            }
+//            if (nameIDPolicyFormat == null) {
+//                nameIDPolicyFormat =  JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get();
+//            }
 
             String protocolBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get();
 

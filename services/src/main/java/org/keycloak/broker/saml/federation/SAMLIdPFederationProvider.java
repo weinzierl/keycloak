@@ -432,7 +432,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             //for creation only set default nameIDPolicyFormat
             identityProviderModel.getConfig().put("nameIDPolicyFormat",
                 model.getNameIDPolicyFormat() != null ? model.getNameIDPolicyFormat()
-                    : JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
+                    : null);
         }
 
 		if (identityProviderModel.getConfig().get("multiplePrincipals") == null) {

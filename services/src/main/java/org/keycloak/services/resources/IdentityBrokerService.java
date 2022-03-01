@@ -458,8 +458,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
         String alias = SAMLIdPFederationProvider.getHash(issuer);
-        String path = request.getUri().getPath();
-        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
+        String fullUrl = Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), alias, this.realmModel.getName()).toString();
+        String path = fullUrl.replace(this.session.getContext().getUri().getBaseUri().toString(), "/"); //get the subpath from "realms" and on, prepending also a "/"
         request.forward(path);
     }
 
@@ -473,8 +473,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
         String alias = SAMLIdPFederationProvider.getHash(issuer);
-        String path = request.getUri().getPath();
-        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
+        String fullUrl = Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), alias, this.realmModel.getName()).toString();
+        String path = fullUrl.replace(this.session.getContext().getUri().getBaseUri().toString(), "/"); //get the subpath from "realms" and on, prepending also a "/"
         request.forward(path);
     }
 

@@ -1562,6 +1562,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         updatedIdPs.stream().forEach(this::updateIdentityProviderFromFed);
         removedIdPs.stream().forEach(alias -> {
             //remove mappers also
+            logger.info("Removing idp with alias = "+alias);
             this.removeFederationIdp(identityProvidersFederationModel, alias);
             this.getIdentityProviderMappersByAliasStream(alias).forEach(this::removeIdentityProviderMapper);
         });
@@ -1808,6 +1809,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     @Override
     public void removeIdentityProviderMapper(IdentityProviderMapperModel mapping) {
         IdentityProviderMapperEntity toDelete = getIdentityProviderMapperEntity(mapping.getId());
+        logger.info(toDelete == null ? "Problem in removing":"Removing" + " IdentityProviderMapperModel for IdP with alias = "+mapping.getIdentityProviderAlias()+" and name = "+mapping.getName());
         if (toDelete != null) {
             this.realm.getIdentityProviderMappers().remove(toDelete);
             em.remove(toDelete);

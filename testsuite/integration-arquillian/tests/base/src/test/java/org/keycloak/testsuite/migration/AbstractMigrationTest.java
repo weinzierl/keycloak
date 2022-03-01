@@ -493,6 +493,12 @@ public abstract class AbstractMigrationTest extends AbstractKeycloakTest {
         ClientResource accountResource = realm.clients().get(accountClient.getId());
         RoleRepresentation viewAppRole = accountResource.roles().get(AccountRoles.VIEW_GROUPS).toRepresentation();
         assertNotNull(viewAppRole);
+
+        RoleRepresentation manageAccountBasicAuth = accountResource.roles().get(AccountRoles.MANAGE_ACCOUNT_BASIC_AUTH).toRepresentation();
+        assertNotNull(manageAccountBasicAuth);
+
+        RoleRepresentation manageAccount2fa = accountResource.roles().get(AccountRoles.MANAGE_ACCOUNT_2FA).toRepresentation();
+        assertNotNull(manageAccount2fa);
     }
 
     protected void testRoleManageAccountLinks(RealmResource... realms) {

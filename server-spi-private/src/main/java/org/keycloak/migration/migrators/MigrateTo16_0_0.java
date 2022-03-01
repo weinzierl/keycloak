@@ -22,30 +22,31 @@ public class MigrateTo16_0_0 implements Migration {
     public static final ModelVersion VERSION = new ModelVersion("16.0.0");
 
     @Override
+    public void migrateImport(KeycloakSession session, RealmModel realm, RealmRepresentation rep, boolean skipUserDependent) {
+        addGroupsRole(realm);
+    }
+
+    @Override
     public void migrate(KeycloakSession session) {
         session.realms()
                 .getRealmsStream()
-                .map(realm -> realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID))
-                .filter(Objects::nonNull)
-                .filter(client -> Objects.isNull(client.getRole(MANAGE_ACCOUNT_BASIC_AUTH)))
-                .forEach(client -> client.addRole(MANAGE_ACCOUNT_BASIC_AUTH)
-                        .setDescription("${role_" + MANAGE_ACCOUNT_BASIC_AUTH + "}"));
+                .forEach(this::addGroupsRole);
+    }
 
-        session.realms()
-                .getRealmsStream()
-                .map(realm -> realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID))
-                .filter(Objects::nonNull)
-                .filter(client -> Objects.isNull(client.getRole(MANAGE_ACCOUNT_2FA)))
-                .forEach(client -> client.addRole(MANAGE_ACCOUNT_2FA)
-                        .setDescription("${role_" + MANAGE_ACCOUNT_2FA + "}"));
-
-        session.realms()
-                .getRealmsStream()
-                .map(realm -> realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID))
-                .filter(Objects::nonNull)
-                .filter(client -> Objects.isNull(client.getRole(VIEW_GROUPS)))
-                .forEach(client -> client.addRole(VIEW_GROUPS)
-                        .setDescription("${role_" + VIEW_GROUPS + "}"));
+    private void addGroupsRole(RealmModel realm) {
+        ClientModel accountClient = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID);
+        if (accountClient != null && accountClient.getRole(MANAGE_ACCOUNT_BASIC_AUTH) == null) {
+            RoleModel viewAppRole = accountClient.addRole(MANAGE_ACCOUNT_BASIC_AUTH);
+            viewAppRole.setDescription("${role_" + MANAGE_ACCOUNT_BASIC_AUTH + "}");
+        }
+        if (accountClient != null && accountClient.getRole(MANAGE_ACCOUNT_2FA) == null) {
+            RoleModel manageAccount2fa = accountClient.addRole(MANAGE_ACCOUNT_2FA);
+            manageAccount2fa.setDescription("${role_" + MANAGE_ACCOUNT_2FA + "}");
+        }
+        if (accountClient != null && accountClient.getRole(VIEW_GROUPS) == null) {
+            RoleModel manageAccountBasicAuth = accountClient.addRole(VIEW_GROUPS);
+            manageAccountBasicAuth.setDescription("${role_" + VIEW_GROUPS + "}");
+        }
     }
 
 

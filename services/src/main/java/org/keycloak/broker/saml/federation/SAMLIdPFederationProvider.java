@@ -425,15 +425,10 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		if ( model.getConfig().get("wantAssertionsSigned") != null )
 		    identityProviderModel.getConfig().put("wantAssertionsSigned", model.getConfig().get("wantAssertionsSigned"));
 
-        List<String> nameIdFormatList = idpDescriptor.getNameIDFormat();
-        if (nameIdFormatList != null && !nameIdFormatList.isEmpty()) {
-            identityProviderModel.getConfig().put("nameIDPolicyFormat", nameIdFormatList.get(0));
-        } else if ( identityProviderModel.getConfig().get("nameIDPolicyFormat") == null) {
-            //for creation only set default nameIDPolicyFormat
-            identityProviderModel.getConfig().put("nameIDPolicyFormat",
-                model.getNameIDPolicyFormat() != null ? model.getNameIDPolicyFormat()
-                    : null);
-        }
+		if ( model.getNameIDPolicyFormat() != null) {
+			List<String> nameIdFormatList = idpDescriptor.getNameIDFormat();
+			identityProviderModel.getConfig().put("nameIDPolicyFormat",(nameIdFormatList != null && !nameIdFormatList.isEmpty()) ? nameIdFormatList.get(0) : model.getNameIDPolicyFormat());
+		}
 
 		if (identityProviderModel.getConfig().get("multiplePrincipals") == null) {
 			identityProviderModel.getConfig().put("multiplePrincipals", model.getConfig().get("multiplePrincipals"));

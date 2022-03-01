@@ -37,6 +37,7 @@ import org.keycloak.broker.provider.IdentityProviderMapperSyncModeDelegate;
 import org.keycloak.broker.provider.util.IdentityBrokerState;
 import org.keycloak.broker.saml.SAMLEndpoint;
 import org.keycloak.broker.saml.federation.SAMLIdPFederationProvider;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.broker.social.SocialIdentityProvider;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.util.Base64Url;
@@ -635,6 +636,9 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
                 .detail(Details.REDIRECT_URI, authenticationSession.getRedirectUri())
                 .detail(Details.IDENTITY_PROVIDER, providerId)
                 .detail(Details.IDENTITY_PROVIDER_USERNAME, context.getUsername());
+
+        if ("saml".equals(identityProviderConfig.getProviderId()) && identityProviderConfig.getConfig().get(SAMLIdentityProviderConfig.ENTITY_ID) != null)
+            this.event.detail(Details.IDENTITY_PROVIDER_ENTITYID,identityProviderConfig.getConfig().get(SAMLIdentityProviderConfig.ENTITY_ID));
 
         UserModel federatedUser = this.session.users().getUserByFederatedIdentity(this.realmModel, federatedIdentityModel);
         boolean shouldMigrateId = false;

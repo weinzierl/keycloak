@@ -933,7 +933,8 @@ public class IdentityProviderTest extends AbstractAdminTest {
           "signingCertificate",
           "addExtensionsElementWithKeyInfo",
           "loginHint",
-          "hideOnLoginPage"
+          "hideOnLoginPage",
+          "entityId"
         ));
         assertThat(config, hasEntry("validateSignature", "true"));
         assertThat(config, hasEntry("singleLogoutServiceUrl", "http://localhost:8080/auth/realms/master/protocol/saml"));
@@ -944,6 +945,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
         assertThat(config, hasEntry("addExtensionsElementWithKeyInfo", "false"));
         assertThat(config, hasEntry("nameIDPolicyFormat", "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"));
         assertThat(config, hasEntry("hideOnLoginPage", "true"));
+        assertThat(config, hasEntry("entityId", "http://localhost:8080/auth/realms/master"));
         assertThat(config, hasEntry(is("signingCertificate"), notNullValue()));
     }
 

@@ -12,6 +12,8 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ### Changed
 - Allow omitting NameIDFormat [RCIAM-882](https://jira.argo.grnet.gr/browse/RCIAM-882)
 - Add signing page roles in account console[RCIAM-860](https://jira.argo.grnet.gr/browse/RCIAM-860)
+- EntityId in configuration of SAML IdP[EOSC-KC-133](https://github.com/eosc-kc/keycloak/issues/133)
+- Record SAML login events based on SAML IdP entityID [EOSC-KC-134](https://github.com/eosc-kc/keycloak/issues/134)
 ### Fixed
 - check for null samlResponse for federation
 

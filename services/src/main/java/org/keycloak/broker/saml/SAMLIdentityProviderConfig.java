@@ -41,6 +41,7 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
     public static final XmlKeyInfoKeyNameTransformer DEFAULT_XML_KEY_INFO_KEY_NAME_TRANSFORMER = XmlKeyInfoKeyNameTransformer.NONE;
 
     public static final String ENTITY_ID = "entityId";
+    public static final String SP_ENTITY_ID = "spEntityId";
     public static final String ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO = "addExtensionsElementWithKeyInfo";
     public static final String BACKCHANNEL_SUPPORTED = "backchannelSupported";
     public static final String ENCRYPTION_PUBLIC_KEY = "encryptionPublicKey";
@@ -83,6 +84,14 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
 
     public void setEntityId(String entityId) {
         getConfig().put(ENTITY_ID, entityId);
+    }
+
+    public String getSpEntityId() {
+        return getConfig().get(SP_ENTITY_ID);
+    }
+
+    public void setSpEntityId(String spEntityId) {
+        getConfig().put(SP_ENTITY_ID, spEntityId);
     }
 
     public String getSingleSignOnServiceUrl() {
@@ -422,6 +431,7 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
     public void validate(RealmModel realm) {
         SslRequired sslRequired = realm.getSslRequired();
 
+        checkUrl(SslRequired.NONE, getEntityId(), ENTITY_ID);
         checkUrl(sslRequired, getSingleLogoutServiceUrl(), SINGLE_LOGOUT_SERVICE_URL);
         checkUrl(sslRequired, getSingleSignOnServiceUrl(), SINGLE_SIGN_ON_SERVICE_URL);
         checkUrl(sslRequired, getMetadataUrl(), METADATA_URL);

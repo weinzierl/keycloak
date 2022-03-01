@@ -1162,7 +1162,7 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
             $scope.identityProvider.config.xmlSigKeyInfoKeyNameTransformer = $scope.xmlKeyNameTranformers[1];			
             $scope.identityProvider.config.allowCreate = 'true';
         }
-        $scope.identityProvider.config.entityId = $scope.identityProvider.config.entityId || (authUrl + '/realms/' + realm.realm);
+        $scope.identityProvider.config.spEntityId = $scope.identityProvider.config.spEntityId || (authUrl + '/realms/' + realm.realm);
     }
 
     $scope.hidePassword = true;

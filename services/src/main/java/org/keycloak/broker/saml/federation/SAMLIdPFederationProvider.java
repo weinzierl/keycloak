@@ -313,6 +313,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
             identityProviderModel.setEnabled(true);
         }
 
+		identityProviderModel.getConfig().put("entityId", entity.getEntityID());
+
         LocalizedNameType displayName = idpDescriptor.getExtensions() != null
             && idpDescriptor.getExtensions().getUIInfo() != null
                 ? idpDescriptor.getExtensions().getUIInfo().getDisplayName().stream()

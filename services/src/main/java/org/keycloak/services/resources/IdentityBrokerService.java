@@ -457,8 +457,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
         String alias = SAMLIdPFederationProvider.getHash(issuer);
-        String path = request.getUri().getPath();
-        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
+        String fullUrl = Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), alias, this.realmModel.getName()).toString();
+        String path = fullUrl.replace(this.session.getContext().getUri().getBaseUri().toString(), "/"); //get the subpath from "realms" and on, prepending also a "/"
         request.forward(path);
     }
 
@@ -472,8 +472,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
         String alias = SAMLIdPFederationProvider.getHash(issuer);
-        String path = request.getUri().getPath();
-        path = path.replace("/broker" + ENDPOINT_PATH, "/broker/" + alias + ENDPOINT_PATH);
+        String fullUrl = Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), alias, this.realmModel.getName()).toString();
+        String path = fullUrl.replace(this.session.getContext().getUri().getBaseUri().toString(), "/"); //get the subpath from "realms" and on, prepending also a "/"
         request.forward(path);
     }
 
@@ -481,8 +481,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         if (samlResponse == null) {
             event.event(EventType.LOGIN);
             event.error(Errors.INVALID_REQUEST);
-            String path = request.getUri().getPath();
-            path = path.replace(ENDPOINT_PATH, "/endpoint/saml-federation/error");
+            String path = UriBuilder.fromUri("/").path(RealmsResource.class, "getBrokerService")
+                    .path(IdentityBrokerService.class, "getSamlFederationError").build(realmModel.getName()).toString();
             request.setHttpMethod(HttpMethod.GET);
             request.forward(path);
         }

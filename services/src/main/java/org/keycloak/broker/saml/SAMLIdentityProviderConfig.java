@@ -17,6 +17,7 @@
 package org.keycloak.broker.saml;
 
 import static org.keycloak.common.util.UriUtils.checkUrl;
+import static org.keycloak.common.util.UriUtils.checkUri;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.keycloak.common.enums.SslRequired;
@@ -400,7 +401,7 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
     public void validate(RealmModel realm) {
         SslRequired sslRequired = realm.getSslRequired();
 
-        checkUrl(SslRequired.NONE, getEntityId(), ENTITY_ID);
+        checkUri(getEntityId(), ENTITY_ID);
         checkUrl(sslRequired, getSingleLogoutServiceUrl(), SINGLE_LOGOUT_SERVICE_URL);
         checkUrl(sslRequired, getSingleSignOnServiceUrl(), SINGLE_SIGN_ON_SERVICE_URL);
         //transient name id format is not accepted together with principaltype SubjectnameId

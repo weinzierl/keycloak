@@ -967,7 +967,8 @@ public class IdentityProviderTest extends AbstractAdminTest {
                 "hideOnLoginPage",
                 "autoUpdate",
                 "metadataUrl",
-                "refreshPeriod").collect(Collectors.toSet());
+                "refreshPeriod",
+                "entityId").collect(Collectors.toSet());
         //autoupdated has been executed -  add lastRefreshTime
         if (hasExecuted)
             fields.add("lastRefreshTime");
@@ -983,6 +984,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
         assertThat(config, hasEntry("nameIDPolicyFormat", "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"));
         assertThat(config, hasEntry("hideOnLoginPage", "true"));
         assertThat(config, hasEntry(is("signingCertificate"), notNullValue()));
+        assertThat(config, hasEntry("entityId", "http://localhost:8080/auth/realms/master"));
         assertThat(config, hasEntry("autoUpdate", "true"));
         assertThat(config, hasEntry("metadataUrl", "http://localhost:8880/saml-idp-metadata"));
         assertThat(config, hasEntry("refreshPeriod", String.valueOf(60)));

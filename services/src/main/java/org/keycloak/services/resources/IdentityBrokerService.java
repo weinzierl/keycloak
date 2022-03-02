@@ -482,8 +482,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         if (samlResponse == null) {
             event.event(EventType.LOGIN);
             event.error(Errors.INVALID_REQUEST);
-            String path = request.getUri().getPath();
-            path = path.replace(ENDPOINT_PATH, "/endpoint/saml-federation/error");
+            String path = UriBuilder.fromUri("/").path(RealmsResource.class, "getBrokerService")
+                    .path(IdentityBrokerService.class, "getSamlFederationError").build(realmModel.getName()).toString();
             request.setHttpMethod(HttpMethod.GET);
             request.forward(path);
         }

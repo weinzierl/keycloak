@@ -8,14 +8,15 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 [Keycloak announcement for version 16.1.0](https://www.keycloak.org/2021/12/keycloak-1610-released)
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
-## [v16.1.0-rc1.0.3] - 2022-03-01
+## [v16.1.0-rc1.0.3] - 2022-03-02
 ### Changed
 - Allow omitting NameIDFormat [RCIAM-882](https://jira.argo.grnet.gr/browse/RCIAM-882)
 - Add signing page roles in account console[RCIAM-860](https://jira.argo.grnet.gr/browse/RCIAM-860)
 - EntityId in configuration of SAML IdP[EOSC-KC-133](https://github.com/eosc-kc/keycloak/issues/133)
 - Record SAML login events based on SAML IdP entityID [EOSC-KC-134](https://github.com/eosc-kc/keycloak/issues/134)
 ### Fixed
-- check for null samlResponse for federation
+- Check for null samlResponse for federation
+- Avoid using missing jars in versions 16.0.0+ (SAML federation) [RCIAM-895](https://jira.argo.grnet.gr/browse/RCIAM-895)
 
 ## [v16.1.0-rc1.0.2] - 2022-02-25
 ### Added

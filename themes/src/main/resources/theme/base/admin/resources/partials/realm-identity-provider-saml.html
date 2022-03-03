@@ -134,7 +134,7 @@
             <legend uncollapsed><span class="text">{{:: 'saml-config' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.saml-config.tooltip' | translate}}</kc-tooltip></legend>
 
             <div class="form-group clearfix">
-                <label class="col-md-2 control-label" for="entityId"> {{:: 'identity-provider.saml.entity-id' | translate}}</label>
+                <label class="col-md-2 control-label" for="entityId"><span class="required">*</span> {{:: 'identity-provider.saml.entity-id' | translate}}</label>
                 <div class="col-md-6">
                     <input kc-no-reserved-chars class="form-control" id="entityId" type="text" ng-model="identityProvider.config.entityId" required>
                 </div>

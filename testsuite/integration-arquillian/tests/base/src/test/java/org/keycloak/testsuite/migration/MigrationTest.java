@@ -64,7 +64,6 @@ public class MigrationTest extends AbstractMigrationTest {
     public void migration9_xTest() throws Exception {
         testMigratedData(false);
         testMigrationTo12_x(true);
-        testMigrationTo16_x();
 
         // Always test offline-token login during migration test
         testOfflineTokenLogin();
@@ -81,7 +80,6 @@ public class MigrationTest extends AbstractMigrationTest {
         testMigrationTo8_x();
         testMigrationTo9_x();
         testMigrationTo12_x(true);
-        testMigrationTo16_x();
 
         // Always test offline-token login during migration test
         testOfflineTokenLogin();
@@ -99,7 +97,6 @@ public class MigrationTest extends AbstractMigrationTest {
         testMigrationTo8_x();
         testMigrationTo9_x();
         testMigrationTo12_x(true);
-        testMigrationTo16_x();
 
         // Always test offline-token login during migration test
         testOfflineTokenLogin();
@@ -125,7 +122,6 @@ public class MigrationTest extends AbstractMigrationTest {
         testMigrationTo8_x();
         testMigrationTo9_x();
         testMigrationTo12_x(false);
-        testMigrationTo16_x();
 
         // Always test offline-token login during migration test
         testOfflineTokenLogin();
@@ -144,7 +140,6 @@ public class MigrationTest extends AbstractMigrationTest {
         testMigrationTo8_x();
         testMigrationTo9_x();
         testMigrationTo12_x(false);
-        testMigrationTo16_x();
 
         // Always test offline-token login during migration test
         testOfflineTokenLogin();

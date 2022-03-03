@@ -370,7 +370,7 @@ class LinkedAccountsPage extends React.Component<LinkedAccountsPageProps, Linked
                                     <DataListCell key='username'><Flex><FlexItem/><FlexItem id={`${account.providerAlias}-idp-username`}>{account.linkedUsername}</FlexItem></Flex></DataListCell>,
                                 ]}/>
                             <DataListAction aria-labelledby='foo' aria-label='foo action' id='setPasswordAction'>
-                                {isLinked && (features.manageAccountAllowed || features.manageAccountLinkAllowed) && <Button id={`${account.providerAlias}-idp-unlink`} variant='link' onClick={() => this.unLinkAccount(account)}><UnlinkIcon size='sm'/> <Msg msgKey='unLink'/></Button>}
+                                {isLinked && features.manageAccountLinkAllowed && <Button id={`${account.providerAlias}-idp-unlink`} variant='link' onClick={() => this.unLinkAccount(account)}><UnlinkIcon size='sm'/> <Msg msgKey='unLink'/></Button>}
                                 {!isLinked && <Button id={`${account.providerAlias}-idp-link`} variant='link' onClick={() => this.linkAccount(account)}><LinkIcon size='sm'/> <Msg msgKey='link'/></Button>}
                             </DataListAction>
                         </DataListItemRow>

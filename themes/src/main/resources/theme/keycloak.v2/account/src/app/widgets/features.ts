@@ -29,6 +29,7 @@
     manageConsentAllowed: boolean;
     manageAccountBasicAuthAllowed: boolean;
     manageAccount2faAllowed: boolean;
+    viewApplicationAllowed: boolean;
     isViewGroupsEnabled: boolean;
  }
 

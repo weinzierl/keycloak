@@ -222,7 +222,7 @@ export class ApplicationsPage extends React.Component<ApplicationsPageProps, App
                     </div>
                     {application.logoUri && <div className='pf-c-content'><img src={application.logoUri} /></div> }
                   </Grid>
-                  {(application.consent || application.offlineAccess) && (features.manageAccountAllowed || features.manageConsentAllowed) &&
+                  {(application.consent || application.offlineAccess) && features.manageConsentAllowed &&
                     <Grid gutter='sm'>
                       <hr />
                       <GridItem>

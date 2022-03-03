@@ -139,6 +139,7 @@ public class AccountConsole {
             boolean manageConsentAllowed = false;
             boolean manageAccountBasicAuthAllowed = false;
             boolean manageAccount2faAllowed = false;
+            boolean viewApplicationAllowed = false;
             boolean isViewGroupsEnabled= false;
             if (user != null) {
                 isTotpConfigured = session.userCredentialManager().isConfiguredFor(realm, user, realm.getOTPPolicy().getType());
@@ -154,6 +155,8 @@ public class AccountConsole {
                 manageAccountBasicAuthAllowed = manageAccountBasicAuth != null && user.hasRole(manageAccountBasicAuth);
                 RoleModel manageAccount2fa = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.MANAGE_ACCOUNT_2FA);
                 manageAccount2faAllowed = manageAccount2fa != null && user.hasRole(manageAccount2fa);
+                RoleModel viewApplication = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.VIEW_APPLICATIONS);
+                viewApplicationAllowed = viewApplication != null && user.hasRole(viewApplication);
                 RoleModel viewGrouRole = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID).getRole(AccountRoles.VIEW_GROUPS);
                 isViewGroupsEnabled = viewGrouRole != null && user.hasRole(viewGrouRole);
             }
@@ -162,11 +165,11 @@ public class AccountConsole {
 
             map.put("deleteAccountAllowed", deleteAccountAllowed);
             map.put("manageAccountAllowed", manageAccountAllowed);
-            map.put("manageAccountLinkAllowed", manageAccountLinkAllowed);
-            map.put("manageConsentAllowed", manageConsentAllowed);
-            map.put("manageAccountBasicAuthAllowed", manageAccountBasicAuthAllowed);
-            map.put("manageAccount2faAllowed", manageAccount2faAllowed);
-
+            map.put("manageAccountLinkAllowed", manageAccountLinkAllowed || manageAccountAllowed);
+            map.put("manageConsentAllowed", manageConsentAllowed || manageAccountAllowed);
+            map.put("manageAccountBasicAuthAllowed", manageAccountBasicAuthAllowed || manageAccountAllowed);
+            map.put("manageAccount2faAllowed", manageAccount2faAllowed || manageAccountAllowed);
+            map.put("viewApplicationAllowed", viewApplicationAllowed || manageConsentAllowed || manageAccountAllowed);
             map.put("isViewGroupsEnabled", isViewGroupsEnabled);
 
             FreeMarkerUtil freeMarkerUtil = new FreeMarkerUtil();

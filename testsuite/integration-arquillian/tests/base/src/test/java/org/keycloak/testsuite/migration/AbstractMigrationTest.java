@@ -948,9 +948,6 @@ public abstract class AbstractMigrationTest extends AbstractKeycloakTest {
         testMigrationTo12_0_0();
         testMigrationTo13_0_0(testRealmAttributesMigration);
         testMigrationTo14_0_0();
-    }
-
-    protected void testMigrationTo16_x() {
         testMigrationTo16_0_0();
     }
 

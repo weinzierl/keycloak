@@ -49,9 +49,7 @@ import java.util.Set;
 @Table(
 		name="IDENTITY_PROVIDER",
 		indexes = {
-				@Index(name = "IDP_PROVIDER_ALIAS_INDX", columnList = "PROVIDER_ALIAS"),
-				@Index(name = "IDP_PROVIDER_DISPLAY_NAME_INDX", columnList = "PROVIDER_DISPLAY_NAME"),
-				@Index(name = "IDP_PROVIDER_ID_INDX", columnList = "PROVIDER_ID")
+				@Index(name = "IDP_PROVIDER_ALIAS_INDX", columnList = "PROVIDER_ALIAS")
 		}
 )
 @NamedQueries({

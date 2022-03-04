@@ -966,6 +966,8 @@ public class RealmAdapter implements CachedRealmModel {
     public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
         getDelegateForUpdate();
         updated.taskExecutionFederation(identityProvidersFederationModel, addIdPs, updatedIdPs, removedIdPs);
+        //invalidate cache for users related with removed IdPs
+        session.users().preRemove(removedIdPs);
     }
 
     @Override

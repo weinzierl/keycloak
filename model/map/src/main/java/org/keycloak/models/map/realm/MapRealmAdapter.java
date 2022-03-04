@@ -1000,6 +1000,7 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
             });
         });
         updatedIdPs.stream().forEach(this::updateIdentityProvider);
+        //todo -> preremove all users from removedIdPs
         removedIdPs.stream().forEach(alias ->{
             //remove mappers also
             this.removeFederationIdp(identityProvidersFederationModel, alias);

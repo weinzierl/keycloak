@@ -838,6 +838,12 @@ public class UserCacheSession implements UserCache.Streams {
     }
 
     @Override
+    public void preRemove(List<String> idpAlias){
+        for (String alias : idpAlias)
+            cache.addInvalidations(InIdentityProviderPredicate.create().provider(alias), invalidations);
+    }
+
+    @Override
     public void grantToAllUsers(RealmModel realm, RoleModel role) {
         addRealmInvalidation(realm.getId()); // easier to just invalidate whole realm
         getDelegate().grantToAllUsers(realm, role);

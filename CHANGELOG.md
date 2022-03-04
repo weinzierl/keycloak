@@ -8,9 +8,10 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 [Keycloak announcement for version 16.1.0](https://www.keycloak.org/2021/12/keycloak-1610-released)
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
-## [v16.1.0-rc1.0.4] - 2022-03-03
+## [v16.1.0-rc1.0.4] - 2022-03-04
 ### Changed
 - Implementation improvements[RCIAM-860](https://jira.argo.grnet.gr/browse/RCIAM-860)
+- Remove indexes from IdentityProviderEntity
 ### Fixed
 - Bug correction for NameIDFormat [RCIAM-882](https://jira.argo.grnet.gr/browse/RCIAM-882)
 - Field entityId of SAML IdP with * in ui

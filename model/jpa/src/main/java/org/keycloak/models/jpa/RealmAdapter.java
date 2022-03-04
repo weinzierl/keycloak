@@ -1539,7 +1539,8 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
     @Override
     public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
-        addIdPs.stream().forEach(idp -> {
+
+	    addIdPs.stream().forEach(idp -> {
             this.addIdentityProvider(idp);
             //add mappers from federation for new identity providers
             identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(mapper ->{
@@ -1552,6 +1553,9 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             });
         });
         updatedIdPs.stream().forEach(this::updateIdentityProviderFromFed);
+        em.createNamedQuery("deleteFederatedIdentityByProviders")
+                .setParameter("realmId", realm.getId())
+                .setParameter("providerAlias", removedIdPs).executeUpdate();
         removedIdPs.stream().forEach(alias -> {
             //remove mappers also
             this.removeFederationIdp(identityProvidersFederationModel, alias);

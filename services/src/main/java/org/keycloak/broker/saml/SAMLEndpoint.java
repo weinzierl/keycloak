@@ -357,7 +357,7 @@ public class SAMLEndpoint {
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
                         .relayState(relayState);
             boolean postBinding = config.isPostBindingLogout();
-            if (config.isWantAuthnRequestsSigned()) {
+            if (config.isWantLogoutRequestsSigned()) {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
                 String keyName = config.getXmlSigKeyInfoKeyNameTransformer().getKeyName(keys.getKid(), keys.getCertificate());
                 binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())

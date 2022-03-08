@@ -187,6 +187,17 @@
 				<kc-tooltip>{{:: 'want-authn-requests-signed.tooltip' |translate}}</kc-tooltip>
 			</div>
 			<div class="form-group">
+				<label class="col-md-2 control-label" for="wantLogoutRequestsSigned">{{::'want-logout-requests-signed' | translate}}</label>
+				<div class="col-md-6">
+					<input
+							ng-model="identityProvidersFederation.config.wantLogoutRequestsSigned"
+							id="wantLogoutRequestsSigned" name="wantLogoutRequestsSigned"
+							onoffswitchvalue on-text="{{:: 'onText' | translate}}"
+							off-text="{{:: 'offText' | translate}}" />
+				</div>
+				<kc-tooltip>{{:: 'want-logout-requests-signed.tooltip' |translate}}</kc-tooltip>
+			</div>
+			<div class="form-group">
 				<label class="col-md-2 control-label" for="wantAssertionsSigned">{{::	'want-assertions-signed' | translate}}</label>
 				<div class="col-md-6">
 					<input

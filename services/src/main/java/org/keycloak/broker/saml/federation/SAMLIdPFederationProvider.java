@@ -47,6 +47,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jboss.logging.Logger;
 import org.keycloak.broker.federation.AbstractIdPFederationProvider;
 import org.keycloak.broker.provider.IdentityProviderMapper;
+import org.keycloak.broker.saml.SAMLConfigNames;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.connections.httpclient.HttpClientProvider;
@@ -230,15 +231,16 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                     identityProviderModel.setAlias(alias);
                     // put default parameters
                     Map<String, String> config = new HashMap<>();
-                    config.put("addExtensionsElementWithKeyInfo", "false");
-                    config.put("signatureAlgorithm", "RSA_SHA256");
-                    config.put("xmlSigKeyInfoKeyNameTransformer", "KEY_ID");
+                    config.put(SAMLConfigNames.ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO, "false");
+                    config.put(SAMLConfigNames.SIGNATURE_ALGORITHM, "RSA_SHA256");
+                    config.put(SAMLConfigNames.XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER, "KEY_ID");
 
                     config.put(IdentityProviderModel.SYNC_MODE, model.getConfig().get(IdentityProviderModel.SYNC_MODE));
                     config.put("loginHint", "false");
 
-					identityProviderModel.getConfig().put("wantAssertionsEncrypted", String.valueOf(model.isWantAssertionsEncrypted()));
-					identityProviderModel.getConfig().put("wantAssertionsSigned", String.valueOf(model.isWantAssertionsSigned()));
+					config.put(SAMLConfigNames.WANT_ASSERTIONS_ENCRYPTED, String.valueOf(model.isWantAssertionsEncrypted()));
+					config.put(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, String.valueOf(model.isWantAssertionsSigned()));
+					config.put(SAMLConfigNames.WANT_LOGOUT_REQUESTS_SIGNED, String.valueOf(model.isWantLogoutRequestsSigned()));
 
                     config.put("promotedLoginbutton", "false");
                     identityProviderModel.setConfig(config);
@@ -378,13 +380,13 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
 		}
 
-		identityProviderModel.getConfig().put("singleLogoutServiceUrl", singleLogoutServiceUrl);
-		identityProviderModel.getConfig().put("singleSignOnServiceUrl", singleSignOnServiceUrl);
-		identityProviderModel.getConfig().put("wantAuthnRequestsSigned", idpDescriptor.isWantAuthnRequestsSigned().toString());
-		identityProviderModel.getConfig().put("validateSignature", idpDescriptor.isWantAuthnRequestsSigned().toString());
-		identityProviderModel.getConfig().put("postBindingResponse", postBindingResponse.toString());
-		identityProviderModel.getConfig().put("postBindingAuthnRequest", postBindingResponse.toString());
-		identityProviderModel.getConfig().put("postBindingLogout", postBindingLogout.toString());
+		identityProviderModel.getConfig().put(SAMLConfigNames.SINGLE_LOGOUT_SERVICE_URL, singleLogoutServiceUrl);
+		identityProviderModel.getConfig().put(SAMLConfigNames.SINGLE_SIGN_ON_SERVICE_URL, singleSignOnServiceUrl);
+		identityProviderModel.getConfig().put(SAMLConfigNames.WANT_AUTHN_REQUESTS_SIGNED, idpDescriptor.isWantAuthnRequestsSigned().toString());
+		identityProviderModel.getConfig().put(SAMLConfigNames.VALIDATE_SIGNATURE, idpDescriptor.isWantAuthnRequestsSigned().toString());
+		identityProviderModel.getConfig().put(SAMLConfigNames.POST_BINDING_RESPONSE, postBindingResponse.toString());
+		identityProviderModel.getConfig().put(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, postBindingResponse.toString());
+		identityProviderModel.getConfig().put(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, postBindingLogout.toString());
 
 
 		List<KeyDescriptorType> keyDescriptor = idpDescriptor.getKeyDescriptor();
@@ -397,9 +399,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 						new QName("dsig", "X509Certificate"));
 
 				if (KeyTypes.SIGNING.equals(keyDescriptorType.getUse())) {
-				    identityProviderModel.getConfig().put("signingCertificate", x509KeyInfo.getTextContent());
+				    identityProviderModel.getConfig().put(SAMLConfigNames.SIGNING_CERTIFICATE_KEY, x509KeyInfo.getTextContent());
 				} else if (KeyTypes.ENCRYPTION.equals(keyDescriptorType.getUse())) {
-				    identityProviderModel.getConfig().put("encryptionPublicKey", x509KeyInfo.getTextContent());
+				    identityProviderModel.getConfig().put(SAMLConfigNames.ENCRYPTION_PUBLIC_KEY, x509KeyInfo.getTextContent());
 				} else if (keyDescriptorType.getUse() == null) {
 					defaultCertificate = x509KeyInfo.getTextContent();
 				}
@@ -409,29 +411,22 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		if (defaultCertificate != null) {
 
 			//array certificate
-			if (identityProviderModel.getConfig().get("signingCertificate")== null) {
-			    identityProviderModel.getConfig().put("signingCertificate", defaultCertificate);
+			if (identityProviderModel.getConfig().get(SAMLConfigNames.SIGNING_CERTIFICATE_KEY)== null) {
+			    identityProviderModel.getConfig().put(SAMLConfigNames.SIGNING_CERTIFICATE_KEY, defaultCertificate);
 			}
 
-			if (identityProviderModel.getConfig().get("encryptionPublicKey")== null) {
-			    identityProviderModel.getConfig().put("encryptionPublicKey", defaultCertificate);
+			if (identityProviderModel.getConfig().get(SAMLConfigNames.ENCRYPTION_PUBLIC_KEY)== null) {
+			    identityProviderModel.getConfig().put(SAMLConfigNames.ENCRYPTION_PUBLIC_KEY, defaultCertificate);
 			}
 		}
-
-		//saml aggregate metadata config parameters
-		if ( model.getConfig().get("wantAssertionsEncrypted") != null )
-		    identityProviderModel.getConfig().put("wantAssertionsEncrypted", model.getConfig().get("wantAssertionsEncrypted"));
-
-		if ( model.getConfig().get("wantAssertionsSigned") != null )
-		    identityProviderModel.getConfig().put("wantAssertionsSigned", model.getConfig().get("wantAssertionsSigned"));
 
 		if ( model.getNameIDPolicyFormat() != null) {
 			List<String> nameIdFormatList = idpDescriptor.getNameIDFormat();
-			identityProviderModel.getConfig().put("nameIDPolicyFormat",(nameIdFormatList != null && !nameIdFormatList.isEmpty()) ? nameIdFormatList.get(0) : model.getNameIDPolicyFormat());
+			identityProviderModel.getConfig().put(SAMLConfigNames.NAME_ID_POLICY_FORMAT,(nameIdFormatList != null && !nameIdFormatList.isEmpty()) ? nameIdFormatList.get(0) : model.getNameIDPolicyFormat());
 		}
 
-		if (identityProviderModel.getConfig().get("multiplePrincipals") == null) {
-			identityProviderModel.getConfig().put("multiplePrincipals", model.getConfig().get("multiplePrincipals"));
+		if (identityProviderModel.getConfig().get(SAMLConfigNames.MULTIPLE_PRINCIPALS) == null) {
+			identityProviderModel.getConfig().put(SAMLConfigNames.MULTIPLE_PRINCIPALS, model.getConfig().get(SAMLConfigNames.MULTIPLE_PRINCIPALS));
 		}
 
 		//attribute consuming service index/name set federation only during creation
@@ -500,6 +495,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                 .build();
 
             boolean wantAuthnRequestsSigned = model.isWantAuthnRequestsSigned();
+			boolean wantLogoutRequestsSigned = model.isWantLogoutRequestsSigned();
             boolean wantAssertionsSigned = model.isWantAssertionsSigned();
             boolean wantAssertionsEncrypted = model.isWantAssertionsEncrypted();
             String entityId = getEntityId(uriInfo, realm);
@@ -529,7 +525,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
 			SAMLMetadataWriter metadataWriter = new SAMLMetadataWriter(writer);
 
-			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(authnBinding, authnBinding, endpoint, endpoint, wantAuthnRequestsSigned,
+			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(authnBinding, authnBinding, endpoint, endpoint, wantAuthnRequestsSigned, wantLogoutRequestsSigned,
                 wantAssertionsSigned, wantAssertionsEncrypted, entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
 
 			// Create the AttributeConsumingService if at least one attribute importer mapper exists

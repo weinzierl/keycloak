@@ -38,6 +38,10 @@ public class SAMLIdPFederationModel extends IdentityProvidersFederationModel {
         return Boolean.valueOf(getConfig().get(WANT_AUTHN_REQUESTS_SIGNED));
     }
 
+    public boolean isWantLogoutRequestsSigned() {
+        return Boolean.valueOf(getConfig().get(WANT_LOGOUT_REQUESTS_SIGNED));
+    }
+
     public boolean isWantAssertionsSigned() {
         return Boolean.valueOf(getConfig().get(WANT_ASSERTIONS_SIGNED));
     }

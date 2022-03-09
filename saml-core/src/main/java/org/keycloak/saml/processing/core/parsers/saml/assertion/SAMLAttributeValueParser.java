@@ -80,9 +80,9 @@ public class SAMLAttributeValueParser implements StaxParser {
             if (xmlEvent instanceof StartElement) {
                 element = (StartElement) xmlEvent;
                 final QName qName = element.getName();
-                if (Objects.equals(qName, SAMLAssertionQNames.NAMEID.getQName())) {
-                    return SAMLParserUtil.parseNameIDType(xmlEventReader);
-                }
+//                if (Objects.equals(qName, SAMLAssertionQNames.NAMEID.getQName())) {
+//                    return SAMLParserUtil.parseNameIDType(xmlEventReader);
+//                }
             } else if (xmlEvent instanceof EndElement) {
                 return "";
             }

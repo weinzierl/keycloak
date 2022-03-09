@@ -11,6 +11,8 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ## [v16.1.0-rc1.0.6] - 2022-03-09
 ### Changed
 - Signing of SAML IdP logout requests separately [RCIAM-881](https://jira.argo.grnet.gr/browse/RCIAM-881)
+### Fixed
+- UserAttribute with NameIDType [RCIAM-881](https://jira.argo.grnet.gr/browse/RCIAM-881)
 
 ## [v16.1.0-rc1.0.5] - 2022-03-08
 ### Changed

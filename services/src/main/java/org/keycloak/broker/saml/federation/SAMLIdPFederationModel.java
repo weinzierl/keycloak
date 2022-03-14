@@ -1,6 +1,6 @@
 package org.keycloak.broker.saml.federation;
 
-import static org.keycloak.broker.saml.SAMLConfigNames.*;
+import static org.keycloak.broker.saml.SAMLIdentityProviderConfig.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;

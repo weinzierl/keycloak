@@ -1623,6 +1623,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
          $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
          $scope.identityProvidersFederation.config.xsltOverride = '';
+         $scope.identityProvidersFederation.config.spEntityId = $scope.identityProvidersFederation.config.spEntityId || (authUrl + '/realms/' + realm.realm);
          $scope.multiplePrincipals= [];
          $scope.newMultiplePrincipal={};
 	} else {

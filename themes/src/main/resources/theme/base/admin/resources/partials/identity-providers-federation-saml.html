@@ -86,6 +86,14 @@
 				<kc-tooltip>{{:: 'identity-provider.saml.protocol-endpoints.saml.tooltip' | translate}}</kc-tooltip>
 			</div>
 
+			<div class="form-group clearfix">
+				<label class="col-md-2 control-label" for="spEntityId"><span class="required">*</span> {{:: 'identity-provider.saml.sp-entity-id' | translate}}</label>
+				<div class="col-md-6">
+					<input kc-no-reserved-chars class="form-control" id="spEntityId" type="text" ng-model="identityProvidersFederation.config.spEntityId" required>
+				</div>
+				<kc-tooltip>{{:: 'identity-provider.saml.federation.sp-entity-id.tooltip' | translate}}</kc-tooltip>
+			</div>
+
 			<div class="form-group">
 				<label class="col-md-2 control-label" for="syncMode">{{:: 'sync-mode' | translate}}</label>
 				<div class="col-md-6">

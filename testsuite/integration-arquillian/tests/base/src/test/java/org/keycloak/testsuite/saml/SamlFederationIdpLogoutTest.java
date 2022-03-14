@@ -31,7 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.broker.saml.SAMLConfigNames;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.dom.saml.v2.SAML2Object;
@@ -275,11 +275,11 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		representation.setUpdateFrequencyInMins(60);
 		representation.setUrl(url);
 		Map<String,String> map = new HashMap<>();
-		map.put(SAMLConfigNames.NAME_ID_POLICY_FORMAT, "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");
-		map.put(SAMLConfigNames.WANT_AUTHN_REQUESTS_SIGNED, "false");
-		map.put(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, "false");
-		map.put(SAMLConfigNames.WANT_ASSERTIONS_ENCRYPTED, "false");
-		map.put(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, "false");
+		map.put(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT, "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");
+		map.put(SAMLIdentityProviderConfig.WANT_AUTHN_REQUESTS_SIGNED, "false");
+		map.put(SAMLIdentityProviderConfig.WANT_ASSERTIONS_SIGNED, "false");
+		map.put(SAMLIdentityProviderConfig.WANT_ASSERTIONS_ENCRYPTED, "false");
+		map.put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, "false");
 		LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
 		SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
 		pr.setPrincipalType(SamlPrincipalType.SUBJECT);
@@ -293,7 +293,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		pr3.setPrincipalType(SamlPrincipalType.SUBJECT);
 		pr3.setNameIDPolicyFormat(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get());
 		principals.add(pr3);
-		map.put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
+		map.put(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
 		representation.setConfig(map);
 
 		Response response = realm.identityProvidersFederation().create(representation);
@@ -315,9 +315,9 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 
 		assertNotNull(representation);
 
-		representation.getConfig().put(SAMLConfigNames.NAME_ID_POLICY_FORMAT,
+		representation.getConfig().put(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT,
 				JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get());
-		representation.getConfig().put(SAMLConfigNames.BACKCHANNEL_SUPPORTED, Boolean.FALSE.toString());
+		representation.getConfig().put(SAMLIdentityProviderConfig.BACKCHANNEL_SUPPORTED, Boolean.FALSE.toString());
 
 		identityProviderResource.update(representation);
 		return representation;

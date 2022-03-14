@@ -36,6 +36,15 @@ jobs:
       - name: Fetch tar.gz
         run: cp distribution/server-dist/target/keycloak*.tar.gz keycloak.tar.gz
 
+      - name: Compute sha1 hash
+        run: echo "sha1:" >> hashes.txt && sha1sum keycloak.tar.gz >> hashes.txt
+
+      - name: Compute sha256 hash
+        run: echo "sha256:" >> hashes.txt && sha256sum keycloak.tar.gz >> hashes.txt
+
+      - name: Compute md5 hash
+        run: echo "md5:" >> hashes.txt && md5sum keycloak.tar.gz >> hashes.txt
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -58,6 +67,16 @@ jobs:
           asset_name: keycloak.tar.gz
           asset_content_type: application/gzip
 
+      - name: Upload hash file
+        id: upload-hash-file
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./hashes.txt
+          asset_name: hashes.txt
+          asset_content_type: text/plain
 
       - name: Remove keycloak artifacts before caching
         if: steps.cache.outputs.cache-hit != 'true'

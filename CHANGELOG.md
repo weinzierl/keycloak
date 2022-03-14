@@ -8,9 +8,10 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 [Keycloak announcement for version 16.1.0](https://www.keycloak.org/2021/12/keycloak-1610-released)
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
-## [v16.1.0-rc1.0.6] - 2022-03-09
+## [v16.1.0-rc1.0.6] - 2022-03-14
 ### Changed
 - Signing of SAML IdP logout requests separately [RCIAM-881](https://jira.argo.grnet.gr/browse/RCIAM-881)
+- Service Provider Entity ID for SAMl Federation [RCIAM-904](https://jira.argo.grnet.gr/browse/RCIAM-904)
 
 ## [v16.1.0-rc1.0.5] - 2022-03-08
 ### Changed

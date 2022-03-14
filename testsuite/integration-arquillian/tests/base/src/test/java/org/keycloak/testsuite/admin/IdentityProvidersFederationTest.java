@@ -20,7 +20,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
-import org.keycloak.broker.saml.SAMLConfigNames;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
@@ -483,7 +483,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         pr3.setPrincipalType(SamlPrincipalType.ATTRIBUTE);
         pr3.setPrincipalAttribute("subject-id");
         principals.add(pr3);
-        config.put(SAMLConfigNames.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
+        config.put(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
         config.put("wantAssertionsEncrypted","true");
         config.put("wantAssertionsSigned","true");
         config.put("attributeConsumingServiceIndex","3");

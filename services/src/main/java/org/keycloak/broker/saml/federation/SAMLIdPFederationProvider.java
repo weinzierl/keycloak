@@ -47,7 +47,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jboss.logging.Logger;
 import org.keycloak.broker.federation.AbstractIdPFederationProvider;
 import org.keycloak.broker.provider.IdentityProviderMapper;
-import org.keycloak.broker.saml.SAMLConfigNames;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.connections.httpclient.HttpClientProvider;
@@ -231,16 +231,17 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
                     identityProviderModel.setAlias(alias);
                     // put default parameters
                     Map<String, String> config = new HashMap<>();
-                    config.put(SAMLConfigNames.ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO, "false");
-                    config.put(SAMLConfigNames.SIGNATURE_ALGORITHM, "RSA_SHA256");
-                    config.put(SAMLConfigNames.XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER, "KEY_ID");
+                    config.put(SAMLIdentityProviderConfig.ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO, "false");
+                    config.put(SAMLIdentityProviderConfig.SIGNATURE_ALGORITHM, "RSA_SHA256");
+                    config.put(SAMLIdentityProviderConfig.XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER, "KEY_ID");
 
                     config.put(IdentityProviderModel.SYNC_MODE, model.getConfig().get(IdentityProviderModel.SYNC_MODE));
                     config.put("loginHint", "false");
 
-					config.put(SAMLConfigNames.WANT_ASSERTIONS_ENCRYPTED, String.valueOf(model.isWantAssertionsEncrypted()));
-					config.put(SAMLConfigNames.WANT_ASSERTIONS_SIGNED, String.valueOf(model.isWantAssertionsSigned()));
-					config.put(SAMLConfigNames.WANT_LOGOUT_REQUESTS_SIGNED, String.valueOf(model.isWantLogoutRequestsSigned()));
+					config.put(SAMLIdentityProviderConfig.WANT_ASSERTIONS_ENCRYPTED, String.valueOf(model.isWantAssertionsEncrypted()));
+					config.put(SAMLIdentityProviderConfig.WANT_ASSERTIONS_SIGNED, String.valueOf(model.isWantAssertionsSigned()));
+					config.put(SAMLIdentityProviderConfig.WANT_LOGOUT_REQUESTS_SIGNED, String.valueOf(model.isWantLogoutRequestsSigned()));
+					config.put(SAMLIdentityProviderConfig.SP_ENTITY_ID, model.getConfig().get(SAMLIdentityProviderConfig.SP_ENTITY_ID));
 
                     config.put("promotedLoginbutton", "false");
                     identityProviderModel.setConfig(config);
@@ -380,13 +381,13 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
 		}
 
-		identityProviderModel.getConfig().put(SAMLConfigNames.SINGLE_LOGOUT_SERVICE_URL, singleLogoutServiceUrl);
-		identityProviderModel.getConfig().put(SAMLConfigNames.SINGLE_SIGN_ON_SERVICE_URL, singleSignOnServiceUrl);
-		identityProviderModel.getConfig().put(SAMLConfigNames.WANT_AUTHN_REQUESTS_SIGNED, idpDescriptor.isWantAuthnRequestsSigned().toString());
-		identityProviderModel.getConfig().put(SAMLConfigNames.VALIDATE_SIGNATURE, idpDescriptor.isWantAuthnRequestsSigned().toString());
-		identityProviderModel.getConfig().put(SAMLConfigNames.POST_BINDING_RESPONSE, postBindingResponse.toString());
-		identityProviderModel.getConfig().put(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, postBindingResponse.toString());
-		identityProviderModel.getConfig().put(SAMLConfigNames.POST_BINDING_AUTHN_REQUEST, postBindingLogout.toString());
+		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.SINGLE_LOGOUT_SERVICE_URL, singleLogoutServiceUrl);
+		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.SINGLE_SIGN_ON_SERVICE_URL, singleSignOnServiceUrl);
+		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.WANT_AUTHN_REQUESTS_SIGNED, idpDescriptor.isWantAuthnRequestsSigned().toString());
+		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.VALIDATE_SIGNATURE, idpDescriptor.isWantAuthnRequestsSigned().toString());
+		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.POST_BINDING_RESPONSE, postBindingResponse.toString());
+		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, postBindingResponse.toString());
+		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, postBindingLogout.toString());
 
 
 		List<KeyDescriptorType> keyDescriptor = idpDescriptor.getKeyDescriptor();
@@ -399,9 +400,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 						new QName("dsig", "X509Certificate"));
 
 				if (KeyTypes.SIGNING.equals(keyDescriptorType.getUse())) {
-				    identityProviderModel.getConfig().put(SAMLConfigNames.SIGNING_CERTIFICATE_KEY, x509KeyInfo.getTextContent());
+				    identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.SIGNING_CERTIFICATE_KEY, x509KeyInfo.getTextContent());
 				} else if (KeyTypes.ENCRYPTION.equals(keyDescriptorType.getUse())) {
-				    identityProviderModel.getConfig().put(SAMLConfigNames.ENCRYPTION_PUBLIC_KEY, x509KeyInfo.getTextContent());
+				    identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.ENCRYPTION_PUBLIC_KEY, x509KeyInfo.getTextContent());
 				} else if (keyDescriptorType.getUse() == null) {
 					defaultCertificate = x509KeyInfo.getTextContent();
 				}
@@ -411,22 +412,22 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		if (defaultCertificate != null) {
 
 			//array certificate
-			if (identityProviderModel.getConfig().get(SAMLConfigNames.SIGNING_CERTIFICATE_KEY)== null) {
-			    identityProviderModel.getConfig().put(SAMLConfigNames.SIGNING_CERTIFICATE_KEY, defaultCertificate);
+			if (identityProviderModel.getConfig().get(SAMLIdentityProviderConfig.SIGNING_CERTIFICATE_KEY)== null) {
+			    identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.SIGNING_CERTIFICATE_KEY, defaultCertificate);
 			}
 
-			if (identityProviderModel.getConfig().get(SAMLConfigNames.ENCRYPTION_PUBLIC_KEY)== null) {
-			    identityProviderModel.getConfig().put(SAMLConfigNames.ENCRYPTION_PUBLIC_KEY, defaultCertificate);
+			if (identityProviderModel.getConfig().get(SAMLIdentityProviderConfig.ENCRYPTION_PUBLIC_KEY)== null) {
+			    identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.ENCRYPTION_PUBLIC_KEY, defaultCertificate);
 			}
 		}
 
 		if ( model.getNameIDPolicyFormat() != null) {
 			List<String> nameIdFormatList = idpDescriptor.getNameIDFormat();
-			identityProviderModel.getConfig().put(SAMLConfigNames.NAME_ID_POLICY_FORMAT,(nameIdFormatList != null && !nameIdFormatList.isEmpty()) ? nameIdFormatList.get(0) : model.getNameIDPolicyFormat());
+			identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.NAME_ID_POLICY_FORMAT,(nameIdFormatList != null && !nameIdFormatList.isEmpty()) ? nameIdFormatList.get(0) : model.getNameIDPolicyFormat());
 		}
 
-		if (identityProviderModel.getConfig().get(SAMLConfigNames.MULTIPLE_PRINCIPALS) == null) {
-			identityProviderModel.getConfig().put(SAMLConfigNames.MULTIPLE_PRINCIPALS, model.getConfig().get(SAMLConfigNames.MULTIPLE_PRINCIPALS));
+		if (identityProviderModel.getConfig().get(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS) == null) {
+			identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS, model.getConfig().get(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS));
 		}
 
 		//attribute consuming service index/name set federation only during creation
@@ -591,7 +592,12 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
     }
 
 	private String getEntityId(UriInfo uriInfo, RealmModel realm) {
-        return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
-    }
+		String configEntityId = model.getConfig().get(SAMLIdentityProviderConfig.SP_ENTITY_ID);
+
+		if (configEntityId == null || configEntityId.isEmpty())
+			return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
+		else
+			return configEntityId;
+	}
 
 }

@@ -1642,10 +1642,11 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.newCategoryDenyList.value = [];
 		 $scope.identityProvidersFederation.config = {};
 		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
-         $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
-		 $scope.identityProvidersFederation.config.xsltOverride = '';
-         $scope.multiplePrincipals= [];
-          $scope.newMultiplePrincipal={};
+                 $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+                 $scope.identityProvidersFederation.config.xsltOverride = '';
+                 $scope.identityProvidersFederation.config.spEntityId = $scope.identityProvidersFederation.config.spEntityId || (authUrl + '/realms/' + realm.realm);
+                 $scope.multiplePrincipals= [];
+                 $scope.newMultiplePrincipal={};
 	} else {
 		 $scope.newCategoryAllowList = {};
 		 $scope.newCategoryAllowList.key='';

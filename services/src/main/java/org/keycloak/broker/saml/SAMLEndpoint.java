@@ -794,7 +794,14 @@ public class SAMLEndpoint {
                 .map(AttributeType::getAttributeValue)
                 .flatMap(Collection::stream)
                 .findFirst()
-                .map(Object::toString)
+                .map(val -> {
+                    if (val != null && val instanceof NameIDType) {
+                        NameIDType nameIDType = (NameIDType) val;
+                        return nameIDType.getValue();
+                    } else {
+                        return val.toString();
+                    }
+                })
                 .orElse(null);
     }
 

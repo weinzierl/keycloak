@@ -1561,15 +1561,17 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             });
         });
         updatedIdPs.stream().forEach(this::updateIdentityProviderFromFed);
-        em.createNamedQuery("deleteFederatedIdentityByProviders")
-                .setParameter("realmId", realm.getId())
-                .setParameter("providerAlias", removedIdPs).executeUpdate();
-        removedIdPs.stream().forEach(alias -> {
-            //remove mappers also
-            logger.info("Removing idp with alias = "+alias);
-            this.removeFederationIdp(identityProvidersFederationModel, alias);
-            this.getIdentityProviderMappersByAliasStream(alias).forEach(this::removeIdentityProviderMapper);
-        });
+        if(removedIdPs != null && !removedIdPs.isEmpty()) {
+            em.createNamedQuery("deleteFederatedIdentityByProviders")
+                    .setParameter("realmId", realm.getId())
+                    .setParameter("providerAlias", removedIdPs).executeUpdate();
+            removedIdPs.stream().forEach(alias -> {
+                //remove mappers also
+                logger.info("Removing idp with alias = " + alias);
+                this.removeFederationIdp(identityProvidersFederationModel, alias);
+                this.getIdentityProviderMappersByAliasStream(alias).forEach(this::removeIdentityProviderMapper);
+            });
+        }
         this.updateIdentityProvidersFederation(identityProvidersFederationModel);
     }
 

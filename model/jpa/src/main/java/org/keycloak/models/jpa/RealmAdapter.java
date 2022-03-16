@@ -1553,14 +1553,17 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             });
         });
         updatedIdPs.stream().forEach(this::updateIdentityProviderFromFed);
-        em.createNamedQuery("deleteFederatedIdentityByProviders")
-                .setParameter("realmId", realm.getId())
-                .setParameter("providerAlias", removedIdPs).executeUpdate();
-        removedIdPs.stream().forEach(alias -> {
-            //remove mappers also
-            this.removeFederationIdp(identityProvidersFederationModel, alias);
-            this.getIdentityProviderMappersByAliasStream(alias).forEach(this::removeIdentityProviderMapper);
-        });
+        if(removedIdPs != null && !removedIdPs.isEmpty()) {
+            em.createNamedQuery("deleteFederatedIdentityByProviders")
+                    .setParameter("realmId", realm.getId())
+                    .setParameter("providerAlias", removedIdPs).executeUpdate();
+            removedIdPs.stream().forEach(alias -> {
+                //remove mappers also
+                logger.info("Removing idp with alias = " + alias);
+                this.removeFederationIdp(identityProvidersFederationModel, alias);
+                this.getIdentityProviderMappersByAliasStream(alias).forEach(this::removeIdentityProviderMapper);
+            });
+        }
         this.updateIdentityProvidersFederation(identityProvidersFederationModel);
     }
 
@@ -1804,6 +1807,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     @Override
     public void removeIdentityProviderMapper(IdentityProviderMapperModel mapping) {
         IdentityProviderMapperEntity toDelete = getIdentityProviderMapperEntity(mapping.getId());
+        logger.info(toDelete == null ? "Problem in removing":"Removing" + " IdentityProviderMapperModel for IdP with alias = "+mapping.getIdentityProviderAlias()+" and name = "+mapping.getName());
         if (toDelete != null) {
             this.realm.getIdentityProviderMappers().remove(toDelete);
             em.remove(toDelete);

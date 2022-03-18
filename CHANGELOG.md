@@ -11,6 +11,7 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ## [v16.1.0-rc1.0.7] - 2022-03-17
 ### Changed
 - Add ePTID principal option [RCIAM-916](https://jira.argo.grnet.gr/browse/RCIAM-916)
+- Add is required configuration option for UserAttributeMapper and AttributeToRoleMapper [RCIAM-861](https://jira.argo.grnet.gr/browse/RCIAM-861)
 
 ## [v16.1.0-rc1.0.6] - 2022-03-14
 ### Changed

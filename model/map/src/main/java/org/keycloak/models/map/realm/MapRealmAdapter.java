@@ -17,6 +17,7 @@
 package org.keycloak.models.map.realm;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1008,6 +1009,7 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
         } );
         addIdPs.addAll(updatedIdPs);
         identityProvidersFederationModel.setIdps(addIdPs.stream().map(IdentityProviderModel::getAlias).collect(Collectors.toList()));
+        identityProvidersFederationModel.setLastMetadataRefreshTimestamp(new Date().getTime());
         this.updateIdentityProvidersFederation(identityProvidersFederationModel);
     }
 

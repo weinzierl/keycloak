@@ -13,6 +13,10 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 - Add ePTID principal option [RCIAM-916](https://jira.argo.grnet.gr/browse/RCIAM-916)
 - Add is required configuration option for UserAttributeMapper and AttributeToRoleMapper [RCIAM-861](https://jira.argo.grnet.gr/browse/RCIAM-861)
 
+### Fixed
+- Fix ConcurrentModificationException bug when removing IdP from SAML federation
+- Do not remove connection with Users for a removed IdP member of over one SAML federation [RCIAM-929](https://jira.argo.grnet.gr/browse/RCIAM-929)
+
 ## [v16.1.0-rc1.0.6] - 2022-03-14
 ### Changed
 - Signing of SAML IdP logout requests separately [RCIAM-881](https://jira.argo.grnet.gr/browse/RCIAM-881)

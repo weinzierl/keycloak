@@ -268,7 +268,6 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
 		}
 
-		model.setLastMetadataRefreshTimestamp(new Date().getTime());
 	    realm.taskExecutionFederation(model, addedIdps, updatedIdps, existingIdps);
 
 		logger.info("Finished updating IdPs of federation (id): " + model.getInternalId());

@@ -410,11 +410,41 @@ module.controller('RealmLoginSettingsCtrl', function($scope, Current, Realm, rea
     genericRealmUpdate($scope, Current, Realm, realm, serverInfo, $http, $route, Dialog, Notifications, "/realms/" + realm.realm + "/login-settings");
 });
 
+module.controller('RealmOidcEndpointConfigCtrl', function($scope, Current, Realm, realm, serverInfo, $http, $route, Dialog, Notifications) {
+
+    $scope.deleteClaimsSupported = function(index) {
+        $scope.realm.claimsSupported.splice(index, 1);
+        $scope.changed = true;
+    }
+    $scope.addClaimsSupported = function() {
+        $scope.realm.claimsSupported.push($scope.newClaimsSupported);
+        $scope.newClaimsSupported = "";
+        $scope.changed = true;
+    }
+    $scope.checkNewClaimsSupported = function() {
+        if ($scope.newClaimsSupported && $scope.newClaimsSupported.length > 0 ) {
+           $scope.addClaimsSupported();
+        }
+    }
+
+    genericRealmUpdate($scope, Current, Realm, realm, serverInfo, $http, $route, Dialog, Notifications, "/realms/" + realm.realm + "/oidc-endpoint-config", $scope.checkNewClaimsSupported);
+
+    var oldClaimsSupported = $scope.realm.claimsSupported;
+    $scope.$watch('realm.claimsSupported', function() {
+        var changed = $scope.realm.claimsSupported != oldClaimsSupported;
+        if (changed) {
+            $scope.changed = true;
+        }
+    }, true);
+
+});
+
 module.controller('RealmOtpPolicyCtrl', function($scope, Current, Realm, realm, serverInfo, $http, $route, Dialog, Notifications) {
     $scope.optionsDigits = [ 6, 8 ];
 
     genericRealmUpdate($scope, Current, Realm, realm, serverInfo, $http, $route, Dialog, Notifications, "/realms/" + realm.realm + "/authentication/otp-policy");
 });
+
 
 module.controller('RealmWebAuthnPolicyCtrl', function ($scope, Current, Realm, realm, serverInfo, $http, $route, $location, Dialog, Notifications) {
 

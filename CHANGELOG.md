@@ -8,6 +8,10 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 [Keycloak announcement for version 16.1.0](https://www.keycloak.org/2021/12/keycloak-1610-released)
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
+## [v16.1.0-rc1.0.8] - 2022-03-28
+### Changed
+- Support for configuring claims supported in Keycloak OP metadata [RCIAM-899](https://jira.argo.grnet.gr/browse/RCIAM-899)
+
 ## [v16.1.0-rc1.0.7] - 2022-03-17
 ### Changed
 - Add ePTID principal option [RCIAM-916](https://jira.argo.grnet.gr/browse/RCIAM-916)

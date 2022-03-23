@@ -232,8 +232,8 @@ module.config([ '$routeProvider', function($routeProvider) {
             },
             controller : 'RealmThemeCtrl'
         })
-        .when('/realms/:realm/cache-settings', {
-            templateUrl : resourceUrl + '/partials/realm-cache-settings.html',
+        .when('/realms/:realm/oidc-endpoint-config', {
+            templateUrl : resourceUrl + '/partials/realm-oidc-endpoint-config.html',
             resolve : {
                 realm : function(RealmLoader) {
                     return RealmLoader();
@@ -242,8 +242,20 @@ module.config([ '$routeProvider', function($routeProvider) {
                     return ServerInfoLoader();
                 }
             },
-            controller : 'RealmCacheCtrl'
+            controller : 'RealmOidcEndpointConfigCtrl'
         })
+        .when('/realms/:realm/cache-settings', {
+                    templateUrl : resourceUrl + '/partials/realm-cache-settings.html',
+                    resolve : {
+                        realm : function(RealmLoader) {
+                            return RealmLoader();
+                        },
+                        serverInfo : function(ServerInfoLoader) {
+                            return ServerInfoLoader();
+                        }
+                    },
+                    controller : 'RealmCacheCtrl'
+                })
         .when('/realms', {
             templateUrl : resourceUrl + '/partials/realm-list.html',
             controller : 'RealmListCtrl'

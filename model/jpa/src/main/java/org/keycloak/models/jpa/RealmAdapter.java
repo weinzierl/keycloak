@@ -34,6 +34,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
@@ -624,6 +625,20 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     public void setActionTokenGeneratedByUserLifespan(String actionTokenId, Integer actionTokenGeneratedByUserLifespan) {
         if (actionTokenGeneratedByUserLifespan != null)
             setAttribute(RealmAttributes.ACTION_TOKEN_GENERATED_BY_USER_LIFESPAN + "." + actionTokenId, actionTokenGeneratedByUserLifespan);
+    }
+
+    @Override
+    public List<String> getClaimsSupported() {
+        if (getAttribute(RealmAttributes.CLAIMS_SUPPORTED) != null) {
+            return new ArrayList<String>(Arrays.asList(getAttribute(RealmAttributes.CLAIMS_SUPPORTED).split(",")));
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void setClaimsSupported(List<String> claimsSupported) {
+        setAttribute(RealmAttributes.CLAIMS_SUPPORTED, claimsSupported.stream().collect(Collectors.joining(",")));
     }
 
     protected RequiredCredentialModel initRequiredCredentialModel(String type) {

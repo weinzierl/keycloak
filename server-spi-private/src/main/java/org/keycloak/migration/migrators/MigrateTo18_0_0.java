@@ -25,6 +25,7 @@ import org.keycloak.migration.ModelVersion;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.representations.idm.RealmRepresentation;
 
 /**
@@ -54,6 +55,7 @@ public class MigrateTo18_0_0 implements Migration {
     }
 
     protected void migrateRealm(KeycloakSession session, RealmModel realm) {
+        realm.setClaimsSupported(RepresentationToModel.DEFAULT_CLAIMS_SUPPORTED);
         if (Profile.isFeatureEnabled(Profile.Feature.STEP_UP_AUTHENTICATION)) {
             MigrationProvider migrationProvider = session.getProvider(MigrationProvider.class);
 

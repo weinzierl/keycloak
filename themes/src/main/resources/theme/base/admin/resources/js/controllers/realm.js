@@ -2179,6 +2179,7 @@ module.controller('RealmTokenDetailCtrl', function($scope, Realm, realm, $http, 
     $scope.actionTokenProviders = $scope.serverInfo.providers.actionTokenHandler.providers;
 
     $scope.realm.accessTokenLifespan = TimeUnit2.asUnit(realm.accessTokenLifespan);
+    $scope.realm.idTokenLifespan = TimeUnit2.asUnit(realm.idTokenLifespan);
     $scope.realm.accessTokenLifespanForImplicitFlow = TimeUnit2.asUnit(realm.accessTokenLifespanForImplicitFlow);
     $scope.realm.ssoSessionIdleTimeout = TimeUnit2.asUnit(realm.ssoSessionIdleTimeout);
     $scope.realm.ssoSessionMaxLifespan = TimeUnit2.asUnit(realm.ssoSessionMaxLifespan);
@@ -2240,6 +2241,8 @@ module.controller('RealmTokenDetailCtrl', function($scope, Realm, realm, $http, 
 
     $scope.save = function() {
         $scope.realm.accessTokenLifespan = $scope.realm.accessTokenLifespan.toSeconds();
+        if ($scope.realm.idTokenLifespan != null)
+            $scope.realm.idTokenLifespan = $scope.realm.idTokenLifespan.toSeconds();
         $scope.realm.accessTokenLifespanForImplicitFlow = $scope.realm.accessTokenLifespanForImplicitFlow.toSeconds();
         $scope.realm.ssoSessionIdleTimeout = $scope.realm.ssoSessionIdleTimeout.toSeconds();
         $scope.realm.ssoSessionMaxLifespan = $scope.realm.ssoSessionMaxLifespan.toSeconds();

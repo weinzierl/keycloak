@@ -81,6 +81,7 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     private static final String MAX_DELTA_SECONDS = "maxDeltaTimeSeconds";
     private static final String FAILURE_FACTOR = "failureFactor";
     private static final String CLAIMS_SUPPORTED = "claimsSupported";
+    private static final String ID_TOKEN_LIFESPAN = "idTokenLifespan";
 
     private PasswordPolicy passwordPolicy;
 
@@ -378,6 +379,17 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     @Override
     public void setAccessTokenLifespan(int seconds) {
         entity.setAccessTokenLifespan(seconds);
+    }
+
+    @Override
+    public Integer getIdTokenLifespan() {
+        String idTokenLifespan = getAttribute(ID_TOKEN_LIFESPAN);
+        return idTokenLifespan != null ? Integer.parseInt(idTokenLifespan) : null;
+    }
+
+    @Override
+    public void setIdTokenLifespan(int seconds) {
+        setAttribute(ID_TOKEN_LIFESPAN, seconds);
     }
 
     @Override

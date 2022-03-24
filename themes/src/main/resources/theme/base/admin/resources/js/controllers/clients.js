@@ -1183,6 +1183,7 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
     $scope.useIdTokenAsDetachedSignature = false;
 
     $scope.accessTokenLifespan = TimeUnit2.asUnit(client.attributes['access.token.lifespan']);
+    $scope.idTokenLifespan = TimeUnit2.asUnit(client.attributes['id.token.lifespan']);
     $scope.samlAssertionLifespan = TimeUnit2.asUnit(client.attributes['saml.assertion.lifespan']);
     $scope.clientSessionIdleTimeout = TimeUnit2.asUnit(client.attributes['client.session.idle.timeout']);
     $scope.clientSessionMaxLifespan = TimeUnit2.asUnit(client.attributes['client.session.max.lifespan']);
@@ -1663,6 +1664,14 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
             $scope.clientEdit.attributes['access.token.lifespan'] = null;
         }
     }
+
+     $scope.updateIdTokenTimeouts = function() {
+            if ($scope.idTokenLifespan.time) {
+                $scope.clientEdit.attributes['id.token.lifespan'] = $scope.idTokenLifespan.toSeconds();
+            } else {
+                $scope.clientEdit.attributes['id.token.lifespan'] = null;
+            }
+        }
 
     $scope.updateAssertionLifespan = function() {
         if ($scope.samlAssertionLifespan.time) {

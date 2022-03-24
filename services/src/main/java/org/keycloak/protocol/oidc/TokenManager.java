@@ -1110,12 +1110,27 @@ public class TokenManager {
             idToken.setNonce(accessToken.getNonce());
             idToken.setAuthTime(accessToken.getAuthTime());
             idToken.setSessionState(accessToken.getSessionState());
-            idToken.expiration(accessToken.getExpiration());
+            idToken.exp(getIdTokenExpiration(accessToken.getExp()));
             idToken.setAcr(accessToken.getAcr());
             if (isIdTokenAsDetachedSignature == false) {
                 transformIDToken(session, idToken, userSession, clientSessionCtx);
             }
             return this;
+        }
+
+        private Long getIdTokenExpiration(Long accessTokenLifespan){
+            Integer idTokenLifespan;
+            String clientIdTokenLifespan = client.getAttribute(OIDCConfigAttributes.ID_TOKEN_LIFESPAN);
+            if (clientIdTokenLifespan != null && !clientIdTokenLifespan.trim().isEmpty()) {
+                idTokenLifespan = Integer.parseInt(clientIdTokenLifespan);
+            } else {
+                idTokenLifespan = realm.getIdTokenLifespan();
+            }
+            if (idTokenLifespan== null ) {
+                return accessTokenLifespan;
+            } else {
+                return idToken.getIat() + idTokenLifespan;
+            }
         }
 
         public AccessTokenResponseBuilder generateAccessTokenHash() {

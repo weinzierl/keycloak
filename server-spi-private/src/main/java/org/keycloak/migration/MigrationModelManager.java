@@ -25,6 +25,7 @@ import org.keycloak.common.Version;
 import org.keycloak.migration.migrators.MigrateTo14_0_0;
 import org.keycloak.migration.migrators.MigrateTo12_0_0;
 import org.keycloak.migration.migrators.MigrateTo16_0_0;
+import org.keycloak.migration.migrators.MigrateTo16_1_0_2_0;
 import org.keycloak.migration.migrators.MigrateTo1_2_0;
 import org.keycloak.migration.migrators.MigrateTo1_3_0;
 import org.keycloak.migration.migrators.MigrateTo1_4_0;
@@ -98,7 +99,8 @@ public class MigrationModelManager {
             new MigrateTo9_0_4(),
             new MigrateTo12_0_0(),
             new MigrateTo14_0_0(),
-            new MigrateTo16_0_0()
+            new MigrateTo16_0_0(),
+            new MigrateTo16_1_0_2_0()
     };
 
     public static void migrate(KeycloakSession session) {
@@ -110,11 +112,13 @@ public class MigrationModelManager {
         ModelVersion latestUpdate = migrations[migrations.length-1].getVersion();
         ModelVersion databaseVersion = model.getStoredVersion() != null ? new ModelVersion(model.getStoredVersion()) : null;
 
+        logger.info("currentVersion === "+currentVersion.toString()+ ",databaseVersion "+ (databaseVersion == null ? "empty" : databaseVersion.toString()) + ", latestUpdate"+ ( latestUpdate == null ? "empty" :  latestUpdate.toString()));
+
         if (databaseVersion == null || databaseVersion.lessThan(latestUpdate)) {
             for (Migration m : migrations) {
                 if (databaseVersion == null || databaseVersion.lessThan(m.getVersion())) {
                     if (databaseVersion != null) {
-                        logger.debugf("Migrating older model to %s", m.getVersion());
+                        logger.infof("Migrating older model to %s", m.getVersion());
                     }
                     m.migrate(session);
                 }

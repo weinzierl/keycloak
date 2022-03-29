@@ -264,6 +264,13 @@
                 <kc-tooltip>{{:: 'http-post-binding-logout.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
+                <label class="col-md-2 control-label" for="postBindingLogoutReceivingRequest">{{:: 'http-post-binding-logout-request' | translate}}</label>
+                <div class="col-md-6">
+                    <input ng-model="identityProvider.config.postBindingLogoutReceivingRequest" id="postBindingLogoutReceivingRequest" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+                </div>
+                <kc-tooltip>{{:: 'http-post-binding-logout-request.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
                 <label class="col-md-2 control-label" for="wantAuthnRequestsSigned">{{:: 'want-authn-requests-signed' | translate}}</label>
                 <div class="col-md-6">
                     <input ng-model="identityProvider.config.wantAuthnRequestsSigned" id="wantAuthnRequestsSigned" name="wantAuthnRequestsSigned" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />

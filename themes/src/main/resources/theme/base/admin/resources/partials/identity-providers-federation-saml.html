@@ -172,15 +172,23 @@
 			</div>
 
 			<div class="form-group">
-				<label class="col-md-2 control-label" for="postBindingAuthnRequest">{{::'http-post-binding-for-authn-request' | translate}}</label>
+				<label class="col-md-2 control-label" for="postBindingResponse">{{::'http-post-binding-response' | translate}}</label>
 				<div class="col-md-6">
 					<input
-						ng-model="identityProvidersFederation.config.postBindingAuthnRequest"
-						id="postBindingAuthnRequest" onoffswitchvalue
+						ng-model="identityProvidersFederation.config.postBindingResponse"
+						id="postBindingResponse" onoffswitchvalue
 						on-text="{{:: 'onText' | translate}}"
 						off-text="{{:: 'offText' | translate}}" />
 				</div>
-				<kc-tooltip>{{::'http-post-binding-for-authn-request.tooltip' | translate}}</kc-tooltip>
+				<kc-tooltip>{{::'http-post-binding-response.tooltip' | translate}}</kc-tooltip>
+			</div>
+
+			<div class="form-group">
+				<label class="col-md-2 control-label" for="postBindingLogoutReceivingRequest">{{:: 'http-post-binding-logout-request' | translate}}</label>
+				<div class="col-md-6">
+					<input ng-model="identityProvidersFederation.config.postBindingLogoutReceivingRequest" id="postBindingLogoutReceivingRequest" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+				</div>
+				<kc-tooltip>{{:: 'http-post-binding-logout-request.tooltip' | translate}}</kc-tooltip>
 			</div>
 
 			<div class="form-group">

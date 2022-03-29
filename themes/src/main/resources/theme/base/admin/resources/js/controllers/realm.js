@@ -1197,6 +1197,7 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
         $scope.identityProvider.authenticateByDefault = false;
         $scope.identityProvider.firstBrokerLoginFlowAlias = 'first broker login';
         $scope.identityProvider.config.useJwksUrl = 'true';
+        $scope.identityProvider.config.postBindingLogoutReceivingRequest = 'false';
         $scope.identityProvider.config.syncMode = 'IMPORT';
         if ($scope.identityProvider.providerId == 'saml'){
             $scope.multiplePrincipals= [];
@@ -1622,6 +1623,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.config = {};
 		 $scope.identityProvidersFederation.config.nameIDPolicyFormat = $scope.nameIdFormats[0].format;
          $scope.identityProvidersFederation.config.principalType = $scope.principalTypes[0].type;
+         $scope.identityProvidersFederation.config.postBindingResponse = 'true';
          $scope.identityProvidersFederation.config.xsltOverride = '';
          $scope.identityProvidersFederation.config.spEntityId = $scope.identityProvidersFederation.config.spEntityId || (authUrl + '/realms/' + realm.realm);
          $scope.multiplePrincipals= [];

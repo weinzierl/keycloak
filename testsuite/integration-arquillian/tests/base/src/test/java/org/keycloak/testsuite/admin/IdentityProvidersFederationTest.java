@@ -113,14 +113,14 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
             assertEquals("not saml IdP", "saml", idp.getProviderId());
             assertNotNull("empty IdP config", idp.getConfig());
             assertTrue("IdP singleSignOnServiceUrl not exist", idp.getConfig().containsKey("singleSignOnServiceUrl"));
-            assertTrue("IdP postBindingResponse not exist", idp.getConfig().containsKey("postBindingResponse"));
-            assertTrue( Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
-            //change postBindingResponse to false
-            idp.getConfig().put("postBindingResponse", "false");
+            assertTrue("IdP postBindingAuthnRequest not exist", idp.getConfig().containsKey("postBindingAuthnRequest"));
+            assertTrue( Boolean.valueOf(idp.getConfig().get("postBindingAuthnRequest")));
+            //change postBindingAuthnRequest to false
+            idp.getConfig().put("postBindingAuthnRequest", "false");
             IdentityProviderResource identityProviderResource = realm.identityProviders().get(idp.getAlias());
             identityProviderResource.update(idp);
             idp = identityProviderResource.toRepresentation();
-            assertFalse( Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
+            assertFalse( Boolean.valueOf(idp.getConfig().get("postBindingAuthnRequest")));
             //check that its idp has one attribute importer mapper
             List<IdentityProviderMapperRepresentation> mappers = identityProviderResource.getMappers();
             assertEquals(1, mappers.size());
@@ -142,8 +142,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         idps.stream().forEach(idpAlias -> {
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
             IdentityProviderRepresentation idp = provider.toRepresentation();
-            assertTrue("IdP postBindingResponse not exist", idp.getConfig().containsKey("postBindingResponse"));
-            assertTrue( Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
+            assertTrue("IdP postBindingResponse not exist", idp.getConfig().containsKey("postBindingAuthnRequest"));
+            assertTrue( Boolean.valueOf(idp.getConfig().get("postBindingAuthnRequest")));
         });
 
         removeFederation(representation.getInternalId());
@@ -184,8 +184,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
             assertEquals("not saml IdP", "saml", idp.getProviderId());
             assertNotNull("empty IdP config", idp.getConfig());
             assertTrue("IdP singleSignOnServiceUrl not exist", idp.getConfig().containsKey("singleSignOnServiceUrl"));
-            assertTrue("IdP postBindingResponse not exist", idp.getConfig().containsKey("postBindingResponse"));
-            assertTrue(Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
+            assertTrue("IdP postBindingAuthnRequest not exist", idp.getConfig().containsKey("postBindingAuthnRequest"));
+            assertTrue(Boolean.valueOf(idp.getConfig().get("postBindingAuthnRequest")));
         });
 
 		removeFederation(representation.getInternalId());
@@ -226,8 +226,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
             assertEquals("not saml IdP", "saml", idp.getProviderId());
             assertNotNull("empty IdP config", idp.getConfig());
             assertTrue("IdP singleSignOnServiceUrl not exist", idp.getConfig().containsKey("singleSignOnServiceUrl"));
-            assertTrue("IdP postBindingResponse not exist", idp.getConfig().containsKey("postBindingResponse"));
-            assertTrue(Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
+            assertTrue("IdP postBindingAuthnRequest not exist", idp.getConfig().containsKey("postBindingAuthnRequest"));
+            assertTrue(Boolean.valueOf(idp.getConfig().get("postBindingAuthnRequest")));
         });
 
         removeFederation(representation.getInternalId());
@@ -265,8 +265,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
             assertEquals("not saml IdP", "saml", idp.getProviderId());
             assertNotNull("empty IdP config", idp.getConfig());
             assertTrue("IdP singleSignOnServiceUrl not exist", idp.getConfig().containsKey("singleSignOnServiceUrl"));
-            assertTrue("IdP postBindingResponse not exist", idp.getConfig().containsKey("postBindingResponse"));
-            assertTrue(Boolean.valueOf(idp.getConfig().get("postBindingResponse")));
+            assertTrue("IdP postBindingAuthnRequest not exist", idp.getConfig().containsKey("postBindingAuthnRequest"));
+            assertTrue(Boolean.valueOf(idp.getConfig().get("postBindingAuthnRequest")));
         });
 
         removeFederation(representation.getInternalId());
@@ -486,6 +486,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         config.put(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
         config.put("wantAssertionsEncrypted","true");
         config.put("wantAssertionsSigned","true");
+        config.put("postBindingResponse","true");
+        config.put("postBindingLogoutReceivingRequest","true");
         config.put("attributeConsumingServiceIndex","3");
         config.put("attributeConsumingServiceName","federation");
         representation.setConfig(config);

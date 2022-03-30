@@ -347,9 +347,14 @@ public class SAMLIdentityProvider extends AbstractIdentityProvider<SAMLIdentityP
         try
         {
             URI authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
+            URI authnBindingLogout = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
 
-            if (getConfig().isPostBindingAuthnRequest()) {
+            if (getConfig().isPostBindingResponse()) {
                 authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
+            }
+
+            if (getConfig().isPostBindingLogoutReceivingRequest()) {
+                authnBindingLogout = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
             }
 
             URI endpoint = uriInfo.getBaseUriBuilder()
@@ -395,7 +400,7 @@ public class SAMLIdentityProvider extends AbstractIdentityProvider<SAMLIdentityP
             SAMLMetadataWriter metadataWriter = new SAMLMetadataWriter(writer);
 
             EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(
-                authnBinding, authnBinding, endpoint, endpoint,
+                authnBinding, authnBindingLogout, endpoint, endpoint,
                 wantAuthnRequestsSigned,wantLogoutRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
                 entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
 

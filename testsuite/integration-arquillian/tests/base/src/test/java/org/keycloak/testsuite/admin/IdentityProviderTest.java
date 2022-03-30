@@ -925,7 +925,6 @@ public class IdentityProviderTest extends AbstractAdminTest {
           "validateSignature",
           "singleLogoutServiceUrl",
           "postBindingLogout",
-          "postBindingResponse",
           "postBindingAuthnRequest",
           "singleSignOnServiceUrl",
           "wantAuthnRequestsSigned",
@@ -938,7 +937,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
         ));
         assertThat(config, hasEntry("validateSignature", "true"));
         assertThat(config, hasEntry("singleLogoutServiceUrl", "http://localhost:8080/auth/realms/master/protocol/saml"));
-        assertThat(config, hasEntry("postBindingResponse", "true"));
+        assertThat(config, hasEntry("postBindingLogout", "true"));
         assertThat(config, hasEntry("postBindingAuthnRequest", "true"));
         assertThat(config, hasEntry("singleSignOnServiceUrl", "http://localhost:8080/auth/realms/master/protocol/saml"));
         assertThat(config, hasEntry("wantAuthnRequestsSigned", "true"));
@@ -1037,7 +1036,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
         Assert.assertEquals("AssertionConsumerService.Location",
                 new URI(oauth.AUTH_SERVER_ROOT + "/realms/admin-client-test/broker/saml/endpoint"), endpoint.getLocation());
         Assert.assertEquals("AssertionConsumerService.Binding",
-                new URI("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"), endpoint.getBinding());
+                new URI("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"), endpoint.getBinding());
         Assert.assertTrue("AssertionConsumerService.isDefault", endpoint.isIsDefault());
 
 
@@ -1049,7 +1048,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
         Assert.assertEquals("SingleLogoutService.Location",
                 new URI(oauth.AUTH_SERVER_ROOT + "/realms/admin-client-test/broker/saml/endpoint"), sloEndpoint.getLocation());
         Assert.assertEquals("SingleLogoutService.Binding",
-                new URI("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"), sloEndpoint.getBinding());
+                new URI("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"), sloEndpoint.getBinding());
 
         Assert.assertNotNull("KeyDescriptor not null", desc.getKeyDescriptor());
         Assert.assertEquals("KeyDescriptor.size", 1, desc.getKeyDescriptor().size());

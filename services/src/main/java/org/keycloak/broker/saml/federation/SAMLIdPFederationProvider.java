@@ -48,7 +48,6 @@ import org.jboss.logging.Logger;
 import org.keycloak.broker.federation.AbstractIdPFederationProvider;
 import org.keycloak.broker.provider.IdentityProviderMapper;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.crypto.Algorithm;
@@ -243,6 +242,9 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 					config.put(SAMLIdentityProviderConfig.WANT_LOGOUT_REQUESTS_SIGNED, String.valueOf(model.isWantLogoutRequestsSigned()));
 					config.put(SAMLIdentityProviderConfig.SP_ENTITY_ID, model.getConfig().get(SAMLIdentityProviderConfig.SP_ENTITY_ID));
 
+					config.put(SAMLIdentityProviderConfig.POST_BINDING_RESPONSE, String.valueOf(model.isPostBindingResponse()));
+					config.put(SAMLIdentityProviderConfig.POST_BINDING_LOGOUT, String.valueOf(model.isPostBindingLogoutReceivingRequest()));
+
                     config.put("promotedLoginbutton", "false");
                     identityProviderModel.setConfig(config);
 
@@ -353,40 +355,36 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 	private void parseIDPSSODescriptorType (IdentityProviderModel identityProviderModel, IDPSSODescriptorType idpDescriptor) {
 
 		String singleSignOnServiceUrl = null;
-		Boolean postBindingResponse = Boolean.FALSE;
-		Boolean postBindingLogout = Boolean.FALSE;
+		Boolean postBindingRequest = false;
+		Boolean postBindingLogout = false;
 		for (EndpointType endpoint : idpDescriptor.getSingleSignOnService()) {
 			if (endpoint.getBinding().toString().equals(JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get())) {
 				singleSignOnServiceUrl = endpoint.getLocation().toString();
-				postBindingResponse = Boolean.TRUE;
-				break;
-			} else if (endpoint.getBinding().toString()
-					.equals(JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get())) {
+				postBindingRequest = true;
+			} else if (endpoint.getBinding().toString().equals(JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get())){
 				singleSignOnServiceUrl = endpoint.getLocation().toString();
+				postBindingRequest = false;
+				break;
 			}
 		}
 		String singleLogoutServiceUrl = null;
 		for (EndpointType endpoint : idpDescriptor.getSingleLogoutService()) {
-			if (postBindingResponse && endpoint.getBinding().toString()
-					.equals(JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get())) {
+			if (endpoint.getBinding().toString().equals(JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get())) {
 				singleLogoutServiceUrl = endpoint.getLocation().toString();
-				postBindingLogout = Boolean.TRUE;
-				break;
-			} else if (!postBindingResponse && endpoint.getBinding().toString()
-					.equals(JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get())) {
+				postBindingLogout = true;
+			} else if (endpoint.getBinding().toString().equals(JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get())){
 				singleLogoutServiceUrl = endpoint.getLocation().toString();
+				postBindingLogout = false;
 				break;
 			}
-
 		}
 
 		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.SINGLE_LOGOUT_SERVICE_URL, singleLogoutServiceUrl);
 		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.SINGLE_SIGN_ON_SERVICE_URL, singleSignOnServiceUrl);
 		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.WANT_AUTHN_REQUESTS_SIGNED, idpDescriptor.isWantAuthnRequestsSigned().toString());
 		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.VALIDATE_SIGNATURE, idpDescriptor.isWantAuthnRequestsSigned().toString());
-		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.POST_BINDING_RESPONSE, postBindingResponse.toString());
-		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, postBindingResponse.toString());
-		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, postBindingLogout.toString());
+		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, postBindingRequest.toString());
+		identityProviderModel.getConfig().put(SAMLIdentityProviderConfig.POST_BINDING_LOGOUT, postBindingLogout.toString());
 
 
 		List<KeyDescriptorType> keyDescriptor = idpDescriptor.getKeyDescriptor();
@@ -486,10 +484,15 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 
         try {
             URI authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
+			URI authnBindingLogout = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
 
-            if (model.isPostBindingAuthnRequest()) {
+            if (model.isPostBindingResponse()) {
                 authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
             }
+
+			if (model.isPostBindingLogoutReceivingRequest()) {
+				authnBindingLogout = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
+			}
 
             URI endpoint = uriInfo.getBaseUriBuilder().path("realms").path(realm.getName()).path("broker").path("endpoint")
                 .build();
@@ -525,7 +528,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 			XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
 			SAMLMetadataWriter metadataWriter = new SAMLMetadataWriter(writer);
 
-			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(authnBinding, authnBinding, endpoint, endpoint, wantAuthnRequestsSigned, wantLogoutRequestsSigned,
+			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(authnBinding, authnBindingLogout, endpoint, endpoint, wantAuthnRequestsSigned, wantLogoutRequestsSigned,
                 wantAssertionsSigned, wantAssertionsEncrypted, entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
 
 			// Create the AttributeConsumingService if at least one attribute importer mapper exists

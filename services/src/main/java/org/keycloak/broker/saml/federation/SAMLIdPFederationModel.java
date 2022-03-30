@@ -50,8 +50,12 @@ public class SAMLIdPFederationModel extends IdentityProvidersFederationModel {
         return Boolean.valueOf(getConfig().get(WANT_ASSERTIONS_ENCRYPTED));
     }
     
-    public boolean isPostBindingAuthnRequest() {
-        return Boolean.valueOf(getConfig().get(POST_BINDING_AUTHN_REQUEST));
+    public boolean isPostBindingResponse() {
+        return Boolean.valueOf(getConfig().get(POST_BINDING_RESPONSE));
+    }
+
+    public boolean isPostBindingLogoutReceivingRequest() {
+        return Boolean.valueOf(getConfig().get(POST_BINDING_LOGOUT_RECEIVING_REQUEST));
     }
 	
 }

@@ -49,8 +49,9 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
     public static final String FORCE_AUTHN = "forceAuthn";
     public static final String NAME_ID_POLICY_FORMAT = "nameIDPolicyFormat";
     public static final String POST_BINDING_AUTHN_REQUEST = "postBindingAuthnRequest";
-    public static final String POST_BINDING_LOGOUT = "postBindingLogout";
     public static final String POST_BINDING_RESPONSE = "postBindingResponse";
+    public static final String POST_BINDING_LOGOUT = "postBindingLogout";
+    public static final String POST_BINDING_LOGOUT_RECEIVING_REQUEST = "postBindingLogoutReceivingRequest";
     public static final String SIGNATURE_ALGORITHM = "signatureAlgorithm";
     public static final String SIGNING_CERTIFICATE_KEY = "signingCertificate";
     public static final String SINGLE_LOGOUT_SERVICE_URL = "singleLogoutServiceUrl";
@@ -257,6 +258,19 @@ public class SAMLIdentityProviderConfig extends IdentityProviderModel {
 
     public void setPostBindingLogout(boolean postBindingLogout) {
         getConfig().put(POST_BINDING_LOGOUT, String.valueOf(postBindingLogout));
+    }
+
+    public boolean isPostBindingLogoutReceivingRequest() {
+        String postBindingLogoutReceivingRequest = getConfig().get(POST_BINDING_LOGOUT_RECEIVING_REQUEST);
+        if (postBindingLogoutReceivingRequest == null) {
+            // if null, default value equal to postBindingAuthnRequest (previous Keycloak behaviour)
+            return isPostBindingResponse();
+        }
+        return Boolean.valueOf(postBindingLogoutReceivingRequest);
+    }
+
+    public void setPostBindingLogoutReceivingRequest(boolean postBindingLogoutReceivingRequest) {
+        getConfig().put(POST_BINDING_LOGOUT_RECEIVING_REQUEST, String.valueOf(postBindingLogoutReceivingRequest));
     }
 
     public boolean isBackchannelSupported() {

@@ -11,6 +11,7 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ## [v16.1.0-rc1.0.8] - 2022-03-28
 ### Added
 - Id token lifespan [RCIAM-930](https://jira.argo.grnet.gr/browse/RCIAM-930)
+- Add indexes to related to Federation and Identity Provider tables
 ### Changed
 - Support for configuring claims supported in Keycloak OP metadata [RCIAM-899](https://jira.argo.grnet.gr/browse/RCIAM-899)
 ### Fixed

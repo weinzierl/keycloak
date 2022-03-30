@@ -955,7 +955,6 @@ public class IdentityProviderTest extends AbstractAdminTest {
         Set fields = Stream.of("validateSignature",
                 "singleLogoutServiceUrl",
                 "postBindingLogout",
-                "postBindingResponse",
                 "postBindingAuthnRequest",
                 "singleSignOnServiceUrl",
                 "wantAuthnRequestsSigned",
@@ -974,7 +973,6 @@ public class IdentityProviderTest extends AbstractAdminTest {
         assertThat(config.keySet(), containsInAnyOrder(fields.toArray()));
         assertThat(config, hasEntry("validateSignature", "true"));
         assertThat(config, hasEntry("singleLogoutServiceUrl", "http://localhost:8080/auth/realms/master/protocol/saml"));
-        assertThat(config, hasEntry("postBindingResponse", "true"));
         assertThat(config, hasEntry("postBindingAuthnRequest", String.valueOf(hasExecuted)));
         assertThat(config, hasEntry("postBindingLogout", String.valueOf(hasExecuted)));
         assertThat(config, hasEntry("singleSignOnServiceUrl", "http://localhost:8080/auth/realms/master/protocol/saml"));

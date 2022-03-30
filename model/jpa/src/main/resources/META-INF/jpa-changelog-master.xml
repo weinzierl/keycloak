@@ -74,6 +74,7 @@
     <include file="META-INF/jpa-changelog-saml-fed-initial.xml"/>
     <include file="META-INF/jpa-changelog-saml-fed2.xml"/>
     <include file="META-INF/jpa-changelog-user-attribute.xml"/>
+    <include file="META-INF/jpa-changelog-indexes.xml"/>
     
 
 </databaseChangeLog>

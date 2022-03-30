@@ -19,6 +19,8 @@ package org.keycloak.saml.common.util;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import java.nio.charset.Charset;
 import java.util.NoSuchElementException;
+import java.util.function.BiFunction;
+
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Characters;
@@ -33,6 +35,8 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.keycloak.saml.processing.core.parsers.saml.protocol.SAMLProtocolQNames;
+import org.keycloak.saml.processing.core.parsers.util.HasQName;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 import static org.junit.Assert.assertThat;
@@ -244,4 +248,43 @@ public class StaxParserUtilTest {
         }
     }
 
+    @Test
+    public void testGetBooleanAttributeValue() throws XMLStreamException, ParsingException {
+        testGetBooleanAttributeValue(new BiFunction<StartElement, HasQName, Boolean>() {
+            @Override
+            public Boolean apply(StartElement t, HasQName u) {
+                return StaxParserUtil.getBooleanAttributeValue(t, u);
+            }
+        });
+    }
+
+    @Test
+    public void testGetBooleanAttributeValueRP() throws XMLStreamException, ParsingException {
+        testGetBooleanAttributeValue(new BiFunction<StartElement, HasQName, Boolean>() {
+            @Override
+            public Boolean apply(StartElement t, HasQName u) {
+                return StaxParserUtil.getBooleanAttributeValueRP(t, u);
+            }
+        });
+    }
+
+    private void testGetBooleanAttributeValue(BiFunction<StartElement, HasQName, Boolean> predicate) throws XMLStreamException, ParsingException {
+        testGetBooleanAttributeValue("<a AllowCreate=\"false\">text</a>", predicate, false);
+        testGetBooleanAttributeValue("<a AllowCreate=\"true\">text</a>", predicate, true);
+        testGetBooleanAttributeValue("<a AllowCreate=\"0\">text</a>", predicate, false);
+        testGetBooleanAttributeValue("<a AllowCreate=\"1\">text</a>", predicate, true);
+        testGetBooleanAttributeValue("<a AllowCreate=\"invalid\">text</a>", predicate, false);
+        testGetBooleanAttributeValue("<a>text</a>", predicate, null);
+    }
+
+    private void testGetBooleanAttributeValue(String xml, BiFunction<StartElement, HasQName, Boolean> predicate, Boolean expectedResult) throws XMLStreamException, ParsingException {
+        XMLEventReader reader = StaxParserUtil.getXMLEventReader(IOUtils.toInputStream(xml, Charset.defaultCharset()));
+
+        assertThat(reader.nextEvent(), instanceOf(StartDocument.class));
+
+        StartElement domElement = StaxParserUtil.getNextStartElement(reader);
+        Boolean bool = predicate.apply(domElement, SAMLProtocolQNames.ATTR_ALLOW_CREATE);
+        assertThat(bool, is(expectedResult));
+    }
 }
+

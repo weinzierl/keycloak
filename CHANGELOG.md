@@ -11,12 +11,14 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ## [v16.1.0-rc1.0.8] - 2022-03-28
 ### Added
 - Id token lifespan [RCIAM-930](https://jira.argo.grnet.gr/browse/RCIAM-930)
-- Add indexes to related to Federation and Identity Provider tables
+- Add indexes to related to Federation and Identity Provider tables 
 ### Changed
 - Support for configuring claims supported in Keycloak OP metadata [RCIAM-899](https://jira.argo.grnet.gr/browse/RCIAM-899)
 ### Fixed
 - Include 'urn:ietf:params:oauth:grant-type:token-exchange' in grant_types_supported field of Keycloak OP metadata, if token-exchange is enabled [RCIAM-915](https://jira.argo.grnet.gr/browse/RCIAM-915)
 - Improve Keycloak SAML IdP SAML message bindings [RCIAM-942](https://jira.argo.grnet.gr/browse/RCIAM-942)
+- Full support for XML boolean values for SAML [KEYCLOAK-10802](https://github.com/keycloak/keycloak/issues/10802)
+
 
 ## [v16.1.0-rc1.0.7] - 2022-03-17
 ### Changed

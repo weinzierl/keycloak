@@ -370,7 +370,7 @@ public class StaxParserUtil {
     public static Boolean getBooleanAttributeValue(StartElement startElement, HasQName attrName) {
         Attribute attr = startElement.getAttributeByName(attrName.getQName());
         String value = getAttributeValue(attr);
-        return value == null ? null : Boolean.valueOf(value);
+        return value == null ? null : Boolean.valueOf(value) || "1".equals(value);
     }
 
     /**
@@ -384,7 +384,7 @@ public class StaxParserUtil {
     public static Boolean getBooleanAttributeValueRP(StartElement startElement, HasQName attrName) {
         Attribute attr = startElement.getAttributeByName(attrName.getQName());
         String value = getAttributeValueRP(attr);
-        return value == null ? null : Boolean.valueOf(value);
+        return value == null ? null : Boolean.valueOf(value) || "1".equals(value);
     }
 
     /**

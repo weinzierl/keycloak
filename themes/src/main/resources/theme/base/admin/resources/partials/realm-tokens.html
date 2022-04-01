@@ -243,7 +243,7 @@
             <label class="col-md-2 control-label" for="idTokenLifespan">{{:: 'id-token-lifespan' | translate}}</label>
 
             <div class="col-md-6 time-selector">
-                <input class="form-control" type="number" required min="1"
+                <input class="form-control" type="number" min="1"
                        max="31536000" data-ng-model="realm.idTokenLifespan.time"
                        id="idTokenLifespan" name="idTokenLifespan"/>
                 <select class="form-control" name="idTokenLifespanUnit" data-ng-model="realm.idTokenLifespan.unit">

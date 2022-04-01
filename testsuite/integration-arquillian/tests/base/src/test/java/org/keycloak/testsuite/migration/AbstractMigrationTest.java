@@ -45,6 +45,7 @@ import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.models.utils.TimeBasedOTP;
 import org.keycloak.protocol.oidc.OIDCConfigAttributes;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolFactory;
+import org.keycloak.protocol.oidc.OIDCWellKnownProvider;
 import org.keycloak.protocol.saml.SamlConfigAttributes;
 import org.keycloak.protocol.saml.util.ArtifactBindingUtils;
 import org.keycloak.representations.AccessToken;
@@ -316,6 +317,11 @@ public abstract class AbstractMigrationTest extends AbstractKeycloakTest {
         testViewGroups(migrationRealm);
         testDefaultClaimsSupported(masterRealm);
         testDefaultClaimsSupported(migrationRealm);
+    }
+
+    protected void testLocalMigrationTo16_1_0() {
+        Assert.assertNames(masterRealm.toRepresentation().getClaimsSupported(), OIDCWellKnownProvider.DEFAULT_CLAIMS_SUPPORTED.toArray(new String[OIDCWellKnownProvider.DEFAULT_CLAIMS_SUPPORTED.size()]));
+        Assert.assertNames(migrationRealm.toRepresentation().getClaimsSupported(), OIDCWellKnownProvider.DEFAULT_CLAIMS_SUPPORTED.toArray(new String[OIDCWellKnownProvider.DEFAULT_CLAIMS_SUPPORTED.size()]));
     }
 
     protected void testDeleteAccount(RealmResource realm) {
@@ -952,6 +958,7 @@ public abstract class AbstractMigrationTest extends AbstractKeycloakTest {
         testMigrationTo13_0_0(testRealmAttributesMigration);
         testMigrationTo14_0_0();
         testMigrationTo16_0_0();
+        testLocalMigrationTo16_1_0();
     }
 
     protected void testMigrationTo7_x(boolean supportedAuthzServices) {

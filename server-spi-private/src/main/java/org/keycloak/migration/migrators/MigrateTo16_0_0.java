@@ -35,7 +35,6 @@ public class MigrateTo16_0_0 implements Migration {
     }
 
     private void addGroupsRole(RealmModel realm) {
-        realm.setClaimsSupported(RepresentationToModel.DEFAULT_CLAIMS_SUPPORTED);
         ClientModel accountClient = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID);
         if (accountClient != null && accountClient.getRole(MANAGE_ACCOUNT_BASIC_AUTH) == null) {
             RoleModel viewAppRole = accountClient.addRole(MANAGE_ACCOUNT_BASIC_AUTH);

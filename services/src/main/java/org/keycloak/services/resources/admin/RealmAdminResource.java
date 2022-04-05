@@ -1239,7 +1239,7 @@ public class RealmAdminResource {
     @Path("countries")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String,String> getCountries() {
-        auth.realm().requireViewRealm();
+        auth.clients().requireList();
         Locale locale = session.getContext().resolveLocale(auth.adminAuth().getUser());
 
         return Arrays.stream(Locale.getISOCountries()).collect(Collectors.toMap(country-> country, country-> new Locale("", country).getDisplayCountry(locale)));

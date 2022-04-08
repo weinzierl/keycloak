@@ -11,6 +11,8 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ## [Unreleased]
 ### Changed
 - Change indexes related to Federation and Identity Provider tables
+### Added
+- Sort countries list in client [RCIAM-791](https://jira.argo.grnet.gr/browse/RCIAM-791)
 
 ## [16.1.0-2.0] - 2022-04-05
 ### Added

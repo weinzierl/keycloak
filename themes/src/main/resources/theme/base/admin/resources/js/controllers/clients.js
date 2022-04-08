@@ -1191,7 +1191,6 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
     $scope.clientOfflineSessionMaxLifespan = TimeUnit2.asUnit(client.attributes['client.offline.session.max.lifespan']);
     $scope.oauth2DeviceCodeLifespan = TimeUnit2.asUnit(client.attributes['oauth2.device.code.lifespan']);
     $scope.oauth2DevicePollingInterval = parseInt(client.attributes['oauth2.device.polling.interval']);
-
     // PAR request.
     $scope.requirePushedAuthorizationRequests = false;
 
@@ -1497,6 +1496,10 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
         });
     };
 
+    if ($scope.clientEdit.attributes['refresh.token.max.reuse'] != null) {
+        $scope.clientEdit.attributes['refresh.token.max.reuse'] = parseInt(client.attributes['refresh.token.max.reuse']);
+    }
+
     $scope.viewImportDetails = function() {
         $modal.open({
             templateUrl: resourceUrl + '/partials/modal/view-object.html',
@@ -1630,6 +1633,14 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
     $scope.changeAuthorizationEncryptedResponseEnc = function() {
         $scope.clientEdit.attributes['authorization.encrypted.response.enc'] = $scope.authorizationEncryptedResponseEnc;
     };
+
+     $scope.changeRevokeRefreshToken = function() {
+            if ($scope.clientEdit.attributes['revoke.refresh.token'] != "true") {
+                $scope.clientEdit.attributes['refresh.token.max.reuse'] = null;
+            } else  {
+                $scope.clientEdit.attributes['refresh.token.max.reuse'] = 0;
+            }
+        };
 
     $scope.$watch(function() {
         return $location.path();

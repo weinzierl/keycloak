@@ -1554,14 +1554,10 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         });
         updatedIdPs.stream().forEach(this::updateIdentityProviderFromFed);
         if(removedIdPs != null && !removedIdPs.isEmpty()) {
-            em.createNamedQuery("deleteFederatedIdentityByProviders")
-                    .setParameter("realmId", realm.getId())
-                    .setParameter("providerAlias", removedIdPs).executeUpdate();
             removedIdPs.stream().forEach(alias -> {
                 //remove mappers also
                 logger.info("Removing idp with alias = " + alias);
                 this.removeFederationIdp(identityProvidersFederationModel, alias);
-                this.getIdentityProviderMappersByAliasStream(alias).forEach(this::removeIdentityProviderMapper);
             });
         }
         this.updateIdentityProvidersFederation(identityProvidersFederationModel);
@@ -1602,14 +1598,18 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             if(idpEntity == null) return false;
             Set<FederationEntity> idpFeds = idpEntity.getFederations();
             if(idpFeds.size() == 1) {
+                getIdentityProviderMappersByAliasStream(idpAlias).forEach(this::removeIdentityProviderMapper);
+                em.createNamedQuery("deleteFederatedIdentityByProvider")
+                        .setParameter("realmId", realm.getId())
+                        .setParameter("providerAlias", idpAlias).executeUpdate();
                 em.remove(idpEntity);
-                em.flush();
+              //  em.flush();
             }
             else if(idpFeds.size() > 1) {
                 FederationEntity fedEntity = em.find(FederationEntity.class, idpfModel.getInternalId());
                 idpEntity.removeFromFederation(fedEntity);
                 em.persist(idpEntity);
-                em.flush();
+            //    em.flush();
             }
             return true;
         }

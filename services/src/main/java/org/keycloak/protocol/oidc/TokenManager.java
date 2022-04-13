@@ -277,9 +277,9 @@ public class TokenManager {
             }
 
             String tokenType = token.getType();
-            if (((client.getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN) == null && realm.isRevokeRefreshToken()) || Boolean.valueOf(client.getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN)))
-                    && (tokenType.equals(TokenUtil.TOKEN_TYPE_REFRESH) || tokenType.equals(TokenUtil.TOKEN_TYPE_OFFLINE))
-                    && !validateTokenReuseForIntrospection(session, realm, token)) {
+            if (realm.isRevokeRefreshToken()
+                && (tokenType.equals(TokenUtil.TOKEN_TYPE_REFRESH) || tokenType.equals(TokenUtil.TOKEN_TYPE_OFFLINE))
+                && !validateTokenReuseForIntrospection(session, realm, token)) {
                 return false;
             }
 
@@ -415,8 +415,8 @@ public class TokenManager {
 
     private void validateTokenReuseForRefresh(KeycloakSession session, RealmModel realm, RefreshToken refreshToken,
         TokenValidation validation) throws OAuthErrorException {
-        AuthenticatedClientSessionModel clientSession = validation.clientSessionCtx.getClientSession();
-        if ((clientSession.getClient().getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN) == null && realm.isRevokeRefreshToken()) || Boolean.valueOf(clientSession.getClient().getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN))) {
+        if (realm.isRevokeRefreshToken()) {
+            AuthenticatedClientSessionModel clientSession = validation.clientSessionCtx.getClientSession();
             try {
                 validateTokenReuse(session, realm, refreshToken, clientSession, true);
                 int currentCount = clientSession.getCurrentRefreshTokenUseCount();
@@ -454,8 +454,7 @@ public class TokenManager {
         }
 
         int currentCount = clientSession.getCurrentRefreshTokenUseCount();
-        int maxReuse = clientSession.getClient().getAttribute(OIDCConfigAttributes.REFRESH_TOKEN_MAX_REUSE) != null ? Integer.valueOf(clientSession.getClient().getAttribute(OIDCConfigAttributes.REFRESH_TOKEN_MAX_REUSE)) : realm.getRefreshTokenMaxReuse();
-        if (currentCount > maxReuse) {
+        if (currentCount > realm.getRefreshTokenMaxReuse()) {
             throw new OAuthErrorException(OAuthErrorException.INVALID_GRANT, "Maximum allowed refresh token reuse exceeded",
                 "Maximum allowed refresh token reuse exceeded");
         }

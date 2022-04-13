@@ -339,8 +339,7 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
 
         if (client == null) {
             event.error(Errors.INVALID_REQUEST);
-            throw new ErrorPageException(session, null, Response.Status.BAD_REQUEST, Messages.MISSING_PARAMETER,
-                OIDCLoginProtocol.CLIENT_ID_PARAM);
+            throw new ErrorResponseException(Errors.INVALID_REQUEST, Messages.MISSING_PARAMETER,Response.Status.BAD_REQUEST);
         }
 
         checkClient(client.getClientId());
@@ -351,8 +350,7 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
     private ClientModel checkClient(String clientId) {
         if (clientId == null) {
             event.error(Errors.INVALID_REQUEST);
-            throw new ErrorPageException(session, null, Response.Status.BAD_REQUEST,
-                Messages.MISSING_PARAMETER, OIDCLoginProtocol.CLIENT_ID_PARAM);
+            throw new ErrorResponseException(Errors.INVALID_REQUEST, Messages.MISSING_PARAMETER, Response.Status.BAD_REQUEST);
         }
 
         event.client(clientId);
@@ -360,24 +358,22 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
         ClientModel client = realm.getClientByClientId(clientId);
         if (client == null) {
             event.error(Errors.CLIENT_NOT_FOUND);
-            throw new ErrorPageException(session, null, Response.Status.BAD_REQUEST,
-                Messages.CLIENT_NOT_FOUND);
+            throw new ErrorResponseException(Errors.INVALID_CLIENT, Messages.CLIENT_NOT_FOUND, Response.Status.BAD_REQUEST);
         }
 
         if (!client.isEnabled()) {
             event.error(Errors.CLIENT_DISABLED);
-            throw new ErrorPageException(session, null, Response.Status.BAD_REQUEST, Messages.CLIENT_DISABLED);
+            throw new ErrorResponseException(Errors.INVALID_CLIENT, Messages.CLIENT_DISABLED, Response.Status.BAD_REQUEST);
         }
 
         if (!realm.getOAuth2DeviceConfig().isOAuth2DeviceAuthorizationGrantEnabled(client)) {
             event.error(Errors.NOT_ALLOWED);
-            throw new ErrorPageException(session, null, Response.Status.BAD_REQUEST,
-                Messages.OAUTH2_DEVICE_AUTHORIZATION_GRANT_DISABLED);
+            throw new ErrorResponseException(Errors.UNAUTHORIZED_CLIENT, Messages.OAUTH2_DEVICE_AUTHORIZATION_GRANT_DISABLED, Response.Status.BAD_REQUEST);
         }
 
         if (client.isBearerOnly()) {
             event.error(Errors.NOT_ALLOWED);
-            throw new ErrorPageException(session, null, Response.Status.FORBIDDEN, Messages.BEARER_ONLY);
+            throw new ErrorResponseException(Errors.UNAUTHORIZED_CLIENT, Messages.BEARER_ONLY, Response.Status.FORBIDDEN);
         }
 
         String protocol = client.getProtocol();
@@ -388,7 +384,7 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
         }
         if (!protocol.equals(OIDCLoginProtocol.LOGIN_PROTOCOL)) {
             event.error(Errors.INVALID_CLIENT);
-            throw new ErrorPageException(session, null, Response.Status.BAD_REQUEST, "Wrong client protocol.");
+            throw new ErrorResponseException(Errors.UNAUTHORIZED_CLIENT, "Wrong client protocol." , Response.Status.BAD_REQUEST);
         }
 
         session.getContext().setClient(client);

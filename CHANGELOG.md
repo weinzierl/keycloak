@@ -8,7 +8,9 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 [Keycloak announcement for version 16.1.0](https://www.keycloak.org/2021/12/keycloak-1610-released)
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
-## [16.1.0-2.1] - 2022-04-12
+## [Unreleased]
+### Fixed
+- Device code flow json error responses [RCIAM-959](https://jira.argo.grnet.gr/browse/RCIAM-959)
 ### Changed
 - Change indexes related to Federation and Identity Provider tables
 ### Added

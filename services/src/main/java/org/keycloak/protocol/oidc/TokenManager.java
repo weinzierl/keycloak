@@ -277,9 +277,9 @@ public class TokenManager {
             }
 
             String tokenType = token.getType();
-            if (realm.isRevokeRefreshToken()
-                && (tokenType.equals(TokenUtil.TOKEN_TYPE_REFRESH) || tokenType.equals(TokenUtil.TOKEN_TYPE_OFFLINE))
-                && !validateTokenReuseForIntrospection(session, realm, token)) {
+            if (((client.getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN) == null && realm.isRevokeRefreshToken()) || Boolean.valueOf(client.getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN)))
+                    && (tokenType.equals(TokenUtil.TOKEN_TYPE_REFRESH) || tokenType.equals(TokenUtil.TOKEN_TYPE_OFFLINE))
+                    && !validateTokenReuseForIntrospection(session, realm, token)) {
                 return false;
             }
 
@@ -383,12 +383,14 @@ public class TokenManager {
 
         AccessTokenResponseBuilder responseBuilder = responseBuilder(realm, authorizedClient, event, session,
             validation.userSession, validation.clientSessionCtx).accessToken(validation.newToken);
-        if (OIDCAdvancedConfigWrapper.fromClientModel(authorizedClient).isUseRefreshToken()) {
+        boolean generateRefreshToken = OIDCAdvancedConfigWrapper.fromClientModel(authorizedClient).isUseRefreshToken() || (authorizedClient.getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN) == null && realm.isRevokeRefreshToken()) || Boolean.valueOf(authorizedClient.getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN));
+
+        if (generateRefreshToken) {
             responseBuilder.generateRefreshToken();
         }
 
         if (validation.newToken.getAuthorization() != null
-            && OIDCAdvancedConfigWrapper.fromClientModel(authorizedClient).isUseRefreshToken()) {
+            && generateRefreshToken) {
             responseBuilder.getRefreshToken().setAuthorization(validation.newToken.getAuthorization());
         }
 
@@ -398,7 +400,7 @@ public class TokenManager {
         AccessToken.CertConf certConf = refreshToken.getCertConf();
         if (certConf != null) {
             responseBuilder.getAccessToken().setCertConf(certConf);
-            if (OIDCAdvancedConfigWrapper.fromClientModel(authorizedClient).isUseRefreshToken()) {
+            if (generateRefreshToken) {
                 responseBuilder.getRefreshToken().setCertConf(certConf);
             }
         }
@@ -415,8 +417,8 @@ public class TokenManager {
 
     private void validateTokenReuseForRefresh(KeycloakSession session, RealmModel realm, RefreshToken refreshToken,
         TokenValidation validation) throws OAuthErrorException {
-        if (realm.isRevokeRefreshToken()) {
-            AuthenticatedClientSessionModel clientSession = validation.clientSessionCtx.getClientSession();
+        AuthenticatedClientSessionModel clientSession = validation.clientSessionCtx.getClientSession();
+        if ((clientSession.getClient().getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN) == null && realm.isRevokeRefreshToken()) || Boolean.valueOf(clientSession.getClient().getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN))) {
             try {
                 validateTokenReuse(session, realm, refreshToken, clientSession, true);
                 int currentCount = clientSession.getCurrentRefreshTokenUseCount();
@@ -454,7 +456,8 @@ public class TokenManager {
         }
 
         int currentCount = clientSession.getCurrentRefreshTokenUseCount();
-        if (currentCount > realm.getRefreshTokenMaxReuse()) {
+        int maxReuse = clientSession.getClient().getAttribute(OIDCConfigAttributes.REFRESH_TOKEN_MAX_REUSE) != null ? Integer.valueOf(clientSession.getClient().getAttribute(OIDCConfigAttributes.REFRESH_TOKEN_MAX_REUSE)) : realm.getRefreshTokenMaxReuse();
+        if (currentCount > maxReuse) {
             throw new OAuthErrorException(OAuthErrorException.INVALID_GRANT, "Maximum allowed refresh token reuse exceeded",
                 "Maximum allowed refresh token reuse exceeded");
         }

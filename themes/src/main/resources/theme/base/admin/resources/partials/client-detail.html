@@ -773,6 +773,33 @@
             <legend collapsed><span class="text">{{:: 'advanced-client-settings' | translate}}</span>  <kc-tooltip>{{:: 'advanced-client-settings.tooltip' | translate}}</kc-tooltip></legend>
 
             <div class="form-group" data-ng-show="protocol == 'openid-connect'">
+                <label class="col-md-2 control-label" for="revokeRefreshToken">{{:: 'revoke-refresh-token' | translate}}</label>
+
+                <div class="col-md-6">
+                   <select class="form-control" name="revokeRefreshToken" id="revokeRefreshToken" ng-model="clientEdit.attributes['revoke.refresh.token']" ng-change="changeRevokeRefreshToken()" >
+                        <option value="" >{{:: 'realm-configuration' | translate}}</option>
+                        <option value="false">{{:: 'false' | translate}}</option>
+                        <option value="true">{{:: 'true' | translate}}</option>
+                    </select>
+                </div>
+
+                <kc-tooltip>{{:: 'client.revoke-refresh-token.tooltip' | translate}}
+                </kc-tooltip>
+            </div>
+
+            <div class="form-group" data-ng-show="protocol == 'openid-connect' && clientEdit.attributes['revoke.refresh.token'] == 'true'">
+                <label class="col-md-2 control-label" for="refreshTokenMaxReuse">{{:: 'refresh-token-max-reuse' | translate}}</label>
+
+                <div class="col-md-6">
+                    <input class="form-control" type="number" min="0" max="31536000" data-ng-required="clientEdit.attributes['revoke.refresh.token'] == 'true'" data-ng-model="clientEdit.attributes['refresh.token.max.reuse']" id="refreshTokenMaxReuse"
+                           name="refreshTokenMaxReuse"/>
+                </div>
+
+                <kc-tooltip>{{:: 'refresh-token-max-reuse.tooltip' | translate}}
+                </kc-tooltip>
+            </div>
+
+            <div class="form-group" data-ng-show="protocol == 'openid-connect'">
                 <label class="col-md-2 control-label" for="accessTokenLifespan">{{:: 'access-token-lifespan' | translate}}</label>
 
                 <div class="col-md-6 time-selector">

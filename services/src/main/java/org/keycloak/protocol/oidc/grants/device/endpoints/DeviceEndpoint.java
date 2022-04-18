@@ -339,7 +339,7 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
 
         if (client == null) {
             event.error(Errors.INVALID_REQUEST);
-            throw new ErrorResponseException(Errors.INVALID_REQUEST, Messages.MISSING_PARAMETER,Response.Status.BAD_REQUEST);
+            throw new ErrorResponseException(Errors.INVALID_REQUEST, "Missing parameters:"+ OIDCLoginProtocol.CLIENT_ID_PARAM,Response.Status.BAD_REQUEST);
         }
 
         checkClient(client.getClientId());
@@ -350,7 +350,7 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
     private ClientModel checkClient(String clientId) {
         if (clientId == null) {
             event.error(Errors.INVALID_REQUEST);
-            throw new ErrorResponseException(Errors.INVALID_REQUEST, Messages.MISSING_PARAMETER, Response.Status.BAD_REQUEST);
+            throw new ErrorResponseException(Errors.INVALID_REQUEST, "Missing parameters:"+ OIDCLoginProtocol.CLIENT_ID_PARAM, Response.Status.BAD_REQUEST);
         }
 
         event.client(clientId);
@@ -358,22 +358,22 @@ public class DeviceEndpoint extends AuthorizationEndpointBase implements RealmRe
         ClientModel client = realm.getClientByClientId(clientId);
         if (client == null) {
             event.error(Errors.CLIENT_NOT_FOUND);
-            throw new ErrorResponseException(Errors.INVALID_CLIENT, Messages.CLIENT_NOT_FOUND, Response.Status.BAD_REQUEST);
+            throw new ErrorResponseException(Errors.INVALID_CLIENT, "Client not found.", Response.Status.BAD_REQUEST);
         }
 
         if (!client.isEnabled()) {
             event.error(Errors.CLIENT_DISABLED);
-            throw new ErrorResponseException(Errors.INVALID_CLIENT, Messages.CLIENT_DISABLED, Response.Status.BAD_REQUEST);
+            throw new ErrorResponseException(Errors.INVALID_CLIENT, "Client disabled.", Response.Status.BAD_REQUEST);
         }
 
         if (!realm.getOAuth2DeviceConfig().isOAuth2DeviceAuthorizationGrantEnabled(client)) {
             event.error(Errors.NOT_ALLOWED);
-            throw new ErrorResponseException(Errors.UNAUTHORIZED_CLIENT, Messages.OAUTH2_DEVICE_AUTHORIZATION_GRANT_DISABLED, Response.Status.BAD_REQUEST);
+            throw new ErrorResponseException(Errors.UNAUTHORIZED_CLIENT, "Client is not allowed to initiate OAuth 2.0 Device Authorization Grant. The flow is disabled for the client.", Response.Status.BAD_REQUEST);
         }
 
         if (client.isBearerOnly()) {
             event.error(Errors.NOT_ALLOWED);
-            throw new ErrorResponseException(Errors.UNAUTHORIZED_CLIENT, Messages.BEARER_ONLY, Response.Status.FORBIDDEN);
+            throw new ErrorResponseException(Errors.UNAUTHORIZED_CLIENT, "Bearer-only applications are not allowed to initiate browser login.", Response.Status.FORBIDDEN);
         }
 
         String protocol = client.getProtocol();

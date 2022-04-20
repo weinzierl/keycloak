@@ -23,6 +23,7 @@
                         	<th>{{:: 'name' | translate}}</th>
                         	<th>{{:: 'provider' | translate}}</th>
                         	<th> Url </th>
+							<th>{{:: 'category' | translate}}</th>
                         	<th>{{:: 'update-frequency-mins' | translate}}</th>
                         	<th>{{:: 'valid-until' | translate}}</th>
                         	<th>{{:: 'last-updated' | translate}}</th>
@@ -38,6 +39,7 @@
                         	</td>
                         	<td>{{federation.providerId}}</td>
                         	<td>{{federation.url}}</td>
+							<td>{{federation.category}}</td>
                         	<td>{{federation.updateFrequencyInMins}}</td>
                         	<td>{{federation.validUntilTimestamp | date : 'yyyy-MM-dd HH:mm:ss'}}</td>
                         	<td>{{federation.lastMetadataRefreshTimestamp | date : 'yyyy-MM-dd HH:mm:ss'}}</td>

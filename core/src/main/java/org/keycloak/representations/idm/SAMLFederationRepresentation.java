@@ -20,6 +20,8 @@ public class SAMLFederationRepresentation {
     private Integer updateFrequencyInMins;
     
     private String displayName;
+
+	private String category;
     
     private Long validUntilTimestamp;
     
@@ -173,4 +175,11 @@ public class SAMLFederationRepresentation {
         this.federationMappers = federationMappers;
     }
 
+	public String getCategory() {
+		return category;
+	}
+
+	public void setCategory(String category) {
+		this.category = category;
+	}
 }

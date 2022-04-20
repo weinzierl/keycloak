@@ -43,6 +43,8 @@ public class FederationModel implements Serializable {
     private Integer updateFrequencyInMins;
     
     private String displayName;
+
+    private String category;
     
     private Long validUntilTimestamp;
     
@@ -80,6 +82,7 @@ public class FederationModel implements Serializable {
 		this.setUrl(model.getUrl());
 		this.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
 		this.setDisplayName(model.getDisplayName());
+		this.setCategory(model.getCategory());
 		this.setEntityIdDenyList(model.getEntityIdDenyList() != null ? model.getEntityIdDenyList() : new HashSet<String>());
 		this.setEntityIdAllowList(model.getEntityIdAllowList() != null ? model.getEntityIdAllowList() : new HashSet<String>());
 		this.setRegistrationAuthorityDenyList(model.getRegistrationAuthorityDenyList() != null ? model.getRegistrationAuthorityDenyList() : new HashSet<String>());
@@ -229,6 +232,13 @@ public class FederationModel implements Serializable {
 
     public void setIdps(List<String> idps) {
         this.idps = idps;
-    }    
+    }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
 }

@@ -29,6 +29,8 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -56,6 +58,7 @@ import java.util.Set;
         @NamedQuery(name="findClientIdByClientId", query="select client.id from ClientEntity client where client.clientId = :clientId and client.realmId = :realm"),
         @NamedQuery(name="searchClientsByClientId", query="select client.id from ClientEntity client where lower(client.clientId) like lower(concat('%',:clientId,'%')) and client.realmId = :realm order by client.clientId"),
         @NamedQuery(name="getRealmClientsCount", query="select count(client) from ClientEntity client where client.realmId = :realm"),
+        @NamedQuery(name="getFederationClients", query="select client.id from ClientEntity client join client.federations f where f.internalId = :federationId"),
         @NamedQuery(name="findClientByClientId", query="select client from ClientEntity client where client.clientId = :clientId and client.realmId = :realm"),
         @NamedQuery(name="getAllRedirectUrisOfEnabledClients", query="select new map(client as client, r as redirectUri) from ClientEntity client join client.redirectUris r where client.realmId = :realm and client.enabled = true"),
 })
@@ -167,6 +170,14 @@ public class ClientEntity {
     @Column(name="VALUE")
     @CollectionTable(name="CLIENT_NODE_REGISTRATIONS", joinColumns={ @JoinColumn(name="CLIENT_ID") })
     Map<String, Integer> registeredNodes;
+
+    @ManyToMany
+    @BatchSize(size = 50)
+    @JoinTable(
+            name = "federation_client",
+            joinColumns = @JoinColumn(name = "client_id"),
+            inverseJoinColumns = @JoinColumn(name = "federation_id"))
+    Set<FederationEntity> federations = new HashSet<FederationEntity>();
 
     public String getRealmId() {
         return realmId;
@@ -451,6 +462,14 @@ public class ClientEntity {
 
     public void setScopeMapping(Set<String> scopeMappingIds) {
         this.scopeMappingIds = scopeMappingIds;
+    }
+
+    public Set<FederationEntity> getFederations() {
+        return federations;
+    }
+
+    public void setFederations(Set<FederationEntity> federations) {
+        this.federations = federations;
     }
 
     @Override

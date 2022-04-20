@@ -29,6 +29,8 @@ import org.keycloak.models.RoleModel;
 
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -169,6 +171,11 @@ public class MapClientProvider implements ClientProvider {
                  .compare(SearchableFields.ALWAYS_DISPLAY_IN_CONSOLE, Operator.EQ, Boolean.TRUE);
         return tx.read(withCriteria(mcb).orderBy(SearchableFields.CLIENT_ID, ASCENDING))
                   .map(entityToAdapterFunc(realm));
+    }
+
+    @Override
+    public List<ClientModel> getFederationClientsStream(RealmModel realm, String federationId){
+        return Collections.emptyList();
     }
 
     @Override

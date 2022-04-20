@@ -648,6 +648,7 @@ public class ModelToRepresentation {
         rep.setNotBefore(clientModel.getNotBefore());
         rep.setNodeReRegistrationTimeout(clientModel.getNodeReRegistrationTimeout());
         rep.setClientAuthenticatorType(clientModel.getClientAuthenticatorType());
+        rep.setFederations(clientModel.getFederations());
 
         rep.setDefaultClientScopes(new LinkedList<>(clientModel.getClientScopes(true).keySet()));
         rep.setOptionalClientScopes(new LinkedList<>(clientModel.getClientScopes(false).keySet()));
@@ -739,6 +740,7 @@ public class ModelToRepresentation {
     	representation.setInternalId(model.getInternalId());
     	representation.setAlias(model.getAlias());
     	representation.setDisplayName(model.getDisplayName());
+        representation.setCategory(model.getCategory());
     	representation.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
     	representation.setProviderId(model.getProviderId());
     	representation.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());

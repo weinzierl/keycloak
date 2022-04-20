@@ -29,6 +29,7 @@ import org.keycloak.models.utils.RoleUtils;
 import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -125,6 +126,26 @@ public class ClientAdapter implements ClientModel, CachedObject {
     public void removeWebOrigin(String webOrigin) {
         getDelegateForUpdate();
         updated.removeWebOrigin(webOrigin);
+    }
+
+    public List<String> getFederations() {
+        if (isUpdated()) return updated.getFederations();
+        return cached.getFederations();
+    }
+
+    public void setFederations(List<String> federations) {
+        getDelegateForUpdate();
+        updated.setFederations(federations);
+    }
+
+    public void addFederation(String federation) {
+        getDelegateForUpdate();
+        updated.addFederation(federation);
+    }
+
+    public void removeFederation(String federation) {
+        getDelegateForUpdate();
+        updated.removeFederation(federation);
     }
 
     public Set<String> getRedirectUris() {

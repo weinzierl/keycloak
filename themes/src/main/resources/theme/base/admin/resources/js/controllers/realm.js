@@ -5223,7 +5223,7 @@ module.controller('RealmImportCtrl', function($scope, realm, $route,
         if (!$scope.importGroups) delete json.groups;
         if (!$scope.importIdentityProviders) {
           delete json.identityProviders;
-          delete json.identityProvidersFederations;
+          delete json.samlFederations;
         }
         if (!$scope.importClients) delete json.clients;
         

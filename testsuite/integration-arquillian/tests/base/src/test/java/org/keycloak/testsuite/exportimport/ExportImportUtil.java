@@ -315,8 +315,8 @@ public class ExportImportUtil {
         Assert.assertTrue(samlIdp.getFederations().contains("1dc40e23-e9d0-41de-9324-62e600fab855"));
 
         //check saml metadata aggregate
-        Assert.assertEquals(1, realm.getIdentityProvidersFederations().size());
-        SAMLFederationRepresentation metadataAggregate =realm.getIdentityProvidersFederations().get(0);
+        Assert.assertEquals(1, realm.getSamlFederations().size());
+        SAMLFederationRepresentation metadataAggregate =realm.getSamlFederations().get(0);
         Assert.assertEquals("saml-edugain",metadataAggregate.getAlias());
         Assert.assertEquals("saml",metadataAggregate.getProviderId());
 

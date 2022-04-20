@@ -30,7 +30,7 @@
                     	</tr>
                     </thead>
                     <tbody>
-	                    <tr ng-repeat="federation in realm.identityProvidersFederations">
+	                    <tr ng-repeat="federation in realm.samlFederations">
                         	<td>
                             	<a href="#/realms/{{realm.realm}}/saml-federation/{{federation.providerId}}/{{federation.internalId}}">
                                 	<span>{{federation.alias}}</span>

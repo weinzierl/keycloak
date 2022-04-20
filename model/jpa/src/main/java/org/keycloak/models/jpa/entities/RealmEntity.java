@@ -199,7 +199,7 @@ public class RealmEntity {
 
     @BatchSize(size = 50)
     @OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
-    protected List<FederationEntity> identityProvidersFederations = new ArrayList<FederationEntity>();
+    protected List<FederationEntity> samlFederations = new ArrayList<FederationEntity>();
     
 	@OneToMany(cascade ={CascadeType.REMOVE}, orphanRemoval = true, mappedBy = "realm")
     Collection<AuthenticatorConfigEntity> authenticators ;
@@ -641,19 +641,19 @@ public class RealmEntity {
     }
 
     
-    public List<FederationEntity> getIdentityProvidersFederations() {
-		return this.identityProvidersFederations;
+    public List<FederationEntity> getSamlFederations() {
+		return this.samlFederations;
 	}
 
-	public void setIdentityProvidersFederations(List<FederationEntity> identityProvidersFederations) {
-		this.identityProvidersFederations = identityProvidersFederations;
+	public void setSamlFederations(List<FederationEntity> samlFederations) {
+		this.samlFederations = samlFederations;
 	}
 
     
     
     public void addIdentityProvidersFederation(FederationEntity entity) {
         entity.setRealm(this);
-        getIdentityProvidersFederations().add(entity);
+        getSamlFederations().add(entity);
     }
     
     

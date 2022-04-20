@@ -35,7 +35,7 @@ public class PartialImportRepresentation {
     protected List<UserRepresentation> users;
     protected List<GroupRepresentation> groups;
     protected List<ClientRepresentation> clients;
-    protected List<SAMLFederationRepresentation> identityProvidersFederations;
+    protected List<SAMLFederationRepresentation> samlFederations;
     protected List<IdentityProviderRepresentation> identityProviders;
     protected RolesRepresentation roles;
 
@@ -116,13 +116,13 @@ public class PartialImportRepresentation {
         this.roles = roles;
     }
 
-	public List<SAMLFederationRepresentation> getIdentityProvidersFederations() {
-		return identityProvidersFederations;
+	public List<SAMLFederationRepresentation> getSamlFederations() {
+		return samlFederations;
 	}
 
-	public void setIdentityProvidersFederations(
-			List<SAMLFederationRepresentation> identityProvidersFederations) {
-		this.identityProvidersFederations = identityProvidersFederations;
+	public void setSamlFederations(
+			List<SAMLFederationRepresentation> samlFederations) {
+		this.samlFederations = samlFederations;
 	}
     
     

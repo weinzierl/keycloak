@@ -15,7 +15,7 @@ public class IdentityProvidersFederationPartialImport extends AbstractPartialImp
 
     @Override
     public List<SAMLFederationRepresentation> getRepList(PartialImportRepresentation partialImportRep) {
-        return partialImportRep.getIdentityProvidersFederations();
+        return partialImportRep.getSamlFederations();
     }
 
     @Override

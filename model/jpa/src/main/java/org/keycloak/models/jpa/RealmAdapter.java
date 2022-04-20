@@ -1449,7 +1449,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 
     @Override
     public List<FederationModel> getSAMLFederations() {
-    	return realm.getIdentityProvidersFederations().stream().map(idp -> entityToModel(idp)).collect(Collectors.toList());
+    	return realm.getSamlFederations().stream().map(idp -> entityToModel(idp)).collect(Collectors.toList());
     }
     
     @Override
@@ -1514,7 +1514,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 			return;
 		}
 		
-		FederationEntity federationEntity = realm.getIdentityProvidersFederations().stream().filter(idpf -> idpf.getInternalId().equals(federationModel.getInternalId())).findAny().orElse(null);
+		FederationEntity federationEntity = realm.getSamlFederations().stream().filter(idpf -> idpf.getInternalId().equals(federationModel.getInternalId())).findAny().orElse(null);
 		
 		if(federationEntity == null) {
 			logger.infov("The federation with id={} and alias={} could now be found! Skipping the update...", federationModel.getInternalId(), federationModel.getAlias());
@@ -1567,7 +1567,7 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
 	public void removeSAMLFederation(String internalId) {
 		logger.info("Removing the IdP federation entry with id: "+ internalId);
 
-		FederationEntity federationEntity = realm.getIdentityProvidersFederations().stream().filter(idpf -> idpf.getInternalId().equals(internalId)).findAny().orElse(null);
+		FederationEntity federationEntity = realm.getSamlFederations().stream().filter(idpf -> idpf.getInternalId().equals(internalId)).findAny().orElse(null);
 
 		em.remove(federationEntity);
 		em.flush();

@@ -125,7 +125,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected MultivaluedHashMap<String, ComponentModel> componentsByParentAndType = new MultivaluedHashMap<>();
     protected Map<String, ComponentModel> components;
     protected List<IdentityProviderModel> identityProviders;
-    protected List<FederationModel> identityProvidersFederations;
+    protected List<FederationModel> federations;
 
     protected Map<String, String> browserSecurityHeaders;
     protected Map<String, String> smtpConfig;
@@ -243,7 +243,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         requiredCredentials = model.getRequiredCredentialsStream().collect(Collectors.toList());
         userActionTokenLifespans = Collections.unmodifiableMap(new HashMap<>(model.getUserActionTokenLifespans()));
 
-        this.identityProvidersFederations  = model.getSAMLFederations();
+        this.federations  = model.getSAMLFederations();
 
         this.identityProviders = model.getIdentityProvidersStream().collect(Collectors.toList());
         this.identityProviders = Collections.unmodifiableList(this.identityProviders);
@@ -600,8 +600,8 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         return adminEventsDetailsEnabled;
     }
 
-    public List<FederationModel> getIdentityProvidersFederations() {
-        return identityProvidersFederations;
+    public List<FederationModel> getFederations() {
+        return federations;
     }
 
     public List<IdentityProviderModel> getIdentityProviders() {

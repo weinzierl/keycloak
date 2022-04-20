@@ -927,19 +927,19 @@ public class RealmAdapter implements CachedRealmModel {
     @Override
     public List<FederationModel> getSAMLFederations() {
         if (isUpdated()) return updated.getSAMLFederations();
-        return cached.getIdentityProvidersFederations();
+        return cached.getFederations();
     }
     
     @Override
     public FederationModel getSAMLFederationById(String id) {
     	if (isUpdated()) return updated.getSAMLFederationById(id);
-    	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getInternalId().equals(id)).findAny().orElse(null);
+    	return cached.getFederations().stream().filter(federation -> federation.getInternalId().equals(id)).findAny().orElse(null);
     }
     
     @Override
     public FederationModel getSAMLFederationByAlias(String alias) {
     	if (isUpdated()) return updated.getSAMLFederationByAlias(alias);
-    	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getAlias().equals(alias)).findAny().orElse(null);
+    	return cached.getFederations().stream().filter(federation -> federation.getAlias().equals(alias)).findAny().orElse(null);
     }
     
     

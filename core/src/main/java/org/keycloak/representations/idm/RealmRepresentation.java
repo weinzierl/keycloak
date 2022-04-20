@@ -182,7 +182,7 @@ public class RealmRepresentation {
     protected Boolean adminEventsEnabled;
     protected Boolean adminEventsDetailsEnabled;
     
-    private List<SAMLFederationRepresentation> identityProvidersFederations;
+    private List<SAMLFederationRepresentation> samlFederations;
     private List<IdentityProviderRepresentation> identityProviders;
     private List<IdentityProviderMapperRepresentation> identityProviderMappers;
     private List<ProtocolMapperRepresentation> protocolMappers;
@@ -883,8 +883,8 @@ public class RealmRepresentation {
         this.identityProviders = identityProviders;
     }
 
-    public List<SAMLFederationRepresentation> getIdentityProvidersFederations() {
-		return identityProvidersFederations;
+    public List<SAMLFederationRepresentation> getSamlFederations() {
+		return samlFederations;
 	}
 
     public void addIdentityProvider(IdentityProviderRepresentation identityProviderRepresentation) {
@@ -892,8 +892,8 @@ public class RealmRepresentation {
         identityProviders.add(identityProviderRepresentation);
     }
     
-	public void setIdentityProvidersFederations(List<SAMLFederationRepresentation> identityProvidersFederations) {
-		this.identityProvidersFederations = identityProvidersFederations;
+	public void setSamlFederations(List<SAMLFederationRepresentation> samlFederations) {
+		this.samlFederations = samlFederations;
 	}
 
 	public List<ProtocolMapperRepresentation> getProtocolMappers() {

@@ -473,7 +473,7 @@ public class ModelToRepresentation {
                 .map(ModelToRepresentation::toRepresentation).collect(Collectors.toList());
         rep.setIdentityProviderMappers(identityProviderMappers);
 
-       rep.setIdentityProvidersFederations(realm.getSAMLFederations().stream().map(obj -> {
+       rep.setSamlFederations(realm.getSAMLFederations().stream().map(obj -> {
             SAMLFederationRepresentation representation = toRepresentation(obj);
             representation.setFederationMappers(
                 obj.getFederationMapperModels().stream().map(mapper -> toRepresentation(mapper)).collect(Collectors.toList()));

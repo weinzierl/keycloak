@@ -323,7 +323,7 @@ public class RepresentationToModel {
             DefaultRequiredActions.addActions(newRealm);
         }
 
-	importIdentityProvidersFederations(session,rep.getIdentityProvidersFederations(),newRealm);
+	importIdentityProvidersFederations(session,rep.getSamlFederations(),newRealm);
         importIdentityProviders(rep, newRealm, session);
         importIdentityProviderMappers(rep, newRealm);
 

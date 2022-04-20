@@ -16,27 +16,23 @@
  */
 package org.keycloak.broker.federation;
 
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.provider.ProviderFactory;
 
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Set;
 
-
-public interface IdpFederationProviderFactory extends ProviderFactory<IdpFederationProvider> {
+public interface SAMLFederationProviderFactory extends ProviderFactory<FederationProvider> {
 
 	
     String getName();
 
     
-    IdpFederationProvider create(KeycloakSession session, IdentityProvidersFederationModel model, String realmId);
+    FederationProvider create(KeycloakSession session, FederationModel model, String realmId);
 
 
-	static IdpFederationProviderFactory getIdpFederationProviderFactoryById(KeycloakSession session, String providerId) {
-		return (IdpFederationProviderFactory) session.getKeycloakSessionFactory()
-				.getProviderFactoriesStream(IdpFederationProvider.class).filter(pf -> pf.getId().equals(providerId))
+	static SAMLFederationProviderFactory getSAMLFederationProviderFactoryById(KeycloakSession session, String providerId) {
+		return (SAMLFederationProviderFactory) session.getKeycloakSessionFactory()
+				.getProviderFactoriesStream(FederationProvider.class).filter(pf -> pf.getId().equals(providerId))
 				.findAny().orElse(null);
 	};
     

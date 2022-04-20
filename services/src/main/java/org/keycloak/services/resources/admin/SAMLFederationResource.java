@@ -19,8 +19,8 @@ package org.keycloak.services.resources.admin;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
-import org.keycloak.broker.federation.IdpFederationProvider;
-import org.keycloak.broker.federation.IdpFederationProviderFactory;
+import org.keycloak.broker.federation.FederationProvider;
+import org.keycloak.broker.federation.SAMLFederationProviderFactory;
 import org.keycloak.broker.provider.IdentityProviderMapper;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
@@ -32,7 +32,7 @@ import org.keycloak.provider.ProviderFactory;
 import org.keycloak.representations.idm.ConfigPropertyRepresentation;
 import org.keycloak.representations.idm.FederationMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderMapperTypeRepresentation;
-import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
+import org.keycloak.representations.idm.SAMLFederationRepresentation;
 import org.keycloak.services.ErrorResponse;
 import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluator;
 
@@ -45,16 +45,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 
-public class IdentityProvidersFederationResource {
+public class SAMLFederationResource {
 
     private final RealmModel realm;
     private final KeycloakSession session;
     private AdminPermissionEvaluator auth;
     private AdminEventBuilder adminEvent;
 
-    protected static final Logger logger = Logger.getLogger(IdentityProvidersFederationResource.class);
+    protected static final Logger logger = Logger.getLogger(SAMLFederationResource.class);
 
-    public IdentityProvidersFederationResource(RealmModel realm, KeycloakSession session, AdminPermissionEvaluator auth, AdminEventBuilder adminEvent) {
+    public SAMLFederationResource(RealmModel realm, KeycloakSession session, AdminPermissionEvaluator auth, AdminEventBuilder adminEvent) {
         this.realm = realm;
         this.session = session;
         this.auth = auth;
@@ -62,7 +62,7 @@ public class IdentityProvidersFederationResource {
     }
 
     /**
-     * Export public broker configuration for fedeartion
+     * Export public broker configuration for federation
      * @param alias federation alias
      * @return
      */
@@ -74,15 +74,15 @@ public class IdentityProvidersFederationResource {
     ) {
         this.auth.realm().requireViewIdentityProviders();
 
-        IdentityProvidersFederationModel model = realm.getIdentityProvidersFederationByAlias(alias);
+        FederationModel model = realm.getSAMLFederationByAlias(alias);
 
         if (model == null) {
             throw new javax.ws.rs.NotFoundException();
         }
 
         try {
-            IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session, model, this.realm.getId());
-            return idpFederationProvider.export(session.getContext().getUri(), realm);
+            FederationProvider federationProvider = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, model.getProviderId()).create(session, model, this.realm.getId());
+            return federationProvider.export(session.getContext().getUri(), realm);
         } catch (Exception e) {
             return ErrorResponse.error("Could not export public broker configuration for IdP aggregation [" + model.getProviderId() + "].", Response.Status.NOT_FOUND);
         }
@@ -99,9 +99,9 @@ public class IdentityProvidersFederationResource {
     @Path("instances")
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
-    public List<IdentityProvidersFederationRepresentation> list() {
+    public List<SAMLFederationRepresentation> list() {
         this.auth.realm().requireViewIdentityProviders();
-        return realm.getIdentityProviderFederations().stream().map(ModelToRepresentation::toRepresentation).collect(Collectors.toList());
+        return realm.getSAMLFederations().stream().map(ModelToRepresentation::toRepresentation).collect(Collectors.toList());
     }
 
     /**
@@ -113,18 +113,18 @@ public class IdentityProvidersFederationResource {
     @POST
     @Path("instances")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(IdentityProvidersFederationRepresentation representation) {
+    public Response create(SAMLFederationRepresentation representation) {
         this.auth.realm().requireManageIdentityProviders();
 
         try {
-        	IdentityProvidersFederationModel model = RepresentationToModel.toModel(representation);
-        	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session,model,this.realm.getId());
-        	String id = idpFederationProvider.updateFederation();
+        	FederationModel model = RepresentationToModel.toModel(representation);
+        	FederationProvider federationProvider = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, model.getProviderId()).create(session,model,this.realm.getId());
+        	String id = federationProvider.updateFederation();
 
 			adminEvent.operation(OperationType.CREATE)
 					.resourcePath(session.getContext().getUri(), representation.getAlias())
 					.representation(representation).success();
-			idpFederationProvider.enableUpdateTask();
+			federationProvider.enableUpdateTask();
 
 			return Response.created(session.getContext().getUri().getAbsolutePathBuilder()
 					.path(id).build()).build();
@@ -137,14 +137,14 @@ public class IdentityProvidersFederationResource {
     @GET
     @Path("instances/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public IdentityProvidersFederationRepresentation getIdentityProviderFederation(@PathParam("id") String internalId) {
+    public SAMLFederationRepresentation getIdentityProviderFederation(@PathParam("id") String internalId) {
         this.auth.realm().requireViewIdentityProviders();
         //create alias representation
-        IdentityProvidersFederationModel model = realm.getIdentityProvidersFederationById(internalId);
+        FederationModel model = realm.getSAMLFederationById(internalId);
         if (model == null) {
             throw new NotFoundException();
         }
-        IdentityProvidersFederationRepresentation representation = ModelToRepresentation.toRepresentation(model);
+        SAMLFederationRepresentation representation = ModelToRepresentation.toRepresentation(model);
         return representation;
     }
 
@@ -160,13 +160,13 @@ public class IdentityProvidersFederationResource {
     public Response delete(@PathParam("id") String internalId) {
         this.auth.realm().requireManageIdentityProviders();
 
-        IdentityProvidersFederationModel model = realm.getIdentityProvidersFederationById(internalId);
+        FederationModel model = realm.getSAMLFederationById(internalId);
         if (model == null) {
             throw new NotFoundException();
         }
-    	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, model.getProviderId()).create(session,model,this.realm.getId());
+    	FederationProvider federationProvider = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, model.getProviderId()).create(session,model,this.realm.getId());
 
-    	idpFederationProvider.removeFederation();
+    	federationProvider.removeFederation();
 
         adminEvent.operation(OperationType.DELETE).resourcePath(session.getContext().getUri()).success();
         return Response.noContent().build();

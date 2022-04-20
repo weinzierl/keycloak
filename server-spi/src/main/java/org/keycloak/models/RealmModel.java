@@ -29,11 +29,9 @@ import org.keycloak.storage.client.ClientStorageProvider;
 import org.keycloak.storage.client.ClientStorageProviderModel;
 import org.keycloak.storage.role.RoleStorageProvider;
 import org.keycloak.storage.role.RoleStorageProviderModel;
-import org.keycloak.utils.StringUtil;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -526,13 +524,13 @@ public interface RealmModel extends RoleContainerModel {
     RequiredActionProviderModel getRequiredActionProviderById(String id);
     RequiredActionProviderModel getRequiredActionProviderByAlias(String alias);
 
-    List<IdentityProvidersFederationModel> getIdentityProviderFederations();
-    IdentityProvidersFederationModel getIdentityProvidersFederationById(String id);
-    IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias);
-    void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
-    void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel);
-    void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs);
-    void removeIdentityProvidersFederation(String internalId);
+    List<FederationModel> getSAMLFederations();
+    FederationModel getSAMLFederationById(String id);
+    FederationModel getSAMLFederationByAlias(String alias);
+    void addSAMLFederation(FederationModel federationModel);
+    void updateSAMLFederation(FederationModel federationModel);
+    void taskExecutionFederation(FederationModel federationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs);
+    void removeSAMLFederation(String internalId);
     List<FederationMapperModel> getIdentityProviderFederationMappers(String federationId);
     FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id);
     void addIdentityProvidersFederationMapper(FederationMapperModel federationMapperModel);
@@ -598,7 +596,7 @@ public interface RealmModel extends RoleContainerModel {
     IdentityProviderMapperModel getIdentityProviderMapperById(String id);
     IdentityProviderMapperModel getIdentityProviderMapperByName(String brokerAlias, String name);
 
-    boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias);
+    boolean removeFederationIdp(FederationModel federationModel, String idpAlias);
 
 
     /**

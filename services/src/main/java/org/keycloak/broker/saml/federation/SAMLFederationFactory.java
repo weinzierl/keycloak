@@ -2,14 +2,12 @@ package org.keycloak.broker.saml.federation;
 
 import org.keycloak.Config.Scope;
 import org.keycloak.broker.federation.AbstractIdPFederationProviderFactory;
-import org.keycloak.broker.federation.IdpFederationProvider;
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
-import org.keycloak.broker.saml.federation.SAMLIdPFederationProvider;
 
 
-public class SAMLIdpFederationFactory extends AbstractIdPFederationProviderFactory<SAMLIdPFederationProvider> {
+public class SAMLFederationFactory extends AbstractIdPFederationProviderFactory<SAMLFederationProvider> {
 
 	public static final String FEDERATION_PROVIDER_ID = "saml";  //same as the SAMLIdentityProviderFactory.PROVIDER_ID
 	
@@ -27,8 +25,8 @@ public class SAMLIdpFederationFactory extends AbstractIdPFederationProviderFacto
 
 	
 	@Override
-	public SAMLIdPFederationProvider create(KeycloakSession session, IdentityProvidersFederationModel model,String realmId) {
-		return new SAMLIdPFederationProvider(session, new SAMLIdPFederationModel(model),realmId);
+	public SAMLFederationProvider create(KeycloakSession session, FederationModel model, String realmId) {
+		return new SAMLFederationProvider(session, new SAMLFederationModel(model),realmId);
 	}
 	
 

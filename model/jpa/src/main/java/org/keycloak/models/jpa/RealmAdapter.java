@@ -1393,8 +1393,8 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         });
     }
 
-    private IdentityProvidersFederationModel entityToModel(FederationEntity entity) {
-    	IdentityProvidersFederationModel federationModel = new IdentityProvidersFederationModel();
+    private FederationModel entityToModel(FederationEntity entity) {
+    	FederationModel federationModel = new FederationModel();
     	federationModel.setInternalId(entity.getInternalId());
     	federationModel.setAlias(entity.getAlias());
     	federationModel.setDisplayName(entity.getDisplayName());
@@ -1448,18 +1448,18 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     }
 
     @Override
-    public List<IdentityProvidersFederationModel> getIdentityProviderFederations() {
+    public List<FederationModel> getSAMLFederations() {
     	return realm.getIdentityProvidersFederations().stream().map(idp -> entityToModel(idp)).collect(Collectors.toList());
     }
     
     @Override
-    public IdentityProvidersFederationModel getIdentityProvidersFederationById(String id) {
+    public FederationModel getSAMLFederationById(String id) {
     	FederationEntity fe =em.find(FederationEntity.class, id);
     	return  fe != null ? entityToModel(fe) : null ;
     }
     
     @Override
-    public IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias) {
+    public FederationModel getSAMLFederationByAlias(String alias) {
     	TypedQuery<FederationEntity> query = em.createNamedQuery("findFederationByAliasAndRealm", FederationEntity.class);
         query.setParameter("alias", alias);
         query.setParameter("realmId", realm.getId());
@@ -1471,27 +1471,27 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
      * This should be used for the creation of a new idp federation
      */
 	@Override
-	public void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+	public void addSAMLFederation(FederationModel federationModel) {
 		
-		logger.info("Creating an IdP federation with id: "+ identityProvidersFederationModel.getInternalId());
+		logger.info("Creating an IdP federation with id: "+ federationModel.getInternalId());
 		
 		FederationEntity federationEntity = new FederationEntity();
 
-		federationEntity.setInternalId(identityProvidersFederationModel.getInternalId());
-		federationEntity.setAlias(identityProvidersFederationModel.getAlias());
-		federationEntity.setProviderId(identityProvidersFederationModel.getProviderId());
+		federationEntity.setInternalId(federationModel.getInternalId());
+		federationEntity.setAlias(federationModel.getAlias());
+		federationEntity.setProviderId(federationModel.getProviderId());
 		
 		//federationEntity.setLastMetadataRefreshTimestamp(new Date().getTime());
-		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
-        federationEntity.setEntityIdDenyList(identityProvidersFederationModel.getEntityIdDenyList());
-        federationEntity.setEntityIdAllowList(identityProvidersFederationModel.getEntityIdAllowList());
-        federationEntity.setRegistrationAuthorityDenyList(identityProvidersFederationModel.getRegistrationAuthorityDenyList());
-        federationEntity.setRegistrationAuthorityAllowList(identityProvidersFederationModel.getRegistrationAuthorityAllowList());
-        federationEntity.setCategoryDenyList(identityProvidersFederationModel.getCategoryDenyList());
-        federationEntity.setCategoryAllowList(identityProvidersFederationModel.getCategoryAllowList());
-        federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
-        federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
-		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
+		federationEntity.setUrl(federationModel.getUrl());
+        federationEntity.setEntityIdDenyList(federationModel.getEntityIdDenyList());
+        federationEntity.setEntityIdAllowList(federationModel.getEntityIdAllowList());
+        federationEntity.setRegistrationAuthorityDenyList(federationModel.getRegistrationAuthorityDenyList());
+        federationEntity.setRegistrationAuthorityAllowList(federationModel.getRegistrationAuthorityAllowList());
+        federationEntity.setCategoryDenyList(federationModel.getCategoryDenyList());
+        federationEntity.setCategoryAllowList(federationModel.getCategoryAllowList());
+        federationEntity.setUpdateFrequencyInMins(federationModel.getUpdateFrequencyInMins());
+        federationEntity.setValidUntilTimestamp(federationModel.getValidUntilTimestamp());
+		federationEntity.setConfig(federationModel.getConfig());
 		
 		realm.addIdentityProvidersFederation(federationEntity);
 		
@@ -1505,45 +1505,45 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
      * This should be used for updating an existing idp federation
      */
 	@Override
-	public void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+	public void updateSAMLFederation(FederationModel federationModel) {
 		
-		logger.info("Updating the IdP federation with id: "+ identityProvidersFederationModel.getInternalId());
+		logger.info("Updating the IdP federation with id: "+ federationModel.getInternalId());
 		
-		if(identityProvidersFederationModel.getInternalId() == null) {
+		if(federationModel.getInternalId() == null) {
 			logger.info("Trying to update a federation with no id... skipping...");
 			return;
 		}
 		
-		FederationEntity federationEntity = realm.getIdentityProvidersFederations().stream().filter(idpf -> idpf.getInternalId().equals(identityProvidersFederationModel.getInternalId())).findAny().orElse(null);
+		FederationEntity federationEntity = realm.getIdentityProvidersFederations().stream().filter(idpf -> idpf.getInternalId().equals(federationModel.getInternalId())).findAny().orElse(null);
 		
 		if(federationEntity == null) {
-			logger.infov("The federation with id={} and alias={} could now be found! Skipping the update...", identityProvidersFederationModel.getInternalId(), identityProvidersFederationModel.getAlias());
+			logger.infov("The federation with id={} and alias={} could now be found! Skipping the update...", federationModel.getInternalId(), federationModel.getAlias());
 			return; //cannot update a non-existent federation
 		}
 		
 		//should not change alias, providerid, and creation date, since those attributes are immutable
 		//lastMetadataRefreshTimestamp field should be updated only related to idps refresh 
 		//and not if user change some federation fields
-		federationEntity.setLastMetadataRefreshTimestamp(identityProvidersFederationModel.getLastMetadataRefreshTimestamp());
-		federationEntity.setUrl(identityProvidersFederationModel.getUrl());
-		federationEntity.setEntityIdDenyList(identityProvidersFederationModel.getEntityIdDenyList());
-		federationEntity.setEntityIdAllowList(identityProvidersFederationModel.getEntityIdAllowList());
-		federationEntity.setRegistrationAuthorityDenyList(identityProvidersFederationModel.getRegistrationAuthorityDenyList());
-        federationEntity.setRegistrationAuthorityAllowList(identityProvidersFederationModel.getRegistrationAuthorityAllowList());
-        federationEntity.setCategoryDenyList(identityProvidersFederationModel.getCategoryDenyList());
-        federationEntity.setCategoryAllowList(identityProvidersFederationModel.getCategoryAllowList());
-		federationEntity.setUpdateFrequencyInMins(identityProvidersFederationModel.getUpdateFrequencyInMins());
-		federationEntity.setValidUntilTimestamp(identityProvidersFederationModel.getValidUntilTimestamp());
-		federationEntity.setConfig(identityProvidersFederationModel.getConfig());
+		federationEntity.setLastMetadataRefreshTimestamp(federationModel.getLastMetadataRefreshTimestamp());
+		federationEntity.setUrl(federationModel.getUrl());
+		federationEntity.setEntityIdDenyList(federationModel.getEntityIdDenyList());
+		federationEntity.setEntityIdAllowList(federationModel.getEntityIdAllowList());
+		federationEntity.setRegistrationAuthorityDenyList(federationModel.getRegistrationAuthorityDenyList());
+        federationEntity.setRegistrationAuthorityAllowList(federationModel.getRegistrationAuthorityAllowList());
+        federationEntity.setCategoryDenyList(federationModel.getCategoryDenyList());
+        federationEntity.setCategoryAllowList(federationModel.getCategoryAllowList());
+		federationEntity.setUpdateFrequencyInMins(federationModel.getUpdateFrequencyInMins());
+		federationEntity.setValidUntilTimestamp(federationModel.getValidUntilTimestamp());
+		federationEntity.setConfig(federationModel.getConfig());
 	}
 
     @Override
-    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
+    public void taskExecutionFederation(FederationModel federationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
 
 	    addIdPs.stream().forEach(idp -> {
             this.addIdentityProvider(idp);
             //add mappers from federation for new identity providers
-            identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(mapper ->{
+            federationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(mapper ->{
                 try {
                     this.addIdentityProviderMapper(mapper);
                 } catch (RuntimeException e ) {
@@ -1557,14 +1557,14 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             removedIdPs.stream().forEach(alias -> {
                 //remove mappers also
                 logger.info("Removing idp with alias = " + alias);
-                this.removeFederationIdp(identityProvidersFederationModel, alias);
+                this.removeFederationIdp(federationModel, alias);
             });
         }
-        this.updateIdentityProvidersFederation(identityProvidersFederationModel);
+        this.updateSAMLFederation(federationModel);
     }
 
     @Override
-	public void removeIdentityProvidersFederation(String internalId) {
+	public void removeSAMLFederation(String internalId) {
 		logger.info("Removing the IdP federation entry with id: "+ internalId);
 
 		FederationEntity federationEntity = realm.getIdentityProvidersFederations().stream().filter(idpf -> idpf.getInternalId().equals(internalId)).findAny().orElse(null);
@@ -1591,14 +1591,14 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     }
 
     @Override
-    public boolean removeFederationIdp(IdentityProvidersFederationModel idpfModel, String idpAlias) {
+    public boolean removeFederationIdp(FederationModel idpfModel, String idpAlias) {
 
         try {
             IdentityProviderEntity idpEntity = getIdentityProviderEntityByAlias(idpAlias);
             if(idpEntity == null) return false;
             Set<FederationEntity> idpFeds = idpEntity.getFederations();
             if(idpFeds.size() == 1) {
-                getIdentityProviderMappersByAliasStream(idpAlias).forEach(this::removeIdentityProviderMapper);
+                getIdentityProviderMappersByAliasStream(idpAlias).collect(Collectors.toList()).forEach(this::removeIdentityProviderMapper);
                 em.createNamedQuery("deleteFederatedIdentityByProvider")
                         .setParameter("realmId", realm.getId())
                         .setParameter("providerAlias", idpAlias).executeUpdate();

@@ -25,8 +25,8 @@ import org.keycloak.authentication.AuthenticationProcessor;
 import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticator;
 import org.keycloak.authentication.authenticators.broker.util.PostBrokerLoginConstants;
 import org.keycloak.authentication.authenticators.broker.util.SerializedBrokeredIdentityContext;
-import org.keycloak.broker.federation.IdpFederationProvider;
-import org.keycloak.broker.federation.IdpFederationProviderFactory;
+import org.keycloak.broker.federation.FederationProvider;
+import org.keycloak.broker.federation.SAMLFederationProviderFactory;
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
@@ -36,8 +36,8 @@ import org.keycloak.broker.provider.IdentityProviderMapper;
 import org.keycloak.broker.provider.IdentityProviderMapperSyncModeDelegate;
 import org.keycloak.broker.provider.util.IdentityBrokerState;
 import org.keycloak.broker.saml.SAMLEndpoint;
-import org.keycloak.broker.saml.federation.SAMLIdPFederationProvider;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.broker.saml.federation.SAMLFederationProvider;
 import org.keycloak.broker.social.SocialIdentityProvider;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.util.Base64Url;
@@ -57,7 +57,7 @@ import org.keycloak.models.Constants;
 import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.IdentityProviderSyncMode;
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
@@ -456,7 +456,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseDocument(samlBytes);
         StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
-        String alias = SAMLIdPFederationProvider.getHash(issuer);
+        String alias = SAMLFederationProvider.getHash(issuer);
         String fullUrl = Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), alias, this.realmModel.getName()).toString();
         String path = fullUrl.replace(this.session.getContext().getUri().getBaseUri().toString(), "/"); //get the subpath from "realms" and on, prepending also a "/"
         request.forward(path);
@@ -471,7 +471,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         SAMLDocumentHolder samlDocumentHolder = SAMLRequestParser.parseResponseRedirectBinding(samlResponse);
         StatusResponseType statusResponse = (StatusResponseType)samlDocumentHolder.getSamlObject();
         String issuer = statusResponse.getIssuer().getValue(); //this should be the entityId
-        String alias = SAMLIdPFederationProvider.getHash(issuer);
+        String alias = SAMLFederationProvider.getHash(issuer);
         String fullUrl = Urls.identityProviderAuthnResponse(this.session.getContext().getUri().getBaseUri(), alias, this.realmModel.getName()).toString();
         String path = fullUrl.replace(this.session.getContext().getUri().getBaseUri().toString(), "/"); //get the subpath from "realms" and on, prepending also a "/"
         request.forward(path);
@@ -499,13 +499,13 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
     @NoCache
     @Path("/federation/{provider_id}" + ENDPOINT_PATH + "/descriptor")
     public Response getIdpFederationService(@PathParam("provider_id") String providerId) {
-    	IdentityProvidersFederationModel idpFederationModel = realmModel.getIdentityProvidersFederationByAlias(providerId);
+    	FederationModel idpFederationModel = realmModel.getSAMLFederationByAlias(providerId);
     	if(idpFederationModel == null)
-    		idpFederationModel = realmModel.getIdentityProvidersFederationById(providerId);
+    		idpFederationModel = realmModel.getSAMLFederationById(providerId);
     	if (idpFederationModel == null)
             throw new IdentityBrokerException("Could not find any federation for the identifier: " + providerId);
-    	IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, idpFederationModel.getProviderId()).create(session, idpFederationModel, realmModel.getId());
-        Response response = idpFederationProvider.export(session.getContext().getUri(), realmModel);
+    	FederationProvider federationProvider = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, idpFederationModel.getProviderId()).create(session, idpFederationModel, realmModel.getId());
+        Response response = federationProvider.export(session.getContext().getUri(), realmModel);
     	String xsltOverride = idpFederationModel.getConfig().get("xsltOverride");
     	if(xsltOverride == null || xsltOverride.isEmpty())
             return response;

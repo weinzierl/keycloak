@@ -40,7 +40,7 @@ import org.keycloak.models.FederationMapperModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.OAuth2DeviceConfig;
 import org.keycloak.models.OTPPolicy;
@@ -953,17 +953,17 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
 
 
     @Override
-    public List<IdentityProvidersFederationModel> getIdentityProviderFederations(){
+    public List<FederationModel> getSAMLFederations(){
         return entity.getIdentityProvidersFederations().map(MapFederationEntity::toModel).collect(Collectors.toList());
     }
 
     @Override
-    public IdentityProvidersFederationModel getIdentityProvidersFederationById(String id){
+    public FederationModel getSAMLFederationById(String id){
         return MapFederationEntity.toModel(entity.getIdentityProvidersFederationById(id));
     }
 
     @Override
-    public IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias){
+    public FederationModel getSAMLFederationByAlias(String alias){
         return MapFederationEntity.toModel(entity.getIdentityProvidersFederations()
                 .filter(idpFed -> idpFed.getAlias().equals(alias))
                 .findFirst()
@@ -971,22 +971,22 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     }
 
     @Override
-    public void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel){
-        entity.addIdentityProvidersFederation(MapFederationEntity.fromModel(identityProvidersFederationModel));
+    public void addSAMLFederation(FederationModel federationModel){
+        entity.addIdentityProvidersFederation(MapFederationEntity.fromModel(federationModel));
     }
 
     @Override
-    public void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel){
-        if ( identityProvidersFederationModel.getIdps() == null)
-            identityProvidersFederationModel.setIdps(this.getIdentityProvidersByFederation(identityProvidersFederationModel.getInternalId()));
-        entity.updateIdentityProvidersFederation(MapFederationEntity.fromModel(identityProvidersFederationModel));
+    public void updateSAMLFederation(FederationModel federationModel){
+        if ( federationModel.getIdps() == null)
+            federationModel.setIdps(this.getIdentityProvidersByFederation(federationModel.getInternalId()));
+        entity.updateIdentityProvidersFederation(MapFederationEntity.fromModel(federationModel));
     }
 
     @Override
-    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
+    public void taskExecutionFederation(FederationModel federationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
         addIdPs.stream().forEach(idp -> {
             this.addIdentityProvider(idp);
-            identityProvidersFederationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(mapper -> {
+            federationModel.getFederationMapperModels().stream().map(mapper -> new IdentityProviderMapperModel(mapper, idp.getAlias())).forEach(mapper -> {
                 try {
                     this.addIdentityProviderMapper(mapper);
                 } catch (RuntimeException e ) {
@@ -998,23 +998,23 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
         //todo -> preremove all users from removedIdPs
         removedIdPs.stream().forEach(alias ->{
             //remove mappers also
-            this.removeFederationIdp(identityProvidersFederationModel, alias);
+            this.removeFederationIdp(federationModel, alias);
             this.getIdentityProviderMappersByAliasStream(alias).forEach(this::removeIdentityProviderMapper);
         } );
         addIdPs.addAll(updatedIdPs);
-        identityProvidersFederationModel.setIdps(addIdPs.stream().map(IdentityProviderModel::getAlias).collect(Collectors.toList()));
-        this.updateIdentityProvidersFederation(identityProvidersFederationModel);
+        federationModel.setIdps(addIdPs.stream().map(IdentityProviderModel::getAlias).collect(Collectors.toList()));
+        this.updateSAMLFederation(federationModel);
     }
 
     @Override
-    public void removeIdentityProvidersFederation(String internalId){
+    public void removeSAMLFederation(String internalId){
         entity.removeIdentityProvidersFederation(internalId);
     }
 
     @Override
-    public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias){
+    public boolean removeFederationIdp(FederationModel federationModel, String idpAlias){
         try {
-            entity.removeFederationIdp(identityProvidersFederationModel, idpAlias);
+            entity.removeFederationIdp(federationModel, idpAlias);
             return true;
         }
         catch(RuntimeException ex){
@@ -1024,12 +1024,12 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
 
     @Override
     public List<String> getIdentityProvidersByFederation(String federationId) {
-        return this.getIdentityProvidersFederationById(federationId).getIdps();
+        return this.getSAMLFederationById(federationId).getIdps();
     }
 
     @Override
     public List<FederationMapperModel> getIdentityProviderFederationMappers(String federationId){
-        IdentityProvidersFederationModel federation = this.getIdentityProvidersFederationById(federationId);
+        FederationModel federation = this.getSAMLFederationById(federationId);
         if ( federation != null) {
             return federation.getFederationMapperModels();
         } else {
@@ -1039,7 +1039,7 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
 
     @Override
     public FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id) {
-        IdentityProvidersFederationModel federation = this.getIdentityProvidersFederationById(federationId);
+        FederationModel federation = this.getSAMLFederationById(federationId);
         if (federation != null) {
             return federation.getFederationMapperModels().stream().filter(mapper -> Objects.equals(mapper.getId(), id))
                     .findFirst().orElse(null);

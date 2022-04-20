@@ -21,7 +21,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
@@ -32,7 +31,7 @@ import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.representations.idm.FederationMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
-import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
+import org.keycloak.representations.idm.SAMLFederationRepresentation;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
@@ -93,8 +92,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
         sleep(70000);
         // first execute trigger update idps and then get identity providers federation
-        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
-                .getIdentityProviderFederation(internalId);
+        SAMLFederationRepresentation representation = realm.samlFederation()
+                .getSAMLFederation(internalId);
         assertNotNull(representation);
 
         assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
@@ -133,11 +132,11 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
         //update federation in order to update idps based on xml
         representation.setUpdateFrequencyInMins(1);
-        Response response = realm.identityProvidersFederation().create(representation);
+        Response response = realm.samlFederation().create(representation);
         sleep(90000);
          //postBindingResponse must be true again
-        representation = realm.identityProvidersFederation()
-            .getIdentityProviderFederation(internalId);
+        representation = realm.samlFederation()
+            .getSAMLFederation(internalId);
         assertNotNull(representation);
         idps.stream().forEach(idpAlias -> {
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
@@ -164,8 +163,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
 		sleep(90000);
 		// first execute trigger update idps and then get identity providers federation
-		IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
-				.getIdentityProviderFederation(internalId);
+		SAMLFederationRepresentation representation = realm.samlFederation()
+				.getSAMLFederation(internalId);
 		assertNotNull(representation);
 
 		assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
@@ -205,8 +204,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
         sleep(90000);
         // first execute trigger update idps and then get identity providers federation
-        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
-                .getIdentityProviderFederation(internalId);
+        SAMLFederationRepresentation representation = realm.samlFederation()
+                .getSAMLFederation(internalId);
         assertNotNull(representation);
 
         assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
@@ -244,8 +243,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
         sleep(90000);
         // first execute trigger update idps and then get identity providers federation
-        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
-                .getIdentityProviderFederation(internalId);
+        SAMLFederationRepresentation representation = realm.samlFederation()
+                .getSAMLFederation(internalId);
         assertNotNull(representation);
 
         assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
@@ -278,10 +277,10 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
                 new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
 
-        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
-                .getIdentityProviderFederation(internalId);
+        SAMLFederationRepresentation representation = realm.samlFederation()
+                .getSAMLFederation(internalId);
         Assert.assertNotNull(representation);
-        String spDescriptorString = realm.identityProvidersFederation().export(representation.getAlias()).readEntity(String.class);
+        String spDescriptorString = realm.samlFederation().export(representation.getAlias()).readEntity(String.class);
         SAMLParser parser = SAMLParser.getInstance();
         EntityDescriptorType o = (EntityDescriptorType) parser.parse(new StringInputStream(spDescriptorString));
         SPSSODescriptorType spDescriptor = o.getChoiceType().get(0).getDescriptors().get(0).getSpDescriptor();
@@ -304,10 +303,10 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
                 new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
         createMapper(internalId);
 
-        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
-                .getIdentityProviderFederation(internalId);
+        SAMLFederationRepresentation representation = realm.samlFederation()
+                .getSAMLFederation(internalId);
         Assert.assertNotNull(representation);
-        String spDescriptorString = realm.identityProvidersFederation().export(representation.getAlias()).readEntity(String.class);
+        String spDescriptorString = realm.samlFederation().export(representation.getAlias()).readEntity(String.class);
         SAMLParser parser = SAMLParser.getInstance();
         EntityDescriptorType o = (EntityDescriptorType) parser.parse(new StringInputStream(spDescriptorString));
         SPSSODescriptorType spDescriptor = o.getChoiceType().get(0).getDescriptors().get(0).getSpDescriptor();
@@ -337,7 +336,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         String internalId = createFederation("edugain-sample", "http://localhost:8880/edugain-sample-test.xml", new HashSet<>(),
                 new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashMap<>());
         String mapperId = createMapper(internalId);
-        FederationMapperRepresentation mapper = realm.identityProvidersFederation().getIdentityProviderFederationMapper(internalId,mapperId);
+        FederationMapperRepresentation mapper = realm.samlFederation().getIdentityProviderFederationMapper(internalId,mapperId);
         assertEquals("my_mapper", mapper.getName());
         assertEquals("saml-user-attribute-idp-mapper", mapper.getIdentityProviderMapper());
         assertEquals("givenname",mapper.getConfig().get("attribute.name"));
@@ -345,16 +344,16 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
         //update and remove mapper
         mapper.getConfig().put("user.attribute","name");
-        realm.identityProvidersFederation().updateMapper(internalId,mapperId,mapper);
-        mapper = realm.identityProvidersFederation().getIdentityProviderFederationMapper(internalId,mapperId);
+        realm.samlFederation().updateMapper(internalId,mapperId,mapper);
+        mapper = realm.samlFederation().getIdentityProviderFederationMapper(internalId,mapperId);
         assertEquals("my_mapper", mapper.getName());
         assertEquals("saml-user-attribute-idp-mapper", mapper.getIdentityProviderMapper());
         assertEquals("givenname",mapper.getConfig().get("attribute.name"));
         assertEquals("name",mapper.getConfig().get("user.attribute"));
 
-        realm.identityProvidersFederation().deleteMapper(internalId,mapperId);
+        realm.samlFederation().deleteMapper(internalId,mapperId);
         try {
-            realm.identityProvidersFederation().getIdentityProviderFederationMapper(internalId,mapperId);
+            realm.samlFederation().getIdentityProviderFederationMapper(internalId,mapperId);
             Assert.fail("Not expected to found federation");
 
         } catch (NotFoundException nfe) {
@@ -371,8 +370,8 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
         sleep(90000);
         // first execute trigger update idps and then get identity providers federation
-        IdentityProvidersFederationRepresentation representation = realm.identityProvidersFederation()
-                .getIdentityProviderFederation(internalId);
+        SAMLFederationRepresentation representation = realm.samlFederation()
+                .getSAMLFederation(internalId);
         assertNotNull(representation);
 
         assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
@@ -394,7 +393,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
         //add mapper to Idp
         String mapperId = createMapper(internalId);
-        realm.identityProvidersFederation().massIdPMapperAction(internalId,mapperId,"add");
+        realm.samlFederation().massIdPMapperAction(internalId,mapperId,"add");
 
         idps.stream().forEach(idpAlias -> {
             // find idp and check parameters
@@ -414,10 +413,10 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         });
 
         //update mapper to Idp
-        FederationMapperRepresentation fedMapper = realm.identityProvidersFederation().getIdentityProviderFederationMapper(internalId,mapperId);
+        FederationMapperRepresentation fedMapper = realm.samlFederation().getIdentityProviderFederationMapper(internalId,mapperId);
         fedMapper.getConfig().put("user.attribute","name");
-        realm.identityProvidersFederation().updateMapper(internalId,mapperId,fedMapper);
-        realm.identityProvidersFederation().massIdPMapperAction(internalId,mapperId,"update");
+        realm.samlFederation().updateMapper(internalId,mapperId,fedMapper);
+        realm.samlFederation().massIdPMapperAction(internalId,mapperId,"update");
         idps.stream().forEach(idpAlias -> {
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
@@ -436,7 +435,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         });
 
         //remove mapper from Idp
-        realm.identityProvidersFederation().massIdPMapperAction(internalId,mapperId,"remove");
+        realm.samlFederation().massIdPMapperAction(internalId,mapperId,"remove");
         idps.stream().forEach(idpAlias -> {
             // find idp and check parameters
             IdentityProviderResource provider = realm.identityProviders().get(idpAlias);
@@ -457,7 +456,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
 
     private String createFederation(String alias, String url, Set<String> denyList, Set<String> whitelist,
         Set<String> registrationAuthorityDenyList, Set<String> registrationAuthorityWhitelist, Map<String,List<String>> categoryDenyList) throws IOException {
-        IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
+        SAMLFederationRepresentation representation = new SAMLFederationRepresentation();
         representation.setAlias(alias);
         representation.setProviderId("saml");
         representation.setUpdateFrequencyInMins(60);
@@ -492,7 +491,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         config.put("attributeConsumingServiceName","federation");
         representation.setConfig(config);
 
-        Response response = realm.identityProvidersFederation().create(representation);
+        Response response = realm.samlFederation().create(representation);
         String id = ApiUtil.getCreatedId(response);
         Assert.assertNotNull(id);
         response.close();
@@ -507,11 +506,11 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
     }
 
 	private void removeFederation(String id) {
-		realm.identityProvidersFederation().delete(id);
+		realm.samlFederation().delete(id);
 
 		// federation and its idps must be deleted
 		try {
-			realm.identityProvidersFederation().getIdentityProviderFederation(id);
+			realm.samlFederation().getSAMLFederation(id);
 			Assert.fail("Not expected to found federation");
 
 		} catch (NotFoundException nfe) {
@@ -542,7 +541,7 @@ public class IdentityProvidersFederationTest extends AbstractAdminTest {
         config.put("attribute.name.format",JBossSAMLURIConstants.ATTRIBUTE_FORMAT_URI.name());
         mapper.setConfig(config);
 
-        Response response = realm.identityProvidersFederation().createMapper(federatedId,mapper);
+        Response response = realm.samlFederation().createMapper(federatedId,mapper);
         String id = ApiUtil.getCreatedId(response);
         Assert.assertNotNull(id);
         response.close();

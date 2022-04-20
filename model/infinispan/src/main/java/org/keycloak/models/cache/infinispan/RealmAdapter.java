@@ -30,7 +30,6 @@ import org.keycloak.storage.client.ClientStorageProvider;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -926,53 +925,53 @@ public class RealmAdapter implements CachedRealmModel {
 
 
     @Override
-    public List<IdentityProvidersFederationModel> getIdentityProviderFederations() {
-        if (isUpdated()) return updated.getIdentityProviderFederations();
+    public List<FederationModel> getSAMLFederations() {
+        if (isUpdated()) return updated.getSAMLFederations();
         return cached.getIdentityProvidersFederations();
     }
     
     @Override
-    public IdentityProvidersFederationModel getIdentityProvidersFederationById(String id) {
-    	if (isUpdated()) return updated.getIdentityProvidersFederationById(id);
+    public FederationModel getSAMLFederationById(String id) {
+    	if (isUpdated()) return updated.getSAMLFederationById(id);
     	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getInternalId().equals(id)).findAny().orElse(null);
     }
     
     @Override
-    public IdentityProvidersFederationModel getIdentityProvidersFederationByAlias(String alias) {
-    	if (isUpdated()) return updated.getIdentityProvidersFederationByAlias(alias);
+    public FederationModel getSAMLFederationByAlias(String alias) {
+    	if (isUpdated()) return updated.getSAMLFederationByAlias(alias);
     	return cached.getIdentityProvidersFederations().stream().filter(federation -> federation.getAlias().equals(alias)).findAny().orElse(null);
     }
     
     
     @Override
-	public void addIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+	public void addSAMLFederation(FederationModel federationModel) {
     	 getDelegateForUpdate();
-         updated.addIdentityProvidersFederation(identityProvidersFederationModel);
+         updated.addSAMLFederation(federationModel);
 	}
 	
 	@Override
-	public void updateIdentityProvidersFederation(IdentityProvidersFederationModel identityProvidersFederationModel) {
+	public void updateSAMLFederation(FederationModel federationModel) {
 		getDelegateForUpdate();
-        updated.updateIdentityProvidersFederation(identityProvidersFederationModel);
+        updated.updateSAMLFederation(federationModel);
 	}
 
     @Override
-    public void taskExecutionFederation(IdentityProvidersFederationModel identityProvidersFederationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
+    public void taskExecutionFederation(FederationModel federationModel, List<IdentityProviderModel> addIdPs, List<IdentityProviderModel> updatedIdPs, List<String> removedIdPs) {
         getDelegateForUpdate();
-        updated.taskExecutionFederation(identityProvidersFederationModel, addIdPs, updatedIdPs, removedIdPs);
+        updated.taskExecutionFederation(federationModel, addIdPs, updatedIdPs, removedIdPs);
         //invalidate cache for users related with removed IdPs
         session.users().preRemove(removedIdPs);
     }
 
     @Override
-	public void removeIdentityProvidersFederation(String internalId) {
+	public void removeSAMLFederation(String internalId) {
 		getDelegateForUpdate();
-		updated.removeIdentityProvidersFederation(internalId);
+		updated.removeSAMLFederation(internalId);
 	}
 	
 	@Override
 	public List<FederationMapperModel> getIdentityProviderFederationMappers(String federationId){
-	    IdentityProvidersFederationModel federation = getIdentityProvidersFederationById(federationId);
+	    FederationModel federation = getSAMLFederationById(federationId);
 	    if ( federation != null) {
 	        return federation.getFederationMapperModels();
 	    } else {
@@ -982,7 +981,7 @@ public class RealmAdapter implements CachedRealmModel {
 	
 	@Override
     public FederationMapperModel getIdentityProviderFederationMapper(String federationId, String id) {
-        IdentityProvidersFederationModel federation = getIdentityProvidersFederationById(federationId);
+        FederationModel federation = getSAMLFederationById(federationId);
         if (federation != null) {
             return federation.getFederationMapperModels().stream().filter(mapper -> Objects.equals(mapper.getId(), id))
                 .findFirst().orElse(null);
@@ -1311,9 +1310,9 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
-    public boolean removeFederationIdp(IdentityProvidersFederationModel identityProvidersFederationModel, String idpAlias) {
+    public boolean removeFederationIdp(FederationModel federationModel, String idpAlias) {
         getDelegateForUpdate();
-        return updated.removeFederationIdp(identityProvidersFederationModel,  idpAlias);
+        return updated.removeFederationIdp(federationModel,  idpAlias);
     }
 
 

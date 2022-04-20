@@ -18,15 +18,13 @@ package org.keycloak.services.resources;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.Config;
-import org.keycloak.broker.federation.IdpFederationProvider;
-import org.keycloak.broker.federation.IdpFederationProviderFactory;
+import org.keycloak.broker.federation.FederationProvider;
+import org.keycloak.broker.federation.SAMLFederationProviderFactory;
 import org.keycloak.common.util.Resteasy;
 import org.keycloak.config.ConfigProviderFactory;
 import org.keycloak.exportimport.ExportImportManager;
-import org.keycloak.migration.MigrationModelManager;
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.KeycloakSessionTask;
@@ -251,9 +249,9 @@ public class KeycloakApplication extends Application {
             try {
             	session.getTransactionManager().begin();
             	for (RealmModel realm : session.realms().getRealms()) {
-                 	for ( IdentityProvidersFederationModel fedModel : realm.getIdentityProviderFederations()) {
-                 		IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory.getIdpFederationProviderFactoryById(session, fedModel.getProviderId()).create(session, fedModel,realm.getId());
-                    	idpFederationProvider.enableUpdateTask();
+                 	for ( FederationModel fedModel : realm.getSAMLFederations()) {
+                 		FederationProvider federationProvider = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, fedModel.getProviderId()).create(session, fedModel,realm.getId());
+                    	federationProvider.enableUpdateTask();
                  	}
                 }
                 session.getTransactionManager().commit();

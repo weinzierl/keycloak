@@ -1025,9 +1025,9 @@ public class RealmAdminResource {
         return new IdentityProvidersResource(realm, session, this.auth, adminEvent);
     }
 
-    @Path("identity-provider-federation")
-    public IdentityProvidersFederationResource getIdentityProviderFederationResource() {
-        return new IdentityProvidersFederationResource(realm, session, this.auth, adminEvent);
+    @Path("saml-federations")
+    public SAMLFederationResource getIdentityProviderFederationResource() {
+        return new SAMLFederationResource(realm, session, this.auth, adminEvent);
     }
     
     

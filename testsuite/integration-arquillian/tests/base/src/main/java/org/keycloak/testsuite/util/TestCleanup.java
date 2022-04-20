@@ -159,7 +159,7 @@ public class TestCleanup {
         if (identityProviderFederationIds != null) {
             for (String idpFedId : identityProviderFederationIds) {
                 try {
-                    realm.identityProvidersFederation().delete(idpFedId);
+                    realm.samlFederation().delete(idpFedId);
                 } catch (NotFoundException nfe) {
                     // Idp Federation might be already deleted in the test
                 }

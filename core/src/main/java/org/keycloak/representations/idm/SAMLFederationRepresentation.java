@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class IdentityProvidersFederationRepresentation {
+public class SAMLFederationRepresentation {
 	
 
     private String internalId;
@@ -41,7 +41,7 @@ public class IdentityProvidersFederationRepresentation {
     
     private List<FederationMapperRepresentation> federationMappers = new ArrayList<>();
     
-    public IdentityProvidersFederationRepresentation() {
+    public SAMLFederationRepresentation() {
     	this.entityIdDenyList = new HashSet<String>();
     }
 

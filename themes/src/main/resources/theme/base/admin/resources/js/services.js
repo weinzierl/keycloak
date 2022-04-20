@@ -1776,27 +1776,27 @@ module.factory('IdentityProviderMapper', function($resource) {
 
 
 module.factory('IdentityProvidersFederation', function($resource) {
-    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id', {
+    return $resource(authUrl + '/admin/realms/:realm/saml-federations/instances/:id', {
         realm : '@realm',
         id : '@id'
     });
 });
 
 module.factory('IdentityProvidersFederationMappers', function($resource) {
-    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id/mappers', {
+    return $resource(authUrl + '/admin/realms/:realm/saml-federations/instances/:id/mappers', {
         realm : '@realm',
         id : '@id'
     });
 });
 
 module.factory('IdentityProviderMapperTypesFederation', function($resource) {
-    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/mapper-types', {
+    return $resource(authUrl + '/admin/realms/:realm/saml-federations/mapper-types', {
         realm : '@realm'
     });
 });
 
 module.factory('IdentityProvidersFederationMapper', function($resource) {
-    return $resource(authUrl + '/admin/realms/:realm/identity-provider-federation/instances/:id/mappers/:mapperId', {
+    return $resource(authUrl + '/admin/realms/:realm/saml-federations/instances/:id/mappers/:mapperId', {
         realm : '@realm',
         id : '@id',
         mapperId: '@mapperId'

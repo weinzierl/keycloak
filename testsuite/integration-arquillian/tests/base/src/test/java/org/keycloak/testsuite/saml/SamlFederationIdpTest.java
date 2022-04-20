@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.keycloak.testsuite.util.Matchers.bodyHC;
-import static org.keycloak.testsuite.util.Matchers.isSamlStatusResponse;
 import static org.keycloak.testsuite.util.Matchers.statusCodeIsHC;
 import static org.keycloak.testsuite.util.SamlClient.Binding.POST;
 import static org.keycloak.testsuite.util.SamlClient.Binding.REDIRECT;
@@ -30,8 +29,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.authentication.authenticators.broker.IdpReviewProfileAuthenticatorFactory;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.dom.saml.v2.SAML2Object;
@@ -39,13 +36,10 @@ import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
 import org.keycloak.dom.saml.v2.assertion.AttributeStatementType.ASTChoiceType;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
-import org.keycloak.dom.saml.v2.protocol.NameIDPolicyType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
-import org.keycloak.models.AuthenticationExecutionModel.Requirement;
 import org.keycloak.protocol.saml.SamlPrincipalType;
-import org.keycloak.representations.idm.AuthenticationExecutionInfoRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
-import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
+import org.keycloak.representations.idm.SAMLFederationRepresentation;
 import org.keycloak.saml.SAML2LoginResponseBuilder;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
@@ -79,7 +73,7 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 
 	@After
 	public void removeFederation() {
-		realm.identityProvidersFederation().delete(internalId);
+		realm.samlFederation().delete(internalId);
 	}
 
 	@BeforeClass
@@ -228,7 +222,7 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 	
 	  
 	private String createFederation(String alias, String url) throws NotFoundException, IOException {
-		IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
+		SAMLFederationRepresentation representation = new SAMLFederationRepresentation();
 		representation.setAlias(alias);
 		representation.setProviderId("saml");
 		representation.setUpdateFrequencyInMins(60);
@@ -255,7 +249,7 @@ public class SamlFederationIdpTest extends AbstractSamlTest {
 		map.put(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
 		representation.setConfig(map);
 
-		Response response = realm.identityProvidersFederation().create(representation);
+		Response response = realm.samlFederation().create(representation);
 		String id = ApiUtil.getCreatedId(response);
 		response.close();
 

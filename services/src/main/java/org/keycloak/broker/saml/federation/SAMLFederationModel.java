@@ -4,19 +4,19 @@ import static org.keycloak.broker.saml.SAMLIdentityProviderConfig.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;
 import java.util.LinkedList;
 
-public class SAMLIdPFederationModel extends IdentityProvidersFederationModel {
+public class SAMLFederationModel extends FederationModel {
 	
-	public SAMLIdPFederationModel(){
+	public SAMLFederationModel(){
 		super();
 	}
 	
-	public SAMLIdPFederationModel(IdentityProvidersFederationModel model) {
+	public SAMLFederationModel(FederationModel model) {
 		super(model);
 	}
 

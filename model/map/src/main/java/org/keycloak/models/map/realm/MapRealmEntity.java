@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.keycloak.common.util.Time;
 import org.keycloak.models.FederationMapperModel;
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.ModelDuplicateException;
 import org.keycloak.models.ModelException;
 import org.keycloak.models.OTPPolicy;
@@ -1008,7 +1008,7 @@ public class MapRealmEntity extends UpdatableEntity.Impl implements AbstractEnti
     };
 
 
-    public void removeFederationIdp(IdentityProvidersFederationModel idpFederation, String idpAlias){
+    public void removeFederationIdp(FederationModel idpFederation, String idpAlias){
         if (!identityProviderFederations.containsKey(idpFederation.getInternalId()))
             throw new ModelException("An IdentityProviderFederation with given id does not exist. Cannot remove identity provider of that federation");
         if (idpAlias==null || idpAlias.isEmpty())

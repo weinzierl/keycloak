@@ -1,19 +1,15 @@
 package org.keycloak.admin.client.resource;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.representations.idm.FederationMapperRepresentation;
-import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
+import org.keycloak.representations.idm.SAMLFederationRepresentation;
 
-public interface IdentityProvidersFederationResource {
+public interface SAMLFederationResource {
 
     @GET
     @Path("instances/{alias}/export")
@@ -22,12 +18,12 @@ public interface IdentityProvidersFederationResource {
     @POST
     @Path("instances")
     @Consumes(MediaType.APPLICATION_JSON)
-    Response create(IdentityProvidersFederationRepresentation identityProviderFederationRepresentation);
+    Response create(SAMLFederationRepresentation identityProviderFederationRepresentation);
 
     @GET
     @Path("instances/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public IdentityProvidersFederationRepresentation getIdentityProviderFederation(@PathParam("id") String internalId);
+    public SAMLFederationRepresentation getSAMLFederation(@PathParam("id") String internalId);
 
     @DELETE
     @Path("instances/{id}")

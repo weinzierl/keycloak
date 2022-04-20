@@ -29,7 +29,7 @@ import org.keycloak.admin.client.resource.ComponentsResource;
 import org.keycloak.admin.client.resource.GroupResource;
 import org.keycloak.admin.client.resource.GroupsResource;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
-import org.keycloak.admin.client.resource.IdentityProvidersFederationResource;
+import org.keycloak.admin.client.resource.SAMLFederationResource;
 import org.keycloak.admin.client.resource.IdentityProvidersResource;
 import org.keycloak.admin.client.resource.ProtocolMappersResource;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -302,18 +302,18 @@ public class AdminEventPaths {
     // IDENTITY PROVIDERS FEDERATIONS
     
     public static String identityProvidersFederationPath() {
-        URI uri = UriBuilder.fromUri("").path(RealmResource.class, "identityProvidersFederation").build();
+        URI uri = UriBuilder.fromUri("").path(RealmResource.class, "samlFederation").build();
         return uri.toString();
     }
 
     
     public static String identityProvidersFederationCreatePath() {
-        URI uri = UriBuilder.fromUri(identityProvidersFederationPath()).path(IdentityProvidersFederationResource.class, "create").build();
+        URI uri = UriBuilder.fromUri(identityProvidersFederationPath()).path(SAMLFederationResource.class, "create").build();
         return uri.toString();
     }
     
     public static String identityProvidersFederationPath(String alias) {
-        URI uri = UriBuilder.fromUri(identityProvidersFederationPath()).path(IdentityProvidersFederationResource.class, "getIdentityProviderFederation").build(alias);
+        URI uri = UriBuilder.fromUri(identityProvidersFederationPath()).path(SAMLFederationResource.class, "getSAMLFederation").build(alias);
         return uri.toString();
     }
 

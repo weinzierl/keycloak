@@ -30,7 +30,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.OAuth2DeviceConfig;
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.OTPPolicy;
 import org.keycloak.models.ParConfig;
 import org.keycloak.models.PasswordPolicy;
@@ -41,7 +41,6 @@ import org.keycloak.models.WebAuthnPolicy;
 import org.keycloak.models.cache.infinispan.DefaultLazyLoader;
 import org.keycloak.models.cache.infinispan.LazyLoader;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -126,7 +125,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected MultivaluedHashMap<String, ComponentModel> componentsByParentAndType = new MultivaluedHashMap<>();
     protected Map<String, ComponentModel> components;
     protected List<IdentityProviderModel> identityProviders;
-    protected List<IdentityProvidersFederationModel> identityProvidersFederations;
+    protected List<FederationModel> identityProvidersFederations;
 
     protected Map<String, String> browserSecurityHeaders;
     protected Map<String, String> smtpConfig;
@@ -244,7 +243,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         requiredCredentials = model.getRequiredCredentialsStream().collect(Collectors.toList());
         userActionTokenLifespans = Collections.unmodifiableMap(new HashMap<>(model.getUserActionTokenLifespans()));
 
-        this.identityProvidersFederations  = model.getIdentityProviderFederations();
+        this.identityProvidersFederations  = model.getSAMLFederations();
 
         this.identityProviders = model.getIdentityProvidersStream().collect(Collectors.toList());
         this.identityProviders = Collections.unmodifiableList(this.identityProviders);
@@ -601,7 +600,7 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         return adminEventsDetailsEnabled;
     }
 
-    public List<IdentityProvidersFederationModel> getIdentityProvidersFederations() {
+    public List<FederationModel> getIdentityProvidersFederations() {
         return identityProvidersFederations;
     }
 

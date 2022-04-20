@@ -1,9 +1,9 @@
 package org.keycloak.broker.federation;
 
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.KeycloakSession;
 
-public abstract class AbstractIdPFederationProvider <T extends IdentityProvidersFederationModel> implements IdpFederationProvider {
+public abstract class AbstractIdPFederationProvider <T extends FederationModel> implements FederationProvider {
 	
     protected final KeycloakSession session;
     protected final T model;

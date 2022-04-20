@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.keycloak.models.FederationMapperModel;
-import org.keycloak.models.IdentityProvidersFederationModel;
+import org.keycloak.models.FederationModel;
 import org.keycloak.models.map.common.UpdatableEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
 
@@ -39,7 +39,7 @@ public class MapFederationEntity implements UpdatableEntity {
     private MapFederationEntity() {
     }
 
-    public static MapFederationEntity fromModel(IdentityProvidersFederationModel model) {
+    public static MapFederationEntity fromModel(FederationModel model) {
         if (model == null) return null;
         MapFederationEntity entity = new MapFederationEntity();
         entity.setInternalId(model.getInternalId() == null ? KeycloakModelUtils.generateId() : model.getInternalId());
@@ -63,9 +63,9 @@ public class MapFederationEntity implements UpdatableEntity {
         return entity;
     }
 
-    public static IdentityProvidersFederationModel toModel(MapFederationEntity entity) {
+    public static FederationModel toModel(MapFederationEntity entity) {
         if (entity == null) return null;
-        IdentityProvidersFederationModel model = new IdentityProvidersFederationModel();
+        FederationModel model = new FederationModel();
 
         model.setInternalId(entity.getInternalId());
         model.setAlias(entity.getAlias());

@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * <p>A model type for the identity provider federations.</p>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class IdentityProvidersFederationModel implements Serializable {
+public class FederationModel implements Serializable {
 
     private String internalId;
 
@@ -67,12 +67,12 @@ public class IdentityProvidersFederationModel implements Serializable {
     private List<String> idps;
     
 
-    public IdentityProvidersFederationModel() {
+    public FederationModel() {
 		super();
 		this.entityIdDenyList = new HashSet<String>();
 	}
 
-    public IdentityProvidersFederationModel(IdentityProvidersFederationModel model) {
+    public FederationModel(FederationModel model) {
 		super();
 		this.setInternalId(model.getInternalId());
 		this.setAlias(model.getAlias());

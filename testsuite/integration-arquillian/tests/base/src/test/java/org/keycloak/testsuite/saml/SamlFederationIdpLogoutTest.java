@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.keycloak.admin.client.resource.IdentityProviderResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.dom.saml.v2.SAML2Object;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -45,7 +44,7 @@ import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
-import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
+import org.keycloak.representations.idm.SAMLFederationRepresentation;
 import org.keycloak.saml.SAML2LoginResponseBuilder;
 import org.keycloak.saml.SAML2LogoutResponseBuilder;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
@@ -95,7 +94,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 
 	@After
 	public void removeFederation() {
-		realm.identityProvidersFederation().delete(internalId);
+		realm.samlFederation().delete(internalId);
 	}
 
 	@BeforeClass
@@ -269,7 +268,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 	}
 
 	private String createFederation(String alias, String url) throws NotFoundException, IOException {
-		IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
+		SAMLFederationRepresentation representation = new SAMLFederationRepresentation();
 		representation.setAlias(alias);
 		representation.setProviderId("saml");
 		representation.setUpdateFrequencyInMins(60);
@@ -296,7 +295,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		map.put(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
 		representation.setConfig(map);
 
-		Response response = realm.identityProvidersFederation().create(representation);
+		Response response = realm.samlFederation().create(representation);
 		String id = ApiUtil.getCreatedId(response);
 		response.close();
 

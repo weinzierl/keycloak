@@ -1491,7 +1491,7 @@ module.controller('IdentityProvidersFederationsListCtrl', function(realm, server
 	$scope.serverInfo = serverInfo;
 
 	$scope.addIdpFederation = function(federation) {
-        $location.url("/realms/" + realm.realm + "/identity-providers-federation/" + federation.id);
+        $location.url("/realms/" + realm.realm + "/saml-federation/" + federation.id);
     };
 
 	$scope.removeIdentityProvidersFederation = function(federation) {
@@ -1668,7 +1668,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     }
        
     $scope.cancel = function() {
-        $location.url("/realms/" + realm.realm + "/identity-providers-federations");
+        $location.url("/realms/" + realm.realm + "/saml-federations");
     };
     
     $scope.save = function(){
@@ -1700,7 +1700,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
         }, 
         $scope.identityProvidersFederation, 
         function () {
-        	$location.url("/realms/" + realm.realm + "/identity-providers-federations");
+        	$location.url("/realms/" + realm.realm + "/saml-federations");
             Notifications.success("The " + $scope.identityProvidersFederation.alias + " provider has been created.");
         });
     }
@@ -1982,7 +1982,7 @@ module.controller('IdentityProvidersFederationsMappersCtrl', function(realm, $sc
 
 	$scope.addMapper = function(mapperId) {
         Dialog.confirm('Add Mapper', 'This mapper will be added to all Identity Providers of this Federation. Are you sure?', function() {
-            $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/instances/'+internalId+'/mappers/'+mapperId+'/idp/add')
+            $http.post(authUrl + '/admin/realms/' + realm.realm + '/saml-federations/instances/'+internalId+'/mappers/'+mapperId+'/idp/add')
                 .then(function(response) {
                     Notifications.success("Mapper added to all Identity Providers of this Federation.");
                 });
@@ -1991,7 +1991,7 @@ module.controller('IdentityProvidersFederationsMappersCtrl', function(realm, $sc
 
     $scope.updateMapper = function(mapperId) {
         Dialog.confirm('Update Mapper', 'This mapper will be updated on all Identity Providers of this Federation. Are you sure?', function() {
-            $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/instances/'+internalId+'/mappers/'+mapperId+'/idp/update')
+            $http.post(authUrl + '/admin/realms/' + realm.realm + '/saml-federations/instances/'+internalId+'/mappers/'+mapperId+'/idp/update')
                 .then(function(response) {
                     Notifications.success("Mapper updated to all Identity Providers of this Federation.");
                 });
@@ -2001,7 +2001,7 @@ module.controller('IdentityProvidersFederationsMappersCtrl', function(realm, $sc
 
     $scope.removeMapper = function(mapperId) {
         Dialog.confirm('Remove Mapper', 'This mapper will be removed from all Identity Providers of this Federation. Are you sure?', function() {
-            $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider-federation/instances/'+internalId+'/mappers/'+mapperId+'/idp/remove')
+            $http.post(authUrl + '/admin/realms/' + realm.realm + '/saml-federations/instances/'+internalId+'/mappers/'+mapperId+'/idp/remove')
                 .then(function(response) {
                     Notifications.success("Mapper removed to all Identity Providers of this Federation.");
                 });
@@ -2036,7 +2036,7 @@ module.controller('IdentityProvidersFederationsMapperCreateCtrl', function(realm
        }, $scope.mapper, function(data, headers) {
               var l = headers().location;
               var id = l.substring(l.lastIndexOf("/") + 1);
-              $location.url("/realms/" + realm.realm + '/identity-providers-federation/' + internalId +"/"+alias+ "/mappers/" + id);
+              $location.url("/realms/" + realm.realm + '/saml-federation/' + internalId +"/"+alias+ "/mappers/" + id);
               Notifications.success("Mapper has been created.");
        });
     };
@@ -2080,7 +2080,7 @@ module.controller('IdentityProvidersFederationsMapperEditCtrl', function(realm, 
         }, $scope.mapper, function() {
            $scope.changed = false;
            mapper = angular.copy($scope.mapper);
-           $location.url("/realms/" + realm.realm + '/identity-providers-federation/' + internalId +"/" +alias+ "/mappers/" + mapper.id);
+           $location.url("/realms/" + realm.realm + '/saml-federation/' + internalId +"/" +alias+ "/mappers/" + mapper.id);
            Notifications.success("Your changes have been saved.");
         });
      };
@@ -2099,7 +2099,7 @@ module.controller('IdentityProvidersFederationsMapperEditCtrl', function(realm, 
         Dialog.confirmDelete($scope.mapper.name, 'mapper', function() {
            IdentityProvidersFederationMapper.remove({ realm: realm.realm, id: internalId, mapperId : $scope.mapper.id }, function() {
                Notifications.success("The mapper has been deleted.");
-               $location.url("/realms/" + realm.realm + '/identity-providers-federation/saml/' + internalId +"/" + alias + "/mappers");
+               $location.url("/realms/" + realm.realm + '/saml-federation/saml/' + internalId +"/" + alias + "/mappers");
            });
         });
       };

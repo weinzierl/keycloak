@@ -28,7 +28,6 @@ import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.common.Profile;
 import org.keycloak.common.constants.KerberosConstants;
 import org.keycloak.models.Constants;
-import org.keycloak.models.IdentityProvidersFederationModel;
 import org.keycloak.models.LDAPConstants;
 import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.models.credential.dto.PasswordCredentialData;
@@ -46,7 +45,7 @@ import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
-import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
+import org.keycloak.representations.idm.SAMLFederationRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
@@ -63,7 +62,6 @@ import org.keycloak.storage.ldap.mappers.LDAPStorageMapper;
 import org.keycloak.testsuite.ProfileAssume;
 import org.keycloak.testsuite.admin.ApiUtil;
 import org.keycloak.testsuite.client.KeycloakTestingClient;
-import org.keycloak.testsuite.util.RealmRepUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -318,7 +316,7 @@ public class ExportImportUtil {
 
         //check saml metadata aggregate
         Assert.assertEquals(1, realm.getIdentityProvidersFederations().size());
-        IdentityProvidersFederationRepresentation metadataAggregate =realm.getIdentityProvidersFederations().get(0);
+        SAMLFederationRepresentation metadataAggregate =realm.getIdentityProvidersFederations().get(0);
         Assert.assertEquals("saml-edugain",metadataAggregate.getAlias());
         Assert.assertEquals("saml",metadataAggregate.getProviderId());
 

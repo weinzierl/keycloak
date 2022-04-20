@@ -79,20 +79,20 @@ import org.keycloak.saml.processing.api.saml.v2.sig.SAML2Signature;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
-import org.keycloak.services.scheduled.UpdateFederationIdentityProviders;
+import org.keycloak.services.scheduled.UpdateFederation;
 import org.keycloak.timer.TimerProvider;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 
-public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SAMLIdPFederationModel> {
+public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLFederationModel> {
 
-	protected static final Logger logger = Logger.getLogger(SAMLIdPFederationProvider.class);
+	protected static final Logger logger = Logger.getLogger(SAMLFederationProvider.class);
 
 
 
-	public SAMLIdPFederationProvider(KeycloakSession session, SAMLIdPFederationModel model,String realmId) {
+	public SAMLFederationProvider(KeycloakSession session, SAMLFederationModel model, String realmId) {
 		super(session, model,realmId);
 	}
 
@@ -115,12 +115,12 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 	@Override
 	public String updateFederation() {
 		RealmModel realm = session.realms().getRealm(realmId);
-		IdentityProvidersFederationModel oldModel = realm.getIdentityProvidersFederationById(model.getInternalId());
+		FederationModel oldModel = realm.getSAMLFederationById(model.getInternalId());
 		if (oldModel == null) {
 			model.setInternalId(KeycloakModelUtils.generateId());
-			realm.addIdentityProvidersFederation(model);
+			realm.addSAMLFederation(model);
 		} else {
-			realm.updateIdentityProvidersFederation(model);
+			realm.updateSAMLFederation(model);
 			if (!model.getUpdateFrequencyInMins().equals(oldModel.getUpdateFrequencyInMins())) {
                 enableUpdateTask();
             }
@@ -137,8 +137,8 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		// remove previous task and add new with new RefreshEveryHours
 		TimerProvider timer = session.getProvider(TimerProvider.class);
 		timer.cancelTask("UpdateFederation" + model.getInternalId());
-		UpdateFederationIdentityProviders updateFederationIdentityProviders = new UpdateFederationIdentityProviders(model.getInternalId(),realmId);
-		ClusterAwareScheduledTaskRunner taskRunner = new ClusterAwareScheduledTaskRunner(session.getKeycloakSessionFactory(),updateFederationIdentityProviders,model.getUpdateFrequencyInMins() * 60 * 1000);
+		UpdateFederation updateFederation = new UpdateFederation(model.getInternalId(),realmId);
+		ClusterAwareScheduledTaskRunner taskRunner = new ClusterAwareScheduledTaskRunner(session.getKeycloakSessionFactory(), updateFederation,model.getUpdateFrequencyInMins() * 60 * 1000);
 		long delay = (model.getUpdateFrequencyInMins() * 60 * 1000) - Instant.now().toEpochMilli() + model.getLastMetadataRefreshTimestamp();
 		timer.schedule(taskRunner, delay > 60 * 1000 ? delay : 60 * 1000, model.getUpdateFrequencyInMins() * 60 * 1000, "UpdateFederation" + model.getInternalId());
 		logger.info("Finished setting up the update task of federation with id: " + model.getInternalId());
@@ -451,7 +451,7 @@ public class SAMLIdPFederationProvider extends AbstractIdPFederationProvider <SA
 		List<String> existingIdps = realm.getIdentityProvidersByFederation(model.getInternalId());
 		existingIdps.stream().forEach(idpAlias -> realm.removeFederationIdp(model, idpAlias));
 
-		realm.removeIdentityProvidersFederation(model.getInternalId());
+		realm.removeSAMLFederation(model.getInternalId());
 	}
 
 

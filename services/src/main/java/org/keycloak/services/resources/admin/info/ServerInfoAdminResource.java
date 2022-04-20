@@ -18,8 +18,8 @@
 package org.keycloak.services.resources.admin.info;
 
 import org.jboss.resteasy.annotations.cache.NoCache;
-import org.keycloak.broker.federation.IdpFederationProvider;
-import org.keycloak.broker.federation.IdpFederationProviderFactory;
+import org.keycloak.broker.federation.FederationProvider;
+import org.keycloak.broker.federation.SAMLFederationProviderFactory;
 import org.keycloak.broker.provider.IdentityProvider;
 import org.keycloak.broker.provider.IdentityProviderFactory;
 import org.keycloak.broker.social.SocialIdentityProvider;
@@ -242,10 +242,10 @@ public class ServerInfoAdminResource {
     }
 
     public void setIdentityProviderAggeregations(ServerInfoRepresentation info) {
-    	List<ProviderFactory> providerFactories = session.getKeycloakSessionFactory().getProviderFactories(IdpFederationProvider.class);
+    	List<ProviderFactory> providerFactories = session.getKeycloakSessionFactory().getProviderFactories(FederationProvider.class);
 
     	List <Map<String,String>> idpFederationProviders = providerFactories.stream()
-    			.map(pf -> (IdpFederationProviderFactory)pf)
+    			.map(pf -> (SAMLFederationProviderFactory)pf)
     			.map(pf -> {
 		    		Map<String, String> data = new HashMap<>();
 		            data.put("name", pf.getName());

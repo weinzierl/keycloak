@@ -1,14 +1,14 @@
 <div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2" >
     <ol class="breadcrumb">
-        <li><a href="#/realms/{{realm.realm}}/identity-providers-federations">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
-        <li><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{providerId}}/{{internalId}}">{{alias }}</a></li>
-        <li>{{:: 'mappers' | translate}}</li>
+        <li><a href="#/realms/{{realm.realm}}/saml-federations">{{:: 'realm-saml-federations' | translate}}</a></li>
+        <li><a href="#/realms/{{realm.realm}}/saml-federation/{{providerId}}/{{internalId}}">{{alias }}</a></li>
+        <li>{{:: 'identity-provider-mappers' | translate}}</li>
     </ol>
 
 
     <ul class="nav nav-tabs">
-        <li><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{providerId}}/{{internalId}}">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
-        <li class="active"><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{providerId}}/{{internalId}}/{{alias}}/mappers">{{:: 'mappers' | translate}}</a></li>
+        <li><a href="#/realms/{{realm.realm}}/saml-federation/{{providerId}}/{{internalId}}">{{:: 'realm-saml-federations' | translate}}</a></li>
+        <li class="active"><a href="#/realms/{{realm.realm}}/saml-federation/{{providerId}}/{{internalId}}/{{alias}}/mappers">{{:: 'mappers' | translate}}</a></li>
         
     </ul>
 
@@ -40,7 +40,7 @@
          </thead>
          <tbody>
          <tr ng-repeat="mapper in identityProvidersFederationMappers | filter:search">
-             <td><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{internalId}}/{{alias}}/mappers/{{mapper.id}}">{{mapper.name}}</a></td>
+             <td><a href="#/realms/{{realm.realm}}/saml-federation/{{internalId}}/{{alias}}/mappers/{{mapper.id}}">{{mapper.name}}</a></td>
              <td style="text-transform: lowercase">{{mapper.config.syncMode}}</td>
              <td>
            {{mapperTypes[mapper.identityProviderMapper].name}}

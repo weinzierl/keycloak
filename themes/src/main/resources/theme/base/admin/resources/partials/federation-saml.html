@@ -1,26 +1,20 @@
 <div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2" >
     <ol class="breadcrumb">
-        <li><a href="#/realms/{{realm.realm}}/identity-providers-federations">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
+        <li><a href="#/realms/{{realm.realm}}/saml-federations">{{:: 'realm-saml-federations' | translate}}</a></li>
         <li data-ng-show="identityProvidersFederation.internalId">{{identityProvidersFederation.alias}}</li>
         <li data-ng-show="!identityProvidersFederation.internalId">{{:: 'add-idp-federation' | translate}}</li>
     </ol>
 
 
     <ul class="nav nav-tabs">
-        <li class="active"><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}">{{:: 'realm-identity-provider-federations' | translate}}</a></li>
-        <li data-ng-show="identityProvidersFederation.internalId"><a href="#/realms/{{realm.realm}}/identity-providers-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}/{{identityProvidersFederation.alias}}/mappers">{{:: 'mappers' | translate}}</a></li>
+        <li class="active"><a href="#/realms/{{realm.realm}}/saml-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}">{{:: 'realm-saml-federations' | translate}}</a></li>
+        <li data-ng-show="identityProvidersFederation.internalId"><a href="#/realms/{{realm.realm}}/saml-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}/{{identityProvidersFederation.alias}}/mappers">{{:: 'mappers' | translate}}</a></li>
     </ul>
 
 
     <form class="form-horizontal" name="realmForm" novalidate kc-read-only="!access.manageIdentityProviders">
 
-
-		<fieldset>
-			<legend uncollapsed>
-				<span class="text">{{::'import-external-idp-federation-config' | translate}}</span>
-				<kc-tooltip>{{::'import-external-idp-federation-config.tooltip' | translate}}</kc-tooltip>
-			</legend>
-
+		<fieldset class="border-top">
 
 			<div class="form-group">
 				<label class="col-md-2 control-label" for="fromUrl"> <span
@@ -74,6 +68,13 @@
 				</div>
 				<kc-tooltip>{{:: 'valid-until.tooltip' |translate}}</kc-tooltip>
 			</div>
+
+		</fieldset>
+		<fieldset>
+			<legend collapsed>
+				<span class="text">{{::'import-external-idp-federation-config' | translate}}</span>
+				<kc-tooltip>{{::'import-external-idp-federation-config.tooltip' | translate}}</kc-tooltip>
+			</legend>
 
 			<div class="form-group" data-ng-show="identityProvidersFederation.internalId">
 				<label class="col-md-2 control-label">{{:: 'endpoints' | translate}}</label>

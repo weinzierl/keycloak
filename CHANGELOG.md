@@ -8,6 +8,10 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 [Keycloak announcement for version 16.1.0](https://www.keycloak.org/2021/12/keycloak-1610-released)
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
+## [Unreleased]
+### Changed
+- Fixed a bug regarding the keys. SAML now uses RSA "sig" key for signatures and RSA "enc" key for encryption. Previously, it used RSA "sig" for both signatures and encryption (completely ignored the "enc" key in SAML).
+
 ## [16.1.0-2.1] - 2022-04-19
 ### Fixed
 - Device code flow json error responses [RCIAM-959](https://jira.argo.grnet.gr/browse/RCIAM-959)

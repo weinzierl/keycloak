@@ -44,6 +44,10 @@ public interface UpdateProfileContext {
 
     void setEmail(String email);
 
+    Boolean isEmailVerified();
+
+    void setEmailVerified(Boolean emailVerified);
+
     String getFirstName();
 
     void setFirstName(String firstName);

@@ -282,7 +282,7 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
                 break;
             case OAUTH_GRANT:
                 attributes.put("oauth",
-                        new OAuthGrantBean(accessCode, client, clientScopesRequested));
+                        new OAuthGrantBean(accessCode, client, clientScopesRequested, uriInfo.getBaseUri().toString(), realm.getName(), locale));
                 break;
             case CODE:
                 attributes.put(OAuth2Constants.CODE, new CodeBean(accessCode, messageType == MessageType.ERROR ? getFirstMessageUnformatted() : null));

@@ -331,6 +331,14 @@ module.factory('ClientLoader', function(Loader, Client, $route, $q) {
     });
 });
 
+module.factory('CountriesLoader', function(Loader,Countries, $route, $q) {
+    return Loader.get(Countries, function() {
+        return {
+            realm : $route.current.params.realm
+        }
+    });
+});
+
 module.factory('ClientListLoader', function(Loader, Client, $route, $q) {
     return Loader.query(Client, function() {
         return {

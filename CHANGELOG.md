@@ -13,3 +13,4 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ### Changed
 - Increase User Attribute Value length to 4000 [EOSC-KC-132](https://github.com/eosc-kc/keycloak/issues/132)
 - FreeMarkerLoginFormsProvider now has an additional common attribute passed to the ftl templates, the "uriInfo"
+- Change emailVerified User field with UserAttributeMappers (conditional trust email). [EOSC-KC-70](https://github.com/eosc-kc/keycloak/issues/70)

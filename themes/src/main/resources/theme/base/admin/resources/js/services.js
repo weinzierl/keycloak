@@ -1182,6 +1182,12 @@ module.factory('RoleById', function($resource) {
     });
 });
 
+module.factory('Countries', function($resource) {
+    return $resource(authUrl + '/admin/realms/:realm/countries', {
+        realm : '@realm'
+     });
+});
+
 module.factory('ClientRole', function($resource) {
     return $resource(authUrl + '/admin/realms/:realm/clients/:client/roles/:role', {
         realm : '@realm',

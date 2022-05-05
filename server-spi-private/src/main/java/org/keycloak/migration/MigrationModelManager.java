@@ -110,11 +110,13 @@ public class MigrationModelManager {
         ModelVersion latestUpdate = migrations[migrations.length-1].getVersion();
         ModelVersion databaseVersion = model.getStoredVersion() != null ? new ModelVersion(model.getStoredVersion()) : null;
 
+        logger.info("currentVersion === "+currentVersion.toString()+ ",databaseVersion "+ (databaseVersion == null ? "empty" : databaseVersion.toString()) + ", latestUpdate"+ ( latestUpdate == null ? "empty" :  latestUpdate.toString()));
+
         if (databaseVersion == null || databaseVersion.lessThan(latestUpdate)) {
             for (Migration m : migrations) {
                 if (databaseVersion == null || databaseVersion.lessThan(m.getVersion())) {
                     if (databaseVersion != null) {
-                        logger.debugf("Migrating older model to %s", m.getVersion());
+                        logger.infof("Migrating older model to %s", m.getVersion());
                     }
                     m.migrate(session);
                 }

@@ -23,6 +23,7 @@ import org.keycloak.broker.federation.FederationProvider;
 import org.keycloak.broker.federation.SAMLFederationProviderFactory;
 import org.keycloak.common.util.Resteasy;
 import org.keycloak.config.ConfigProviderFactory;
+import org.keycloak.executors.ExecutorsProvider;
 import org.keycloak.exportimport.ExportImportManager;
 import org.keycloak.models.FederationModel;
 import org.keycloak.models.KeycloakSession;
@@ -71,6 +72,7 @@ import java.util.NoSuchElementException;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -267,6 +269,10 @@ public class KeycloakApplication extends Application {
                 }
             }
             new UserStorageSyncManager().bootstrapPeriodic(sessionFactory, timer);
+            ExecutorService executor = session.getProvider(ExecutorsProvider.class).getExecutor("idp-scheduled tasks");
+            StartIdPScheduledTasks idPScheduledTasks = new StartIdPScheduledTasks();
+            ScheduledTaskRunner task = new ScheduledTaskRunner(sessionFactory, idPScheduledTasks);
+            executor.submit(task);
         } finally {
             session.close();
         }

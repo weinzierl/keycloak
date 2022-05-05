@@ -103,3 +103,4 @@ org.keycloak.services.clientpolicy.executor.ClientPolicyExecutorSpi
 org.keycloak.services.clientpolicy.ClientPolicyManagerSpi
 org.keycloak.userprofile.UserProfileSpi
 org.keycloak.broker.federation.SAMLFederationSpi
+org.keycloak.models.customcache.CustomCacheSpi

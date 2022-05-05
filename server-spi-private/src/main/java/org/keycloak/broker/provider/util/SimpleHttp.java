@@ -326,6 +326,10 @@ public class SimpleHttp {
             this.response = response;
         }
 
+        public HttpResponse getResponse () throws IOException {
+            return response;
+        }
+
         private void readResponse() throws IOException {
             if (statusCode == -1) {
                 statusCode = response.getStatusLine().getStatusCode();

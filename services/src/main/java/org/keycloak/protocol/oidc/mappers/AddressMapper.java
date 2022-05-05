@@ -35,7 +35,7 @@ import java.util.Map;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public class AddressMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
+public class AddressMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIntrospectionMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
 
@@ -121,7 +121,11 @@ public class AddressMapper extends AbstractOIDCProtocolMapper implements OIDCAcc
 
     @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession) {
-        UserModel user = userSession.getUser();
+        setClaim(token, mappingModel, userSession.getUser());
+    }
+
+    @Override
+    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserModel user) {
         AddressClaimSet addressSet = new AddressClaimSet();
         addressSet.setStreetAddress(getUserModelAttributeValue(user, mappingModel, STREET));
         addressSet.setLocality(getUserModelAttributeValue(user, mappingModel, AddressClaimSet.LOCALITY));

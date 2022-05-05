@@ -25,6 +25,7 @@ import java.util.Map;
 import org.keycloak.models.ClientSessionContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ProtocolMapperModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.provider.ProviderConfigProperty;
@@ -33,7 +34,7 @@ import org.keycloak.representations.IDToken;
 /**
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
  */
-public class AudienceProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper {
+public class AudienceProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIntrospectionMapper, OIDCIDTokenMapper {
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<>();
 
@@ -101,6 +102,15 @@ public class AudienceProtocolMapper extends AbstractOIDCProtocolMapper implement
 
     @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx) {
+        commonClaim(token,mappingModel);
+    }
+
+    @Override
+    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserModel user) {
+        commonClaim(token,mappingModel);
+    }
+
+    private void commonClaim(IDToken token, ProtocolMapperModel mappingModel) {
         String audienceValue = mappingModel.getConfig().get(INCLUDED_CLIENT_AUDIENCE);
 
         if (audienceValue == null) {

@@ -1119,7 +1119,7 @@ module.controller('RealmIdentityProviderListCtrl', function($scope, $filter, rea
 });
 
 
-module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload, $http, $route, realm, instance, providerFactory, IdentityProvider, serverInfo, authFlows, $location, Notifications, Dialog) {
+module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload, $http, $route, realm, instance, providerFactory, IdentityProvider, serverInfo, authFlows, $location, Notifications, Dialog, TimeUnit) {
     $scope.realm = angular.copy(realm);
 
     $scope.initSamlProvider = function() {
@@ -1256,6 +1256,10 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
                 $scope.provider = provider;
             }
         }
+        if ( $scope.identityProvider.config.refreshPeriod != null ) {
+            $scope.refreshPeriodUnit = TimeUnit.autoUnit(parseInt($scope.identityProvider.config.refreshPeriod));
+            $scope.refreshPeriod = TimeUnit.toUnit(parseInt($scope.identityProvider.config.refreshPeriod), $scope.refreshPeriodUnit);
+        }
     } else {
         $scope.identityProvider = {};
         $scope.identityProvider.config = {};
@@ -1334,6 +1338,35 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
         $scope.files = null;
     };
 
+    $scope.autoUpdateChange = function() {
+        //execute on click
+        if($scope.identityProvider.config.autoUpdate == 'true') {
+            delete $scope.identityProvider.config.metadataUrl;
+            delete $scope.refreshPeriod;
+            delete $scope.refreshPeriodUnit;
+            delete $scope.identityProvider.config.refreshPeriod;
+        } else {
+            $scope.refreshPeriod = 1;
+            $scope.refreshPeriodUnit = 'Days';
+            if($scope.identityProvider.config.issuer !== undefined && $scope.identityProvider.providerId == 'oidc' ) {
+                //remove last / if exists
+                var issuer =$scope.identityProvider.config.issuer;
+                $scope.identityProvider.config.metadataUrl = issuer.replace(/\/$/, '') + '/.well-known/openid-configuration';
+            }
+        }
+    };
+
+     $scope.changeIssuer = function() {
+         if($scope.identityProvider.config.issuer !== undefined ) {
+             //remove last / if exists
+             var issuer =$scope.identityProvider.config.issuer;
+             $scope.identityProvider.config.metadataUrl = issuer.replace(/\/$/, '') + '/.well-known/openid-configuration';
+         } else {
+             $scope.identityProvider.config.metadataUrl = null;
+         }
+     }
+
+
     var setConfig = function(data) {
     	if (data["enabledFromMetadata"] !== undefined ) {
              $scope.identityProvider.enabled = data["enabledFromMetadata"] == "true";
@@ -1378,13 +1411,13 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
         }
     };
 
-    $scope.importFrom = function() {
+    $scope.importFrom = function(fromUrl) {
         if (!$scope.identityProvider.alias) {
             Notifications.error("You must specify an alias");
             return;
         }
         var input = {
-            fromUrl: $scope.fromUrl.data,
+            fromUrl: fromUrl,
             providerId: providerFactory.id
         }
         $http.post(authUrl + '/admin/realms/' + realm.realm + '/identity-provider/import-config', input)
@@ -1454,6 +1487,9 @@ module.controller('RealmIdentityProviderCtrl', function($scope, $filter, $upload
                 Notifications.error("You must specify at least one principal");
                 return;
          }
+         if ($scope.refreshPeriod != null) {
+            $scope.identityProvider.config.refreshPeriod = TimeUnit.toSeconds($scope.refreshPeriod,$scope.refreshPeriodUnit).toString();
+        }
         if ($scope.newIdentityProvider) {
             if (!$scope.identityProvider.alias) {
                 Notifications.error("You must specify an alias");

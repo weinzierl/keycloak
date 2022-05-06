@@ -169,7 +169,7 @@ public class LinkedAccountsResource {
     @Deprecated
     public Response buildLinkedAccountURI(@PathParam("providerId") String providerId, 
                                      @QueryParam("redirectUri") String redirectUri) {
-        auth.require(AccountRoles.MANAGE_ACCOUNT);
+        auth.requireOneOf(AccountRoles.MANAGE_ACCOUNT, AccountRoles.MANAGE_ACCOUNT_LINKS);
         
         if (redirectUri == null) {
             ErrorResponse.error(Messages.INVALID_REDIRECT_URI, Response.Status.BAD_REQUEST);
@@ -215,7 +215,7 @@ public class LinkedAccountsResource {
     @Path("/{providerId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response removeLinkedAccount(@PathParam("providerId") String providerId) {
-        auth.require(AccountRoles.MANAGE_ACCOUNT);
+        auth.requireOneOf(AccountRoles.MANAGE_ACCOUNT, AccountRoles.MANAGE_ACCOUNT_LINKS);
         
         String errorMessage = checkCommonPreconditions(providerId);
         if (errorMessage != null) {
@@ -246,7 +246,6 @@ public class LinkedAccountsResource {
     }
     
     private String checkCommonPreconditions(String providerId) {
-        auth.require(AccountRoles.MANAGE_ACCOUNT);
         
         if (Validation.isEmpty(providerId)) {
             return Messages.MISSING_IDENTITY_PROVIDER;

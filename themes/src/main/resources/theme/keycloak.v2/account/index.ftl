@@ -47,6 +47,12 @@
                 isMyResourcesEnabled : ${(realm.userManagedAccessAllowed && isAuthorizationEnabled)?c},
                 isTotpConfigured : ${isTotpConfigured?c},
                 deleteAccountAllowed : ${deleteAccountAllowed?c},
+                manageAccountAllowed : ${manageAccountAllowed?c},
+                manageAccountLinkAllowed : ${manageAccountLinkAllowed?c},
+                manageConsentAllowed : ${manageConsentAllowed?c},
+                manageAccountBasicAuthAllowed : ${manageAccountBasicAuthAllowed?c},
+                manageAccount2faAllowed : ${manageAccount2faAllowed?c},
+                viewApplicationAllowed : ${viewApplicationAllowed?c},
                 isViewGroupsEnabled : ${isViewGroupsEnabled?c}
             }
 

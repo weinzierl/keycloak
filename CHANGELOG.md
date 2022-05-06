@@ -25,6 +25,7 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 - External introspection endpoint [EOSC-KC-140](https://github.com/eosc-kc/keycloak/issues/140)
 - New release created on tag
 - The idpLoginFullUrl common attribute passed to the ftl templates for any theme except from the default
+- Add scope parameter to token exchange [RCIAM-834](https://jira.argo.grnet.gr/browse/RCIAM-834)
 
 ### Changed
 - Increase User Attribute Value length to 4000 [EOSC-KC-132](https://github.com/eosc-kc/keycloak/issues/132)

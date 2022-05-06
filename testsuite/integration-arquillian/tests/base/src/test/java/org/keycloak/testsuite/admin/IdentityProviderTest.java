@@ -955,7 +955,6 @@ public class IdentityProviderTest extends AbstractAdminTest {
         Set fields = Stream.of("validateSignature",
                 "singleLogoutServiceUrl",
                 "postBindingLogout",
-                "postBindingResponse",
                 "postBindingAuthnRequest",
                 "singleSignOnServiceUrl",
                 "wantAuthnRequestsSigned",
@@ -964,6 +963,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
                 "addExtensionsElementWithKeyInfo",
                 "loginHint",
                 "hideOnLoginPage",
+                "entityId",
                 "autoUpdate",
                 "metadataUrl",
                 "refreshPeriod").collect(Collectors.toSet());
@@ -973,7 +973,6 @@ public class IdentityProviderTest extends AbstractAdminTest {
         assertThat(config.keySet(), containsInAnyOrder(fields.toArray()));
         assertThat(config, hasEntry("validateSignature", "true"));
         assertThat(config, hasEntry("singleLogoutServiceUrl", "http://localhost:8080/auth/realms/master/protocol/saml"));
-        assertThat(config, hasEntry("postBindingResponse", "true"));
         assertThat(config, hasEntry("postBindingAuthnRequest", String.valueOf(hasExecuted)));
         assertThat(config, hasEntry("postBindingLogout", String.valueOf(hasExecuted)));
         assertThat(config, hasEntry("singleSignOnServiceUrl", "http://localhost:8080/auth/realms/master/protocol/saml"));
@@ -982,6 +981,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
         assertThat(config, hasEntry("nameIDPolicyFormat", "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"));
         assertThat(config, hasEntry("hideOnLoginPage", "true"));
         assertThat(config, hasEntry(is("signingCertificate"), notNullValue()));
+        assertThat(config, hasEntry("entityId", "http://localhost:8080/auth/realms/master"));
         assertThat(config, hasEntry("autoUpdate", "true"));
         assertThat(config, hasEntry("metadataUrl", "http://localhost:8880/saml-idp-metadata"));
         assertThat(config, hasEntry("refreshPeriod", String.valueOf(60)));
@@ -1142,41 +1142,44 @@ public class IdentityProviderTest extends AbstractAdminTest {
         }).build();
         httpService.start();
 
-        // import metadata from url
-        HashMap<String,Object> map = new HashMap<>();
-        map.put("providerId","saml");
-        map.put("fromUrl","http://localhost:8880/saml-idp-metadata");
+        try {
+            // import metadata from url
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("providerId", "saml");
+            map.put("fromUrl", "http://localhost:8880/saml-idp-metadata");
 
-        Map<String, String> result = realm.identityProviders().importFrom(map);
-        assertSamlImport(result, SIGNING_CERT_1,true);
+            Map<String, String> result = realm.identityProviders().importFrom(map);
+            assertSamlImport(result, SIGNING_CERT_1, true);
 
-        // Create new SAML identity provider using configuration retrieved from import-config
-        //change some values( postBindingLogout,postBindingAuthnRequest from true to false, enabled false)  - add autoupdated values
-        result.put(IdentityProviderModel.AUTO_UPDATE,"true");
-        result.put(IdentityProviderModel.METADATA_URL,"http://localhost:8880/saml-idp-metadata");
-        result.put(IdentityProviderModel.REFRESH_PERIOD,String.valueOf(60));
-        result.put(SAMLIdentityProviderConfig.POST_BINDING_LOGOUT,"false");
-        result.put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST,"false");
-        create(createRep("saml", "saml",false, result));
+            // Create new SAML identity provider using configuration retrieved from import-config
+            //change some values( postBindingLogout,postBindingAuthnRequest from true to false, enabled false)  - add autoupdated values
+            result.put(IdentityProviderModel.AUTO_UPDATE, "true");
+            result.put(IdentityProviderModel.METADATA_URL, "http://localhost:8880/saml-idp-metadata");
+            result.put(IdentityProviderModel.REFRESH_PERIOD, String.valueOf(60));
+            result.put(SAMLIdentityProviderConfig.POST_BINDING_LOGOUT, "false");
+            result.put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, "false");
+            create(createRep("saml", "saml", false, result));
 
-        IdentityProviderResource provider = realm.identityProviders().get("saml");
-        IdentityProviderRepresentation rep = provider.toRepresentation();
-        Assert.assertNotNull("IdentityProviderRepresentation not null", rep);
-        Assert.assertNotNull("internalId", rep.getInternalId());
-        Assert.assertEquals("alias", "saml", rep.getAlias());
-        Assert.assertEquals("providerId", "saml", rep.getProviderId());
-        Assert.assertEquals("enabled",false, rep.isEnabled());
-        Assert.assertEquals("firstBrokerLoginFlowAlias", "first broker login",rep.getFirstBrokerLoginFlowAlias());
-        assertSamlConfigAutoUpdated(rep.getConfig(), false);
+            IdentityProviderResource provider = realm.identityProviders().get("saml");
+            IdentityProviderRepresentation rep = provider.toRepresentation();
+            Assert.assertNotNull("IdentityProviderRepresentation not null", rep);
+            Assert.assertNotNull("internalId", rep.getInternalId());
+            Assert.assertEquals("alias", "saml", rep.getAlias());
+            Assert.assertEquals("providerId", "saml", rep.getProviderId());
+            Assert.assertEquals("enabled", false, rep.isEnabled());
+            Assert.assertEquals("firstBrokerLoginFlowAlias", "first broker login", rep.getFirstBrokerLoginFlowAlias());
+            assertSamlConfigAutoUpdated(rep.getConfig(), false);
 
-        sleep(80000);
-        //autoupdated - check again Idp - see if values has changed
-        provider = realm.identityProviders().get("saml");
-        rep = provider.toRepresentation();
-        Assert.assertEquals("enabled",true, rep.isEnabled());
-        assertSamlConfigAutoUpdated(rep.getConfig(), true);
+            sleep(80000);
+            //autoupdated - check again Idp - see if values has changed
+            provider = realm.identityProviders().get("saml");
+            rep = provider.toRepresentation();
+            Assert.assertEquals("enabled", true, rep.isEnabled());
+            assertSamlConfigAutoUpdated(rep.getConfig(), true);
 
-        httpService.stop();
+        } finally {
+            httpService.stop();
+        }
     }
 
 
@@ -1193,6 +1196,7 @@ public class IdentityProviderTest extends AbstractAdminTest {
         }).build();
         httpService.start();
 
+        try {
         // import metadata from url
         HashMap<String,Object> map = new HashMap<>();
         map.put("providerId","oidc");
@@ -1232,7 +1236,9 @@ public class IdentityProviderTest extends AbstractAdminTest {
         assertThat(rep.getConfig(), hasEntry("tokenUrl", "https://aai.egi.eu/oidc/token"));
         assertOidcConfig(rep.getConfig(), true);
 
-        httpService.stop();
+        } finally {
+            httpService.stop();
+        }
     }
 
     private void assertOidcConfig(Map<String, String> config, boolean hasExecuted) {

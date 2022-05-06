@@ -315,9 +315,11 @@ public abstract class AbstractMigrationTest extends AbstractKeycloakTest {
         testRealmDefaultClientScopes(migrationRealm);
     }
 
-    protected void testMigrationTo18_0_0_1_0() {
+    protected void testMigrationTo16_1_0_2_0() {
         testViewGroups(masterRealm);
         testViewGroups(migrationRealm);
+        testNewAccountRoles(masterRealm);
+        testNewAccountRoles(migrationRealm);
     }
 
     protected void testDeleteAccount(RealmResource realm) {
@@ -492,12 +494,24 @@ public abstract class AbstractMigrationTest extends AbstractKeycloakTest {
         }
     }
 
-    protected void testViewGroups(RealmResource realm) {
+   protected void testViewGroups(RealmResource realm) {
         ClientRepresentation accountClient = realm.clients().findByClientId(ACCOUNT_MANAGEMENT_CLIENT_ID).get(0);
 
         ClientResource accountResource = realm.clients().get(accountClient.getId());
         RoleRepresentation viewAppRole = accountResource.roles().get(AccountRoles.VIEW_GROUPS).toRepresentation();
         assertNotNull(viewAppRole);
+    }
+
+    protected void testNewAccountRoles(RealmResource realm) {
+        ClientRepresentation accountClient = realm.clients().findByClientId(ACCOUNT_MANAGEMENT_CLIENT_ID).get(0);
+
+        ClientResource accountResource = realm.clients().get(accountClient.getId());
+
+        RoleRepresentation manageAccountBasicAuth = accountResource.roles().get(AccountRoles.MANAGE_ACCOUNT_BASIC_AUTH).toRepresentation();
+        assertNotNull(manageAccountBasicAuth);
+
+        RoleRepresentation manageAccount2fa = accountResource.roles().get(AccountRoles.MANAGE_ACCOUNT_2FA).toRepresentation();
+        assertNotNull(manageAccount2fa);
     }
 
     protected void testRoleManageAccountLinks(RealmResource... realms) {
@@ -948,11 +962,11 @@ public abstract class AbstractMigrationTest extends AbstractKeycloakTest {
         testMigrationTo12_0_0();
         testMigrationTo13_0_0(testRealmAttributesMigration);
         testMigrationTo14_0_0();
+        testMigrationTo16_1_0_2_0();
     }
 
     protected void testMigrationTo18_x() {
         testMigrationTo18_0_0();
-         testMigrationTo18_0_0_1_0();
     }
 
     protected void testMigrationTo7_x(boolean supportedAuthzServices) {

@@ -19,6 +19,12 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 - Identity Providers pager in Admin Console. [EOSC-KC-73](https://github.com/eosc-kc/keycloak/issues/73)
 - Email notification for add/remove group. [EOSC-KC-75](https://github.com/eosc-kc/keycloak/issues/75)
 - View groups from Account Console. [EOSC-KC-61](https://github.com/eosc-kc/keycloak/issues/61)
+- Javascript SAML identity provider mapper. [KEYCLOAK-17685](https://issues.redhat.com/browse/KEYCLOAK-17685)
+- SAML/ OIDC Identity Provider AutoUpdate. [EOSC-KC-119](https://github.com/eosc-kc/keycloak/issues/119)
+- Include claim in token introspection response only [RCIAM-742](https://jira.argo.grnet.gr/browse/RCIAM-742)
+- External introspection endpoint [EOSC-KC-140](https://github.com/eosc-kc/keycloak/issues/140)
+- New release created on tag
+- The idpLoginFullUrl common attribute passed to the ftl templates for any theme except from the default
 
 ### Changed
 - Increase User Attribute Value length to 4000 [EOSC-KC-132](https://github.com/eosc-kc/keycloak/issues/132)

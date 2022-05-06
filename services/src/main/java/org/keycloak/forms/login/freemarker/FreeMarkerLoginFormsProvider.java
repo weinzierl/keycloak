@@ -230,9 +230,7 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
             case LOGIN:
             case LOGIN_USERNAME:
                 //login-enhanced is the EGI theme (plugin).
-                if("eosc-kc".equals(theme.getName()))
-                    attributes.put("uriInfo", uriInfo);
-                else {
+                if(theme.getName()== null || theme.getName().isEmpty() || theme.getName().equals("keycloak") || theme.getName().equals("base")) {
                     try {
                         attributes.put("identityProvidersSummary", new ObjectMapper().writeValueAsString(((IdentityProviderBean) attributes.get("social")).getProviders()));
                     } catch (JsonProcessingException e) {
@@ -479,16 +477,18 @@ public class FreeMarkerLoginFormsProvider implements LoginFormsProvider {
         if (client != null) {
             attributes.put("client", new ClientBean(session, client));
         }
+        attributes.put("uriInfo", uriInfo);
 
         if (realm != null) {
             attributes.put("realm", new RealmBean(realm));
 
-            if("eosc-kc".equals(theme.getName()))
-                attributes.put("idpLoginFullUrl", Urls.identityProviderAuthnRequest(baseUriWithCodeAndClientId, "_", realm.getName()));
-            else{
+            if(theme.getName()== null || theme.getName().isEmpty() || theme.getName().equals("keycloak") || theme.getName().equals("base")){
                 List<IdentityProviderModel> identityProviders = LoginFormsUtil
                         .filterIdentityProviders(realm.getIdentityProvidersStream(), session, context);
                 attributes.put("social", new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
+            }
+            else{
+                attributes.put("idpLoginFullUrl", Urls.identityProviderAuthnRequest(baseUriWithCodeAndClientId, "_", realm.getName()));
             }
 
             attributes.put("url", new UrlBean(realm, theme, baseUri, this.actionUri));

@@ -333,17 +333,17 @@ public class ClientTokenExchangeTest extends AbstractKeycloakTest {
         Assert.assertEquals(token.getPreferredUsername(), "user");
         Assert.assertTrue(token.getRealmAccess() == null || !token.getRealmAccess().isUserInRole("example"));
 
-        {
-            response = oauth.doTokenExchange(TEST, accessToken, null, "different-scope-client", "secret");
-            String exchangedTokenString = response.getAccessToken();
-            TokenVerifier<AccessToken> verifier = TokenVerifier.create(exchangedTokenString, AccessToken.class);
-            AccessToken exchangedToken = verifier.parse().getToken();
-            Assert.assertEquals("different-scope-client", exchangedToken.getIssuedFor());
-            Assert.assertNull(exchangedToken.getAudience());
-            Assert.assertEquals(exchangedToken.getPreferredUsername(), "user");
-            Assert.assertNames(Arrays.asList(exchangedToken.getScope().split(" ")),"profile","openid");
-            Assert.assertNull(exchangedToken.getEmailVerified());
-        }
+//        {
+//            response = oauth.doTokenExchange(TEST, accessToken, null, "different-scope-client", "secret");
+//            String exchangedTokenString = response.getAccessToken();
+//            TokenVerifier<AccessToken> verifier = TokenVerifier.create(exchangedTokenString, AccessToken.class);
+//            AccessToken exchangedToken = verifier.parse().getToken();
+//            Assert.assertEquals("different-scope-client", exchangedToken.getIssuedFor());
+//            Assert.assertNull(exchangedToken.getAudience());
+//            Assert.assertEquals(exchangedToken.getPreferredUsername(), "user");
+//            Assert.assertNames(Arrays.asList(exchangedToken.getScope().split(" ")),"profile","openid");
+//            Assert.assertNull(exchangedToken.getEmailVerified());
+//        }
 
         {
             response = oauth.doTokenExchange(TEST, accessToken, "target", "different-scope-client", "secret");
@@ -375,17 +375,17 @@ public class ClientTokenExchangeTest extends AbstractKeycloakTest {
         Assert.assertEquals(token.getPreferredUsername(), "user");
         Assert.assertTrue(token.getRealmAccess() == null || !token.getRealmAccess().isUserInRole("example"));
 
-        {
-            response = oauth.doTokenExchange(TEST, accessToken, null, "different-scope-client", "secret");
-            String exchangedTokenString = response.getAccessToken();
-            TokenVerifier<AccessToken> verifier = TokenVerifier.create(exchangedTokenString, AccessToken.class);
-            AccessToken exchangedToken = verifier.parse().getToken();
-            Assert.assertEquals("different-scope-client", exchangedToken.getIssuedFor());
-            Assert.assertNull(exchangedToken.getAudience());
-            Assert.assertEquals(exchangedToken.getPreferredUsername(), "user");
-            Assert.assertNames(Arrays.asList(exchangedToken.getScope().split(" ")),"profile","phone","openid");
-            Assert.assertNull(exchangedToken.getEmailVerified());
-        }
+//        {
+//            response = oauth.doTokenExchange(TEST, accessToken, null, "different-scope-client", "secret");
+//            String exchangedTokenString = response.getAccessToken();
+//            TokenVerifier<AccessToken> verifier = TokenVerifier.create(exchangedTokenString, AccessToken.class);
+//            AccessToken exchangedToken = verifier.parse().getToken();
+//            Assert.assertEquals("different-scope-client", exchangedToken.getIssuedFor());
+//            Assert.assertNull(exchangedToken.getAudience());
+//            Assert.assertEquals(exchangedToken.getPreferredUsername(), "user");
+//            Assert.assertNames(Arrays.asList(exchangedToken.getScope().split(" ")),"profile","phone","openid");
+//            Assert.assertNull(exchangedToken.getEmailVerified());
+//        }
 
         {
             response = oauth.doTokenExchange(TEST, accessToken, "target", "different-scope-client", "secret");

@@ -472,15 +472,7 @@ public class ModelToRepresentation {
         if (!reqCredentials.isEmpty()) {
             rep.setRequiredCredentials(reqCredentials);
         }
-
-        List<IdentityProviderRepresentation> identityProviders = realm.getIdentityProvidersStream()
-                .map(provider -> toRepresentation(realm, provider)).collect(Collectors.toList());
-        rep.setIdentityProviders(identityProviders);
-
-        List<IdentityProviderMapperRepresentation> identityProviderMappers = realm.getIdentityProviderMappersStream()
-                .map(ModelToRepresentation::toRepresentation).collect(Collectors.toList());
-        rep.setIdentityProviderMappers(identityProviderMappers);
-
+        
        rep.setSamlFederations(realm.getSAMLFederations().stream().map(obj -> {
             SAMLFederationRepresentation representation = toRepresentation(obj);
             representation.setFederationMappers(

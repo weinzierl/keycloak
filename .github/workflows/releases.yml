@@ -34,7 +34,7 @@ jobs:
           mvn clean install -nsu -B -e -DskipTests -Pdistribution
 
       - name: Fetch tar.gz
-        run: cp distribution/server-dist/target/keycloak*.tar.gz keycloak.tar.gz
+        run: cp quarkus/dist/target/keycloak*.tar.gz keycloak.tar.gz
 
       - name: Create Release
         id: create_release

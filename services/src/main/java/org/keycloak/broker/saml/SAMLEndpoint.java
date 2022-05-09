@@ -492,8 +492,16 @@ public class SAMLEndpoint {
                 if (principal == null) {
                     logger.errorf("no principal in assertion; expected: %s", JsonSerialization.writeValueAsString(config.getMultiplePrincipals()));
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                    event.error(Errors.INVALID_SAML_RESPONSE);
-                    return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
+                    event.error(Errors.NO_PRINCIPALS_FOUND);
+                    StringBuilder sb = new StringBuilder();
+                    config.getMultiplePrincipals().stream().forEach(pr -> {
+                        if (SamlPrincipalType.SUBJECT.equals(pr.getPrincipalType())) {
+                            sb.append("subject-id<br>");
+                        } else {
+                            sb.append(pr.getPrincipalAttribute()).append("<br>");
+                        }
+                    });
+                    return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.NO_PRINCIPALS_FOUND, config.getDisplayName() != null ? config.getDisplayName() : config.getAlias(), sb.toString());
                 }
 
                 //Map<String, String> notes = new HashMap<>();

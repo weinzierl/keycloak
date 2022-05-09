@@ -4,7 +4,7 @@
         ${kcSanitize(msg("errorTitle"))?no_esc}
     <#elseif section = "form">
         <div id="kc-error-message">
-            <p class="instruction">${kcSanitize(message.summary)?no_esc}</p>
+            <div class="instruction">${kcSanitize(message.summary)?no_esc}</div>
             <#if skipLink??>
             <#else>
                 <#if client?? && client.baseUrl?has_content>

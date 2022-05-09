@@ -33,7 +33,7 @@ import org.keycloak.representations.account.LinkedAccountRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.keycloak.services.PagedResults;
+import org.keycloak.services.resources.account.LinkedAccountsResource;
 import org.keycloak.testsuite.AbstractTestRealmKeycloakTest;
 import org.keycloak.testsuite.AssertEvents;
 import org.keycloak.testsuite.arquillian.annotation.AuthServerContainerExclude;
@@ -136,22 +136,31 @@ public class LinkedAccountsRestServiceTest extends AbstractTestRealmKeycloakTest
     private String getAccountUrl(String resource) {
         return suiteContext.getAuthServerInfo().getContextRoot().toString() + "/auth/realms/test/account" + (resource != null ? "/" + resource : "");
     }
-    
-    private Set<LinkedAccountRepresentation> linkedAccountsRep() throws IOException {
-        return Stream.concat(
-                SimpleHttp.doGet(getAccountUrl("linked-accounts?linked=true"), client).auth(tokenUtil.getToken()).asJson(new TypeReference<PagedResults<LinkedAccountRepresentation>>() {}).getResults().stream(),
-                SimpleHttp.doGet(getAccountUrl("linked-accounts?linked=false"), client).auth(tokenUtil.getToken()).asJson(new TypeReference<PagedResults<LinkedAccountRepresentation>>() {}).getResults().stream()
-        ).collect(Collectors.toSet());
+
+
+    private List<LinkedAccountRepresentation> linkedAccountsRep() throws IOException {
+        return SimpleHttp.doGet(getAccountUrl("linked-accounts?linked=true"), client).auth(tokenUtil.getToken()).asJson(new TypeReference<LinkedAccountsResource.ResultSet>() {}).getResults();
     }
+
+    private List<LinkedAccountRepresentation> unlinkedAccountsRep() throws IOException {
+        return SimpleHttp.doGet(getAccountUrl("linked-accounts?linked=false"), client).auth(tokenUtil.getToken()).asJson(new TypeReference<LinkedAccountsResource.ResultSet>() {}).getResults();
+    }
+
     
     private LinkedAccountRepresentation findLinkedAccount(String providerAlias) throws IOException {
-        for (LinkedAccountRepresentation account : linkedAccountsRep()) {
-            if (account.getProviderAlias().equals(providerAlias)) return account;
-        }
-        
+        for (LinkedAccountRepresentation account : linkedAccountsRep())
+            if (account.getProviderAlias().equals(providerAlias))
+                return account;
         return null;
     }
-    
+
+    private LinkedAccountRepresentation findUnlinkedAccount(String providerAlias) throws IOException {
+        for (LinkedAccountRepresentation account : unlinkedAccountsRep())
+            if (account.getProviderAlias().equals(providerAlias))
+                return account;
+        return null;
+    }
+
     @Test
     @AuthServerContainerExclude(AuthServer.REMOTE)
     public void testBuildLinkedAccountUri() throws IOException {
@@ -184,24 +193,27 @@ public class LinkedAccountsRestServiceTest extends AbstractTestRealmKeycloakTest
     
     @Test
     public void testGetLinkedAccounts() throws IOException {
-        Set<LinkedAccountRepresentation> details = linkedAccountsRep();
-        assertEquals(3, details.size());
-        
-        int order = 0;
-        for (LinkedAccountRepresentation account : details) {
-            if (account.getProviderAlias().equals("github")) {
-                assertTrue(account.isConnected());
-            } else {
-                assertFalse(account.isConnected());
-            }
-        }
+        List<LinkedAccountRepresentation> details = linkedAccountsRep();
+        assertEquals(1, details.size());
+
+        for (LinkedAccountRepresentation account : details)
+            assertTrue(account.isConnected());
     }
-    
+
+    @Test
+    public void testGetUnlinkedAccounts() throws IOException {
+        List<LinkedAccountRepresentation> details = unlinkedAccountsRep();
+        assertEquals(2, details.size());
+
+        for (LinkedAccountRepresentation account : details)
+            assertFalse(account.isConnected());
+    }
+
     @Test
     public void testRemoveLinkedAccount() throws IOException {
-        assertTrue(findLinkedAccount("github").isConnected());
+        assertNotNull(findLinkedAccount("github"));
         SimpleHttp.doDelete(getAccountUrl("linked-accounts/github"), client).auth(tokenUtil.getToken()).acceptJson().asResponse();
-        assertFalse(findLinkedAccount("github").isConnected());
+        assertNotNull(findUnlinkedAccount("github"));
     }
     
 }

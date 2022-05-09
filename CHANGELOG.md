@@ -29,6 +29,7 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 - Hide scopes from scopes_supported in discovery endpoint [RCIAM-859](https://jira.argo.grnet.gr/browse/RCIAM-859)
 - Refresh token for offline_access [RCIAM-849](https://jira.argo.grnet.gr/browse/RCIAM-849)
 - Id token lifespan [RCIAM-930](https://jira.argo.grnet.gr/browse/RCIAM-930)
+- Add indexes to related to Federation and Identity Provider tables
 
 ### Changed
 - Increase User Attribute Value length to 4000 [EOSC-KC-132](https://github.com/eosc-kc/keycloak/issues/132)
@@ -43,6 +44,7 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 - Add ePTID principal option [RCIAM-916](https://jira.argo.grnet.gr/browse/RCIAM-916)
 - Add is required configuration option for UserAttributeMapper and AttributeToRoleMapper [RCIAM-861](https://jira.argo.grnet.gr/browse/RCIAM-861)
 - Support for configuring claims supported in Keycloak OP metadata [RCIAM-899](https://jira.argo.grnet.gr/browse/RCIAM-899)
+- Specific error page for no principals [RCIAM-766](https://jira.argo.grnet.gr/browse/RCIAM-766)
 
 ### Fixed
 - Correct ApplicationsPage in Account Console [RCIAM-984](https://jira.argo.grnet.gr/browse/RCIAM-984)

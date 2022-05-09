@@ -55,7 +55,6 @@ import org.keycloak.provider.ProviderFactory;
 import org.keycloak.representations.account.AccountLinkUriRepresentation;
 import org.keycloak.representations.account.LinkedAccountRepresentation;
 import org.keycloak.services.ErrorResponse;
-import org.keycloak.services.PagedResults;
 import org.keycloak.services.Urls;
 import org.keycloak.services.managers.Auth;
 import org.keycloak.services.messages.Messages;
@@ -122,12 +121,9 @@ public class LinkedAccountsResource {
                 })
                 .collect(Collectors.toList());
 
-        PagedResults<LinkedAccountRepresentation> pagedResults = new PagedResults.Builder<LinkedAccountRepresentation>()
-                .withResults(accounts.stream().skip(firstResult).limit(maxResults).collect(Collectors.toList()))
-                .withTotalHits(new Long(accounts.size()))
-                .build();
+        ResultSet results = new ResultSet(accounts.stream().skip(firstResult).limit(maxResults).collect(Collectors.toList()), accounts.size());
 
-        return Cors.add(request, Response.ok(pagedResults)).auth().allowedOrigins(auth.getToken()).build();
+        return Cors.add(request, Response.ok(results)).auth().allowedOrigins(auth.getToken()).build();
     }
 
     private Set<String> findSocialIds() {
@@ -268,6 +264,29 @@ public class LinkedAccountsResource {
     
     private boolean isValidProvider(String providerId) {
         return realm.getIdentityProvidersStream().anyMatch(model -> Objects.equals(model.getAlias(), providerId));
+    }
+
+
+    public static class ResultSet {
+
+        private Integer totalHits;
+        private List<LinkedAccountRepresentation> results;
+
+        public ResultSet() {}
+
+        public ResultSet(List<LinkedAccountRepresentation> results, Integer totalHits){
+            this.results = results;
+            this.totalHits = totalHits;
+        }
+
+        public Integer getTotalHits() {
+            return totalHits;
+        }
+
+        public List<LinkedAccountRepresentation> getResults() {
+            return results;
+        }
+
     }
 
 }

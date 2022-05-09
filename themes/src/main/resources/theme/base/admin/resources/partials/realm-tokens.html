@@ -240,6 +240,22 @@
         </div>
 
         <div class="form-group">
+            <label class="col-md-2 control-label" for="idTokenLifespan">{{:: 'id-token-lifespan' | translate}}</label>
+
+            <div class="col-md-6 time-selector">
+                <input class="form-control" type="number" min="1"
+                       max="31536000" data-ng-model="realm.idTokenLifespan.time"
+                       id="idTokenLifespan" name="idTokenLifespan"/>
+                <select class="form-control" name="idTokenLifespanUnit" data-ng-model="realm.idTokenLifespan.unit">
+                    <option value="Minutes">{{:: 'minutes' | translate}}</option>
+                    <option value="Hours">{{:: 'hours' | translate}}</option>
+                    <option value="Days">{{:: 'days' | translate}}</option>
+                </select>
+            </div>
+            <kc-tooltip>{{:: 'id-token-lifespan.tooltip' | translate}}</kc-tooltip>
+        </div>
+
+        <div class="form-group">
             <label class="col-md-2 control-label" for="accessCodeLifespan">{{:: 'client-login-timeout' | translate}}</label>
 
             <div class="col-md-6 time-selector">

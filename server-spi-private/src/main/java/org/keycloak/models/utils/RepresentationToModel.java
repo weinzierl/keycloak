@@ -213,6 +213,8 @@ public class RepresentationToModel {
         if (rep.getAccessTokenLifespan() != null) newRealm.setAccessTokenLifespan(rep.getAccessTokenLifespan());
         else newRealm.setAccessTokenLifespan(300);
 
+        if (rep.getIdTokenLifespan() != null) newRealm.setIdTokenLifespan(rep.getIdTokenLifespan());
+
         if (rep.getAccessTokenLifespanForImplicitFlow() != null)
             newRealm.setAccessTokenLifespanForImplicitFlow(rep.getAccessTokenLifespanForImplicitFlow());
         else
@@ -1168,6 +1170,7 @@ public class RepresentationToModel {
         if (rep.getRevokeRefreshToken() != null) realm.setRevokeRefreshToken(rep.getRevokeRefreshToken());
         if (rep.getRefreshTokenMaxReuse() != null) realm.setRefreshTokenMaxReuse(rep.getRefreshTokenMaxReuse());
         if (rep.getAccessTokenLifespan() != null) realm.setAccessTokenLifespan(rep.getAccessTokenLifespan());
+        if (rep.getIdTokenLifespan() != null) realm.setIdTokenLifespan(rep.getIdTokenLifespan());
         if (rep.getAccessTokenLifespanForImplicitFlow() != null)
             realm.setAccessTokenLifespanForImplicitFlow(rep.getAccessTokenLifespanForImplicitFlow());
         if (rep.getSsoSessionIdleTimeout() != null) realm.setSsoSessionIdleTimeout(rep.getSsoSessionIdleTimeout());

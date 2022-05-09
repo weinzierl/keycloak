@@ -36,6 +36,7 @@ import org.keycloak.models.Constants;
 import org.keycloak.models.OAuth2DeviceConfig;
 import org.keycloak.models.ParConfig;
 import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.models.jpa.entities.RealmAttributes;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.representations.adapters.action.GlobalRequestResult;
@@ -192,10 +193,10 @@ public class RealmTest extends AbstractAdminTest {
             }
 
             Map<String, String> attributes = rep2.getAttributes();
-            assertTrue("Attributes expected to be present oauth2DeviceCodeLifespan, oauth2DevicePollingInterval, found: " + String.join(", ", attributes.keySet()),
-                attributes.size() == 3 && attributes.containsKey(OAuth2DeviceConfig.OAUTH2_DEVICE_CODE_LIFESPAN)
+            assertTrue("Attributes expected to be present oauth2DeviceCodeLifespan, oauth2DevicePollingInterval, claimsSupported found: " + String.join(", ", attributes.keySet()),
+                attributes.size() == 4 && attributes.containsKey(OAuth2DeviceConfig.OAUTH2_DEVICE_CODE_LIFESPAN)
                     && attributes.containsKey(OAuth2DeviceConfig.OAUTH2_DEVICE_POLLING_INTERVAL)
-                    && attributes.containsKey(ParConfig.PAR_REQUEST_URI_LIFESPAN));
+                    && attributes.containsKey(ParConfig.PAR_REQUEST_URI_LIFESPAN) && attributes.containsKey(RealmAttributes.CLAIMS_SUPPORTED));
         } finally {
             adminClient.realm("attributes").remove();
         }

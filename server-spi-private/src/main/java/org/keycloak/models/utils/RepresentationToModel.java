@@ -103,6 +103,7 @@ import org.keycloak.models.credential.dto.OTPSecretData;
 import org.keycloak.models.credential.dto.PasswordCredentialData;
 import org.keycloak.policy.PasswordPolicyNotMetException;
 import org.keycloak.provider.ProviderConfigProperty;
+import org.keycloak.representations.IDToken;
 import org.keycloak.representations.idm.ApplicationRepresentation;
 import org.keycloak.representations.idm.AuthenticationExecutionExportRepresentation;
 import org.keycloak.representations.idm.AuthenticationExecutionRepresentation;
@@ -155,6 +156,7 @@ public class RepresentationToModel {
 
     private static Logger logger = Logger.getLogger(RepresentationToModel.class);
     public static final String OIDC = "openid-connect";
+    public static final List<String> DEFAULT_CLAIMS_SUPPORTED= Arrays.asList("aud", "sub", "iss", IDToken.AUTH_TIME, IDToken.NAME, IDToken.GIVEN_NAME, IDToken.FAMILY_NAME, IDToken.PREFERRED_USERNAME, IDToken.EMAIL, IDToken.ACR);
 
     public static OTPPolicy toPolicy(RealmRepresentation rep) {
         OTPPolicy policy = new OTPPolicy();
@@ -262,6 +264,8 @@ public class RepresentationToModel {
         if (rep.getActionTokenGeneratedByUserLifespan() != null)
             newRealm.setActionTokenGeneratedByUserLifespan(rep.getActionTokenGeneratedByUserLifespan());
         else newRealm.setActionTokenGeneratedByUserLifespan(newRealm.getAccessCodeLifespanUserAction());
+
+        if (rep.getClaimsSupported() != null && !rep.getClaimsSupported().isEmpty()) newRealm.setClaimsSupported(rep.getClaimsSupported());
 
         // OAuth 2.0 Device Authorization Grant
         OAuth2DeviceConfig deviceConfig = newRealm.getOAuth2DeviceConfig();
@@ -1191,6 +1195,8 @@ public class RepresentationToModel {
         if (rep.getAccountTheme() != null) realm.setAccountTheme(rep.getAccountTheme());
         if (rep.getAdminTheme() != null) realm.setAdminTheme(rep.getAdminTheme());
         if (rep.getEmailTheme() != null) realm.setEmailTheme(rep.getEmailTheme());
+
+        if (rep.getClaimsSupported() != null) realm.setClaimsSupported(rep.getClaimsSupported());
 
         if (rep.isEventsEnabled() != null) realm.setEventsEnabled(rep.isEventsEnabled());
         if (rep.getEventsExpiration() != null) realm.setEventsExpiration(rep.getEventsExpiration());

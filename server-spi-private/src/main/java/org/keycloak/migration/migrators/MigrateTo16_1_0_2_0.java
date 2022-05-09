@@ -7,6 +7,7 @@ import org.keycloak.models.Constants;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.representations.idm.RealmRepresentation;
 
 import static org.keycloak.models.AccountRoles.MANAGE_ACCOUNT_2FA;
@@ -19,15 +20,15 @@ public class MigrateTo16_1_0_2_0 implements Migration {
     @Override
     public void migrate(KeycloakSession session) {
 
-        session.realms().getRealmsStream().forEach(this::addViewGroupsRole);
+        session.realms().getRealmsStream().forEach(this::migrateRealm);
     }
 
     @Override
     public void migrateImport(KeycloakSession session, RealmModel realm, RealmRepresentation rep, boolean skipUserDependent) {
-        addViewGroupsRole(realm);
+        migrateRealm(realm);
     }
 
-    private void addViewGroupsRole(RealmModel realm) {
+    private void migrateRealm(RealmModel realm) {
         ClientModel accountClient = realm.getClientByClientId(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID);
         if (accountClient != null && accountClient.getRole(AccountRoles.VIEW_GROUPS) == null) {
             RoleModel viewAppRole = accountClient.addRole(AccountRoles.VIEW_GROUPS);
@@ -42,6 +43,7 @@ public class MigrateTo16_1_0_2_0 implements Migration {
             RoleModel manageAccount2fa = accountClient.addRole(MANAGE_ACCOUNT_2FA);
             manageAccount2fa.setDescription("${role_" + MANAGE_ACCOUNT_2FA + "}");
         }
+        realm.setClaimsSupported(RepresentationToModel.DEFAULT_CLAIMS_SUPPORTED);
     }
 
 

@@ -12,6 +12,9 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ### Changed
 - Fixed a bug regarding the keys. SAML now uses RSA "sig" key for signatures and RSA "enc" key for encryption. Previously, it used RSA "sig" for both signatures and encryption (completely ignored the "enc" key in SAML).
 
+### Fixed
+- Fix in IdP of SAML federation parsing
+
 ## [16.1.0-2.1] - 2022-04-19
 ### Fixed
 - Device code flow json error responses [RCIAM-959](https://jira.argo.grnet.gr/browse/RCIAM-959)

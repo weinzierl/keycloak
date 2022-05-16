@@ -492,6 +492,8 @@ public class TokenEndpoint {
             throw new CorsErrorResponseException(cors, OAuthErrorException.INVALID_REQUEST, "No refresh token", Response.Status.BAD_REQUEST);
         }
 
+        String scopeParameter = getRequestedScopes();
+
         try {
             session.clientPolicy().triggerOnEvent(new TokenRefreshContext(formParams));
         } catch (ClientPolicyException cpe) {
@@ -502,7 +504,7 @@ public class TokenEndpoint {
         AccessTokenResponse res;
         try {
             // KEYCLOAK-6771 Certificate Bound Token
-            TokenManager.RefreshResult result = tokenManager.refreshAccessToken(session, session.getContext().getUri(), clientConnection, realm, client, refreshToken, event, headers, request);
+            TokenManager.RefreshResult result = tokenManager.refreshAccessToken(session, session.getContext().getUri(), clientConnection, realm, client, refreshToken, event, headers, request, scopeParameter);
             res = result.getResponse();
 
             if (!result.isOfflineToken()) {

@@ -53,4 +53,5 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 - Changes in account console and account rest service [RCIAM-860](https://jira.argo.grnet.gr/browse/RCIAM-860)
 - Include 'urn:ietf:params:oauth:grant-type:token-exchange' in grant_types_supported field of Keycloak OP metadata, if token-exchange is enabled [RCIAM-915](https://jira.argo.grnet.gr/browse/RCIAM-915)
 - Device code flow json error responses [RCIAM-959](https://jira.argo.grnet.gr/browse/RCIAM-959)
-- KEYCLOAK-18909 Use encryption keys rather than sig for crypto in SAML
+- Use encryption keys rather than sig for crypto in SAML [KEYCLOAK-18909](https://issues.redhat.com/browse/KEYCLOAK-18909)
+- Scope parameter in refresh flow [RCIAM-990](https://jira.argo.grnet.gr/browse/RCIAM-990)

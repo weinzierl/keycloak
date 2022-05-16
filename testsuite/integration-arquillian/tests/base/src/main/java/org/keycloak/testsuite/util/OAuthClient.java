@@ -982,6 +982,9 @@ public class OAuthClient {
         if (refreshToken != null) {
             parameters.add(new BasicNameValuePair(OAuth2Constants.REFRESH_TOKEN, refreshToken));
         }
+        if (scope != null) {
+            parameters.add(new BasicNameValuePair(OAuth2Constants.SCOPE, scope));
+        }
         if (clientId != null && password != null) {
             String authorization = BasicAuthHelper.createHeader(clientId, password);
             post.setHeader("Authorization", authorization);

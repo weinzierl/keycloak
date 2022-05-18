@@ -9,6 +9,9 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
 ## [Unreleased]
+### Added
+- Scope parameter in refresh flow [RCIAM-990](https://jira.argo.grnet.gr/browse/RCIAM-990)
+
 ### Changed
 - Fixed a bug regarding the keys. SAML now uses RSA "sig" key for signatures and RSA "enc" key for encryption. Previously, it used RSA "sig" for both signatures and encryption (completely ignored the "enc" key in SAML).
 

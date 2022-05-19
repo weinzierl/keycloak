@@ -2,6 +2,7 @@ package org.keycloak.services.scheduled;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Objects;
 
 import com.google.common.collect.Streams;
@@ -38,7 +39,7 @@ public class AutoUpdateIdentityProviders implements ScheduledTask {
         try {
             InputStream inputStream = session.getProvider(HttpClientProvider.class).get(idp.getConfig().get(IdentityProviderModel.METADATA_URL));
             idp = getProviderFactorytById(session, idp.getProviderId()).parseConfig(session, inputStream, idp);
-            idp.getConfig().put(IdentityProviderModel.LAST_REFRESH_TIME, String.valueOf(System.currentTimeMillis()));
+            idp.getConfig().put(IdentityProviderModel.LAST_REFRESH_TIME, String.valueOf(Instant.now().toEpochMilli()));
             realm.updateIdentityProvider(idp);
             inputStream.close();
         } catch (IOException e) {

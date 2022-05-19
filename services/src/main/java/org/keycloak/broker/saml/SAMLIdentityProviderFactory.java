@@ -17,6 +17,7 @@
 package org.keycloak.broker.saml;
 
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -173,10 +174,10 @@ public class SAMLIdentityProviderFactory extends AbstractIdentityProviderFactory
 
                     if (samlIdentityProviderConfig.getInternalId() == null) {
                         samlIdentityProviderConfig.setEnabledFromMetadata(entityType.getValidUntil() == null
-                                || entityType.getValidUntil().toGregorianCalendar().getTime().after(new Date(System.currentTimeMillis())));
+                                || entityType.getValidUntil().toGregorianCalendar().getTime().after(new Date(Instant.now().toEpochMilli())));
                     } else {
                         samlIdentityProviderConfig.setEnabled(entityType.getValidUntil() == null
-                                || entityType.getValidUntil().toGregorianCalendar().getTime().after(new Date(System.currentTimeMillis())));
+                                || entityType.getValidUntil().toGregorianCalendar().getTime().after(new Date(Instant.now().toEpochMilli())));
                     }
 
                     // check for hide on login attribute

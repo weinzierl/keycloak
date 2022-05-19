@@ -17,6 +17,7 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 
 ### Fixed
 - Fix in IdP of SAML federation parsing
+- Instant.now().toEpochMilli instead of System.currentTimeMillis [RCIAM-1002](https://jira.argo.grnet.gr/browse/RCIAM-1002)
 
 ## [16.1.0-2.1] - 2022-04-19
 ### Fixed

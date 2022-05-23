@@ -12,6 +12,7 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 
 ### Fixed
 - Instant.now().toEpochMilli instead of System.currentTimeMillis [RCIAM-1002](https://jira.argo.grnet.gr/browse/RCIAM-1002)
+- Scope parameter in refresh flow [RCIAM-990](https://jira.argo.grnet.gr/browse/RCIAM-990)
 
 ## [16.1.0-2.2] - 2022-05-19
 ### Changed

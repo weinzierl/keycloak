@@ -17,6 +17,7 @@
 package org.keycloak.storage.openshift;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -115,6 +116,11 @@ public final class OpenshiftSAClientAdapter extends AbstractReadOnlyClientStorag
     @Override
     public Set<String> getWebOrigins() {
         return new HashSet<>(getConfigOrDefault(() -> defaultConfig.getWebOrigins(), defaultConfig::setWebOrigins, Collections.emptyList()));
+    }
+
+    @Override
+    public List<String> getFederations() {
+        return new ArrayList<>(getConfigOrDefault(() -> defaultConfig.getFederations(), defaultConfig::setFederations, Collections.emptyList()));
     }
 
     @Override

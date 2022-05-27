@@ -51,6 +51,10 @@ public class FederationEntity {
 	@Column(name = "PROVIDER_ID")
 	private String providerId;
 
+	//values= ALL,IDPS,CLIENTS
+	@Column(name = "CATEGORY")
+	private String category;
+
 	@Column(name = "UPDATE_FREQUENCY_IN_MINS")
 	private Integer updateFrequencyInMins;
 
@@ -95,9 +99,6 @@ public class FederationEntity {
     @Column(name="VALUE", columnDefinition = "TEXT")
     @CollectionTable(name="REGISTRATION_AUTHORITY_ALLOWLIST", joinColumns={ @JoinColumn(name="FEDERATION_ID") })
     private Set<String> registrationAuthorityAllowList = new HashSet<String>();
-	
-//	@ManyToMany(mappedBy = "federations")
-//	private Set<IdentityProviderEntity> identityproviders = new HashSet<IdentityProviderEntity>();
 
 	@BatchSize(size = 50)
 	@ElementCollection
@@ -150,7 +151,15 @@ public class FederationEntity {
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
 	}
-	
+
+	public String getCategory() {
+		return category;
+	}
+
+	public void setCategory(String category) {
+		this.category = category;
+	}
+
 	public RealmEntity getRealm() {
 		return realm;
 	}

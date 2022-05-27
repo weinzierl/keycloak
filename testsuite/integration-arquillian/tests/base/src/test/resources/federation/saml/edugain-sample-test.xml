@@ -236,4 +236,210 @@ NAtA3PK9jAvanOasyEcf64oXQeOJolpG1Hg/YJkzCCEcrP0eZmR8FRERdiDcEXFT
       <md:TelephoneNumber>+30-2107474274</md:TelephoneNumber>
     </md:ContactPerson>
   </md:EntityDescriptor>
+  <md:EntityDescriptor
+    entityID="loadbalancer-9.siroe.com">
+    <md:Extensions>
+      <mdrpi:RegistrationInfo registrationAuthority="http://aai.grnet.gr/">
+           <mdrpi:RegistrationPolicy xml:lang="en">http://aai.grnet.gr/static/policy/policy-en-1.1.0.pdf</mdrpi:RegistrationPolicy>
+           <mdrpi:RegistrationPolicy xml:lang="el">http://aai.grnet.gr/static/policy/policy-el-1.1.0.pdf</mdrpi:RegistrationPolicy>
+      </mdrpi:RegistrationInfo>
+    </md:Extensions>>
+    <md:SPSSODescriptor
+       AuthnRequestsSigned="false"
+       WantAssertionsSigned="false"
+       protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:Extensions>
+          <mdui:UIInfo>
+            <mdui:DisplayName xml:lang="en">siroe</mdui:DisplayName>
+            <mdui:DisplayName xml:lang="ge">siroen</mdui:DisplayName>
+            <mdui:Description xml:lang="en">loadbalancer siroen client</mdui:Description>
+            <mdui:InformationURL xml:lang="en">loadbalancer-9.siroe.com</mdui:InformationURL>
+            <mdui:InformationURL xml:lang="ge">loadbalancer-9.siroe.com</mdui:InformationURL>
+          </mdui:UIInfo>
+        </md:Extensions>
+       <md:KeyDescriptor use="signing">
+          <ds:KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+             <ds:X509Data>
+                <ds:X509Certificate>
+                            MIICYDCCAgqgAwIBAgICBoowDQYJKoZIhvcNAQEEBQAwgZIxCzAJBgNVBAYTAlVTMRMwEQYDVQQI
+                            EwpDYWxpZm9ybmlhMRQwEgYDVQQHEwtTYW50YSBDbGFyYTEeMBwGA1UEChMVU3VuIE1pY3Jvc3lz
+                            dGVtcyBJbmMuMRowGAYDVQQLExFJZGVudGl0eSBTZXJ2aWNlczEcMBoGA1UEAxMTQ2VydGlmaWNh
+                            dGUgTWFuYWdlcjAeFw0wNjExMDIxOTExMzRaFw0xMDA3MjkxOTExMzRaMDcxEjAQBgNVBAoTCXNp
+                            cm9lLmNvbTEhMB8GA1UEAxMYbG9hZGJhbGFuY2VyLTkuc2lyb2UuY29tMIGfMA0GCSqGSIb3DQEB
+                            AQUAA4GNADCBiQKBgQCjOwa5qoaUuVnknqf5pdgAJSEoWlvx/jnUYbkSDpXLzraEiy2UhvwpoBgB
+                            EeTSUaPPBvboCItchakPI6Z/aFdH3Wmjuij9XD8r1C+q//7sUO0IGn0ORycddHhoo0aSdnnxGf9V
+                            tREaqKm9dJ7Yn7kQHjo2eryMgYxtr/Z5Il5F+wIDAQABo2AwXjARBglghkgBhvhCAQEEBAMCBkAw
+                            DgYDVR0PAQH/BAQDAgTwMB8GA1UdIwQYMBaAFDugITflTCfsWyNLTXDl7cMDUKuuMBgGA1UdEQQR
+                            MA+BDW1hbGxhQHN1bi5jb20wDQYJKoZIhvcNAQEEBQADQQB/6DOB6sRqCZu2OenM9eQR0gube85e
+                            nTTxU4a7x1naFxzYXK1iQ1vMARKMjDb19QEJIEJKZlDK4uS7yMlf1nFS
+                </ds:X509Certificate>
+             </ds:X509Data>
+          </ds:KeyInfo>
+       </md:KeyDescriptor>
+       <md:KeyDescriptor use="encryption">
+          <ds:KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+             <ds:X509Data>
+                <ds:X509Certificate>
+                            MIICTDCCAfagAwIBAgICBo8wDQYJKoZIhvcNAQEEBQAwgZIxCzAJBgNVBAYTAlVTMRMwEQYDVQQI
+                            EwpDYWxpZm9ybmlhMRQwEgYDVQQHEwtTYW50YSBDbGFyYTEeMBwGA1UEChMVU3VuIE1pY3Jvc3lz
+                            dGVtcyBJbmMuMRowGAYDVQQLExFJZGVudGl0eSBTZXJ2aWNlczEcMBoGA1UEAxMTQ2VydGlmaWNh
+                            dGUgTWFuYWdlcjAeFw0wNjExMDcyMzU2MTdaFw0xMDA4MDMyMzU2MTdaMCMxITAfBgNVBAMTGGxv
+                            YWRiYWxhbmNlci05LnNpcm9lLmNvbTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAw574iRU6
+                            HsSO4LXW/OGTXyfsbGv6XRVOoy3v+J1pZ51KKejcDjDJXNkKGn3/356AwIaqbcymWd59T0zSqYfR
+                            Hn+45uyjYxRBmVJseLpVnOXLub9jsjULfGx0yjH4w+KsZSZCXatoCHbj/RJtkzuZY6V9to/hkH3S
+                            InQB4a3UAgMCAwEAAaNgMF4wEQYJYIZIAYb4QgEBBAQDAgZAMA4GA1UdDwEB/wQEAwIE8DAfBgNV
+                            HSMEGDAWgBQ7oCE35Uwn7FsjS01w5e3DA1CrrjAYBgNVHREEETAPgQ1tYWxsYUBzdW4uY29tMA0G
+                            CSqGSIb3DQEBBAUAA0EAMlbfBg/ff0Xkv4DOR5LEqmfTZKqgdlD81cXynfzlF7XfnOqI6hPIA90I
+                            x5Ql0ejivIJAYcMGUyA+/YwJg2FGoA==
+                </ds:X509Certificate>
+             </ds:X509Data>
+          </ds:KeyInfo>
+          <md:EncryptionMethod Algorithm="https://www.w3.org/2001/04/xmlenc#aes128-cbc">
+             <md:KeySize xmlns="https://www.w3.org/2001/04/xmlenc#">128</md:KeySize>
+          </md:EncryptionMethod>
+       </md:KeyDescriptor>
+       <md:SingleLogoutService
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+                    Location="https://LoadBalancer-9.siroe.com:3443/federation/SPSloRedirect/metaAlias/sp"
+                    ResponseLocation="https://LoadBalancer-9.siroe.com:3443/federation/SPSloRedirect/metaAlias/sp"/>
+       <md:SingleLogoutService
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+                    Location="https://LoadBalancer-9.siroe.com:3443/federation/SPSloSoap/metaAlias/sp"/>
+       <md:ManageNameIDService
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+                    Location="https://LoadBalancer-9.siroe.com:3443/federation/SPMniRedirect/metaAlias/sp"
+                    ResponseLocation="https://LoadBalancer-9.siroe.com:3443/federation/SPMniRedirect/metaAlias/sp"/>
+       <md:ManageNameIDService
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+                    Location="https://LoadBalancer-9.siroe.com:3443/federation/SPMniSoap/metaAlias/sp"
+                    ResponseLocation="https://LoadBalancer-9.siroe.com:3443/federation/SPMniSoap/metaAlias/sp"/>
+       <md:NameIDFormat>
+                urn:oasis:names:tc:SAML:2.0:nameid-format:persistent
+       </md:NameIDFormat>
+       <md:NameIDFormat>
+                urn:oasis:names:tc:SAML:2.0:nameid-format:transient
+       </md:NameIDFormat>
+       <md:AssertionConsumerService
+                    isDefault="true"
+                    index="0"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"
+                    Location="https://LoadBalancer-9.siroe.com:3443/federation/Consumer/metaAlias/Artifact"/>
+       <md:AssertionConsumerService
+                    index="1"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                    Location="https://LoadBalancer-9.siroe.com:3443/federation/Consumer/metaAlias/POST"/>
+    </md:SPSSODescriptor>
+  </md:EntityDescriptor>
+    <md:EntityDescriptor xmlns:init="urn:oasis:names:tc:SAML:profiles:SSO:request-init" entityID="https://test-sp.tuke.sk/shibboleth">
+        <md:Extensions>
+            <mdrpi:RegistrationInfo registrationAuthority="https://eduid.rash.al" registrationInstant="2019-06-25T11:28:03Z">
+                <mdrpi:RegistrationPolicy xml:lang="en">https://eduid.rash.al/wp-content/uploads/eduID-Albania-Federation-Policy.pdf</mdrpi:RegistrationPolicy>
+            </mdrpi:RegistrationInfo>
+        </md:Extensions>
+        <md:SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+            <md:KeyDescriptor use="signing">
+                <ds:KeyInfo>
+                    <ds:KeyName>https://test-sp.tuke.sk/shibboleth</ds:KeyName>
+                    <ds:KeyName>test-sp.tuke.sk</ds:KeyName>
+                    <ds:X509Data>
+                        <ds:X509Certificate>
+                            MIIEJTCCAo2gAwIBAgIUOHRSq5r/t+OtK4aUoxhltK2YqeowDQYJKoZIhvcNAQEL
+                            BQAwGjEYMBYGA1UEAxMPdGVzdC1zcC50dWtlLnNrMCAXDTIxMDgyNjA3NDcwOFoY
+                            DzIwNzEwODE0MDc0NzA4WjAaMRgwFgYDVQQDEw90ZXN0LXNwLnR1a2Uuc2swggGi
+                            MA0GCSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQC1ujW1icRhcQzLVyjgBQR0ISvW
+                            YhmzifP+QicWP832+Uojdj1sqm9t4UvcnQvY2VMk3lHhrIvRyiL7b2TfIHvh0jPo
+                            3MA/58vZqttqtpzeD+CHRZLUrY7bVmgAme5QK7ru55se2XFYWvxkcfRiAnXTJuaI
+                            dATmJv7T+9zsrdvlh+08z5pTxe9ku57B4oi4PeIKdY54LtO1z11jdFMKxrY2mPXm
+                            +Zln2GJ1BdzAbRC8y0Zn+hkMeAhsVnZbO2JmteX0Nfz+QX7grxpn3EVcIzwcYZ3Q
+                            Y2+b+XA18Km+V3xmA2LoX3YbbqYGyPWeMAQDZdRu+ZqdvkFu8uo3mmTz4HDmiF7L
+                            p3O3lbtgO7WmPf80W6EgkvhEOFatvQc4vIqDHi7gkdyWbVlxhqtQUL7GeRUV/vpa
+                            KE7dvBR/X7x07Bj0flCMETNpM3OS0TioHfNJTIJzqCZ87dppPtNwYaLQog99hVnY
+                            Lp/BvzXxCPQllBWD4QSdG2ZZCfBa4qjEZifr6FUCAwEAAaNhMF8wPgYDVR0RBDcw
+                            NYIPdGVzdC1zcC50dWtlLnNrhiJodHRwczovL3Rlc3Qtc3AudHVrZS5zay9zaGli
+                            Ym9sZXRoMB0GA1UdDgQWBBSseZRStbtGMtj+guHvzb3uFgx+VjANBgkqhkiG9w0B
+                            AQsFAAOCAYEAWAMX/EZccDWNfye00vsrFSMxwia4XduDV8yRkvkh+p/mFDlt86xY
+                            kFSPG25ITP7iu6ZKd+1OdJaf8qMhjdb9hvC2ld9Xo/H63EZQcQHu0UCUXQCHXL3U
+                            k52dXNRU09Pr47u8zCe4xXSqtqvdWtORvD4VLe5w+8CJibtXxYfOKfBxt+2j7SP0
+                            xp5173jIw5BnaXs8ArfGBVvlpPx73MBVtMcplkUzAMIBqk8lRz/h7dhghve2HHFW
+                            A4WmdmRMKyXWTyuNZakySLK+kb89W6rqYXsARsTS+SdSUxPue5ReBT1m5WnKfQmD
+                            qWZbItULLFXiVN2G+1PR1SetQ26Ab7EXNiERz0UeEUNeFRKsRURIrYukHtEEZjSf
+                            a+t7HykSy58psINf64XkE3G/9Ickjw9qJoc9ZDJ9QtEDka9qzHGq/D5nVWAimNSd
+                            umYB8roMjaNVD9OqrdPKXHt7eVeJ6WOaTiu/ubzzQAeoeSllQ0Y7eiGgpEOkgxyB
+                            fiE/iSQIGG/I
+                        </ds:X509Certificate>
+                    </ds:X509Data>
+                </ds:KeyInfo>
+            </md:KeyDescriptor>
+            <md:KeyDescriptor use="encryption">
+                <ds:KeyInfo>
+                    <ds:KeyName>https://test-sp.tuke.sk/shibboleth</ds:KeyName>
+                    <ds:KeyName>test-sp.tuke.sk</ds:KeyName>
+                    <ds:X509Data>
+                        <ds:X509Certificate>
+                            MIIEJTCCAo2gAwIBAgIUAxpPxM0BH3vP390KQtv3RGXD20IwDQYJKoZIhvcNAQEL
+                            BQAwGjEYMBYGA1UEAxMPdGVzdC1zcC50dWtlLnNrMCAXDTIxMDgyNjA3NDcwMFoY
+                            DzIwNzEwODE0MDc0NzAwWjAaMRgwFgYDVQQDEw90ZXN0LXNwLnR1a2Uuc2swggGi
+                            MA0GCSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQDKqWbgyI5ZEXXDhUBXXqp73U6A
+                            gMjLinJFJPOOPmhj+bWx076mnrZKGIE95hkFsnb9COFEoBAsA86YfhQuEm3LhLkX
+                            QtpEIvxALHsFxdfcxfB3awSqEbZIFqJsYrR8MF5rV1Of8rtQBUy6D++ptqzd4M/F
+                            /s6TLCLImhE1Kb2YI+PGpjdcKcnAvfMn5cAkGfus32/Y5Y/85ZAhTYuHOxoV2xoO
+                            KmM3LjUXVvH6nZChJ3SDhuBqWfGlFJK92eHMUKFMM29kjJXozr/neYpQ8KfgP+wm
+                            yDiYrl/j36PT5nVrg07BMZRE9k+Tg5/qBTgr4RaxBX+ms30mXdmPz75zxOGiNBzz
+                            L94JXvb7B0JYt05e1Tod1bCxVGYzymCbLzIyKi+ChrBI+tOiex6aVLaF7vDM7Yxz
+                            oKneJUfGFqm3FuiWysFLK9NC/kdYNPiTwRNh0LDEq7iuMfw835ozbWvg/zC0lGHk
+                            Q6Jam8+TUvKSrKK+hd+pmpu9Rt6dfU4cxnAumzMCAwEAAaNhMF8wPgYDVR0RBDcw
+                            NYIPdGVzdC1zcC50dWtlLnNrhiJodHRwczovL3Rlc3Qtc3AudHVrZS5zay9zaGli
+                            Ym9sZXRoMB0GA1UdDgQWBBSLiQntFEJIjL8j425jWoaYPmcT/zANBgkqhkiG9w0B
+                            AQsFAAOCAYEANGLRyj6PXOHGC2P6QdjPBZXIYvZJYb1dSRcTtM+t9KBWhgeb3z7w
+                            azSLBGnZmjWLy6ukD8/FD7rOD3AcCF6Ad7++Yp7W/06OCFV14iLq6IRbPlTd8pSl
+                            Xt+jfbNuFQPwLpcgvJZxBADOfIZSgnJ+ap2x23rGWcSl/1HxouAPe7rbnvDABlWL
+                            6GfU3rjRdqnCRu2lij4b7I8FXIBCOFy/xJHtzdBD8Px/f2mye41ysdHrsBVhoUBT
+                            duL7KWuNCwYybeilgdCfSIheCvy8w26iGCP2mVw1nGurm3EccFnZHhYdTH84NfJ/
+                            yMahXYi8E1VB2viQQ0ZrCRBGFd0q/rbNfg2z27zS9BSS7/VPm42VZkjNEoNoNjlC
+                            5WhiCw4cNn/sjkHhaGxhtmzUZCsSKoLD+swiIfaCq1tyX5OoUriFX/V08YWCTY00
+                            5zzJ+Gqxwz+JZBAmqvfTBknZnfkxxe/nRSCJE8pT1vxG5fHnyBqFtVwTzqaVBk2r
+                            xbInQBoCJ8IJ
+                        </ds:X509Certificate>
+                    </ds:X509Data>
+                </ds:KeyInfo>
+                <md:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#tripledes-cbc"/>
+                <md:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+                <md:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes192-cbc"/>
+                <md:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
+                <md:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"/>
+                <md:EncryptionMethod Algorithm="http://www.w3.org/2009/xmlenc11#aes128-gcm"/>
+            </md:KeyDescriptor>
+            <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="https://test-sp.tuke.sk/Shibboleth.sso/SLO/SOAP"/>
+            <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://test-sp.tuke.sk/Shibboleth.sso/SLO/Redirect"/>
+            <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact" Location="https://test-sp.tuke.sk/Shibboleth.sso/SLO/Artifact"/>
+            <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>
+            <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://test-sp.tuke.sk/Shibboleth.sso/SAML2/POST" index="1"/>
+            <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign" Location="https://test-sp.tuke.sk/Shibboleth.sso/SAML2/POST-SimpleSign" index="2"/>
+            <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact" Location="https://test-sp.tuke.sk/Shibboleth.sso/SAML2/Artifact" index="3"/>
+            <md:AttributeConsumingService index="0">
+                <md:ServiceName xml:lang="en">Technical University of Košice Ulysseus Test Service</md:ServiceName>
+                <md:ServiceName xml:lang="sk">Ulysseus testovacia služba Technickej univerzity v Košiciach</md:ServiceName>
+                <md:ServiceDescription xml:lang="en">This is a Ulysseus Digital Platform Test Service Provider for Technical University of Košice</md:ServiceDescription>
+                <md:ServiceDescription xml:lang="sk">Služba Technickej univerzity v Košiciach pre testovanie digitálnej platformy Ulysseus</md:ServiceDescription>
+                <md:RequestedAttribute FriendlyName="eduPersonPrincipalName" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.6" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" isRequired="false"/>
+                <md:RequestedAttribute FriendlyName="givenName" Name="urn:oid:2.5.4.42" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" isRequired="false"/>
+                <md:RequestedAttribute FriendlyName="email" Name="urn:oid:0.9.2342.19200300.100.1.3" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" isRequired="false"/>
+                <md:RequestedAttribute FriendlyName="organizationName" Name="urn:oid:2.5.4.10" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" isRequired="false"/>
+                <md:RequestedAttribute FriendlyName="surname" Name="urn:oid:2.5.4.4" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" isRequired="false"/>
+            </md:AttributeConsumingService>
+        </md:SPSSODescriptor>
+        <md:Organization>
+            <md:OrganizationName xml:lang="sk">Technická univerzita v Košiciach</md:OrganizationName>
+            <md:OrganizationName xml:lang="en">Technical University of Kosice</md:OrganizationName>
+            <md:OrganizationDisplayName xml:lang="sk">Technická univerzita v Košiciach</md:OrganizationDisplayName>
+            <md:OrganizationDisplayName xml:lang="en">Technical University of Kosice</md:OrganizationDisplayName>
+            <md:OrganizationURL xml:lang="sk">http://www.tuke.sk/</md:OrganizationURL>
+            <md:OrganizationURL xml:lang="en">http://www.tuke.sk/</md:OrganizationURL>
+        </md:Organization>
+        <md:ContactPerson contactType="technical">
+            <md:GivenName>Identity</md:GivenName>
+            <md:SurName>Helpdesk</md:SurName>
+            <md:EmailAddress>mailto:identity@helpdesk.tuke.sk</md:EmailAddress>
+        </md:ContactPerson>
+    </md:EntityDescriptor>
 </md:EntitiesDescriptor>

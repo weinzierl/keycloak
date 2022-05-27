@@ -18,6 +18,7 @@
 package org.keycloak.models.map.realm;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -239,6 +240,12 @@ public class MapRealmProvider implements RealmProvider {
     @Deprecated
     public Stream<ClientModel> getAlwaysDisplayInConsoleClientsStream(RealmModel realm) {
         return session.clients().getAlwaysDisplayInConsoleClientsStream(realm);
+    }
+
+    @Override
+    @Deprecated
+    public List<ClientModel> getFederationClientsStream(RealmModel realm, String federationId){
+        return session.clients().getFederationClientsStream(realm, federationId);
     }
 
     @Override

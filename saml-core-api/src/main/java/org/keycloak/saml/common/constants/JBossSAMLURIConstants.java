@@ -125,6 +125,7 @@ public enum JBossSAMLURIConstants {
 
     TRANSFORM_ENVELOPED_SIGNATURE("http://www.w3.org/2000/09/xmldsig#enveloped-signature"),
     TRANSFORM_C14N_EXCL_OMIT_COMMENTS("http://www.w3.org/2001/10/xml-exc-c14n#WithComments"),
+    TRANSFORM_C14N_EXCL("http://www.w3.org/2001/10/xml-exc-c14n#"),
 
     XSI_PREFIX("xsi"),
     X500_PREFIX("x500"),

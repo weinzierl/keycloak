@@ -23,6 +23,7 @@
       		"internalId": "1dc40e23-e9d0-41de-9324-62e600fab855",
       		"providerId": "saml",
       		"alias": "saml-edugain",
+            "category": "Identity Providers",
       		"url": "http://cappakleis1.aai-dev.grnet.gr:5000/edugain-sample-test.xml",
       		"updateFrequencyInMins": 300,
       		"validUntilTimestamp": 1670647735000,

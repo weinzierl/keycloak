@@ -16,6 +16,7 @@
  */
 package org.keycloak.storage;
 
+import java.util.List;
 import java.util.Map;
 import org.jboss.logging.Logger;
 import org.keycloak.common.util.reflections.Types;
@@ -240,6 +241,11 @@ public class ClientStorageManager implements ClientProvider {
     @Override
     public Stream<ClientModel> getAlwaysDisplayInConsoleClientsStream(RealmModel realm) {
         return session.clientLocalStorage().getAlwaysDisplayInConsoleClientsStream(realm);
+    }
+
+    @Override
+    public List<ClientModel> getFederationClientsStream(RealmModel realm, String federationId) {
+        return session.clientLocalStorage().getFederationClientsStream(realm, federationId);
     }
 
     @Override

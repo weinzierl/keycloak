@@ -22,6 +22,7 @@ public class MapFederationEntity implements UpdatableEntity {
     private String url;
     private Integer updateFrequencyInMins;
     private String displayName;
+    private String category;
     private Long validUntilTimestamp;
     private Long lastMetadataRefreshTimestamp;
     private Map<String, String> config;
@@ -46,6 +47,7 @@ public class MapFederationEntity implements UpdatableEntity {
         entity.setAlias(model.getAlias());
         entity.setProviderId(model.getProviderId());
         entity.setDisplayName(model.getDisplayName());
+        entity.setCategory(model.getCategory());
         entity.setLastMetadataRefreshTimestamp(model.getLastMetadataRefreshTimestamp());
         entity.setUpdateFrequencyInMins(model.getUpdateFrequencyInMins());
         entity.setUrl(model.getUrl());
@@ -71,6 +73,7 @@ public class MapFederationEntity implements UpdatableEntity {
         model.setAlias(entity.getAlias());
         model.setProviderId(entity.getProviderId());
         model.setDisplayName(entity.getDisplayName());
+        model.setCategory(entity.getCategory());
         model.setLastMetadataRefreshTimestamp(entity.getLastMetadataRefreshTimestamp());
         model.setUpdateFrequencyInMins(entity.getUpdateFrequencyInMins());
         model.setUrl(entity.getUrl());
@@ -145,6 +148,15 @@ public class MapFederationEntity implements UpdatableEntity {
     public void setDisplayName(String displayName) {
         this.updated = !Objects.equals(this.displayName, displayName);
         this.displayName = displayName;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.updated = !Objects.equals(this.category, category);
+        this.category = category;
     }
 
     public Long getValidUntilTimestamp() {

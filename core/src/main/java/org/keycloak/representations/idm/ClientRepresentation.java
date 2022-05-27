@@ -80,6 +80,7 @@ public class ClientRepresentation {
     private ResourceServerRepresentation authorizationSettings;
     private Map<String, Boolean> access;
     protected String origin;
+    protected List<String> federations;
 
 
     public String getId() {
@@ -426,4 +427,11 @@ public class ClientRepresentation {
         this.origin = origin;
     }
 
+    public List<String> getFederations() {
+        return federations;
+    }
+
+    public void setFederations(List<String> federations) {
+        this.federations = federations;
+    }
 }

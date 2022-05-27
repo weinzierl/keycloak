@@ -8,7 +8,7 @@
 
     <ul class="nav nav-tabs">
         <li class="active"><a href="#/realms/{{realm.realm}}/saml-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}">{{:: 'realm-saml-federations' | translate}}</a></li>
-        <li data-ng-show="identityProvidersFederation.internalId"><a href="#/realms/{{realm.realm}}/saml-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}/{{identityProvidersFederation.alias}}/mappers">{{:: 'mappers' | translate}}</a></li>
+        <li data-ng-show="identityProvidersFederation.internalId && identityProvidersFederation.category != 'Clients'"><a href="#/realms/{{realm.realm}}/saml-federation/{{identityProvidersFederation.providerId}}/{{identityProvidersFederation.internalId}}/{{identityProvidersFederation.alias}}/mappers">{{:: 'mappers' | translate}}</a></li>
     </ul>
 
 
@@ -49,6 +49,18 @@
 				<kc-tooltip>{{::'saml-federation.update-frequency-in-mins.tooltip' | translate}}</kc-tooltip>
 			</div>
 
+			<div class="form-group clearfix">
+				<label class="col-md-2 control-label" for="category"><span
+						class="required">*</span> {{:: 'category' | translate}}</label>
+				<div class="col-md-6">
+					<select class="form-control" id="category"
+							ng-model="identityProvidersFederation.category"
+							required ng-options="cat for cat in categoryList">
+					</select>
+				</div>
+				<kc-tooltip>{{:: 'category-saml-federation.tooltip' |translate}}</kc-tooltip>
+			</div>
+
 			<div class="form-group clearfix" data-ng-show="identityProvidersFederation.internalId">
 				<label class="col-md-2 control-label" for="lastMetadataRefreshTimestamp">{{::'last-updated' | translate}}</label>
 				<div class="col-md-6">
@@ -70,7 +82,7 @@
 			</div>
 
 		</fieldset>
-		<fieldset>
+		<fieldset data-ng-hide="identityProvidersFederation.category == 'Clients'">
 			<legend collapsed>
 				<span class="text">{{::'import-external-idp-federation-config' | translate}}</span>
 				<kc-tooltip>{{::'import-external-idp-federation-config.tooltip' | translate}}</kc-tooltip>
@@ -90,7 +102,7 @@
 			<div class="form-group clearfix">
 				<label class="col-md-2 control-label" for="spEntityId"><span class="required">*</span> {{:: 'identity-provider.saml.sp-entity-id' | translate}}</label>
 				<div class="col-md-6">
-					<input kc-no-reserved-chars class="form-control" id="spEntityId" type="text" ng-model="identityProvidersFederation.config.spEntityId" required>
+					<input kc-no-reserved-chars class="form-control" id="spEntityId" type="text" ng-model="identityProvidersFederation.config.spEntityId" data-ng-required="identityProvidersFederation.category != 'Clients'" >
 				</div>
 				<kc-tooltip>{{:: 'identity-provider.saml.federation.sp-entity-id.tooltip' | translate}}</kc-tooltip>
 			</div>
@@ -101,7 +113,7 @@
 					<div>
 						<select class="form-control" id="syncMode"
 								ng-model="identityProvidersFederation.config.syncMode"
-								required>
+								data-ng-required="identityProvidersFederation.category != 'Clients'">
 							<option id="syncMode_import" name="syncMode" value="IMPORT">{{:: 'sync-mode.import' | translate}}</option>
 							<option id="syncMode_force" name="syncMode" value="FORCE">{{:: 'sync-mode.force' | translate}}</option>
 						</select>

@@ -1505,6 +1505,9 @@ public class RepresentationToModel {
             }
         }
 
+        if (resourceRep.getFederations()!= null)
+            client.setFederations(resourceRep.getFederations());
+
         if (resourceRep.getProtocolMappers() != null) {
             // first, remove all default/built in mappers
             client.getProtocolMappersStream().collect(Collectors.toList()).forEach(client::removeProtocolMapper);
@@ -1602,6 +1605,8 @@ public class RepresentationToModel {
                 resource.setAttribute(entry.getKey(), entry.getValue());
             }
         }
+        if (rep.getFederations()!= null)
+            resource.setFederations(rep.getFederations());
 
         if ("saml".equals(rep.getProtocol())
                 && (rep.getAttributes() == null
@@ -2087,6 +2092,7 @@ public class RepresentationToModel {
     	model.setInternalId(representation.getInternalId());
     	model.setAlias(representation.getAlias());
     	model.setDisplayName(representation.getDisplayName());
+        model.setCategory(representation.getCategory());
     	model.setLastMetadataRefreshTimestamp(representation.getLastMetadataRefreshTimestamp());
     	model.setProviderId(representation.getProviderId());
     	model.setUpdateFrequencyInMins(representation.getUpdateFrequencyInMins());

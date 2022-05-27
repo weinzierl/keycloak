@@ -29,7 +29,7 @@ public class UpdateFederation implements ScheduledTask {
 		FederationModel federationModel = session.realms().getRealm(realmId).getSAMLFederationById(federationId);
 		SAMLFederationProviderFactory samlFederationProviderFactory = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, federationModel.getProviderId());
 		FederationProvider federationProvider = samlFederationProviderFactory.create(session,federationModel,realmId);
-		federationProvider.updateIdentityProviders();
+		federationProvider.updateSamlEntities();
 	}
 	
 

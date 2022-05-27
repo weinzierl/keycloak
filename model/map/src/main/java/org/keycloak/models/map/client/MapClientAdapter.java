@@ -139,6 +139,26 @@ public abstract class MapClientAdapter extends AbstractClientModel<MapClientEnti
     }
 
     @Override
+    public List<String> getFederations() {
+        return null;
+    }
+
+    @Override
+    public void setFederations(List<String> federations) {
+
+    }
+
+    @Override
+    public void addFederation(String federation) {
+
+    }
+
+    @Override
+    public void removeFederation(String federation) {
+
+    }
+
+    @Override
     public Set<String> getRedirectUris() {
         final Set<String> redirectUris = entity.getRedirectUris();
         return redirectUris == null ? Collections.emptySet() : redirectUris;

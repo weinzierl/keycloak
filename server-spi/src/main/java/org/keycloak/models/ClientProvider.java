@@ -127,6 +127,13 @@ public interface ClientProvider extends ClientLookupProvider, Provider {
     Stream<ClientModel> getAlwaysDisplayInConsoleClientsStream(RealmModel realm);
 
     /**
+     * Returns a List of clients that belongs to this federation
+     * @param federationId federation id
+     * @return
+     */
+    List<ClientModel> getFederationClientsStream(RealmModel realm, String federationId);
+
+    /**
      * Removes given client from the given realm.
      * @param id Internal ID of the client
      * @param realm Realm.

@@ -271,6 +271,7 @@ public class SamlFederationIdpLogoutTest extends AbstractSamlTest {
 		SAMLFederationRepresentation representation = new SAMLFederationRepresentation();
 		representation.setAlias(alias);
 		representation.setProviderId("saml");
+		representation.setCategory("Identity Providers");
 		representation.setUpdateFrequencyInMins(60);
 		representation.setUrl(url);
 		Map<String,String> map = new HashMap<>();

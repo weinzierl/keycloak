@@ -166,7 +166,17 @@ public class SAMLFederationResource {
         }
     	FederationProvider federationProvider = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, model.getProviderId()).create(session,model,this.realm.getId());
 
-    	federationProvider.removeFederation();
+        //preremove federation client
+        List<ClientModel> existingClientModels = session.clients().getFederationClientsStream(realm, model.getInternalId());
+        existingClientModels.stream().forEach(client -> {
+            if ( client.getFederations().size() == 1) {
+                realm.removeClient(client.getId());
+            } else {
+                //client exists in more federations
+                client.removeFederation(model.getInternalId());
+            }
+        });
+        federationProvider.removeFederation();
 
         adminEvent.operation(OperationType.DELETE).resourcePath(session.getContext().getUri()).success();
         return Response.noContent().build();

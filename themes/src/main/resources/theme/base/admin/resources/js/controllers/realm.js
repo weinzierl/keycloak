@@ -1737,6 +1737,12 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
          }
      ];
 
+     $scope.categoryList = [
+                 "All",
+                 "Identity Providers",
+                 "Clients"
+             ];
+
 	$scope.realm = realm;
 	$scope.identityProvidersFederation = identityProvidersFederation;
 
@@ -1748,6 +1754,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
 		 $scope.identityProvidersFederation.registrationAuthorityDenyList = [];
 		 $scope.identityProvidersFederation.registrationAuthorityAllowList = [];
 		 $scope.identityProvidersFederation.categoryAllowList = {};
+		 $scope.identityProvidersFederation.category='All';
          $scope.newCategoryAllowList = {};
 		 $scope.newCategoryAllowList.key='';
 		 $scope.newCategoryAllowList.value = [];
@@ -1825,7 +1832,7 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
         }
          if ($scope.multiplePrincipals !== undefined && $scope.multiplePrincipals.length > 0) {
              $scope.identityProvidersFederation.config.multiplePrincipals = angular.toJson($scope.multiplePrincipals);
-         } else {
+         } else if ($scope.identityProvidersFederation.category != "Clients") {
             Notifications.error("You must specify at least one principal");
             return;
          }
@@ -1864,6 +1871,17 @@ module.controller('IdentityProvidersFederationConfigCtrl', function(realm, Dialo
     			$scope.changed = false;
     	}, 
     true);
+
+    $scope.$watch('identityProvidersFederation.category',
+        	function (newValue, oldValue, scope) {
+        		if(newValue != initValues.category) {
+        			$scope.changed = true;
+        		}
+        		else {
+        			$scope.changed = false;
+        		}
+        	},
+        true);
     
     $scope.$watch('identityProvidersFederation.updateFrequencyInMins', 
     	function (newValue, oldValue, scope) {

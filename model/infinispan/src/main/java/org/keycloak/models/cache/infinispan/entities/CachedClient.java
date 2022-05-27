@@ -23,6 +23,7 @@ import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -71,6 +72,7 @@ public class CachedClient extends AbstractRevisioned implements InRealm {
     protected Map<String, Integer> registeredNodes;
     protected List<String> defaultClientScopesIds;
     protected List<String> optionalClientScopesIds;
+    protected List<String> federations = new ArrayList<>();
 
     public CachedClient(Long revision, RealmModel realm, ClientModel model) {
         super(revision, model.getId());
@@ -104,6 +106,7 @@ public class CachedClient extends AbstractRevisioned implements InRealm {
         implicitFlowEnabled = model.isImplicitFlowEnabled();
         directAccessGrantsEnabled = model.isDirectAccessGrantsEnabled();
         serviceAccountsEnabled = model.isServiceAccountsEnabled();
+        federations = model.getFederations();
 
         nodeReRegistrationTimeout = model.getNodeReRegistrationTimeout();
         registeredNodes = new TreeMap<>(model.getRegisteredNodes());
@@ -252,5 +255,9 @@ public class CachedClient extends AbstractRevisioned implements InRealm {
 
     public Map<String, String> getAuthFlowBindings() {
         return authFlowBindings;
+    }
+
+    public List<String> getFederations() {
+        return federations;
     }
 }

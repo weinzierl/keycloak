@@ -754,7 +754,7 @@ public class OfflineTokenTest extends AbstractKeycloakTest {
         assertEquals(200, offlineRefresh.getStatusCode());
 
         // logout online session
-        CloseableHttpResponse logoutResponse = oauth.scope("").doLogout(response.getRefreshToken(), "secret1");
+        CloseableHttpResponse logoutResponse = oauth.scope(null).doLogout(response.getRefreshToken(), "secret1");
         assertEquals(204, logoutResponse.getStatusLine().getStatusCode());
 
         // assert the online session is gone

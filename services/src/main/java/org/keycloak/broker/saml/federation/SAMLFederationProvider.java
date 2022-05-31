@@ -515,7 +515,7 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
         // blacklist for entityId and registrationAuthority
         // whitelist is superior in all cases than blacklist
         String authority = null;
-        if (entity.getExtensions().getRegistrationInfo() != null) {
+        if (entity.getExtensions() != null && entity.getExtensions().getRegistrationInfo() != null) {
             authority = entity.getExtensions().getRegistrationInfo().getRegistrationAuthority().toString();
         }
 

@@ -518,22 +518,22 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
         // blacklist for entityId and registrationAuthority
         // whitelist is superior in all cases than blacklist
         String authority = null;
-        if (entity.getExtensions().getRegistrationInfo() != null) {
-            authority = entity.getExtensions().getRegistrationInfo().getRegistrationAuthority().toString();
-        }
+		if (entity.getExtensions()!= null && entity.getExtensions().getRegistrationInfo() != null) {
+			authority = entity.getExtensions().getRegistrationInfo().getRegistrationAuthority().toString();
+		}
 
-        return model.getEntityIdAllowList().contains(entity.getEntityID())
-            || (authority != null && model.getRegistrationAuthorityAllowList().contains(authority))
-            || (model.getCategoryAllowList() != null && entity.getExtensions().getEntityAttributes() != null
-                && containsAttribute(model.getCategoryAllowList(), entity.getExtensions().getEntityAttributes().getAttribute()))
-            || (model.getEntityIdAllowList().isEmpty() && model.getRegistrationAuthorityAllowList().isEmpty()
-                && model.getCategoryAllowList().isEmpty()
-                && (model.getEntityIdDenyList().isEmpty() || !model.getEntityIdDenyList().contains(entity.getEntityID()))
-                && (model.getCategoryDenyList().isEmpty() || entity.getExtensions().getEntityAttributes() == null
-                    || !containsAttribute(model.getCategoryDenyList(),
-                        entity.getExtensions().getEntityAttributes().getAttribute()))
-                && (model.getRegistrationAuthorityDenyList().isEmpty()
-                    || !model.getRegistrationAuthorityDenyList().contains(authority)));
+		return model.getEntityIdAllowList().contains(entity.getEntityID())
+				|| (authority != null && model.getRegistrationAuthorityAllowList().contains(authority))
+				|| (model.getCategoryAllowList() != null && entity.getExtensions()!= null && entity.getExtensions().getEntityAttributes() != null
+				&& containsAttribute(model.getCategoryAllowList(), entity.getExtensions().getEntityAttributes().getAttribute()))
+				|| (model.getEntityIdAllowList().isEmpty() && model.getRegistrationAuthorityAllowList().isEmpty()
+				&& model.getCategoryAllowList().isEmpty()
+				&& (model.getEntityIdDenyList().isEmpty() || !model.getEntityIdDenyList().contains(entity.getEntityID()))
+				&& (model.getCategoryDenyList().isEmpty() || entity.getExtensions()== null ||entity.getExtensions().getEntityAttributes() == null
+				|| !containsAttribute(model.getCategoryDenyList(),
+				entity.getExtensions().getEntityAttributes().getAttribute()))
+				&& (model.getRegistrationAuthorityDenyList().isEmpty()
+				|| !model.getRegistrationAuthorityDenyList().contains(authority)));
     }
 
     private boolean containsAttribute(Map<String, List<String>> map, List<AttributeType> attributes) {

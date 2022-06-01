@@ -555,20 +555,18 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
                 ? idpDescriptor.getExtensions().getUIInfo().getDisplayName().stream()
                     .filter(dn -> preferredLang.equals(dn.getLang())).findAny().orElse(null)
                 : null;
-        if (displayName != null) {
-            identityProviderModel.setDisplayName(displayName.getValue());
-        } else {
+        if (displayName == null && entity.getOrganization() != null ) {
             displayName = entity.getOrganization().getOrganizationDisplayName().stream()
                 .filter(dn -> preferredLang.equals(dn.getLang())).findAny()
                 .orElse(entity.getOrganization().getOrganizationDisplayName().stream()
                     .filter(dn -> preferredLang.equals(dn.getLang())).findAny().orElse(null));
-            if (displayName != null) {
-                identityProviderModel.setDisplayName(displayName.getValue());
-            } else {
-                identityProviderModel.setDisplayName(entity.getEntityID());
-            }
-
         }
+
+		if (displayName != null) {
+			identityProviderModel.setDisplayName(displayName.getValue());
+		} else {
+			identityProviderModel.setDisplayName(entity.getEntityID());
+		}
 
         parseIDPSSODescriptorType(identityProviderModel, idpDescriptor);
 

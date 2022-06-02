@@ -7,8 +7,9 @@ import org.keycloak.models.FederationModel;
 import org.keycloak.models.KeycloakSession;
 
 
+import org.keycloak.models.RealmModel;
 import org.keycloak.timer.ScheduledTask;
-
+import org.keycloak.timer.TimerProvider;
 
 
 public class UpdateFederation implements ScheduledTask {
@@ -26,10 +27,17 @@ public class UpdateFederation implements ScheduledTask {
 	@Override
 	public void run(KeycloakSession session) {
 		logger.info(" Updating identity providers of federation with id " + federationId + " and alias " + realmId);
-		FederationModel federationModel = session.realms().getRealm(realmId).getSAMLFederationById(federationId);
-		SAMLFederationProviderFactory samlFederationProviderFactory = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, federationModel.getProviderId());
-		FederationProvider federationProvider = samlFederationProviderFactory.create(session,federationModel,realmId);
-		federationProvider.updateSamlEntities();
+		RealmModel realm = session.realms().getRealm(realmId);
+		if ( realm != null) {
+			FederationModel federationModel = realm.getSAMLFederationById(federationId);
+			SAMLFederationProviderFactory samlFederationProviderFactory = SAMLFederationProviderFactory.getSAMLFederationProviderFactoryById(session, federationModel.getProviderId());
+			FederationProvider federationProvider = samlFederationProviderFactory.create(session, federationModel, realmId);
+			federationProvider.updateSamlEntities();
+		} else {
+			//realm has been removed. remove this task
+			TimerProvider timer = session.getProvider(TimerProvider.class);
+			timer.cancelTask("UpdateFederation" + federationId);
+		}
 	}
 	
 

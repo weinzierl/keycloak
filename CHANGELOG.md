@@ -11,6 +11,7 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 ## [Unreleased]
 ### Fixed
 - On realm delete, cancel SAML Federation task [RCIAM-1011](https://jira.argo.grnet.gr/browse/RCIAM-1011)
+- AutoUpdated IdPs on realm removal, import realm [RCIAM-1012](https://jira.argo.grnet.gr/browse/RCIAM-1012)
 
 ## [16.1.0-2.4] - 2022-05-31
 ### Fixed

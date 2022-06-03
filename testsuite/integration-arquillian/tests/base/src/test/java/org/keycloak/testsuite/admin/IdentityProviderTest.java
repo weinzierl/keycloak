@@ -1142,41 +1142,44 @@ public class IdentityProviderTest extends AbstractAdminTest {
         }).build();
         httpService.start();
 
-        // import metadata from url
-        HashMap<String,Object> map = new HashMap<>();
-        map.put("providerId","saml");
-        map.put("fromUrl","http://localhost:8880/saml-idp-metadata");
+        try {
+            // import metadata from url
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("providerId", "saml");
+            map.put("fromUrl", "http://localhost:8880/saml-idp-metadata");
 
-        Map<String, String> result = realm.identityProviders().importFrom(map);
-        assertSamlImport(result, SIGNING_CERT_1,true);
+            Map<String, String> result = realm.identityProviders().importFrom(map);
+            assertSamlImport(result, SIGNING_CERT_1, true);
 
-        // Create new SAML identity provider using configuration retrieved from import-config
-        //change some values( postBindingLogout,postBindingAuthnRequest from true to false, enabled false)  - add autoupdated values
-        result.put(IdentityProviderModel.AUTO_UPDATE,"true");
-        result.put(IdentityProviderModel.METADATA_URL,"http://localhost:8880/saml-idp-metadata");
-        result.put(IdentityProviderModel.REFRESH_PERIOD,String.valueOf(60));
-        result.put(SAMLIdentityProviderConfig.POST_BINDING_LOGOUT,"false");
-        result.put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST,"false");
-        create(createRep("saml", "saml",false, result));
+            // Create new SAML identity provider using configuration retrieved from import-config
+            //change some values( postBindingLogout,postBindingAuthnRequest from true to false, enabled false)  - add autoupdated values
+            result.put(IdentityProviderModel.AUTO_UPDATE, "true");
+            result.put(IdentityProviderModel.METADATA_URL, "http://localhost:8880/saml-idp-metadata");
+            result.put(IdentityProviderModel.REFRESH_PERIOD, String.valueOf(60));
+            result.put(SAMLIdentityProviderConfig.POST_BINDING_LOGOUT, "false");
+            result.put(SAMLIdentityProviderConfig.POST_BINDING_AUTHN_REQUEST, "false");
+            create(createRep("saml", "saml", false, result));
 
-        IdentityProviderResource provider = realm.identityProviders().get("saml");
-        IdentityProviderRepresentation rep = provider.toRepresentation();
-        Assert.assertNotNull("IdentityProviderRepresentation not null", rep);
-        Assert.assertNotNull("internalId", rep.getInternalId());
-        Assert.assertEquals("alias", "saml", rep.getAlias());
-        Assert.assertEquals("providerId", "saml", rep.getProviderId());
-        Assert.assertEquals("enabled",false, rep.isEnabled());
-        Assert.assertEquals("firstBrokerLoginFlowAlias", "first broker login",rep.getFirstBrokerLoginFlowAlias());
-        assertSamlConfigAutoUpdated(rep.getConfig(), false);
+            IdentityProviderResource provider = realm.identityProviders().get("saml");
+            IdentityProviderRepresentation rep = provider.toRepresentation();
+            Assert.assertNotNull("IdentityProviderRepresentation not null", rep);
+            Assert.assertNotNull("internalId", rep.getInternalId());
+            Assert.assertEquals("alias", "saml", rep.getAlias());
+            Assert.assertEquals("providerId", "saml", rep.getProviderId());
+            Assert.assertEquals("enabled", false, rep.isEnabled());
+            Assert.assertEquals("firstBrokerLoginFlowAlias", "first broker login", rep.getFirstBrokerLoginFlowAlias());
+            assertSamlConfigAutoUpdated(rep.getConfig(), false);
 
-        sleep(80000);
-        //autoupdated - check again Idp - see if values has changed
-        provider = realm.identityProviders().get("saml");
-        rep = provider.toRepresentation();
-        Assert.assertEquals("enabled",true, rep.isEnabled());
-        assertSamlConfigAutoUpdated(rep.getConfig(), true);
+            sleep(80000);
+            //autoupdated - check again Idp - see if values has changed
+            provider = realm.identityProviders().get("saml");
+            rep = provider.toRepresentation();
+            Assert.assertEquals("enabled", true, rep.isEnabled());
+            assertSamlConfigAutoUpdated(rep.getConfig(), true);
 
-        httpService.stop();
+        } finally {
+            httpService.stop();
+        }
     }
 
 
@@ -1193,46 +1196,49 @@ public class IdentityProviderTest extends AbstractAdminTest {
         }).build();
         httpService.start();
 
-        // import metadata from url
-        HashMap<String,Object> map = new HashMap<>();
-        map.put("providerId","oidc");
-        map.put("fromUrl","http://localhost:8880/oidc-idp");
+        try {
+            // import metadata from url
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("providerId", "oidc");
+            map.put("fromUrl", "http://localhost:8880/oidc-idp");
 
-        Map<String, String> result = realm.identityProviders().importFrom(map);
-        assertThat(result.keySet(), containsInAnyOrder("issuer", "authorizationUrl", "tokenUrl", "userInfoUrl", "validateSignature", "useJwksUrl", "jwksUrl"));
-        assertThat(result, hasEntry("authorizationUrl", "https://aai.egi.eu/oidc/authorize"));
-        assertThat(result, hasEntry("tokenUrl", "https://aai.egi.eu/oidc/token"));
+            Map<String, String> result = realm.identityProviders().importFrom(map);
+            assertThat(result.keySet(), containsInAnyOrder("issuer", "authorizationUrl", "tokenUrl", "userInfoUrl", "validateSignature", "useJwksUrl", "jwksUrl"));
+            assertThat(result, hasEntry("authorizationUrl", "https://aai.egi.eu/oidc/authorize"));
+            assertThat(result, hasEntry("tokenUrl", "https://aai.egi.eu/oidc/token"));
 
-        // Create new OIDC identity provider using configuration retrieved from import-config
-        //change some values( authorizationUrl,tokenUrl)  - add autoupdated values
-        result.put(IdentityProviderModel.AUTO_UPDATE,"true");
-        result.put(IdentityProviderModel.METADATA_URL,"http://localhost:8880/oidc-idp");
-        result.put(IdentityProviderModel.REFRESH_PERIOD,String.valueOf(60));
-        result.put("authorizationUrl","https://aai.egi.eu/oidc/authorize/new");
-        result.put("tokenUrl","https://aai.egi.eu/oidc/token/new");
-        create(createRep("auto-oidc", "oidc",true, result));
+            // Create new OIDC identity provider using configuration retrieved from import-config
+            //change some values( authorizationUrl,tokenUrl)  - add autoupdated values
+            result.put(IdentityProviderModel.AUTO_UPDATE, "true");
+            result.put(IdentityProviderModel.METADATA_URL, "http://localhost:8880/oidc-idp");
+            result.put(IdentityProviderModel.REFRESH_PERIOD, String.valueOf(60));
+            result.put("authorizationUrl", "https://aai.egi.eu/oidc/authorize/new");
+            result.put("tokenUrl", "https://aai.egi.eu/oidc/token/new");
+            create(createRep("auto-oidc", "oidc", true, result));
 
-        IdentityProviderResource provider = realm.identityProviders().get("auto-oidc");
-        IdentityProviderRepresentation rep = provider.toRepresentation();
-        Assert.assertNotNull("IdentityProviderRepresentation not null", rep);
-        Assert.assertNotNull("internalId", rep.getInternalId());
-        Assert.assertEquals("alias", "auto-oidc", rep.getAlias());
-        Assert.assertEquals("providerId", "oidc", rep.getProviderId());
-        Assert.assertEquals("enabled",true, rep.isEnabled());
-        assertThat(rep.getConfig(), hasEntry("authorizationUrl", "https://aai.egi.eu/oidc/authorize/new"));
-        assertThat(rep.getConfig(), hasEntry("tokenUrl", "https://aai.egi.eu/oidc/token/new"));
-        assertOidcConfig(rep.getConfig(),false);
+            IdentityProviderResource provider = realm.identityProviders().get("auto-oidc");
+            IdentityProviderRepresentation rep = provider.toRepresentation();
+            Assert.assertNotNull("IdentityProviderRepresentation not null", rep);
+            Assert.assertNotNull("internalId", rep.getInternalId());
+            Assert.assertEquals("alias", "auto-oidc", rep.getAlias());
+            Assert.assertEquals("providerId", "oidc", rep.getProviderId());
+            Assert.assertEquals("enabled", true, rep.isEnabled());
+            assertThat(rep.getConfig(), hasEntry("authorizationUrl", "https://aai.egi.eu/oidc/authorize/new"));
+            assertThat(rep.getConfig(), hasEntry("tokenUrl", "https://aai.egi.eu/oidc/token/new"));
+            assertOidcConfig(rep.getConfig(), false);
 
-        sleep(80000);
-        //autoupdated - check again Idp - see if values has changed
-        provider = realm.identityProviders().get("auto-oidc");
-        rep = provider.toRepresentation();
-        Assert.assertEquals("enabled",true, rep.isEnabled());
-        assertThat(rep.getConfig(), hasEntry("authorizationUrl", "https://aai.egi.eu/oidc/authorize"));
-        assertThat(rep.getConfig(), hasEntry("tokenUrl", "https://aai.egi.eu/oidc/token"));
-        assertOidcConfig(rep.getConfig(), true);
+            sleep(80000);
+            //autoupdated - check again Idp - see if values has changed
+            provider = realm.identityProviders().get("auto-oidc");
+            rep = provider.toRepresentation();
+            Assert.assertEquals("enabled", true, rep.isEnabled());
+            assertThat(rep.getConfig(), hasEntry("authorizationUrl", "https://aai.egi.eu/oidc/authorize"));
+            assertThat(rep.getConfig(), hasEntry("tokenUrl", "https://aai.egi.eu/oidc/token"));
+            assertOidcConfig(rep.getConfig(), true);
 
-        httpService.stop();
+        } finally {
+            httpService.stop();
+        }
     }
 
     private void assertOidcConfig(Map<String, String> config, boolean hasExecuted) {

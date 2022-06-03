@@ -249,7 +249,7 @@ public class IdentityProvidersResource {
         TimerProvider timer = session.getProvider(TimerProvider.class);
         AutoUpdateIdentityProviders autoUpdateProvider = new AutoUpdateIdentityProviders(alias, realm.getId());
         ClusterAwareScheduledTaskRunner taskRunner = new ClusterAwareScheduledTaskRunner(session.getKeycloakSessionFactory(), autoUpdateProvider, interval);
-        timer.schedule(taskRunner, interval, "AutoUpdateIdP-" + alias);
+        timer.schedule(taskRunner, interval, realm.getId()+"_AutoUpdateIdP_" + alias);
     }
 
     @Path("instances/{alias}")

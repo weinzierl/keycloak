@@ -16,6 +16,7 @@ import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.timer.ScheduledTask;
+import org.keycloak.timer.TimerProvider;
 
 public class AutoUpdateIdentityProviders implements ScheduledTask {
 
@@ -33,9 +34,16 @@ public class AutoUpdateIdentityProviders implements ScheduledTask {
     public void run(KeycloakSession session) {
         logger.info(" Updating identity provider with alias= " + alias + " in realm= " + realmId);
         RealmModel realm = session.realms().getRealm(realmId);
+        if ( realm == null) {
+            TimerProvider timer = session.getProvider(TimerProvider.class);
+            timer.cancelTask(realmId + "_AutoUpdateIdP_" + alias);
+        }
         IdentityProviderModel idp = realm.getIdentityProviderByAlias(alias);
-        if (idp == null)
+        if (idp == null) {
+            TimerProvider timer = session.getProvider(TimerProvider.class);
+            timer.cancelTask(realmId + "_AutoUpdateIdP_" + alias);
             throw new javax.ws.rs.NotFoundException();
+        }
         try {
             InputStream inputStream = session.getProvider(HttpClientProvider.class).get(idp.getConfig().get(IdentityProviderModel.METADATA_URL));
             idp = getProviderFactorytById(session, idp.getProviderId()).parseConfig(session, inputStream, idp);

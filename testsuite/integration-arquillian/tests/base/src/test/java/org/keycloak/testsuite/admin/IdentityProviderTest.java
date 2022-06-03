@@ -1196,7 +1196,6 @@ public class IdentityProviderTest extends AbstractAdminTest {
         }).build();
         httpService.start();
 
-        try {
         // import metadata from url
         HashMap<String,Object> map = new HashMap<>();
         map.put("providerId","oidc");

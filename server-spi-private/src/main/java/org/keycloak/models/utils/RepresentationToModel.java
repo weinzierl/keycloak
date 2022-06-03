@@ -2012,9 +2012,12 @@ public class RepresentationToModel {
             	//set LastMetadataRefreshTimestamp to null in order to run immediately the schedule task
             	representation.setLastMetadataRefreshTimestamp(null);
             	IdentityProvidersFederationModel model = toModel(representation);
-                model.setFederationMapperModels(
-                        representation.getFederationMappers().stream().map(mapper -> toModel(mapper)).collect(Collectors.toList()));
-            	newRealm.addIdentityProvidersFederation(model);
+                newRealm.addIdentityProvidersFederation(model);
+                representation.getFederationMappers().stream().forEach(mapper -> {
+                    mapper.setFederationId(representation.getInternalId());
+                    FederationMapperModel mapperModel = RepresentationToModel.toModel(mapper);}
+                );
+
                 IdpFederationProvider idpFederationProvider = IdpFederationProviderFactory
                     .getIdpFederationProviderFactoryById(session, model.getProviderId())
                     .create(session, model, newRealm.getId());

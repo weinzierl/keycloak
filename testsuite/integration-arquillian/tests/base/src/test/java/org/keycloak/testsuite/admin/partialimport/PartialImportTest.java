@@ -36,16 +36,21 @@ import org.keycloak.models.AdminRoles;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.partialimport.PartialImportResult;
 import org.keycloak.partialimport.PartialImportResults;
+import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.representations.idm.AdminEventRepresentation;
 import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.FederationMapperRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
+import org.keycloak.representations.idm.IdentityProvidersFederationRepresentation;
 import org.keycloak.representations.idm.PartialImportRepresentation;
 import org.keycloak.representations.idm.PartialImportRepresentation.Policy;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.RolesRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.testsuite.AbstractAuthTest;
 import org.keycloak.testsuite.Assert;
 import org.keycloak.testsuite.ProfileAssume;
@@ -55,10 +60,13 @@ import org.keycloak.testsuite.util.AssertAdminEvents;
 import org.keycloak.testsuite.util.RealmBuilder;
 
 import javax.ws.rs.core.Response;
+
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -103,6 +111,9 @@ public class PartialImportTest extends AbstractAuthTest {
     private static final String REALM_ROLE_PREFIX = "realmRole";
     private static final String CLIENT_ROLE_PREFIX = "clientRole";
     private static final String[] IDP_ALIASES = {"twitter", "github", "facebook", "google", "linkedin", "microsoft", "stackoverflow"};
+    private static final Set<String> aliasIdPsFederationSet = new HashSet<>(
+            Arrays.asList(new String[]{"6b6b716bef3c495083e31e1a71e8622e07d69b955cc3d9764fe28be5d0e8fb02",
+                    "00092d0295bee88b7b381b7c662cb0cc5919fe2d37b29896fa59923e107afda1", "5168734e074c0bd8e432066851abed4a6b34f1d291b6ae8e8d0f163a71e48983"}));
     private static final int NUM_ENTITIES = IDP_ALIASES.length;
     private static final ResourceServerRepresentation resourceServerSampleSettings;
 
@@ -371,6 +382,55 @@ public class PartialImportTest extends AbstractAuthTest {
         providers.add(createRep("oidc", "oidc", result2));
 
         piRep.setIdentityProviders(providers);
+    }
+
+ private void addFederation() throws IOException {
+        IdentityProvidersFederationRepresentation representation = new IdentityProvidersFederationRepresentation();
+        representation.setAlias("edugain-sample");
+        representation.setProviderId("saml");
+        representation.setUpdateFrequencyInMins(60);
+        representation.setUrl("http://localhost:8880/edugain-sample-test.xml");
+
+        Map<String, String> config = new HashMap<>();
+        config.put("nameIDPolicyFormat", "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");
+        LinkedList<SAMLIdentityProviderConfig.Principal> principals = new LinkedList<>();
+        SAMLIdentityProviderConfig.Principal pr = new SAMLIdentityProviderConfig.Principal();
+        pr.setPrincipalType(SamlPrincipalType.SUBJECT);
+        pr.setNameIDPolicyFormat(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get());
+        principals.add(pr);
+        SAMLIdentityProviderConfig.Principal pr2 = new SAMLIdentityProviderConfig.Principal();
+        pr2.setPrincipalType(SamlPrincipalType.SUBJECT);
+        pr2.setNameIDPolicyFormat(JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get());
+        principals.add(pr2);
+        SAMLIdentityProviderConfig.Principal pr3 = new SAMLIdentityProviderConfig.Principal();
+        pr3.setPrincipalType(SamlPrincipalType.ATTRIBUTE);
+        pr3.setPrincipalAttribute("subject-id");
+        principals.add(pr3);
+        config.put(SAMLIdentityProviderConfig.MULTIPLE_PRINCIPALS, JsonSerialization.writeValueAsString(principals));
+        config.put("wantAssertionsEncrypted", "true");
+        config.put("wantAssertionsSigned", "true");
+        config.put("postBindingResponse", "true");
+        config.put("postBindingLogoutReceivingRequest", "true");
+        config.put("attributeConsumingServiceIndex", "3");
+        config.put("attributeConsumingServiceName", "federation");
+        representation.setConfig(config);
+
+        FederationMapperRepresentation mapper = new FederationMapperRepresentation();
+        mapper.setName("my_mapper");
+        mapper.setIdentityProviderMapper("saml-user-attribute-idp-mapper");
+        Map<String, String> mapperConfig = new HashMap<>();
+        mapperConfig.put("attribute.name", "givenname");
+        mapperConfig.put("attribute.friendly.name", "given name");
+        mapperConfig.put("user.attribute", "firstname");
+        mapperConfig.put("attribute.name.format", JBossSAMLURIConstants.ATTRIBUTE_FORMAT_URI.name());
+        mapper.setConfig(mapperConfig);
+        List<FederationMapperRepresentation> mappers = new ArrayList<>();
+        mappers.add(mapper);
+        representation.setFederationMappers(mappers);
+
+        List<IdentityProvidersFederationRepresentation> federations = new ArrayList<>();
+        federations.add(representation);
+        piRep.setIdentityProvidersFederations(federations);
     }
 
     private IdentityProviderRepresentation createRep(String id, String providerId, Map<String, String> config) {
@@ -646,6 +706,66 @@ public class PartialImportTest extends AbstractAuthTest {
 
         } finally {
             httpService.stop();
+        }
+    }
+
+    @Test
+    public void testAddSAMLFederation() throws IOException {
+        setFail();
+        Undertow server = Undertow.builder().addHttpListener(8880, "localhost", new HttpHandler() {
+            @Override
+            public void handleRequest(HttpServerExchange exchange) throws Exception {
+                writeResponse(exchange.getRequestURI(), exchange);
+            }
+
+            private void writeResponse(String file, HttpServerExchange exchange) throws IOException {
+                exchange.getResponseSender().send(
+                        StreamUtil.readString(getClass().getResourceAsStream("/federation/saml" + file), Charset.defaultCharset()));
+            }
+        }).build();
+
+        server.start();
+
+        try {
+            addFederation();
+
+            PartialImportResults results = doImport();
+            assertEquals(1, results.getAdded());
+            String federationId = null;
+
+            for (PartialImportResult result : results.getResults()) {
+                federationId = result.getId();
+                IdentityProvidersFederationRepresentation representation = testRealmResource().identityProvidersFederation().getIdentityProviderFederation(federationId);
+                assertEquals("wrong federation alias", "edugain-sample", representation.getAlias());
+                assertEquals("not saml federation", "saml", representation.getProviderId());
+                assertEquals("wrong url", "http://localhost:8880/edugain-sample-test.xml",
+                        representation.getUrl());
+            }
+
+            try {
+                log.infof("Sleeping for %d ms", 9000);
+                Thread.sleep(90000);
+            } catch (InterruptedException ie) {
+                throw new RuntimeException(ie);
+            }
+
+            //SAML federation task was executed - check for idps - clients
+            List<String> idps = testRealmResource().identityProviders().getIdPsPerFederation(federationId);
+            assertEquals(3, idps.size());
+            idps.stream().forEach(idpAlias -> {
+                assertTrue("wrong IdPs", aliasIdPsFederationSet.contains(idpAlias));
+                // find idp and check parameters
+                IdentityProviderResource provider = testRealmResource().identityProviders().get(idpAlias);
+                IdentityProviderRepresentation idp = provider.toRepresentation();
+                assertTrue("IdP singleSignOnServiceUrl not exist", idp.getConfig().containsKey("singleSignOnServiceUrl"));
+                assertTrue("IdP postBindingAuthnRequest not exist", idp.getConfig().containsKey("postBindingAuthnRequest"));
+
+                List<IdentityProviderMapperRepresentation> mappers = provider.getMappers();
+                assertEquals(1, mappers.size());
+            });
+
+        } finally {
+            server.stop();
         }
     }
 

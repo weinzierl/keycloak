@@ -13,6 +13,8 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 - On realm delete, cancel SAML Federation task [RCIAM-1011](https://jira.argo.grnet.gr/browse/RCIAM-1011)
 - AutoUpdated IdPs on realm removal, import realm [RCIAM-1012](https://jira.argo.grnet.gr/browse/RCIAM-1012)
 - SAML Federation Partial Import corrections and tests [RCIAM-1011](https://jira.argo.grnet.gr/browse/RCIAM-1011)
+### Changed
+- Set Client Description length to 2048
 
 ## [16.1.0-2.4] - 2022-05-31
 ### Fixed

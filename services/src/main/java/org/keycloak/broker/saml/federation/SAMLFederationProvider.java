@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,6 +59,7 @@ import org.keycloak.crypto.KeyType;
 import org.keycloak.crypto.KeyUse;
 import org.keycloak.crypto.KeyWrapper;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
+import org.keycloak.dom.saml.v2.mdui.LogoType;
 import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntitiesDescriptorType;
@@ -99,6 +101,7 @@ import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.saml.processing.core.saml.v2.util.SAMLMetadataUtil;
 import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.keycloak.services.managers.ClientManager;
+import org.keycloak.services.managers.RealmManager;
 import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
 import org.keycloak.services.scheduled.UpdateFederation;
 import org.keycloak.timer.TimerProvider;
@@ -113,6 +116,7 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
 	protected static final Logger logger = Logger.getLogger(SAMLFederationProvider.class);
 	private static final String CATEGORY_CLIENTS= "Clients";
 	private static final String CATEGORY_IDPS= "Identity Providers";
+	private static final int MAX_LOGO_LENGTH = 4000;
 	private List<ProtocolMapperModel> defaultSAMLMappers;
 
 	public SAMLFederationProvider(KeycloakSession session, SAMLFederationModel model, String realmId) {
@@ -437,8 +441,9 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
 		}
 
 		if (spDescriptorType.getExtensions() != null && spDescriptorType.getExtensions().getUIInfo() != null) {
-			if (!spDescriptorType.getExtensions().getUIInfo().getLogo().isEmpty()) {
-				app.getAttributes().put(ClientModel.LOGO_URI, spDescriptorType.getExtensions().getUIInfo().getLogo().get(0).getValue().toString());
+			Optional<LogoType> logo =  spDescriptorType.getExtensions().getUIInfo().getLogo().stream().filter(lg -> lg.getValue().toString().length() <= MAX_LOGO_LENGTH ).findAny();
+			if (logo.isPresent()) {
+				app.getAttributes().put(ClientModel.LOGO_URI,logo.get().getValue().toString());
 			}
 			if (!spDescriptorType.getExtensions().getUIInfo().getPrivacyStatementURL().isEmpty()) {
 				app.getAttributes().put(ClientModel.POLICY_URI, spDescriptorType.getExtensions().getUIInfo().getPrivacyStatementURL().stream().filter(dn -> "en".equals(dn.getLang())).findFirst().orElse(spDescriptorType.getExtensions().getUIInfo().getPrivacyStatementURL().get(0)).getValue().toString());
@@ -680,6 +685,9 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
 		RealmModel realm = session.realms().getRealm(realmId);
 		List<String> existingIdps = realm.getIdentityProvidersByFederation(model.getInternalId());
 		existingIdps.stream().forEach(idpAlias -> realm.removeFederationIdp(model, idpAlias));
+
+		List<ClientModel> existingClientModels = session.clients().getFederationClientsStream(realm, model.getInternalId());
+		existingClientModels.stream().forEach(client -> new ClientManager(new RealmManager(session)).removeClient(realm, client));
 
 		realm.removeSAMLFederation(model.getInternalId());
 	}

@@ -55,7 +55,6 @@ public class IdentityProvidersFederationPartialImport extends AbstractPartialImp
 
     @Override
     public void create(RealmModel realm, KeycloakSession session, IdentityProvidersFederationRepresentation rep) {
-        rep.setInternalId(KeycloakModelUtils.generateId());
         IdentityProvidersFederationModel model = RepresentationToModel.toModel(rep);
         realm.addIdentityProvidersFederation(model);
         rep.getFederationMappers().stream().forEach(mapper -> {

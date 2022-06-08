@@ -8,7 +8,7 @@ For Keycloak upstream changelog please see https://www.keycloak.org/docs/latest/
 [Keycloak announcement for version 16.1.0](https://www.keycloak.org/2021/12/keycloak-1610-released)
 Full Keycloak upstream jira issue can be shown if filtered by Fix version. 
 
-## [Unreleased]
+## [16.1.0-2.5] - 2022-06-08
 ### Fixed
 - On realm delete, cancel SAML Federation task [RCIAM-1011](https://jira.argo.grnet.gr/browse/RCIAM-1011)
 - AutoUpdated IdPs on realm removal, import realm [RCIAM-1012](https://jira.argo.grnet.gr/browse/RCIAM-1012)

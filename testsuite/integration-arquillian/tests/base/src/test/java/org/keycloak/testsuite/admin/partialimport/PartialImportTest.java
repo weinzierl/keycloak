@@ -33,6 +33,7 @@ import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.models.FederationModel;
+import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.AdminRoles;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.partialimport.PartialImportResult;
@@ -396,6 +397,7 @@ public class PartialImportTest extends AbstractAuthTest {
 
    private void addFederation() throws IOException {
         SAMLFederationRepresentation representation = new SAMLFederationRepresentation();
+        representation.setInternalId(KeycloakModelUtils.generateId());
         representation.setAlias("edugain-sample");
         representation.setProviderId("saml");
         representation.setCategory("All");

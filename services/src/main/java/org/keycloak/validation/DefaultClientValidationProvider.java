@@ -29,6 +29,7 @@ import org.keycloak.protocol.oidc.utils.AcrUtils;
 import org.keycloak.protocol.oidc.utils.PairwiseSubMapperUtils;
 import org.keycloak.protocol.oidc.utils.PairwiseSubMapperValidator;
 import org.keycloak.protocol.oidc.utils.SubjectType;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.oidc.OIDCClientRepresentation;
 import org.keycloak.services.util.ResolveRelative;
@@ -44,6 +45,10 @@ import java.util.Set;
 import static org.keycloak.models.utils.ModelToRepresentation.toRepresentation;
 
 public class DefaultClientValidationProvider implements ClientValidationProvider {
+
+    // Use a fake URL for validating relative URLs as we may not be validating clients in the context of a request (import at startup)
+    private static final String authServerUrl = "https://localhost/auth";
+
     private enum FieldMessages {
         ROOT_URL("rootUrl",
                 "Root URL is not a valid URL", "clientRootURLInvalid",
@@ -155,9 +160,6 @@ public class DefaultClientValidationProvider implements ClientValidationProvider
     private void validateUrls(ValidationContext<ClientModel> context) {
         ClientModel client = context.getObjectToValidate();
 
-        // Use a fake URL for validating relative URLs as we may not be validating clients in the context of a request (import at startup)
-        String authServerUrl = "https://localhost/auth";
-
         String rootUrl = ResolveRelative.resolveRootUrl(authServerUrl, authServerUrl, client.getRootUrl());
 
         // don't need to use actual rootUrl here as it'd interfere with others URL validations
@@ -176,6 +178,29 @@ public class DefaultClientValidationProvider implements ClientValidationProvider
         checkUriLogo(FieldMessages.LOGO_URI, client.getAttribute(ClientModel.LOGO_URI), context);
         checkUri(FieldMessages.POLICY_URI, client.getAttribute(ClientModel.POLICY_URI), context, true, false);
         checkUri(FieldMessages.TOS_URI, client.getAttribute(ClientModel.TOS_URI), context, true, false);
+    }
+
+    @Override
+    public ValidationResult validateRepresentation(ValidationContext<ClientModel> context, ClientRepresentation clientRep) {
+
+        //SOS do same checks for SAMl client representation as validateUrls
+        //SAMl Client doese not have BACKCHANNEL_LOGOUT_URL
+
+        String rootUrl = ResolveRelative.resolveRootUrl(authServerUrl, authServerUrl, clientRep.getRootUrl());
+
+        // don't need to use actual rootUrl here as it'd interfere with others URL validations
+        String baseUrl = ResolveRelative.resolveRelativeUri(authServerUrl, authServerUrl, authServerUrl, clientRep.getBaseUrl());
+
+        checkUri(FieldMessages.ROOT_URL, rootUrl, context, true, true);
+        checkUri(FieldMessages.BASE_URL, baseUrl, context, true, false);
+        clientRep.getRedirectUris().stream()
+                .map(u -> ResolveRelative.resolveRelativeUri(authServerUrl, authServerUrl, rootUrl, u))
+                .forEach(u -> checkUri(FieldMessages.REDIRECT_URIS, u, context, false, true));
+        checkUriLogo(FieldMessages.LOGO_URI, clientRep.getAttributes().get(ClientModel.LOGO_URI), context);
+        checkUri(FieldMessages.POLICY_URI, clientRep.getAttributes().get(ClientModel.POLICY_URI), context, true, false);
+        checkUri(FieldMessages.TOS_URI, clientRep.getAttributes().get(ClientModel.TOS_URI), context, true, false);
+
+        return context.toResult();
     }
 
     private void checkUri(FieldMessages field, String url, ValidationContext<ClientModel> context, boolean checkValidUrl, boolean checkFragment) {

@@ -105,6 +105,8 @@ import org.keycloak.services.managers.RealmManager;
 import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
 import org.keycloak.services.scheduled.UpdateFederation;
 import org.keycloak.timer.TimerProvider;
+import org.keycloak.validation.ClientValidationContext;
+import org.keycloak.validation.ClientValidationProvider;
 import org.keycloak.validation.ValidationUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -209,6 +211,8 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
 		List<IdentityProviderModel> updatedIdps= new ArrayList<>();
 		List<String> existingIdps = realm.getIdentityProvidersByFederation(model.getInternalId());
 		List<ClientModel> existingClientModels = session.clients().getFederationClientsStream(realm, model.getInternalId());
+
+		ClientValidationProvider clientValidationProvider = session.getProvider(ClientValidationProvider.class);
         //values = "All" or "Identity Providers" or "Clients"
 		String category = model.getCategory();
 		defaultSAMLMappers = CATEGORY_IDPS.equals(category) ?
@@ -314,21 +318,26 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
 							federations.add(model.getInternalId());
 							clientRep.setFederations(federations);
 							parseClient(clientRep, spDescriptorType, entity.getOrganization(), validUntil, preferredLang);
-							ClientModel clientModelCreate = ClientManager.createClient(session, realm, clientRep);
-
-							ValidationUtil.validateClient(session, clientModelCreate, null, true, r -> {
-								session.getTransactionManager().setRollbackOnly();
+							ValidationUtil.validateClient(clientValidationProvider, session, clientRep, true, r -> {
 								throw new RuntimeException("Invalid client " + clientRep.getClientId() + ": " + r.getAllErrorsAsString());
 							});
+							ClientModel clientModelCreate = ClientManager.createClient(session, realm, clientRep);
+
 						} else {
 							ClientRepresentation clientRep = ModelToRepresentation.toRepresentation(clientWithSameClientId, session);
 							clientRep.getFederations().add(model.getInternalId());
+							ValidationUtil.validateClient(clientValidationProvider, session, clientRep, false, r -> {
+								throw new RuntimeException("Invalid client " + clientRep.getClientId() + ": " + r.getAllErrorsAsString());
+							});
 							updateClient(clientRep, clientWithSameClientId, spDescriptorType, entity.getOrganization(), validUntil, preferredLang);
 						}
 					} else {
 						//update client model
 						existingClientModels.removeIf(client -> clientModel.getId().equals(client.getId()));
 						ClientRepresentation clientRep = ModelToRepresentation.toRepresentation(clientModel, session);
+						ValidationUtil.validateClient(clientValidationProvider, session, clientRep, false, r -> {
+							throw new RuntimeException("Invalid client " + clientRep.getClientId() + ": " + r.getAllErrorsAsString());
+						});
 						updateClient(clientRep, clientModel, spDescriptorType, entity.getOrganization(), validUntil, preferredLang);
 					}
 

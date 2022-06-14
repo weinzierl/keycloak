@@ -343,7 +343,7 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
 
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					logger.warnf("Federation: %s -> Could not insert the client provider with entityId: %s", model.getDisplayName(), entity.getEntityID());
+                    logger.warnf("Federation: %s -> Could not insert the client provider with entityId: %s", model.getDisplayName(), entity.getEntityID());
 				}
 			}
 
@@ -520,11 +520,6 @@ public class SAMLFederationProvider extends AbstractIdPFederationProvider <SAMLF
 		RepresentationToModel.updateClient(clientRep, clientModel);
 		clientModel.getProtocolMappers().forEach(mapper -> clientModel.removeProtocolMapper(mapper));
 		clientRep.getProtocolMappers().forEach(mapper -> clientModel.addProtocolMapper(RepresentationToModel.toModel(mapper)));
-
-		ValidationUtil.validateClient(session, clientModel, null, true, r -> {
-			session.getTransactionManager().setRollbackOnly();
-			throw new RuntimeException("Invalid client " + clientRep.getClientId() + ": " + r.getAllErrorsAsString());
-		});
 	}
 
     private boolean parseEntity(EntityDescriptorType entity) {

@@ -49,7 +49,7 @@ public class ClientAttributeEntity {
     @Column(name="NAME")
     protected String name;
 
-    @Column(name = "VALUE", length = 4000)
+    @Column(name = "VALUE")
     protected String value;
 
     public ClientEntity getClient() {

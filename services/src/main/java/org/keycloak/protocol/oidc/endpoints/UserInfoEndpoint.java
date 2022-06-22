@@ -150,6 +150,7 @@ public class UserInfoEndpoint {
                 .detail(Details.AUTH_METHOD, Details.VALIDATE_ACCESS_TOKEN);
 
         if (tokenString == null) {
+            System.out.println("token is null");
             event.error(Errors.INVALID_TOKEN);
             throw new CorsErrorResponseException(cors.allowAllOrigins(), OAuthErrorException.INVALID_REQUEST, "Token not provided", Response.Status.BAD_REQUEST);
         }
@@ -177,6 +178,7 @@ public class UserInfoEndpoint {
                     .withChecks(NotBeforeCheck.forModel(clientModel), new TokenManager.TokenRevocationCheck(session))
                     .verify();
         } catch (VerificationException e) {
+            e.printStackTrace();
             if (clientModel == null) {
                 cors.allowAllOrigins();
             }
@@ -316,12 +318,14 @@ public class UserInfoEndpoint {
 
     private void checkTokenIssuedAt(AccessToken token, UserSessionModel userSession, EventBuilder event, ClientModel client) throws CorsErrorResponseException {
         if (token.isIssuedBeforeSessionStart(userSession.getStarted())) {
+            System.out.println("Stale token");
             event.error(Errors.INVALID_TOKEN);
             throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Stale token");
         }
 
         AuthenticatedClientSessionModel clientSession = userSession.getAuthenticatedClientSessionByClient(client.getId());
         if (token.isIssuedBeforeSessionStart(clientSession.getStarted())) {
+            System.out.println("Stale token");
             event.error(Errors.INVALID_TOKEN);
             throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Stale token");
         }

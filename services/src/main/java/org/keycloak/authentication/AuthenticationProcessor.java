@@ -75,6 +75,7 @@ public class AuthenticationProcessor {
     public static final String CURRENT_AUTHENTICATION_EXECUTION = "current.authentication.execution";
     public static final String LAST_PROCESSED_EXECUTION = "last.processed.execution";
     public static final String CURRENT_FLOW_PATH = "current.flow.path";
+    public static final String CLIENT_FLOW_ID = "current.flow.id";
     public static final String FORKED_FROM = "forked.from";
 
     public static final String BROKER_SESSION_ID = "broker.session.id";
@@ -868,6 +869,8 @@ public class AuthenticationProcessor {
     }
 
     public AuthenticationFlow createFlowExecution(String flowId, AuthenticationExecutionModel execution) {
+        //MUST BE CHANGED AND FIND APPROPRIATE PATH
+        authenticationSession.setAuthNote(AuthenticationProcessor.CLIENT_FLOW_ID, flowId);
         AuthenticationFlowModel flow = realm.getAuthenticationFlowById(flowId);
         if (flow == null) {
             logger.error("Unknown flow to execute with");
@@ -987,7 +990,7 @@ public class AuthenticationProcessor {
         }
 
         AuthenticationFlow authenticationFlow = createFlowExecution(this.flowId, model);
-        Response challenge = authenticationFlow.processAction(execution);
+        Response challenge = authenticationFlow.ne processAction(execution);
         if (challenge != null) return challenge;
         if (authenticationSession.getAuthenticatedUser() == null) {
             throw new AuthenticationFlowException(AuthenticationFlowError.UNKNOWN_USER);

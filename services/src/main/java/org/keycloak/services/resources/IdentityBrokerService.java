@@ -21,6 +21,8 @@ import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.OAuthErrorException;
+import org.keycloak.authentication.AuthenticationFlow;
+import org.keycloak.authentication.AuthenticationFlowException;
 import org.keycloak.authentication.AuthenticationProcessor;
 import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticator;
 import org.keycloak.authentication.authenticators.broker.util.PostBrokerLoginConstants;
@@ -47,6 +49,7 @@ import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
 import org.keycloak.models.AccountRoles;
 import org.keycloak.models.AuthenticatedClientSessionModel;
+import org.keycloak.models.AuthenticationExecutionModel;
 import org.keycloak.models.AuthenticationFlowModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientSessionContext;
@@ -823,6 +826,32 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
         if (isDebugEnabled()) {
             logger.debugf("Performing local authentication for user [%s].", federatedUser);
+        }
+
+        //code for returning to client browser flow
+        String execution = authSession.getAuthNote(AuthenticationProcessor.CURRENT_AUTHENTICATION_EXECUTION);
+        AuthenticationExecutionModel model = realmModel.getAuthenticationExecutionById(execution);
+
+        String flowId =  authSession.getAuthNote(AuthenticationProcessor.CLIENT_FLOW_ID);
+
+        AuthenticationProcessor processor = new AuthenticationProcessor();
+        processor.setAuthenticationSession(authSession)
+                .setFlowPath(LoginActionsService.AUTHENTICATE_PATH)
+                .setBrowserFlow(true)
+                .setFlowId(flowId)
+                .setConnection(clientConnection)
+                .setEventBuilder(event)
+                .setRealm(realmModel)
+                .setSession(session)
+                .setUriInfo(session.getContext().getUri())
+                .setRequest(request);
+        AuthenticationFlow authenticationFlow = processor.createFlowExecution(flowId, model);
+        //maybe find next flow
+       // Response challenge = authenticationFlow.processFlow();
+        //processAction(execution);
+        if (challenge != null) return challenge;
+        if (!authenticationFlow.isSuccessful()) {
+            throw new AuthenticationFlowException(authenticationFlow.getFlowExceptions());
         }
 
         AuthenticationManager.setClientScopesInSession(authSession);

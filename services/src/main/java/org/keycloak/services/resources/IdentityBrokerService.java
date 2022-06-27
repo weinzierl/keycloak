@@ -847,8 +847,8 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
                 .setRequest(request);
         AuthenticationFlow authenticationFlow = processor.createFlowExecution(flowId, model);
         //maybe find next flow
-       // Response challenge = authenticationFlow.processFlow();
-        //processAction(execution);
+        Response challenge = authenticationFlow.processFlow();
+      //  processAction(execution);
         if (challenge != null) return challenge;
         if (!authenticationFlow.isSuccessful()) {
             throw new AuthenticationFlowException(authenticationFlow.getFlowExceptions());

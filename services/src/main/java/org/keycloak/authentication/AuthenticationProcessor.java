@@ -869,8 +869,7 @@ public class AuthenticationProcessor {
     }
 
     public AuthenticationFlow createFlowExecution(String flowId, AuthenticationExecutionModel execution) {
-        //MUST BE CHANGED AND FIND APPROPRIATE PATH
-        authenticationSession.setAuthNote(AuthenticationProcessor.CLIENT_FLOW_ID, flowId);
+
         AuthenticationFlowModel flow = realm.getAuthenticationFlowById(flowId);
         if (flow == null) {
             logger.error("Unknown flow to execute with");
@@ -990,7 +989,7 @@ public class AuthenticationProcessor {
         }
 
         AuthenticationFlow authenticationFlow = createFlowExecution(this.flowId, model);
-        Response challenge = authenticationFlow.ne processAction(execution);
+        Response challenge = authenticationFlow.processAction(execution);
         if (challenge != null) return challenge;
         if (authenticationSession.getAuthenticatedUser() == null) {
             throw new AuthenticationFlowException(AuthenticationFlowError.UNKNOWN_USER);

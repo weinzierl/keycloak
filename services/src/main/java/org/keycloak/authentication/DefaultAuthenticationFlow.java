@@ -247,6 +247,7 @@ public class DefaultAuthenticationFlow implements AuthenticationFlow {
         //separate flow elements into required and alternative elements
         List<AuthenticationExecutionModel> requiredList = new ArrayList<>();
         List<AuthenticationExecutionModel> alternativeList = new ArrayList<>();
+        processor.getAuthenticationSession().setAuthNote(AuthenticationProcessor.CLIENT_FLOW_ID, flow.getId());
 
         fillListsOfExecutions(executions.stream(), requiredList, alternativeList);
 

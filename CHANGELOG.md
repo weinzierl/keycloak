@@ -10,6 +10,10 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 
 Our Keycloak version is working well with PostgreSQL database. For using other SQL databases, text field in database need to be evaluated.
 
+## [16.1.0-2.7] - 2022-06-27
+### Changed
+- SAML IdP InResponseTo missing, warning instead of error
+
 ## [16.1.0-2.6] - 2022-06-20
 ### Changed
 - User attribute value as text in database [RCIAM-1032](https://jira.argo.grnet.gr/browse/RCIAM-1032)

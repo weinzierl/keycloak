@@ -838,17 +838,17 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         processor.setAuthenticationSession(authSession)
                 .setFlowPath(LoginActionsService.AUTHENTICATE_PATH)
                 .setBrowserFlow(true)
-                .setFlowId(flowId)
+                .setFlowId(model.getFlowId())
                 .setConnection(clientConnection)
                 .setEventBuilder(event)
                 .setRealm(realmModel)
                 .setSession(session)
                 .setUriInfo(session.getContext().getUri())
                 .setRequest(request);
+        processor.setAutheticatedUser(federatedUser);
         AuthenticationFlow authenticationFlow = processor.createFlowExecution(flowId, model);
         //maybe find next flow
-        Response challenge = authenticationFlow.processFlow();
-      //  processAction(execution);
+        Response challenge = authenticationFlow.processIdPForm(model);
         if (challenge != null) return challenge;
         if (!authenticationFlow.isSuccessful()) {
             throw new AuthenticationFlowException(authenticationFlow.getFlowExceptions());

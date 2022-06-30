@@ -10,6 +10,9 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 
 Our Keycloak version is working well with PostgreSQL database. For using other SQL databases, text field in database need to be evaluated.
 
+## Unreleased
+- Remove consent required from Token Exchange [RCIAM-1048](https://jira.argo.grnet.gr/browse/RCIAM-1048)
+
 ## [16.1.0-2.7] - 2022-06-27
 ### Changed
 - SAML IdP InResponseTo missing, warning instead of error

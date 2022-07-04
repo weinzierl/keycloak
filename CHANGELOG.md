@@ -10,6 +10,11 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 
 Our Keycloak version is working well with PostgreSQL database. For using other SQL databases, text field in database need to be evaluated.
 
+## Unreleased
+
+### Fixed
+- Continue client browser flow after User login from Identity Provider [RCIAM-1038](https://jira.argo.grnet.gr/browse/RCIAM-1038)
+
 ## [18.0.1-1.0] - 2022-07-04
 
 ### Added
@@ -34,7 +39,6 @@ Our Keycloak version is working well with PostgreSQL database. For using other S
 - Add indexes to related to Federation and Identity Provider tables
 
 ### Changed
-- Increase User Attribute Value length to 4000 [EOSC-KC-132](https://github.com/eosc-kc/keycloak/issues/132)
 - FreeMarkerLoginFormsProvider now has an additional common attribute passed to the ftl templates, the "uriInfo"
 - Change emailVerified User field with UserAttributeMappers (conditional trust email). [EOSC-KC-70](https://github.com/eosc-kc/keycloak/issues/70)
 - Consent extension [RCIAM-791](https://jira.argo.grnet.gr/browse/RCIAM-791)
@@ -49,13 +53,11 @@ Our Keycloak version is working well with PostgreSQL database. For using other S
 - Specific error page for no principals [RCIAM-766](https://jira.argo.grnet.gr/browse/RCIAM-766)
 - Refresh token revoke per client and correct refresh flow [RCIAM-920](https://jira.argo.grnet.gr/browse/RCIAM-920)
 - SAML entityID/OIDC issuer showing in user if IdP display name does not exist [RCIAM-887](https://jira.argo.grnet.gr/browse/RCIAM-887)
-- Set Client Description length to 2048
 - User attribute value as text in database [RCIAM-1032](https://jira.argo.grnet.gr/browse/RCIAM-1032)
 - Client description as text in database 
 - Client attribute value as text in database [RCIAM-1026)](https://jira.argo.grnet.gr/browse/RCIAM-1026)
 - SAML IdP InResponseTo missing, warning instead of error
 - Remove consent required from Token Exchange [RCIAM-1048](https://jira.argo.grnet.gr/browse/RCIAM-1048)
-
 
 ### Fixed
 - Correct ApplicationsPage in Account Console [RCIAM-984](https://jira.argo.grnet.gr/browse/RCIAM-984)

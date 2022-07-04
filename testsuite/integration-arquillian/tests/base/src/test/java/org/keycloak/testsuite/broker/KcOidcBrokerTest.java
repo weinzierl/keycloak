@@ -355,6 +355,8 @@ public final class KcOidcBrokerTest extends AbstractAdvancedBrokerTest {
 
             loginTotpPage.assertCurrent();
             loginTotpPage.login(totp.generateTOTP(totpSecret));
+            //return to client flow -> otp has been configured -> ask again
+            loginTotpPage.login(totp.generateTOTP(totpSecret));
             waitForAccountManagementTitle();
             accountUpdateProfilePage.assertCurrent();
 

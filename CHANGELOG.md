@@ -10,6 +10,11 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 
 Our Keycloak version is working well with PostgreSQL database. For using other SQL databases, text field in database need to be evaluated.
 
+## [16.1.0-2.9] - 2022-07-05
+### Changed
+- Disabled the cache for external token introspection requests.
+
+
 ## [16.1.0-2.8] - 2022-07-01
 ### Changed
 - Remove consent required from Token Exchange [RCIAM-1048](https://jira.argo.grnet.gr/browse/RCIAM-1048)

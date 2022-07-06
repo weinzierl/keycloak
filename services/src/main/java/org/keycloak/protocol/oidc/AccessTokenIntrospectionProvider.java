@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -141,6 +142,7 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
 
             return Response.ok(JsonSerialization.writeValueAsBytes(tokenMetadata)).type(MediaType.APPLICATION_JSON_TYPE).build();
         } catch (Exception e) {
+            logger.warn("Exception during Keycloak introspection",e);
             throw new RuntimeException("Error creating token introspection response.", e);
         }
     }
@@ -157,7 +159,7 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
 
             accessToken = verifier.verify().getToken();
         } catch (VerificationException e) {
-            logger.debugf("JWT check failed: %s", e.getMessage());
+            logger.warnf("Introspection access token : JWT check failed: %s", e.getMessage());
             return null;
         }
 
@@ -170,7 +172,7 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
 
         try {
             String cachedToken = (String) tokenRelayCache.get(new Key(token, realm.getName()));
-            if(cachedToken != null)
+            if (cachedToken != null)
                 return Response.ok(cachedToken).type(MediaType.APPLICATION_JSON_TYPE).build();
 
             IdentityProviderModel issuerIdp = realm.getIdentityProvidersStream().filter(idp -> issuer.equals(idp.getConfig().get("issuer"))).findAny().orElse(null);
@@ -182,6 +184,8 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
                 if (rep.getIntrospectionEndpoint() != null) {
                     SimpleHttp.Response response = oidcIssuerProvider.authenticateTokenRequest(SimpleHttp.doPost(rep.getIntrospectionEndpoint(), session).param(PARAM_TOKEN, token)).asResponse();
                     if (response.getResponse().getStatusLine().getStatusCode() > 300) {
+                        logger.warn("Remote introspection Idp return http status " + response.getResponse().getStatusLine().getStatusCode() + " with body :");
+                        logger.warn(IOUtils.toString(response.getResponse().getEntity().getContent(), StandardCharsets.UTF_8));
                         ObjectNode tokenMetadata = JsonSerialization.createObjectNode();
                         tokenMetadata.put("active", false);
                         return Response.ok(JsonSerialization.writeValueAsBytes(tokenMetadata)).type(MediaType.APPLICATION_JSON_TYPE).build();
@@ -192,14 +196,15 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
                 }
             }
             //if failed to find issuer in IdPs or IntrospectionEndpoint does not exist for specific Idp return false
+            logger.warn(issuerIdp != null ? "Remote introspection: problem getting remote Idp with issuer " + issuer + "introspection endpoint" : "Remote introspection: Idp with issuer " + issuer + " does not exist");
             ObjectNode tokenMetadata = JsonSerialization.createObjectNode();
             tokenMetadata.put("active", false);
             return Response.ok(JsonSerialization.writeValueAsBytes(tokenMetadata)).type(MediaType.APPLICATION_JSON_TYPE).build();
         } catch (Exception e) {
+            logger.warn("Error during remote introspection", e);
             throw new RuntimeException("Error creating token introspection response.", e);
         }
     }
-
     private boolean isExpired(Long exp) {
         return exp != null && exp != 0 ? Time.currentTime() > exp : false;
     }

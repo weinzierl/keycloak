@@ -78,23 +78,23 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
     private static final String wellKnown = "/.well-known/openid-configuration";
     private static final String PARAM_TOKEN = "token";
 
-//    private static CustomCacheProvider tokenRelayCache;
+    private static CustomCacheProvider tokenRelayCache;
 
     public AccessTokenIntrospectionProvider(KeycloakSession session) {
         this.session = session;
         this.realm = session.getContext().getRealm();
         this.tokenManager = new TokenManager();
-//        initTokenCache();
+        initTokenCache();
     }
 
-//    private void initTokenCache(){
-//        if(tokenRelayCache != null)
-//            return;
-//        CustomCacheProviderFactory factory = (CustomCacheProviderFactory)session.getKeycloakSessionFactory().getProviderFactory(CustomCacheProvider.class, "token-relay-cache");
-//        if(factory == null)
-//            throw new NotFoundException("Could not initate TokenRelayCacheProvider. Was not found");
-//        tokenRelayCache = factory.create(session);
-//    }
+    private void initTokenCache(){
+        if(tokenRelayCache != null)
+            return;
+        CustomCacheProviderFactory factory = (CustomCacheProviderFactory)session.getKeycloakSessionFactory().getProviderFactory(CustomCacheProvider.class, "token-relay-cache");
+        if(factory == null)
+            throw new NotFoundException("Could not initate TokenRelayCacheProvider. Was not found");
+        tokenRelayCache = factory.create(session);
+    }
 
     public Response introspect(String token) {
         try {
@@ -212,13 +212,13 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
         return user;
     }
 
-    protected Response introspectWithExternal(String token, String issuer, RealmModel realm) throws IOException {
-
-//        String cachedToken = (String) tokenRelayCache.get(new Key(token, realm.getName()));
-//        if(cachedToken != null)
-//            return Response.ok(cachedToken).type(MediaType.APPLICATION_JSON_TYPE).build();
+    protected Response introspectWithExternal(String token, String issuer, RealmModel realm) {
 
         try {
+            String cachedToken = (String) tokenRelayCache.get(new Key(token, realm.getName()));
+            if(cachedToken != null)
+                return Response.ok(cachedToken).type(MediaType.APPLICATION_JSON_TYPE).build();
+
             IdentityProviderModel issuerIdp = realm.getIdentityProvidersStream().filter(idp -> issuer.equals(idp.getConfig().get("issuer"))).findAny().orElse(null);
             if (issuerIdp != null) {
                 OIDCIdentityProviderConfig oidcIssuerIdp = new OIDCIdentityProviderConfig(issuerIdp);
@@ -233,7 +233,7 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
                         return Response.ok(JsonSerialization.writeValueAsBytes(tokenMetadata)).type(MediaType.APPLICATION_JSON_TYPE).build();
                     }
                     String responseJson = IOUtils.toString(response.getResponse().getEntity().getContent(), Charset.defaultCharset());
-//                    tokenRelayCache.put(new Key(token, realm.getName()), responseJson);
+                    tokenRelayCache.put(new Key(token, realm.getName()), responseJson);
                     return Response.status(response.getResponse().getStatusLine().getStatusCode()).type(MediaType.APPLICATION_JSON_TYPE).entity(responseJson).build();
                 }
             }

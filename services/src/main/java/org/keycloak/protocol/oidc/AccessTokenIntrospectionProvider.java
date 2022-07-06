@@ -166,13 +166,13 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
         return tokenManager.checkTokenValidForIntrospection(session, realm, accessToken, false) ? accessToken : null;
     }
 
-    protected Response introspectWithExternal(String token, String issuer, RealmModel realm) throws IOException {
-
-        String cachedToken = (String) tokenRelayCache.get(new Key(token, realm.getName()));
-        if(cachedToken != null)
-            return Response.ok(cachedToken).type(MediaType.APPLICATION_JSON_TYPE).build();
+    protected Response introspectWithExternal(String token, String issuer, RealmModel realm) {
 
         try {
+            String cachedToken = (String) tokenRelayCache.get(new Key(token, realm.getName()));
+            if(cachedToken != null)
+                return Response.ok(cachedToken).type(MediaType.APPLICATION_JSON_TYPE).build();
+
             IdentityProviderModel issuerIdp = realm.getIdentityProvidersStream().filter(idp -> issuer.equals(idp.getConfig().get("issuer"))).findAny().orElse(null);
             if (issuerIdp != null) {
                 OIDCIdentityProviderConfig oidcIssuerIdp = new OIDCIdentityProviderConfig(issuerIdp);

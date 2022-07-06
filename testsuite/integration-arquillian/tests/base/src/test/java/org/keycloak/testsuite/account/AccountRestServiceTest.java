@@ -34,6 +34,7 @@ import org.keycloak.credential.CredentialTypeMetadata;
 import org.keycloak.events.Details;
 import org.keycloak.events.EventType;
 import org.keycloak.models.AuthenticationExecutionModel;
+import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.OTPCredentialModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
@@ -945,7 +946,7 @@ public class AccountRestServiceTest extends AbstractRestServiceTest {
         assertFalse(app.getConsent().getGrantedScopes().isEmpty());
         ConsentScopeRepresentation grantedScope = app.getConsent().getGrantedScopes().get(0);
         assertEquals(clientScopeRepresentation.getId(), grantedScope.getId());
-        assertEquals(clientScopeRepresentation.getName(), grantedScope.getName());
+        assertEquals(clientScopeRepresentation.getAttributes().get(ClientScopeModel.CONSENT_SCREEN_TEXT), grantedScope.getName());
     }
 
     @Test

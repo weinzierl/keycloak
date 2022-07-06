@@ -17,6 +17,7 @@
  */
 package org.keycloak.testsuite.oidc;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.ClientResource;
@@ -28,6 +29,7 @@ import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ClientScopeRepresentation;
 import org.keycloak.representations.idm.EventRepresentation;
+import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -38,12 +40,16 @@ import org.keycloak.testsuite.arquillian.annotation.EnableFeature;
 import org.keycloak.testsuite.util.UserBuilder;
 
 import javax.ws.rs.core.Response;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.keycloak.common.Profile.Feature.DYNAMIC_SCOPES;
+import static org.keycloak.testsuite.util.ProtocolMapperUtil.createClaimMapper;
 
 
 /**
@@ -56,6 +62,8 @@ import static org.keycloak.common.Profile.Feature.DYNAMIC_SCOPES;
 public class OIDCDynamicScopeTest extends OIDCScopeTest {
 
     private static String userId = KeycloakModelUtils.generateId();
+    private static final String scopeName ="dynamic";
+    private static final String userAttributeName ="dyn";
 
     @Override
     public void configureTestRealm(RealmRepresentation testRealm) {
@@ -67,6 +75,7 @@ public class OIDCDynamicScopeTest extends OIDCScopeTest {
                 .email("johnDynamic@scopes.xyz")
                 .firstName("John")
                 .lastName("Dynamic")
+                .addAttribute(userAttributeName,"scope","test")
                 .password("password")
                 .addRoles("dynamic-scope-role")
                 .build();
@@ -75,6 +84,7 @@ public class OIDCDynamicScopeTest extends OIDCScopeTest {
         user = UserBuilder.create()
                 .username("JohnNormal")
                 .enabled(true)
+                .addAttribute(userAttributeName,"scope","test")
                 .password("password")
                 .addRoles("role-1")
                 .build();
@@ -133,7 +143,7 @@ public class OIDCDynamicScopeTest extends OIDCScopeTest {
 
     @Test
     public void testGetAccessTokenWithDynamicScope() {
-        Response response = createDynamicScope("dynamic");
+        Response response = createDynamicScope();
         String scopeId = ApiUtil.getCreatedId(response);
         getCleanup().addClientScopeId(scopeId);
         response.close();
@@ -152,7 +162,7 @@ public class OIDCDynamicScopeTest extends OIDCScopeTest {
 
     @Test
     public void testGetAccessTokenWithDynamicScopeWithPermittedRoleScope() {
-        Response response = createDynamicScope("dynamic");
+        Response response = createDynamicScope();
         String scopeId = ApiUtil.getCreatedId(response);
         getCleanup().addClientScopeId(scopeId);
         response.close();
@@ -177,7 +187,7 @@ public class OIDCDynamicScopeTest extends OIDCScopeTest {
 
     @Test
     public void testGetAccessTokenMissingRoleScopedDynamicScope() {
-        Response response = createDynamicScope("dynamic");
+        Response response = createDynamicScope();
         String scopeId = ApiUtil.getCreatedId(response);
         getCleanup().addClientScopeId(scopeId);
         response.close();
@@ -202,7 +212,7 @@ public class OIDCDynamicScopeTest extends OIDCScopeTest {
     }
 
 
-    private Response createDynamicScope(String scopeName) {
+    private Response createDynamicScope() {
         ClientScopeRepresentation clientScope = new ClientScopeRepresentation();
         clientScope.setName(scopeName);
         clientScope.setAttributes(new HashMap<String, String>() {{
@@ -210,6 +220,11 @@ public class OIDCDynamicScopeTest extends OIDCScopeTest {
             put(ClientScopeModel.DYNAMIC_SCOPE_REGEXP, String.format("%1s:*", scopeName));
         }});
         clientScope.setProtocol(OIDCLoginProtocol.LOGIN_PROTOCOL);
+
+        // create the attribute mapper
+        List<ProtocolMapperRepresentation> mappers = new ArrayList<>();
+        mappers.add(createClaimMapper(scopeName, userAttributeName, scopeName, "String", true, true,true));
+        clientScope.setProtocolMappers(mappers);
         return testRealm().clientScopes().create(clientScope);
     }
 
@@ -231,6 +246,17 @@ public class OIDCDynamicScopeTest extends OIDCScopeTest {
 
         Tokens tokens = sendTokenRequest(loginEvent, userId, "openid email profile " + expectedRoleScopes, "test-app");
         Assert.assertNames(tokens.accessToken.getRealmAccess().getRoles(), expectedRoles);
+
+        List<String> claimValue =(List) tokens.accessToken.getOtherClaims().get(scopeName);
+        if (expectedRoleScopes.isEmpty()) {
+            Assert.assertNull(claimValue);
+        } else {
+            String expectedValue = StringUtils.remove(expectedRoleScopes,scopeName+":");
+            Assert.assertEquals(claimValue.size(), 1);
+            Assert.assertEquals(claimValue.get(0), expectedValue);
+        }
+
+
 
         oauth.doLogout(tokens.refreshToken, "password");
         events.expectLogout(tokens.idToken.getSessionState())

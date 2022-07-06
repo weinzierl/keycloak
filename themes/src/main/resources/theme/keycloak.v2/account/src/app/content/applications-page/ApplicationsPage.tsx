@@ -226,7 +226,7 @@ export class ApplicationsPage extends React.Component<ApplicationsPageProps, App
                             {application.consent.grantedScopes.map((scope: GrantedScope, scopeIndex: number) => {
                                 return (
                                   <React.Fragment key={'scope-' + scopeIndex} >
-                                    <DescriptionListDescription><CheckIcon /> {scope.name}</DescriptionListDescription>
+                                    <DescriptionListDescription><CheckIcon />{Msg.localize(scope.name)}</DescriptionListDescription>
                                   </React.Fragment>
                                 )
                               })}

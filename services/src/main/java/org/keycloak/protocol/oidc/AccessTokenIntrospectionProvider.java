@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.IOUtils;
 import org.jboss.logging.Logger;
 import org.keycloak.TokenVerifier;
+import org.keycloak.OAuth2Constants;
 import org.keycloak.broker.oidc.OIDCIdentityProvider;
 import org.keycloak.broker.oidc.OIDCIdentityProviderConfig;
 import org.keycloak.broker.provider.util.SimpleHttp;
@@ -43,6 +45,7 @@ import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.crypto.SignatureProvider;
 import org.keycloak.crypto.SignatureVerifierContext;
 import org.keycloak.models.ClientModel;
+import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ProtocolMapperModel;
@@ -51,6 +54,9 @@ import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.models.customcache.CustomCacheProvider;
 import org.keycloak.models.customcache.CustomCacheProviderFactory;
+import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
+import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.ProtocolMapper;
 import org.keycloak.protocol.ProtocolMapperUtils;
 import org.keycloak.protocol.oidc.mappers.OIDCIntrospectionMapper;
@@ -84,7 +90,7 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
         this.session = session;
         this.realm = session.getContext().getRealm();
         this.tokenManager = new TokenManager();
-        initTokenCache();
+       // initTokenCache();
     }
 
     private void initTokenCache(){
@@ -106,7 +112,10 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
             if (realmUrl.equals(issuer)) {
                 return introspectKeycloak(token);
             } else {
-                if (isExpired(tokenJson.get("exp").asLong())) {
+                long exp = tokenJson.get("exp").asLong();
+                if (isExpired(exp)) {
+                    String clientId = tokenJson.get("azp").asText();
+                    logger.warn("Token introspection for "+clientId+" client has expired  token. Token expiration = "+exp+ ". Current time = "+ Time.currentTime());
                     ObjectNode tokenMetadata = JsonSerialization.createObjectNode();
                     tokenMetadata.put("active", false);
                     return Response.ok(JsonSerialization.writeValueAsBytes(tokenMetadata)).type(MediaType.APPLICATION_JSON_TYPE).build();
@@ -127,9 +136,10 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
     }
 
     protected Response introspectKeycloak (String token) {
+        AccessToken accessToken = null;
         try {
 
-            AccessToken accessToken = verifyAccessToken(token);
+            accessToken = verifyAccessToken(token);
             ObjectNode tokenMetadata;
 
             if (accessToken != null) {
@@ -148,13 +158,14 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
                 }
             } else {
                 tokenMetadata = JsonSerialization.createObjectNode();
+                logger.warn("Keycloak token introspection return null access token.");
             }
 
             tokenMetadata.put("active", accessToken != null);
-
             return Response.ok(JsonSerialization.writeValueAsBytes(tokenMetadata)).type(MediaType.APPLICATION_JSON_TYPE).build();
         } catch (Exception e) {
-            logger.warn("Exception during Keycloak introspection",e);
+            String clientId = accessToken != null ? accessToken.getIssuedFor() : "unknown";
+            logger.warn("Exception during Keycloak introspection for "+clientId+" client.",e);
             throw new RuntimeException("Error creating token introspection response.", e);
         }
     }
@@ -185,6 +196,10 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
         //client - user exist - otherwise validation failed before
         ClientModel client = realm.getClientByClientId(token.getIssuedFor());
         UserModel user = getUserFromToken(token, client);
+        if (user == null ) {
+            logger.warn("Token introspection enhancement failed for "+token.getIssuedFor()+" client: User can not retrieve from access token");
+            return null;
+        }
         ClientContextUtils ccu= new ClientContextUtils(client,token.getScope(),session,user);
 
         AtomicReference<AccessToken> finalToken = new AtomicReference<>(token);
@@ -208,7 +223,10 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
         UserModel user = tokenManager.lookupUserFromStatelessToken(session, realm, token);
         //if can not get user from token, search user from token sessionState
         if (user == null) {
-            user = new UserSessionCrossDCManager(session).getUserSessionWithClient(realm, token.getSessionState(), false, client.getId()).getUser();
+            boolean offlineTokenRequested =  (token.getScope() != null && Arrays.stream(token.getScope().split(" ")).anyMatch(x -> OAuth2Constants.OFFLINE_ACCESS.equals(x))) || client.getClientScopes(true).values().stream().anyMatch(x -> OAuth2Constants.OFFLINE_ACCESS.equals(x.getName()));
+            UserSessionModel userSession = new UserSessionCrossDCManager(session).getUserSessionWithClient(realm, token.getSessionState(), offlineTokenRequested, client.getId());
+            if (userSession != null)
+                user = userSession.getUser();
         }
         return user;
     }
@@ -216,9 +234,9 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
     protected Response introspectWithExternal(String token, String issuer, RealmModel realm) throws IOException {
 
         try {
-            String cachedToken = (String) tokenRelayCache.get(new Key(token, realm.getName()));
-            if (cachedToken != null)
-                return Response.ok(cachedToken).type(MediaType.APPLICATION_JSON_TYPE).build();
+//            String cachedToken = (String) tokenRelayCache.get(new Key(token, realm.getName()));
+//            if (cachedToken != null)
+//                return Response.ok(cachedToken).type(MediaType.APPLICATION_JSON_TYPE).build();
 
             IdentityProviderModel issuerIdp = realm.getIdentityProvidersStream().filter(idp -> issuer.equals(idp.getConfig().get("issuer"))).findAny().orElse(null);
             if (issuerIdp != null) {
@@ -243,7 +261,7 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
             //if failed to find issuer in IdPs or IntrospectionEndpoint does not exist for specific Idp return false
             logger.warn(issuerIdp != null ? "Remote introspection: problem getting remote Idp with issuer " + issuer + "introspection endpoint" : "Remote introspection: Idp with issuer " + issuer + " does not exist");
             ObjectNode tokenMetadata = JsonSerialization.createObjectNode();
-            tokenMetadata.put("active", false);
+           // tokenMetadata.put("active", false);
             return Response.ok(JsonSerialization.writeValueAsBytes(tokenMetadata)).type(MediaType.APPLICATION_JSON_TYPE).build();
         } catch (Exception e) {
             logger.warn("Error during remote introspection", e);

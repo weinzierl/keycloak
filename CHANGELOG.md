@@ -12,14 +12,18 @@ Our Keycloak version is working well with PostgreSQL database. For using other S
 
 ## Unreleased
 
+### Added
+- Extra logs for failed introspection
+
 ### Fixed
+- Fix for a case of offline introspection [RCIAM-1054](https://jira.argo.grnet.gr/browse/RCIAM-1054)
 - Continue client browser flow after User login from Identity Provider [RCIAM-1038](https://jira.argo.grnet.gr/browse/RCIAM-1038)
 
 ## [18.0.1-1.0] - 2022-07-04
 
 ### Added
 - Eosc-kc version model with MigrationModel changes [RCIAM-945](https://jira.argo.grnet.gr/browse/RCIAM-945)
-- Support for SAML IdP Federation 
+- Support for SAML IdP Federation
 - Identity Providers pager in Linked Accounts of Account Console. [EOSC-KC-50](https://github.com/eosc-kc/keycloak/issues/50)
 - User reaccepting Terms and Conditions. [EOSC-KC-48](https://github.com/eosc-kc/keycloak/issues/48)
 - Terms and Conditions - periodic reset for all realm users. [EOSC-KC-49](https://github.com/eosc-kc/keycloak/issues/49)
@@ -54,7 +58,7 @@ Our Keycloak version is working well with PostgreSQL database. For using other S
 - Refresh token revoke per client and correct refresh flow [RCIAM-920](https://jira.argo.grnet.gr/browse/RCIAM-920)
 - SAML entityID/OIDC issuer showing in user if IdP display name does not exist [RCIAM-887](https://jira.argo.grnet.gr/browse/RCIAM-887)
 - User attribute value as text in database [RCIAM-1032](https://jira.argo.grnet.gr/browse/RCIAM-1032)
-- Client description as text in database 
+- Client description as text in database
 - Client attribute value as text in database [RCIAM-1026)](https://jira.argo.grnet.gr/browse/RCIAM-1026)
 - SAML IdP InResponseTo missing, warning instead of error
 - Remove consent required from Token Exchange [RCIAM-1048](https://jira.argo.grnet.gr/browse/RCIAM-1048)

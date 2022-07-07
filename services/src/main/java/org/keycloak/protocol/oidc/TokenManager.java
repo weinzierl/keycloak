@@ -235,7 +235,7 @@ public class TokenManager {
     public boolean checkTokenValidForIntrospection(KeycloakSession session, RealmModel realm, AccessToken token, boolean updateTimestamps) {
         ClientModel client = realm.getClientByClientId(token.getIssuedFor());
         if (client == null || !client.isEnabled()) {
-            logger.warn(client == null ? "Introspection access token : client does not exist":"Introspection access token : client is disabled");
+            logger.warn(client == null ? "Introspection access token : client does not exist":"Introspection access token : "+token.getIssuedFor()+" client is disabled");
             logger.warn("token issuer: " + token.getIssuedFor());
             return false;
         }
@@ -245,7 +245,7 @@ public class TokenManager {
                     .withChecks(NotBeforeCheck.forModel(client), TokenVerifier.IS_ACTIVE, new TokenRevocationCheck(session))
                     .verify();
         } catch (VerificationException e) {
-            logger.warnf("Introspection access token: JWT check failed: %s", e.getMessage());
+            logger.warnf("Introspection access token for "+token.getIssuedFor() +" client: JWT check failed: %s", e.getMessage());
             return false;
         }
 
@@ -283,7 +283,7 @@ public class TokenManager {
             if (((client.getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN) == null && realm.isRevokeRefreshToken()) || Boolean.valueOf(client.getAttribute(OIDCConfigAttributes.REVOKE_REFRESH_TOKEN)))
                     && (tokenType.equals(TokenUtil.TOKEN_TYPE_REFRESH) || tokenType.equals(TokenUtil.TOKEN_TYPE_OFFLINE))
                     && !validateTokenReuseForIntrospection(session, realm, token)) {
-                logger.warn("Introspection access token: failed to validate Token reuse for introspection");
+                logger.warn("Introspection access token for "+token.getIssuedFor() +" client: failed to validate Token reuse for introspection");
                 return false;
             }
 
@@ -297,7 +297,7 @@ public class TokenManager {
         }
 
         if (!valid)
-            logger.warn("Introspection access token: Failed to valid access token for introspection");
+            logger.warn("Introspection access token for "+token.getIssuedFor() +" client: Failed to valid access token for introspection");
 
         return valid;
     }
@@ -325,9 +325,11 @@ public class TokenManager {
 
     private boolean isUserValid(KeycloakSession session, RealmModel realm, AccessToken token, UserModel user) {
         if (user == null) {
+            logger.warnf("User does not exist for token introspection");
             return false;
         }
         if (!user.isEnabled()) {
+            logger.warnf("User is disable for token introspection");
             return false;
         }
         try {
@@ -335,7 +337,7 @@ public class TokenManager {
                     .withChecks(NotBeforeCheck.forModel(session ,realm, user))
                     .verify();
         } catch (VerificationException e) {
-            logger.debugf("JWT check failed: %s", e.getMessage());
+            logger.warnf("JWT check failed: %s", e.getMessage());
             return false;
         }
         return true;

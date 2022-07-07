@@ -10,6 +10,14 @@ Full Keycloak upstream jira issue can be shown if filtered by Fix version.
 
 Our Keycloak version is working well with PostgreSQL database. For using other SQL databases, text field in database need to be evaluated.
 
+## Unreleased
+
+### Added
+- Extra logs for failed introspection
+
+### Fixed
+- Fix for a case of offline introspection [RCIAM-1054](https://jira.argo.grnet.gr/browse/RCIAM-1054)
+
 ## [16.1.0-2.9] - 2022-07-05
 ### Changed
 - Disabled the cache for external token introspection requests.

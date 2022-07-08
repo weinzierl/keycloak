@@ -323,6 +323,7 @@ public class TokenIntrospectionTest extends AbstractTestRealmKeycloakTest {
 
     @Test
     public void testIntrospectAccessTokenWithMapperOnlyForIntrospect() throws Exception {
+
         ClientScopeRepresentation rep = new ClientScopeRepresentation();
         rep.setName("scope");
         rep.setProtocol("openid-connect");
@@ -332,7 +333,7 @@ public class TokenIntrospectionTest extends AbstractTestRealmKeycloakTest {
         String clientScopeId = ApiUtil.getCreatedId(response);
         response.close();
         ClientScopeResource clientScopeResource = adminClient.proxy(ClientScopeResource.class, scopeUri);
-        ProtocolMapperModel hard = HardcodedClaim.create("hard", "hard", "coded", "String", false, true, true);
+        ProtocolMapperModel hard = HardcodedClaim.create("hard", "hard", "coded", "String", false, false, true);
         ProtocolMapperRepresentation mapper = ModelToRepresentation.toRepresentation(hard);
         response = clientScopeResource.getProtocolMappers().createMapper(mapper);
         assertEquals(201, response.getStatus());
@@ -341,23 +342,28 @@ public class TokenIntrospectionTest extends AbstractTestRealmKeycloakTest {
         ClientRepresentation clientRep = ApiUtil.findClientByClientId(testRealm(), "test-app").toRepresentation();
         testRealm().clients().get(clientRep.getId()).addDefaultClientScope(clientScopeId);
 
-        oauth.doLogin("test-user@localhost", "password");
-        String code = oauth.getCurrentQuery().get(OAuth2Constants.CODE);
-        EventRepresentation loginEvent = events.expectLogin().assertEvent();
-        AccessTokenResponse accessTokenResponse = oauth.doAccessTokenRequest(code, "password");
-        String tokenResponse = oauth.introspectAccessTokenWithClientCredential("confidential-cli", "secret1", accessTokenResponse.getAccessToken());
-        TokenMetadataRepresentation tokenRep = JsonSerialization.readValue(tokenResponse, TokenMetadataRepresentation.class);
 
-        assertTrue(tokenRep.isActive());
-        assertEquals("test-user@localhost", tokenRep.getUserName());
-        assertEquals("test-app", tokenRep.getClientId());
-        assertEquals(loginEvent.getUserId(), tokenRep.getSubject());
+        try {
+            oauth.doLogin("test-user@localhost", "password");
+            String code = oauth.getCurrentQuery().get(OAuth2Constants.CODE);
+            EventRepresentation loginEvent = events.expectLogin().assertEvent();
+            AccessTokenResponse accessTokenResponse = oauth.doAccessTokenRequest(code, "password");
+            String tokenResponse = oauth.introspectAccessTokenWithClientCredential("confidential-cli", "secret1", accessTokenResponse.getAccessToken());
+            TokenMetadataRepresentation tokenRep = JsonSerialization.readValue(tokenResponse, TokenMetadataRepresentation.class);
 
-        // Assert expected scope
-        AbstractOIDCScopeTest.assertScopes("openid email profile scope", tokenRep.getScope());
-        assertEquals("coded", tokenRep.getOtherClaims().get("hard"));
+            assertTrue(tokenRep.isActive());
+            assertEquals("test-user@localhost", tokenRep.getUserName());
+            assertEquals("test-app", tokenRep.getClientId());
+            assertEquals(loginEvent.getUserId(), tokenRep.getSubject());
 
-        clientScopeResource.remove();
+            // Assert expected scope
+            AbstractOIDCScopeTest.assertScopes("openid email profile scope", tokenRep.getScope());
+            //claim only for introspect
+            assertEquals("coded", tokenRep.getOtherClaims().get("hard"));
+
+        } finally {
+            clientScopeResource.remove();
+        }
     }
 
 
@@ -418,6 +424,7 @@ public class TokenIntrospectionTest extends AbstractTestRealmKeycloakTest {
     // KEYCLOAK-4829
     @Test
     public void testIntrospectAccessTokenOfflineAccess() throws Exception {
+
         oauth.scope(OAuth2Constants.OFFLINE_ACCESS);
         oauth.doLogin("test-user@localhost", "password");
         String code = oauth.getCurrentQuery().get(OAuth2Constants.CODE);
@@ -444,6 +451,61 @@ public class TokenIntrospectionTest extends AbstractTestRealmKeycloakTest {
         assertTrue(rep.isActive());
         assertEquals("test-user@localhost", rep.getUserName());
         assertEquals("test-app", rep.getClientId());
+    }
+
+    @Test
+    public void testIntrospectAccessTokenOfflineAccessWithIntrospectionMapper() throws Exception {
+        ClientScopeRepresentation scope = new ClientScopeRepresentation();
+        scope.setName("scope");
+        scope.setProtocol("openid-connect");
+        Response response = testRealm().clientScopes().create(scope);
+        assertEquals(201, response.getStatus());
+        URI scopeUri = response.getLocation();
+        String clientScopeId = ApiUtil.getCreatedId(response);
+        response.close();
+        ClientScopeResource clientScopeResource = adminClient.proxy(ClientScopeResource.class, scopeUri);
+        ProtocolMapperModel hard = HardcodedClaim.create("hard", "hard", "coded", "String", false, true, true);
+        ProtocolMapperRepresentation mapper = ModelToRepresentation.toRepresentation(hard);
+        response = clientScopeResource.getProtocolMappers().createMapper(mapper);
+        assertEquals(201, response.getStatus());
+        response.close();
+
+        ClientRepresentation clientRep = ApiUtil.findClientByClientId(testRealm(), "test-app").toRepresentation();
+        testRealm().clients().get(clientRep.getId()).addDefaultClientScope(clientScopeId);
+
+        try {
+            oauth.scope(OAuth2Constants.OFFLINE_ACCESS);
+            oauth.doLogin("test-user@localhost", "password");
+            String code = oauth.getCurrentQuery().get(OAuth2Constants.CODE);
+            AccessTokenResponse accessTokenResponse = oauth.doAccessTokenRequest(code, "password");
+
+            setTimeOffset(86400);
+
+            // "Online" session still exists, but is invalid
+            accessTokenResponse = oauth.doRefreshTokenRequest(accessTokenResponse.getRefreshToken(), "password");
+            String tokenResponse = oauth.introspectAccessTokenWithClientCredential("confidential-cli", "secret1", accessTokenResponse.getAccessToken());
+            TokenMetadataRepresentation rep = JsonSerialization.readValue(tokenResponse, TokenMetadataRepresentation.class);
+
+            assertTrue(rep.isActive());
+            assertEquals("test-user@localhost", rep.getUserName());
+            assertEquals("test-app", rep.getClientId());
+
+            // "Online" session doesn't even exists
+            testingClient.testing().removeExpired("test");
+
+            accessTokenResponse = oauth.doRefreshTokenRequest(accessTokenResponse.getRefreshToken(), "password");
+            tokenResponse = oauth.introspectAccessTokenWithClientCredential("confidential-cli", "secret1", accessTokenResponse.getAccessToken());
+            rep = JsonSerialization.readValue(tokenResponse, TokenMetadataRepresentation.class);
+
+            assertTrue(rep.isActive());
+            assertEquals("test-user@localhost", rep.getUserName());
+            assertEquals("test-app", rep.getClientId());
+            //claim only for introspect
+            assertEquals("coded", rep.getOtherClaims().get("hard"));
+
+        } finally {
+            clientScopeResource.remove();
+        }
     }
 
     @Test

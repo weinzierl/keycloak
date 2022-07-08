@@ -221,14 +221,14 @@ public class TokenManager {
      * @param realm
      * @param token
      * @param updateTimestamps
-     * @return
+     * @return user from access token for proceed with introspection endpoint. User equal to null means invalid token for introspection.
      */
-    public boolean checkTokenValidForIntrospection(KeycloakSession session, RealmModel realm, AccessToken token, boolean updateTimestamps) {
+    public UserModel checkTokenValidForIntrospection(KeycloakSession session, RealmModel realm, AccessToken token, boolean updateTimestamps) {
         ClientModel client = realm.getClientByClientId(token.getIssuedFor());
         if (client == null || !client.isEnabled()) {
             logger.warn(client == null ? "Introspection access token : client does not exist":"Introspection access token : "+token.getIssuedFor()+" client is disabled");
             logger.warn("token issuer: " + token.getIssuedFor());
-            return false;
+            return null;
         }
 
         try {
@@ -237,7 +237,7 @@ public class TokenManager {
                     .verify();
         } catch (VerificationException e) {
             logger.warnf("Introspection access token for "+token.getIssuedFor() +" client: JWT check failed: %s", e.getMessage());
-            return false;
+            return null;
         }
 
         boolean valid = false;
@@ -246,6 +246,7 @@ public class TokenManager {
         if (token.getSessionState() == null) {
             UserModel user = lookupUserFromStatelessToken(session, realm, token);
             valid = isUserValid(session, realm, token, user);
+            return valid ? user : null;
         } else {
 
             UserSessionModel userSession = new UserSessionCrossDCManager(session).getUserSessionWithClient(realm, token.getSessionState(), false, client.getId());
@@ -275,7 +276,7 @@ public class TokenManager {
                     && (tokenType.equals(TokenUtil.TOKEN_TYPE_REFRESH) || tokenType.equals(TokenUtil.TOKEN_TYPE_OFFLINE))
                     && !validateTokenReuseForIntrospection(session, realm, token)) {
                 logger.warn("Introspection access token for "+token.getIssuedFor() +" client: failed to validate Token reuse for introspection");
-                return false;
+                return null;
             }
 
             if (updateTimestamps && valid) {
@@ -285,12 +286,8 @@ public class TokenManager {
                     clientSession.setTimestamp(currentTime);
                 }
             }
+            return valid ? userSession.getUser() : null;
         }
-
-        if (!valid)
-            logger.warn("Introspection access token for "+token.getIssuedFor() +" client: Failed to valid access token for introspection");
-
-        return valid;
     }
 
     private boolean validateTokenReuseForIntrospection(KeycloakSession session, RealmModel realm, AccessToken token) {

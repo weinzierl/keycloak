@@ -83,7 +83,7 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
     private static final String wellKnown = "/.well-known/openid-configuration";
     private static final String PARAM_TOKEN = "token";
 
-    private static CustomCacheProvider tokenRelayCache;
+  //  private static CustomCacheProvider tokenRelayCache;
 
     public AccessTokenIntrospectionProvider(KeycloakSession session) {
         this.session = session;
@@ -92,14 +92,14 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
        // initTokenCache();
     }
 
-    private void initTokenCache(){
-        if(tokenRelayCache != null)
-            return;
-        CustomCacheProviderFactory factory = (CustomCacheProviderFactory)session.getKeycloakSessionFactory().getProviderFactory(CustomCacheProvider.class, "token-relay-cache");
-        if(factory == null)
-            throw new NotFoundException("Could not initate TokenRelayCacheProvider. Was not found");
-        tokenRelayCache = factory.create(session);
-    }
+//    private void initTokenCache(){
+//        if(tokenRelayCache != null)
+//            return;
+//        CustomCacheProviderFactory factory = (CustomCacheProviderFactory)session.getKeycloakSessionFactory().getProviderFactory(CustomCacheProvider.class, "token-relay-cache");
+//        if(factory == null)
+//            throw new NotFoundException("Could not initate TokenRelayCacheProvider. Was not found");
+//        tokenRelayCache = factory.create(session);
+//    }
 
     public Response introspect(String token) {
         try {
@@ -187,18 +187,23 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
 
         RealmModel realm = this.session.getContext().getRealm();
 
-        return tokenManager.checkTokenValidForIntrospection(session, realm, accessToken, false) ? transformAccessToken(accessToken) : null;
+        return  transformAccessToken(accessToken,  tokenManager.checkTokenValidForIntrospection(session, realm, accessToken, false)) ;
     }
 
-    private AccessToken transformAccessToken(AccessToken token) {
+    /**
+     * Produce AccessToken for introspection based on AccessToken provided and protocol mappers for introspection.
+     * Return null if AccessToken is not valid for introspection ( user == null)
+     * @param token access token
+     * @param user from token
+     * @return
+     */
+    private AccessToken transformAccessToken(AccessToken token, UserModel user) {
+
+        if (  user == null)
+            return null;
 
         //client - user exist - otherwise validation failed before
         ClientModel client = realm.getClientByClientId(token.getIssuedFor());
-        UserModel user = getUserFromToken(token, client);
-        if (user == null ) {
-            logger.warn("Token introspection enhancement failed for "+token.getIssuedFor()+" client: User can not retrieve from access token");
-            return null;
-        }
         ClientContextUtils ccu= new ClientContextUtils(client,token.getScope(),session,user);
 
         AtomicReference<AccessToken> finalToken = new AtomicReference<>(token);
@@ -218,19 +223,7 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
         return finalToken.get();
     }
 
-    private UserModel getUserFromToken(AccessToken token, ClientModel client){
-        UserModel user = tokenManager.lookupUserFromStatelessToken(session, realm, token);
-        //if can not get user from token, search user from token sessionState
-        if (user == null) {
-            boolean offlineTokenRequested =  (token.getScope() != null && Arrays.stream(token.getScope().split(" ")).anyMatch(x -> OAuth2Constants.OFFLINE_ACCESS.equals(x))) || client.getClientScopes(true).values().stream().anyMatch(x -> OAuth2Constants.OFFLINE_ACCESS.equals(x.getName()));
-            UserSessionModel userSession = new UserSessionCrossDCManager(session).getUserSessionWithClient(realm, token.getSessionState(), offlineTokenRequested, client.getId());
-            if (userSession != null)
-                user = userSession.getUser();
-        }
-        return user;
-    }
-
-    protected Response introspectWithExternal(String token, String issuer, RealmModel realm) throws IOException {
+  protected Response introspectWithExternal(String token, String issuer, RealmModel realm) throws IOException {
 
         try {
 //            String cachedToken = (String) tokenRelayCache.get(new Key(token, realm.getName()));
@@ -270,6 +263,7 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
     private boolean isExpired(Long exp) {
         return exp != null && exp != 0 ? Time.currentTime() > exp : false;
     }
+
 
     @Override
     public void close() {

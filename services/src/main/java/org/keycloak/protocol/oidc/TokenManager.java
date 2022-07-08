@@ -223,11 +223,19 @@ public class TokenManager {
      * @param updateTimestamps
      * @return user from access token for proceed with introspection endpoint. User equal to null means invalid token for introspection.
      */
-    public UserModel checkTokenValidForIntrospection(KeycloakSession session, RealmModel realm, AccessToken token, boolean updateTimestamps) {
+    public UserModel checkTokenValidForIntrospection(KeycloakSession session, RealmModel realm, AccessToken token, boolean updateTimestamps, EventBuilder eventBuilder) {
         ClientModel client = realm.getClientByClientId(token.getIssuedFor());
-        if (client == null || !client.isEnabled()) {
-            logger.warn(client == null ? "Introspection access token : client does not exist":"Introspection access token : "+token.getIssuedFor()+" client is disabled");
+        if (client == null){
+            logger.warn("Introspection access token : client does not exist");
             logger.warn("token issuer: " + token.getIssuedFor());
+            eventBuilder.detail("Client not found", String.format("Could not find client for %s", token.getIssuedFor()));
+            return null;
+        }
+
+        if(!client.isEnabled()){
+            logger.warn("Introspection access token : "+token.getIssuedFor()+" client is disabled");
+            logger.warn("token issuer: " + token.getIssuedFor());
+            eventBuilder.detail("Client disabled", String.format("Client %s is disabled", client.getClientId()));
             return null;
         }
 
@@ -237,6 +245,7 @@ public class TokenManager {
                     .verify();
         } catch (VerificationException e) {
             logger.warnf("Introspection access token for "+token.getIssuedFor() +" client: JWT check failed: %s", e.getMessage());
+            eventBuilder.detail("Introspection access token for "+token.getIssuedFor() +" client: JWT check failed", e.getMessage());
             return null;
         }
 
@@ -246,6 +255,7 @@ public class TokenManager {
         if (token.getSessionState() == null) {
             UserModel user = lookupUserFromStatelessToken(session, realm, token);
             valid = isUserValid(session, realm, token, user);
+            eventBuilder.detail("User validity", String.valueOf(valid));
             return valid ? user : null;
         } else {
 
@@ -276,6 +286,7 @@ public class TokenManager {
                     && (tokenType.equals(TokenUtil.TOKEN_TYPE_REFRESH) || tokenType.equals(TokenUtil.TOKEN_TYPE_OFFLINE))
                     && !validateTokenReuseForIntrospection(session, realm, token)) {
                 logger.warn("Introspection access token for "+token.getIssuedFor() +" client: failed to validate Token reuse for introspection");
+                eventBuilder.detail("Token not valid for introspection", "Realm revoke refresh token = true, token type is "+tokenType+ " and token is not eligible for introspection");
                 return null;
             }
 
@@ -286,6 +297,7 @@ public class TokenManager {
                     clientSession.setTimestamp(currentTime);
                 }
             }
+            eventBuilder.detail("Token valid for introspection", String.valueOf(valid));
             return valid ? userSession.getUser() : null;
         }
     }
@@ -639,7 +651,7 @@ public class TokenManager {
         return Stream.concat(parseScopeParameter(scopeParam).map(allOptionalScopes::get).filter(Objects::nonNull),
                 clientScopes).distinct();
     }
-    
+
     public static boolean isValidScope(String scopes, ClientModel client) {
         if (scopes == null) {
             return true;
@@ -665,7 +677,7 @@ public class TokenManager {
                 return false;
             }
         }
-        
+
         return true;
     }
 

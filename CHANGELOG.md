@@ -16,6 +16,7 @@ Our Keycloak version is working well with PostgreSQL database. For using other S
 - Extra logs for failed introspection
 
 ### Fixed
+- Correct including claim in token introspection response only [RCIAM-1054](https://jira.argo.grnet.gr/browse/RCIAM-1054)
 - Fix for a case of offline introspection [RCIAM-1054](https://jira.argo.grnet.gr/browse/RCIAM-1054)
 - Continue client browser flow after User login from Identity Provider [RCIAM-1038](https://jira.argo.grnet.gr/browse/RCIAM-1038)
 

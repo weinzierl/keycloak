@@ -231,12 +231,12 @@ public class TokenManager {
      * @param realm
      * @param token
      * @param updateTimestamps
-     * @return
+     * @return user from access token for proceed with introspection endpoint. User equal to null means invalid token for introspection.
      */
-    public boolean checkTokenValidForIntrospection(KeycloakSession session, RealmModel realm, AccessToken token, boolean updateTimestamps) {
+    public UserModel checkTokenValidForIntrospection(KeycloakSession session, RealmModel realm, AccessToken token, boolean updateTimestamps) {
         ClientModel client = realm.getClientByClientId(token.getIssuedFor());
         if (client == null || !client.isEnabled()) {
-            return false;
+            return null;
         }
 
         try {
@@ -245,7 +245,7 @@ public class TokenManager {
                     .verify();
         } catch (VerificationException e) {
             logger.debugf("JWT check failed: %s", e.getMessage());
-            return false;
+            return null;
         }
 
         boolean valid = false;
@@ -254,6 +254,7 @@ public class TokenManager {
         if (token.getSessionState() == null) {
             UserModel user = lookupUserFromStatelessToken(session, realm, token);
             valid = isUserValid(session, realm, token, user);
+            return valid ? user : null;
         } else {
 
             UserSessionModel userSession = new UserSessionCrossDCManager(session).getUserSessionWithClient(realm, token.getSessionState(), false, client.getId());
@@ -282,7 +283,7 @@ public class TokenManager {
             if (realm.isRevokeRefreshToken()
                 && (tokenType.equals(TokenUtil.TOKEN_TYPE_REFRESH) || tokenType.equals(TokenUtil.TOKEN_TYPE_OFFLINE))
                 && !validateTokenReuseForIntrospection(session, realm, token)) {
-                return false;
+                return null;
             }
 
             if (updateTimestamps && valid) {
@@ -292,9 +293,8 @@ public class TokenManager {
                     clientSession.setTimestamp(currentTime);
                 }
             }
+            return valid ? userSession.getUser() : null;
         }
-
-        return valid;
     }
 
     private boolean validateTokenReuseForIntrospection(KeycloakSession session, RealmModel realm, AccessToken token) {

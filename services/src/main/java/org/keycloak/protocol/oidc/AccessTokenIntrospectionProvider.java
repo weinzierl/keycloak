@@ -112,14 +112,23 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
 
         RealmModel realm = this.session.getContext().getRealm();
 
-        return tokenManager.checkTokenValidForIntrospection(session, realm, accessToken, false) ? transformAccessToken(accessToken) : null;
+        return  transformAccessToken(accessToken,  tokenManager.checkTokenValidForIntrospection(session, realm, accessToken, false)) ;
     }
 
-    private AccessToken transformAccessToken(AccessToken token) {
+    /**
+     * Produce AccessToken for introspection based on AccessToken provided and protocol mappers for introspection.
+     * Return null if AccessToken is not valid for introspection ( user == null)
+     * @param token access token
+     * @param user from token
+     * @return
+     */
+    private AccessToken transformAccessToken(AccessToken token, UserModel user) {
+
+        if (  user == null)
+            return null;
 
         //client - user exist - otherwise validation failed before
         ClientModel client = realm.getClientByClientId(token.getIssuedFor());
-        UserModel user = getUserFromToken(token, client);
         ClientContextUtils ccu= new ClientContextUtils(client,token.getScope(),session,user);
 
         AtomicReference<AccessToken> finalToken = new AtomicReference<>(token);
@@ -137,15 +146,6 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
                 .forEach(mapper -> finalToken.set(((OIDCIntrospectionMapper) mapper.getValue())
                         .transformAccessTokenForIntrospection(finalToken.get(), mapper.getKey(), user)));
         return finalToken.get();
-    }
-
-    private UserModel getUserFromToken(AccessToken token, ClientModel client){
-        UserModel user = tokenManager.lookupUserFromStatelessToken(session, realm, token);
-        //if can not get user from token, search user from token sessionState
-        if (user == null) {
-            user = new UserSessionCrossDCManager(session).getUserSessionWithClient(realm, token.getSessionState(), false, client.getId()).getUser();
-        }
-        return user;
     }
 
     @Override

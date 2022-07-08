@@ -150,6 +150,7 @@ public class UserInfoEndpoint {
                 .detail(Details.AUTH_METHOD, Details.VALIDATE_ACCESS_TOKEN);
 
         if (tokenString == null) {
+            event.detail(Details.REASON, "Null token");
             event.error(Errors.INVALID_TOKEN);
             throw new CorsErrorResponseException(cors.allowAllOrigins(), OAuthErrorException.INVALID_REQUEST, "Token not provided", Response.Status.BAD_REQUEST);
         }
@@ -180,11 +181,13 @@ public class UserInfoEndpoint {
             if (clientModel == null) {
                 cors.allowAllOrigins();
             }
+            event.detail(Details.REASON, e.getMessage());
             event.error(Errors.INVALID_TOKEN);
-            throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Token verification failed");
+            throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Token verification failed. ");
         }
 
 	    if (!clientModel.getProtocol().equals(OIDCLoginProtocol.LOGIN_PROTOCOL)) {
+            event.detail(Details.REASON, "Client protocol: "+ clientModel.getProtocol() + " is not " + OIDCLoginProtocol.LOGIN_PROTOCOL);
             event.error(Errors.INVALID_CLIENT);
             throw new CorsErrorResponseException(cors, Errors.INVALID_CLIENT, "Wrong client protocol.", Response.Status.BAD_REQUEST);
         }

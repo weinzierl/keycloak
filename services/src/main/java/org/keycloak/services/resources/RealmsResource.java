@@ -25,7 +25,9 @@ import org.keycloak.authorization.AuthorizationService;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.Profile;
 import org.keycloak.common.util.KeycloakUriBuilder;
+import org.keycloak.events.Details;
 import org.keycloak.events.EventBuilder;
+import org.keycloak.events.EventType;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -75,6 +77,29 @@ public class RealmsResource {
 
     @Context
     private HttpRequest request;
+
+    private static EventBuilder event;
+
+
+    private void initEventBuilder(RealmModel realm){
+        if(event == null){
+            event = new EventBuilder(realm, session, clientConnection);
+        }
+    }
+
+    @GET
+    @Path("{realm}/dummy")
+    @Produces(org.keycloak.utils.MediaType.TEXT_PLAIN_UTF_8)
+    public Response getDummy(final @PathParam("realm") String name) {
+        RealmModel realm = init(name);
+        initEventBuilder(realm);
+        event.event(EventType.INTROSPECT_TOKEN_ERROR)
+                .detail(Details.REASON, "dummy")
+                .error("dummy error");
+        return Response.ok("returned ok, but logg").build();
+    }
+
+
 
     public static UriBuilder realmBaseUrl(UriInfo uriInfo) {
         UriBuilder baseUriBuilder = uriInfo.getBaseUriBuilder();

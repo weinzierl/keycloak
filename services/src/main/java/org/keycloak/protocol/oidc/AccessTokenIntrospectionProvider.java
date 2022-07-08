@@ -247,14 +247,14 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
                         return Response.ok(JsonSerialization.writeValueAsBytes(tokenMetadata)).type(MediaType.APPLICATION_JSON_TYPE).build();
                     }
                     String responseJson = IOUtils.toString(response.getResponse().getEntity().getContent(), Charset.defaultCharset());
-                    tokenRelayCache.put(new Key(token, realm.getName()), responseJson);
+                 //   tokenRelayCache.put(new Key(token, realm.getName()), responseJson);
                     return Response.status(response.getResponse().getStatusLine().getStatusCode()).type(MediaType.APPLICATION_JSON_TYPE).entity(responseJson).build();
                 }
             }
             //if failed to find issuer in IdPs or IntrospectionEndpoint does not exist for specific Idp return false
             logger.warn(issuerIdp != null ? "Remote introspection: problem getting remote Idp with issuer " + issuer + "introspection endpoint" : "Remote introspection: Idp with issuer " + issuer + " does not exist");
             ObjectNode tokenMetadata = JsonSerialization.createObjectNode();
-           // tokenMetadata.put("active", false);
+            tokenMetadata.put("active", false);
             return Response.ok(JsonSerialization.writeValueAsBytes(tokenMetadata)).type(MediaType.APPLICATION_JSON_TYPE).build();
         } catch (Exception e) {
             logger.warn("Error during remote introspection", e);

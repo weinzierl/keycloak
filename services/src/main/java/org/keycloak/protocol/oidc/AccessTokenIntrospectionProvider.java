@@ -40,6 +40,7 @@ import org.keycloak.OAuth2Constants;
 import org.keycloak.broker.oidc.OIDCIdentityProvider;
 import org.keycloak.broker.oidc.OIDCIdentityProviderConfig;
 import org.keycloak.broker.provider.util.SimpleHttp;
+import org.keycloak.common.Profile;
 import org.keycloak.common.VerificationException;
 import org.keycloak.common.util.Time;
 import org.keycloak.connections.httpclient.HttpClientProvider;
@@ -239,6 +240,10 @@ public class AccessTokenIntrospectionProvider implements TokenIntrospectionProvi
                 .filter(mapper -> mapper.getValue() instanceof OIDCIntrospectionMapper)
                 .forEach(mapper -> finalToken.set(((OIDCIntrospectionMapper) mapper.getValue())
                         .transformAccessTokenForIntrospection(finalToken.get(), mapper.getKey(), user)));
+
+        if (Profile.isFeatureEnabled(Profile.Feature.DYNAMIC_SCOPES) && token.getScope() != null && finalToken.get().getOtherClaims() != null) {
+            TokenManager.dynamicScopeFiltering( token.getScope(), ccu.getClientScopesStream(), finalToken);
+        }
         return finalToken.get();
     }
 

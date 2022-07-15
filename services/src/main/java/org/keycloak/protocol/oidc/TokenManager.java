@@ -17,7 +17,9 @@
 
 package org.keycloak.protocol.oidc;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.keycloak.OAuth2Constants;
@@ -93,6 +95,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -665,8 +669,14 @@ public class TokenManager {
 
         Map<String, ClientScopeModel> allOptionalScopes = client.getClientScopes(false);
         // Add optional client scopes requested by scope parameter
-        return Stream.concat(parseScopeParameter(scopeParam).map(allOptionalScopes::get).filter(Objects::nonNull),
-                clientScopes).distinct();
+        if (Profile.isFeatureEnabled(Profile.Feature.DYNAMIC_SCOPES)) {
+            List<String> scopeList = Arrays.asList(scopeParam.split(" "));
+            return Stream.concat(allOptionalScopes.values().stream().filter(sp -> scopeList.contains(sp.getName()) || (sp.isDynamicScope() && scopeList.stream().anyMatch(Pattern.compile(sp.getDynamicScopeRegexp().replace(":*", ":(.*)")).asPredicate()))),
+                    clientScopes).distinct();
+        } else {
+            return Stream.concat(TokenManager.parseScopeParameter(scopeParam).map(allOptionalScopes::get).filter(Objects::nonNull),
+                    clientScopes).distinct();
+        }
     }
 
     /**
@@ -681,9 +691,7 @@ public class TokenManager {
         if (scopes == null) {
             return true;
         }
-        if (authorizationRequestContext.getAuthorizationDetailEntries() == null || authorizationRequestContext.getAuthorizationDetailEntries().isEmpty()) {
-            return false;
-        }
+
         Collection<String> requestedScopes = TokenManager.parseScopeParameter(scopes).collect(Collectors.toSet());
         Set<String> rarScopes = authorizationRequestContext.getAuthorizationDetailEntries()
                 .stream()
@@ -694,6 +702,9 @@ public class TokenManager {
         if (TokenUtil.isOIDCRequest(scopes)) {
             requestedScopes.remove(OAuth2Constants.SCOPE_OPENID);
         }
+        if ((authorizationRequestContext.getAuthorizationDetailEntries() == null || authorizationRequestContext.getAuthorizationDetailEntries().isEmpty()) && requestedScopes.size() >0) {
+            return false;
+        }
 
         if (logger.isTraceEnabled()) {
             logger.tracef("Rar scopes to validate requested scopes against: %1s", String.join(" ", rarScopes));
@@ -703,6 +714,7 @@ public class TokenManager {
         for (String requestedScope : requestedScopes) {
             // We keep the check to the getDynamicClientScope for the OpenshiftSAClientAdapter
             if (!rarScopes.contains(requestedScope) && client.getDynamicClientScope(requestedScope) == null) {
+                logger.warn("Dynamic scopes enabled: Problem validating requested scope: "+requestedScope);
                 return false;
             }
         }
@@ -771,7 +783,36 @@ public class TokenManager {
                 .filter(mapper -> mapper.getValue() instanceof OIDCAccessTokenMapper)
                 .forEach(mapper -> finalToken.set(((OIDCAccessTokenMapper) mapper.getValue())
                         .transformAccessToken(finalToken.get(), mapper.getKey(), session, userSession, clientSessionCtx)));
+        if (Profile.isFeatureEnabled(Profile.Feature.DYNAMIC_SCOPES) && clientSessionCtx.getScopeString() != null && finalToken.get().getOtherClaims() != null) {
+            dynamicScopeFiltering( clientSessionCtx.getScopeString(),clientSessionCtx.getClientScopesStream(), finalToken);
+        }
         return finalToken.get();
+    }
+
+    public static void dynamicScopeFiltering(String scope, Stream<ClientScopeModel> clientScopeStream,AtomicReference<AccessToken> finalToken){
+        //filtering based on dynamic scopes
+        List<String> scopeList = new ArrayList<>(Arrays.asList(scope.split(" ")));
+        clientScopeStream.filter(cs -> Boolean.valueOf(cs.getAttribute(ClientScopeModel.IS_DYNAMIC_SCOPE))).forEach(cs -> {
+            //we could have multiple time this dynamic scope requested with different values
+            //for multiple times requested this dynamic scope,  returned claim values consist all the requested values - if they exist
+            //if a value is not containing in final value parameter -> remove this scope
+            if (finalToken.get().getOtherClaims().containsKey(cs.getName())) {
+                Object value = finalToken.get().getOtherClaims().get(cs.getName());
+                List<String> requestedValues = scopeList.stream().filter(x -> x.contains(cs.getName()+":")).map(x -> x.replace(cs.getName()+":","")).collect(Collectors.toList());
+                if (requestedValues.size() >0 && value instanceof List<?>) {
+                    //filter with all possible values
+                    List<?> list = ((ArrayList<?>) value).stream().filter(x -> requestedValues.contains(x.toString())).collect(Collectors.toList());
+                    if (list.isEmpty()) {
+                        finalToken.get().getOtherClaims().remove(cs.getName());
+                    } else {
+                        finalToken.get().getOtherClaims().put(cs.getName(), list);
+                    }
+                } else  if (requestedValues.size() >0 ) {
+                    if (!requestedValues.contains(value.toString()))
+                        finalToken.get().getOtherClaims().remove(cs.getName());
+                }
+            }
+        });
     }
 
     public AccessTokenResponse transformAccessTokenResponse(KeycloakSession session, AccessTokenResponse accessTokenResponse,
@@ -782,7 +823,6 @@ public class TokenManager {
                 .filter(mapper -> mapper.getValue() instanceof OIDCAccessTokenResponseMapper)
                 .forEach(mapper -> finalResponseToken.set(((OIDCAccessTokenResponseMapper) mapper.getValue())
                         .transformAccessTokenResponse(finalResponseToken.get(), mapper.getKey(), session, userSession, clientSessionCtx)));
-
         return finalResponseToken.get();
     }
 
@@ -794,6 +834,9 @@ public class TokenManager {
                 .filter(mapper -> mapper.getValue() instanceof UserInfoTokenMapper)
                 .forEach(mapper -> finalToken.set(((UserInfoTokenMapper) mapper.getValue())
                         .transformUserInfoToken(finalToken.get(), mapper.getKey(), session, userSession, clientSessionCtx)));
+        if (Profile.isFeatureEnabled(Profile.Feature.DYNAMIC_SCOPES) && clientSessionCtx.getScopeString() != null && finalToken.get().getOtherClaims() != null) {
+            dynamicScopeFiltering( clientSessionCtx.getScopeString(),clientSessionCtx.getClientScopesStream(), finalToken);
+        }
         return finalToken.get();
     }
 

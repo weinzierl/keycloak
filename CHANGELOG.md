@@ -15,10 +15,11 @@ Our Keycloak version is working well with PostgreSQL database. For using other S
 ### Added
 - Extra logs for failed introspection
 - Added INTROSPCETION ERROR events with a short description to let admin know of any token introspection failures.
-- Fixed a cache serialization issue and re-enabled cache for external token introspection requests. 
 
 ### Fixed
 - Correct including claim in token introspection response only [RCIAM-1054](https://jira.argo.grnet.gr/browse/RCIAM-1054)
+- Fixed a cache serialization issue and re-enabled cache for external token introspection requests.
+- Fixed a ftl templating bug in Error pages [RCIAM-1049](https://jira.argo.grnet.gr/browse/RCIAM-1049)
 
 ### Changed
 - Showing consent screen text instead of scope name in consent part of Application page in Account console [RCIAM-1057](https://jira.argo.grnet.gr/browse/RCIAM-1057)

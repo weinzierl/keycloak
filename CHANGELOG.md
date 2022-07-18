@@ -20,6 +20,9 @@ Our Keycloak version is working well with PostgreSQL database. For using other S
 ### Fixed
 - Correct including claim in token introspection response only [RCIAM-1054](https://jira.argo.grnet.gr/browse/RCIAM-1054)
 
+### Changed
+- Showing consent screen text instead of scope name in consent part of Application page in Account console [RCIAM-1057](https://jira.argo.grnet.gr/browse/RCIAM-1057)
+
 ## [16.1.0-2.9] - 2022-07-05
 ### Changed
 - Disabled the cache for external token introspection requests.

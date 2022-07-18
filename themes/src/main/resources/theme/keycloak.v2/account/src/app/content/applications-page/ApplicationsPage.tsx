@@ -199,7 +199,7 @@ export class ApplicationsPage extends React.Component<ApplicationsPageProps, App
                           {application.consent.grantedScopes.map((scope: GrantedScope, scopeIndex: number) => {
                             return (
                               <React.Fragment key={'scope-' + scopeIndex} >
-                                <GridItem offset={1}><CheckIcon /> {scope.name}</GridItem>
+                                <GridItem offset={1}><CheckIcon /> {Msg.localize(scope.name)}</GridItem>
                               </React.Fragment>
                             )
                           })}

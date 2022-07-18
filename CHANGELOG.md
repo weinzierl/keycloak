@@ -21,6 +21,9 @@ Our Keycloak version is working well with PostgreSQL database. For using other S
 - Continue client browser flow after User login from Identity Provider [RCIAM-1038](https://jira.argo.grnet.gr/browse/RCIAM-1038)
 - Dynamic scopes( default enabled): bug corrections, filtering and consent [RCIAM-848](https://jira.argo.grnet.gr/browse/RCIAM-848)
 
+### Changed
+- Showing consent screen text instead of scope name in consent part of Application page in Account console [RCIAM-1057](https://jira.argo.grnet.gr/browse/RCIAM-1057)
+
 ## [18.0.1-1.0] - 2022-07-04
 
 ### Added

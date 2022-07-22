@@ -255,6 +255,11 @@ public interface RealmModel extends RoleContainerModel {
 
     void setClaimsSupported(List<String> claimsSupported);
 
+    String getDefaultAudValueForAccessToken();
+
+    void setDefaultAudValueForAccessToken(String defaultAudValueForAccessToken);
+
+
     OAuth2DeviceConfig getOAuth2DeviceConfig();
 
     CibaConfig getCibaPolicy();

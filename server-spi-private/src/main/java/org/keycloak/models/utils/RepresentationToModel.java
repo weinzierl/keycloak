@@ -266,6 +266,7 @@ public class RepresentationToModel {
         if (rep.getActionTokenGeneratedByUserLifespan() != null)
             newRealm.setActionTokenGeneratedByUserLifespan(rep.getActionTokenGeneratedByUserLifespan());
         else newRealm.setActionTokenGeneratedByUserLifespan(newRealm.getAccessCodeLifespanUserAction());
+        newRealm.setDefaultAudValueForAccessToken(rep.getDefaultAudValueForAccessToken());
 
         if (rep.getClaimsSupported() != null && !rep.getClaimsSupported().isEmpty()) newRealm.setClaimsSupported(rep.getClaimsSupported());
 
@@ -1159,6 +1160,7 @@ public class RepresentationToModel {
             realm.setActionTokenGeneratedByAdminLifespan(rep.getActionTokenGeneratedByAdminLifespan());
         if (rep.getActionTokenGeneratedByUserLifespan() != null)
             realm.setActionTokenGeneratedByUserLifespan(rep.getActionTokenGeneratedByUserLifespan());
+        realm.setDefaultAudValueForAccessToken(rep.getDefaultAudValueForAccessToken());
 
         OAuth2DeviceConfig deviceConfig = realm.getOAuth2DeviceConfig();
 

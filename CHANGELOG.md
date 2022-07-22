@@ -14,6 +14,7 @@ Our Keycloak version is working well with PostgreSQL database. For using other S
 
 ### Added
 - Extra logs for failed introspection
+- Resource request parameter and audience in access token [RCIAM-1061](https://jira.argo.grnet.gr/browse/RCIAM-1061)
 
 ### Fixed
 - Correct including claim in token introspection response only [RCIAM-1054](https://jira.argo.grnet.gr/browse/RCIAM-1054)

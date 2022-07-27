@@ -22,14 +22,12 @@ import org.keycloak.common.Version;
 import org.keycloak.encoding.ResourceEncodingHelper;
 import org.keycloak.encoding.ResourceEncodingProvider;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.customcache.CustomCacheProvider;
+import org.keycloak.models.customcache.CustomCacheProviderFactory;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.utils.MediaType;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -48,6 +46,45 @@ public class JsResource {
 
     @Context
     private HttpRequest request;
+
+
+    private static CustomCacheProvider tokenRelayCache;
+
+
+    @GET
+    @Path("/cache-put/{key}")
+    @Produces(javax.ws.rs.core.MediaType.TEXT_PLAIN)
+    public String cachePut(final @PathParam("key") String key) {
+        tokenRelayCache.put(key, key+"-value");
+        return "Added "+key;
+    }
+
+    @GET
+    @Path("/cache-get/{key}")
+    @Produces(javax.ws.rs.core.MediaType.TEXT_PLAIN)
+    public String cacheGet(final @PathParam("key") String key) {
+        String retrieved = (String)tokenRelayCache.get(key);
+        return "Got "+retrieved+" from cache";
+    }
+
+
+    @GET
+    @Path("/cache-new/{force}")
+    @Produces(javax.ws.rs.core.MediaType.TEXT_PLAIN)
+    public String cacheNew(final @PathParam("force") String force) {
+        if("false".equals(force)) {
+            if (tokenRelayCache != null)
+                return "Already initiated";
+        }
+        CustomCacheProviderFactory factory = (CustomCacheProviderFactory)session.getKeycloakSessionFactory().getProviderFactory(CustomCacheProvider.class, "token-relay-cache");
+        if(factory == null)
+            throw new NotFoundException("Could not initate TokenRelayCacheProvider. Was not found");
+        tokenRelayCache = factory.create(session);
+        return "Re-initiated";
+    }
+
+
+
 
     /**
      * Get keycloak.js file for javascript clients

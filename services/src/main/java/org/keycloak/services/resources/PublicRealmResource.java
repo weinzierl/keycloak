@@ -23,14 +23,13 @@ import org.jboss.resteasy.spi.HttpResponse;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.customcache.CustomCacheProvider;
+import org.keycloak.models.customcache.CustomCacheProviderFactory;
 import org.keycloak.protocol.oidc.OIDCLoginProtocolService;
 import org.keycloak.representations.idm.PublishedRealmRepresentation;
 import org.keycloak.services.resources.account.AccountFormService;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -59,6 +58,7 @@ public class PublicRealmResource {
     public PublicRealmResource(RealmModel realm) {
         this.realm = realm;
     }
+
 
     /**
      * CORS preflight

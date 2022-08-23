@@ -42,7 +42,7 @@
         <jboss.snapshots.repo.url>https://s01.oss.sonatype.org/content/repositories/snapshots/</jboss.snapshots.repo.url>
 
         <quarkus.version>2.7.5.Final</quarkus.version>
-        <eosc-kc.version>${project.version}-2.0rc2</eosc-kc.version>
+        <eosc-kc.version>${project.version}-2.0rc3</eosc-kc.version>
 
         <!--
         Performing a Wildfly upgrade? Run the:
